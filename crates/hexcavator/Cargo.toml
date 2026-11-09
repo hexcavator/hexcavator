@@ -1,0 +1,16 @@
+[package]
+name = "hexcavator"
+description = "Binary analysis toolkit for PE, ELF, Mach-O, and WebAssembly"
+readme = "README.md"
+keywords = ["binary", "pe", "elf", "mach-o", "wasm"]
+categories = ["development-tools"]
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+
+[lints]
+workspace = true
