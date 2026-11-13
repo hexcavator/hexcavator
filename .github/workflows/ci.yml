@@ -18,7 +18,8 @@ jobs:
         os:
           - windows-latest      # x64
           - windows-11-arm      # arm64
-          - ubuntu-latest       # x64; one Unix host is enough for now
+          - ubuntu-latest       # x64
+          - macos-15            # arm64 (Apple silicon)
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
@@ -79,7 +80,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-15]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
