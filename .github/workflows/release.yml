@@ -85,6 +85,8 @@ jobs:
             echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
           fi
       - run: rustup toolchain install stable --profile minimal
+      # Every platform's dependencies: the licenses test lists them all.
+      - run: cargo fetch
       - run: cargo xtask test
       - name: Build
         shell: bash
