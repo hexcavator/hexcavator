@@ -203,5 +203,15 @@ fn a_range_list_many_functions_name_is_bounded() {
     });
     assert!(symbols >= functions as u64, "{symbols}");
     assert!(symbols <= budget + functions as u64, "{symbols}");
-    assert!(start.elapsed().as_secs() < 30, "{:?}", start.elapsed());
+    // (About 2 s natively. Under emulation, as CI's big-endian job runs
+    // it, the job says how much slower it is.)
+    let slowdown: u64 = std::env::var("HEXC_TEST_SLOWDOWN")
+        .ok()
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(1);
+    assert!(
+        start.elapsed().as_secs() < 30 * slowdown,
+        "{:?}",
+        start.elapsed()
+    );
 }
