@@ -372,8 +372,12 @@ jobs:
 
   # A draft release with everything, its checksums, and (once the
   # repository is public) build provenance attestations.
+  #
+  # (Its `if` names package's result: the implied success() would skip
+  # this job whenever any job before it was skipped, as a signing job is
+  # when its platform isn't released.)
   release:
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: ${{ !cancelled() && needs.package.result == 'success' && startsWith(github.ref, 'refs/tags/v') }}
     needs: package
     runs-on: ubuntu-latest
     permissions:
@@ -402,7 +406,8 @@ jobs:
   # publishing policy for this repository and workflow on the publisher
   # first, and give the marketplace environment a required reviewer.
   publish-marketplace:
-    if: startsWith(github.ref, 'refs/tags/v')
+    # (Names release's result, for the reason release names package's.)
+    if: ${{ !cancelled() && needs.release.result == 'success' && startsWith(github.ref, 'refs/tags/v') }}
     needs: release
     runs-on: ubuntu-latest
     environment: marketplace
