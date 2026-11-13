@@ -127,7 +127,7 @@ jobs:
             exit 1
           fi
           "out/bin/hexc${{ matrix.exe }}" version
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: hexc-${{ matrix.vscode }}
           path: out/
@@ -189,12 +189,12 @@ jobs:
           exclude-interactive-browser-credential: true
       # hexc checks its own signatures (and fails unless both verify).
       - run: x64\bin\hexc.exe signature x64\bin\hexc.exe arm64\bin\hexc.exe
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: hexc-win32-x64
           path: x64/
           overwrite: true
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: hexc-win32-arm64
           path: arm64/
@@ -298,7 +298,7 @@ jobs:
         run: |
           if [[ -n "${KEYCHAIN:-}" ]]; then security delete-keychain "$KEYCHAIN" || true; fi
           rm -f "$RUNNER_TEMP/id.p12" "$RUNNER_TEMP/AuthKey.p8"
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: hexc-darwin-arm64
           path: arm64/
@@ -364,7 +364,7 @@ jobs:
             tar -czf "dist/$base-symbols.tar.gz" "$base-symbols"
           fi
           ls -l dist
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: dist-${{ matrix.name }}
           path: dist/
