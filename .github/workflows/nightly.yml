@@ -1,8 +1,9 @@
 name: Nightly
 
-# The long checks: every ARM64 word, and an hour of guided fuzzing. (The
-# comparisons with outside tools, dumpbin and the rest, are the extended
-# tests, in hexcavator-private, which runs them nightly itself.)
+# The long checks: every ARM64 word, the tests on a big-endian target
+# (under QEMU), and an hour of guided fuzzing. (The comparisons with
+# outside tools, dumpbin and the rest, are the extended tests, in
+# hexcavator-private, which runs them nightly itself.)
 
 on:
   schedule:
@@ -19,6 +20,29 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       # (Quoted: a plain YAML value can't end in a colon.)
       - run: "cargo test --release -p hexcavator-arm64 --test it -- --ignored --nocapture exhaustive::"
+
+  # Every supported host is little-endian, so run the tests on a big-endian
+  # target under QEMU to catch accidental native-endian reads.
+  big-endian:
+    runs-on: ubuntu-latest
+    env:
+      CARGO_TARGET_S390X_UNKNOWN_LINUX_GNU_LINKER: s390x-linux-gnu-gcc
+      CARGO_TARGET_S390X_UNKNOWN_LINUX_GNU_RUNNER: qemu-s390x
+      # Where QEMU finds s390x's loader and libraries, for every s390x
+      # program: the tests, and the hexc they start (which the kernel hands
+      # to QEMU itself, without the runner's options).
+      QEMU_LD_PREFIX: /usr/s390x-linux-gnu
+      # How much slower QEMU runs them, for the tests with time limits
+      # (about 18 times, measured).
+      HEXC_TEST_SLOWDOWN: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - run: sudo apt-get update && sudo apt-get install -y gcc-s390x-linux-gnu libc6-dev-s390x-cross qemu-user
+      - run: rustup target add s390x-unknown-linux-gnu
+      # Every platform's dependencies, not only s390x's: the licenses test
+      # lists them all (cargo metadata --offline).
+      - run: cargo fetch
+      - run: cargo test --target s390x-unknown-linux-gnu
 
   fuzz:
     # (Coverage from LLVM's profiling counters; proven on Windows.)
