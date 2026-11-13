@@ -108,12 +108,24 @@ jobs:
           cp "target/release/hexc${{ matrix.exe }}" out/bin/
           case "$RUNNER_OS" in
             Windows) cp target/release/hexc.pdb out/symbols/ ;;
-            macOS) cp -R target/release/hexc.dSYM out/symbols/ ;;
+            # (-L: cargo's target/release/hexc.dSYM is a symlink into
+            # deps/, which copied as itself would point nowhere.)
+            macOS) cp -RL target/release/hexc.dSYM out/symbols/ ;;
             Linux)
               objcopy --only-keep-debug out/bin/hexc out/symbols/hexc.debug
               objcopy --strip-debug --add-gnu-debuglink=out/symbols/hexc.debug out/bin/hexc
               ;;
           esac
+          # The symbols are there, as files, not links.
+          case "$RUNNER_OS" in
+            Windows) symbols=out/symbols/hexc.pdb ;;
+            macOS) symbols=out/symbols/hexc.dSYM/Contents/Resources/DWARF/hexc ;;
+            Linux) symbols=out/symbols/hexc.debug ;;
+          esac
+          if [[ ! -f "$symbols" || -L "$symbols" ]]; then
+            echo "::error::no symbols at $symbols"
+            exit 1
+          fi
           "out/bin/hexc${{ matrix.exe }}" version
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
