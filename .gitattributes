@@ -1,0 +1,5 @@
+# cmd.exe misreads labels and calls in batch files with LF line ends.
+*.cmd text eol=crlf
+*.bat text eol=crlf
+# Compared byte for byte (the xz streams hold text.txt as it is).
+testdata/xz/* -text

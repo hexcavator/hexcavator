@@ -1,0 +1,18 @@
+[package]
+name = "hexcavator-etl"
+description = "Reader for Windows event trace log (ETL) files"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+hexcavator-core.workspace = true
+
+[dev-dependencies]
+hexcavator-mmap.workspace = true
+
+[lints]
+workspace = true

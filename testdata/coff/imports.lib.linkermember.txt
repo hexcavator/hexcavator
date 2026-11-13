@@ -1,0 +1,47 @@
+
+Dump of file imports.lib
+
+File Type: LIBRARY
+
+Archive member name at 136: /               
+FFFFFFFFFFFFFFFF time/date
+         uid
+         gid
+       0 mode
+      FD size
+correct header end
+
+    8 offsets
+
+        1      270
+        2      49A
+        3      5D0
+        4      72A
+        5      78E
+        6      8BA
+        7      7F4
+        8      856
+
+    12 public symbols
+
+        4 ByName
+        5 ByOrdinal
+        8 Renamed
+        6 _Decorated@8
+        1 __IMPORT_DESCRIPTOR_example
+        2 __NULL_IMPORT_DESCRIPTOR
+        4 __imp_ByName
+        5 __imp_ByOrdinal
+        7 __imp_Data
+        8 __imp_Renamed
+        6 __imp__Decorated@8
+        3 example_NULL_THUNK_DATA
+
+  Summary
+
+          C3 .debug$S
+          14 .idata$2
+          14 .idata$3
+           8 .idata$4
+           8 .idata$5
+           C .idata$6

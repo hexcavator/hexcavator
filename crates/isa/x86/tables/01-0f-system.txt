@@ -1,0 +1,302 @@
+# Two-byte opcode map (0F xx): general-purpose and system instructions.
+# SIMD instructions in this map are in the sse/mmx files.
+
+0F 00 /0 : sldt Ev:w
+0F 00 /1 : str Ev:w
+0F 00 /2 : lldt Ew
+0F 00 /3 : ltr Ew
+0F 00 /4 : verr Ew
+0F 00 /5 : verw Ew
+0F 00 /6 NP : jmpe Ev
+0F 00 /6 F2 : lkgs Ew
+
+0F 01 /0 mem o64 : sgdt Mt
+0F 01 /0 mem i64 : sgdt Mf
+0F 01 /1 mem o64 : sidt Mt
+0F 01 /1 mem i64 : sidt Mf
+0F 01 /2 mem o64 : lgdt Mt
+0F 01 /2 mem i64 : lgdt Mf
+0F 01 /3 mem o64 : lidt Mt
+0F 01 /3 mem i64 : lidt Mf
+0F 01 /4 : smsw Ev:w
+0F 01 /6 : lmsw Ew
+0F 01 /5 mem F3 : rstorssp Mq
+0F 01 /7 mem : invlpg M
+0F 01 !C0 : enclv
+0F 01 !C1 : vmcall
+0F 01 !C2 : vmlaunch
+0F 01 !C3 : vmresume
+0F 01 !C4 : vmxoff
+0F 01 !C5 : pconfig
+0F 01 !C6 NP : wrmsrns
+0F 01 !C6 F2 : rdmsrlist
+0F 01 !C6 F3 : wrmsrlist
+0F 01 !C7 : pbndkb
+0F 01 !C8 : monitor aAX,rCX,rDX ; f64 noos16
+0F 01 !C9 : mwait aAX,rCX ; f64 noos16
+0F 01 !CA NP : clac
+0F 01 !CA F2 : erets
+0F 01 !CA F3 : eretu
+0F 01 !CB NP : stac
+0F 01 !CF NP : encls
+0F 01 !CC 66 : tdcall
+0F 01 !CD 66 : seamret
+0F 01 !CE 66 : seamops
+0F 01 !CF 66 : seamcall
+0F 01 !D0 : xgetbv
+0F 01 !D1 : xsetbv
+0F 01 !D4 : vmfunc
+0F 01 !D5 : xend
+0F 01 !D6 : xtest
+0F 01 !D7 : enclu
+0F 01 !D8 : vmrun aAX
+0F 01 !D9 NP : vmmcall
+0F 01 !D9 F2 : vmgexit
+0F 01 !D9 F3 : vmgexit
+0F 01 !DA : vmload aAX
+0F 01 !DB : vmsave aAX
+0F 01 !DC : stgi
+0F 01 !DD : clgi
+0F 01 !DE : skinit eax
+0F 01 !DF : invlpga aAX,ecx
+0F 01 !E8 NP : serialize
+0F 01 !E8 F3 : setssbsy
+0F 01 !E8 F2 : xsusldtrk
+0F 01 !E9 F2 : xresldtrk
+0F 01 !EA F3 : saveprevssp
+0F 01 !EE NP : rdpkru
+0F 01 !EC F3 : uiret
+0F 01 !ED F3 : testui
+0F 01 !EE F3 : clui
+0F 01 !EF F3 : stui
+0F 01 !EF NP : wrpkru
+0F 01 !F8 o64 : swapgs
+0F 01 !F9 : rdtscp
+0F 01 !FA : monitorx aAX,rCX,rDX ; f64 noos16
+0F 01 !FB : mwaitx aAX,rCX,rBX ; f64 noos16
+0F 01 !FC : clzero
+0F 01 !FD NP : rdpru
+0F 01 !FD F2 : rmpread aAX,ecx
+0F 01 !FD F3 : rmpquery aAX,aCX,aDX
+0F 01 !FE NP : invlpgb aAX,ecx
+0F 01 !FE F2 : rmpupdate aAX,aCX,aDX
+0F 01 !FE F3 : rmpadjust aAX,aCX,aDX
+0F 01 !FF NP : tlbsync
+0F 01 !FF F2 : pvalidate aAX,aCX,aDX
+0F 01 !FF F3 : psmash aAX
+
+0F 02 /r : lar Gv,Ev:w
+0F 03 /r : lsl Gv,Ev:w
+0F 05 : syscall
+0F 06 : clts
+0F 07 os32 : sysret
+0F 07 os16 : sysret
+0F 07 os64 : sysretq
+0F 08 : invd
+0F 09 NP : wbinvd
+0F 09 F3 : wbnoinvd
+0F 0B : ud2
+0F 0D /0 mem : prefetch M
+0F 0D /1 mem : prefetchw M
+0F 0D /2 mem : prefetchwt1 M
+0F 0E : femms
+
+0F 18 /0 mem : prefetchnta M
+0F 18 /1 mem : prefetcht0 M
+0F 18 /2 mem : prefetcht1 M
+0F 18 /3 mem : prefetcht2 M
+0F 18 /4 mem : prefetchrst2 M
+0F 18 /6 mem : prefetchit1 M
+0F 18 /7 mem : prefetchit0 M
+0F 18 /r : nop Ev
+0F 19 /r : nop Ev
+0F 1A NP mem o64 : bndldx BNDG,Mq
+0F 1A NP mem i64 : bndldx BNDG,Md
+0F 1A F3 /r : bndcl BNDG,Ev ; f64 noos16
+0F 1A F2 /r : bndcu BNDG,Ev ; f64 noos16
+0F 1A 66 /r o64 : bndmov BNDG,BNDE:o
+0F 1A 66 /r i64 : bndmov BNDG,BNDE:q
+0F 1A /r : nop Ev
+0F 1B NP mem o64 : bndstx Mq,BNDG
+0F 1B NP mem i64 : bndstx Md,BNDG
+0F 1B F3 mem : bndmk BNDG,Mv ; f64 noos16
+0F 1B F2 /r : bndcn BNDG,Ev ; f64 noos16
+0F 1B 66 /r o64 : bndmov BNDE:o,BNDG
+0F 1B 66 /r i64 : bndmov BNDE:q,BNDG
+0F 1B /r : nop Ev
+0F 1C /0 mem NP : cldemote M
+0F 1C /r : nop Ev
+0F 1D /r : nop Ev
+0F 1E !FA F3 : endbr64
+0F 1E !FB F3 : endbr32
+0F 1E /1 reg F3 W0 : rdsspd Rd
+0F 1E /1 reg F3 W1 : rdsspq Rq
+0F 1E /r : nop Ev
+0F 1F /r : nop Ev
+
+0F 20 reg : mov Rv,Cd ; f64 noos16
+0F 21 reg : mov Rv,Dd ; f64 noos16
+0F 22 reg : mov Cd,Rv ; f64 noos16
+0F 23 reg : mov Dd,Rv ; f64 noos16
+0F 24 reg : mov Rv,Td ; f64 noos16
+0F 26 reg : mov Td,Rv ; f64 noos16
+
+0F 30 : wrmsr
+0F 31 : rdtsc
+0F 32 : rdmsr
+0F 33 : rdpmc
+0F 34 : sysenter
+0F 35 : sysexit
+0F 37 : getsec
+
+0F 40 /r : cmovo Gv,Ev
+0F 41 /r : cmovno Gv,Ev
+0F 42 /r : cmovb Gv,Ev
+0F 43 /r : cmovae Gv,Ev
+0F 44 /r : cmove Gv,Ev
+0F 45 /r : cmovne Gv,Ev
+0F 46 /r : cmovbe Gv,Ev
+0F 47 /r : cmova Gv,Ev
+0F 48 /r : cmovs Gv,Ev
+0F 49 /r : cmovns Gv,Ev
+0F 4A /r : cmovp Gv,Ev
+0F 4B /r : cmovnp Gv,Ev
+0F 4C /r : cmovl Gv,Ev
+0F 4D /r : cmovge Gv,Ev
+0F 4E /r : cmovle Gv,Ev
+0F 4F /r : cmovg Gv,Ev
+
+0F 80 : jo Jz ; f64 bnd
+0F 81 : jno Jz ; f64 bnd
+0F 82 : jb Jz ; f64 bnd
+0F 83 : jae Jz ; f64 bnd
+0F 84 : je Jz ; f64 bnd
+0F 85 : jne Jz ; f64 bnd
+0F 86 : jbe Jz ; f64 bnd
+0F 87 : ja Jz ; f64 bnd
+0F 88 : js Jz ; f64 bnd
+0F 89 : jns Jz ; f64 bnd
+0F 8A : jp Jz ; f64 bnd
+0F 8B : jnp Jz ; f64 bnd
+0F 8C : jl Jz ; f64 bnd
+0F 8D : jge Jz ; f64 bnd
+0F 8E : jle Jz ; f64 bnd
+0F 8F : jg Jz ; f64 bnd
+
+0F 90 /r : seto Eb
+0F 91 /r : setno Eb
+0F 92 /r : setb Eb
+0F 93 /r : setae Eb
+0F 94 /r : sete Eb
+0F 95 /r : setne Eb
+0F 96 /r : setbe Eb
+0F 97 /r : seta Eb
+0F 98 /r : sets Eb
+0F 99 /r : setns Eb
+0F 9A /r : setp Eb
+0F 9B /r : setnp Eb
+0F 9C /r : setl Eb
+0F 9D /r : setge Eb
+0F 9E /r : setle Eb
+0F 9F /r : setg Eb
+
+0F A0 : push fs ; d64
+0F A1 : pop fs ; d64
+0F A2 : cpuid
+0F A3 /r : bt Ev,Gv ; hle
+0F A4 /r : shld Ev,Gv,Ib
+0F A5 /r : shld Ev,Gv,cl
+0F A8 : push gs ; d64
+0F A9 : pop gs ; d64
+0F AA : rsm
+0F AB /r : bts Ev,Gv ; lock hle
+0F AC /r : shrd Ev,Gv,Ib
+0F AD /r : shrd Ev,Gv,cl
+0F A6 /r : xbts Gv,Ev
+0F A7 /r : ibts Ev,Gv
+
+0F AE /0 mem NP W0 : fxsave M
+0F AE /0 mem NP W1 : fxsave64 M
+0F AE /1 mem NP W0 : fxrstor M
+0F AE /1 mem NP W1 : fxrstor64 M
+0F AE /2 mem NP : ldmxcsr Md
+0F AE /3 mem NP : stmxcsr Md
+0F AE /4 mem NP W0 : xsave M
+0F AE /4 mem NP W1 : xsave64 M
+0F AE /5 mem NP W0 : xrstor M
+0F AE /5 mem NP W1 : xrstor64 M
+0F AE /6 mem NP W0 : xsaveopt M
+0F AE /6 mem NP W1 : xsaveopt64 M
+0F AE /7 mem NP : clflush M
+0F AE /6 mem 66 : clwb M
+0F AE /6 mem F3 : clrssbsy Mq
+0F AE /7 mem 66 : clflushopt M
+0F AE /4 F3 : ptwrite Ey
+0F AE /0 reg F3 o64 : rdfsbase Ry
+0F AE /1 reg F3 o64 : rdgsbase Ry
+0F AE /2 reg F3 o64 : wrfsbase Ry
+0F AE /3 reg F3 o64 : wrgsbase Ry
+0F AE /5 reg F3 W0 : incsspd Rd
+0F AE /5 reg F3 W1 : incsspq Rq
+0F AE /6 reg F3 : umonitor Ra
+0F AE /6 reg F2 : umwait Rd
+0F AE /6 reg 66 : tpause Rd
+0F AE /5 reg NP : lfence
+0F AE /6 reg NP : mfence
+0F AE !F8 NP : sfence
+0F AE !F9 : sfence
+0F AE !FA : sfence
+0F AE !FB : sfence
+0F AE !FC : sfence
+0F AE !FD : sfence
+0F AE !FE : sfence
+0F AE !FF : sfence
+0F AE !F8 66 : pcommit
+
+0F AF /r : imul Gv,Ev
+0F B0 /r : cmpxchg Eb,Gb ; lock hle
+0F B1 /r : cmpxchg Ev,Gv ; lock hle
+0F B2 mem : lss Gv,Mp
+0F B3 /r : btr Ev,Gv ; lock hle
+0F B4 mem : lfs Gv,Mp
+0F B5 mem : lgs Gv,Mp
+0F B6 /r : movzx Gv,Eb
+0F B7 /r : movzx Gv,Ew
+0F B8 F3 /r : popcnt Gv,Ev
+0F B8 NP : jmpe Jz
+0F BA /4 : bt Ev,Ib ; hle
+0F BA /5 : bts Ev,Ib ; lock hle
+0F BA /6 : btr Ev,Ib ; lock hle
+0F BA /7 : btc Ev,Ib ; lock hle
+0F BB /r : btc Ev,Gv ; lock hle
+0F BC NP /r : bsf Gv,Ev
+0F BC 66 /r : bsf Gv,Ev ; os66
+0F BC F3 /r : tzcnt Gv,Ev
+0F BD NP /r : bsr Gv,Ev
+0F BD 66 /r : bsr Gv,Ev ; os66
+0F BD F3 /r : lzcnt Gv,Ev
+0F BE /r : movsx Gv,Eb
+0F BF /r : movsx Gv,Ew
+0F C0 /r : xadd Eb,Gb ; lock hle
+0F C1 /r : xadd Ev,Gv ; lock hle
+0F C3 mem NP : movnti My,Gy
+
+0F C7 /1 mem W0 : cmpxchg8b Mq ; lock hle
+0F C7 /1 mem W1 : cmpxchg16b Mo ; lock
+0F C7 /3 mem W0 : xrstors M
+0F C7 /3 mem W1 : xrstors64 M
+0F C7 /4 mem W0 : xsavec M
+0F C7 /4 mem W1 : xsavec64 M
+0F C7 /5 mem W0 : xsaves M
+0F C7 /5 mem W1 : xsaves64 M
+0F C7 /6 mem NP : vmptrld Mq
+0F C7 /6 mem 66 : vmclear Mq
+0F C7 /6 mem F3 : vmxon Mq
+0F C7 /7 mem NP : vmptrst Mq
+0F C7 /6 reg NP : rdrand Rv
+0F C7 /6 reg 66 : rdrand Rv ; os66
+0F C7 /7 reg NP : rdseed Rv
+0F C7 /7 reg 66 : rdseed Rv ; os66
+0F C7 /7 reg F3 : rdpid Rv ; f64 noos16
+0F C7 /6 reg F3 : senduipi Rq
+0F C8+r : bswap Zv

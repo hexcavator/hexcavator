@@ -1,0 +1,72 @@
+
+File: unwind-i386-linux-gnu.o
+Format: elf32-i386
+Arch: i386
+AddressSize: 32bit
+LoadName: <Not found>
+Relocations [
+  Section (3) .rel.text {
+    0x1B R_386_GOTPC _GLOBAL_OFFSET_TABLE_
+    0x21 R_386_GOTOFF .bss
+    0x33 R_386_GOTOFF message
+    0x9C R_386_GOTPC _GLOBAL_OFFSET_TABLE_
+    0xA2 R_386_GOTOFF counter
+    0xAA R_386_PC32 compute
+    0xB0 R_386_GOTOFF buffer
+    0xB5 R_386_PC32 optional_hook
+    0xBC R_386_TLS_LE per_thread
+    0xC2 R_386_GOTOFF .bss
+  }
+  Section (11) .rel.debug_info {
+    0x8 R_386_32 .debug_abbrev
+    0x11 R_386_32 .debug_str_offsets
+    0x15 R_386_32 .debug_line
+    0x1F R_386_32 .debug_addr
+    0x23 R_386_32 .debug_loclists
+    0xBF R_386_TLS_LDO_32 per_thread
+  }
+  Section (13) .rel.debug_str_offsets {
+    0x8 R_386_32 .debug_str
+    0xC R_386_32 .debug_str
+    0x10 R_386_32 .debug_str
+    0x14 R_386_32 .debug_str
+    0x18 R_386_32 .debug_str
+    0x1C R_386_32 .debug_str
+    0x20 R_386_32 .debug_str
+    0x24 R_386_32 .debug_str
+    0x28 R_386_32 .debug_str
+    0x2C R_386_32 .debug_str
+    0x30 R_386_32 .debug_str
+    0x34 R_386_32 .debug_str
+    0x38 R_386_32 .debug_str
+    0x3C R_386_32 .debug_str
+    0x40 R_386_32 .debug_str
+    0x44 R_386_32 .debug_str
+    0x48 R_386_32 .debug_str
+    0x4C R_386_32 .debug_str
+    0x50 R_386_32 .debug_str
+  }
+  Section (16) .rel.debug_addr {
+    0x8 R_386_32 .text
+    0xC R_386_32 .text
+    0x10 R_386_32 .text
+    0x14 R_386_32 .text
+    0x18 R_386_32 .text
+    0x1C R_386_32 .text
+    0x20 R_386_32 .text
+    0x24 R_386_32 counter
+    0x28 R_386_32 .bss
+    0x2C R_386_32 buffer
+    0x30 R_386_32 .rodata.str1.1
+  }
+  Section (19) .rel.eh_frame {
+    0x20 R_386_PC32 .text
+    0x60 R_386_PC32 .text
+    0x74 R_386_PC32 .text
+  }
+  Section (21) .rel.debug_line {
+    0x22 R_386_32 .debug_line_str
+    0x2E R_386_32 .debug_line_str
+    0x48 R_386_32 .text
+  }
+]

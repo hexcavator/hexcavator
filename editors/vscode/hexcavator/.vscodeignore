@@ -1,0 +1,8 @@
+# What the VSIX leaves out: the tests and their harness. (bin/, LICENSE,
+# NOTICE, and THIRD_PARTY_NOTICES.txt are put here by the release
+# workflow, and go in.)
+test/**
+**/__pycache__/**
+**/*.py
+.vscode/**
+*.vsix

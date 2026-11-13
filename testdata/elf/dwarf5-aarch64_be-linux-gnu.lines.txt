@@ -1,0 +1,124 @@
+dwarf5-aarch64_be-linux-gnu:	file format elf64-bigaarch64
+
+.debug_line contents:
+debug_line[0x00000000]
+Line table prologue:
+    total_length: 0x000000dc
+          format: DWARF32
+         version: 5
+    address_size: 8
+ seg_select_size: 0
+ prologue_length: 0x00000037
+ min_inst_length: 1
+max_ops_per_inst: 1
+ default_is_stmt: 1
+       line_base: -5
+      line_range: 14
+     opcode_base: 13
+standard_opcode_lengths[DW_LNS_copy] = 0
+standard_opcode_lengths[DW_LNS_advance_pc] = 1
+standard_opcode_lengths[DW_LNS_advance_line] = 1
+standard_opcode_lengths[DW_LNS_set_file] = 1
+standard_opcode_lengths[DW_LNS_set_column] = 1
+standard_opcode_lengths[DW_LNS_negate_stmt] = 0
+standard_opcode_lengths[DW_LNS_set_basic_block] = 0
+standard_opcode_lengths[DW_LNS_const_add_pc] = 0
+standard_opcode_lengths[DW_LNS_fixed_advance_pc] = 1
+standard_opcode_lengths[DW_LNS_set_prologue_end] = 0
+standard_opcode_lengths[DW_LNS_set_epilogue_begin] = 0
+standard_opcode_lengths[DW_LNS_set_isa] = 1
+include_directories[  0] = "."
+file_names[  0]:
+           name: "program.c"
+      dir_index: 0
+   md5_checksum: c2082fa49f091a04c0e7279ad34f6d6a
+
+Address            Line   Column File   ISA Discriminator OpIndex Flags
+------------------ ------ ------ ------ --- ------------- ------- -------------
+0x0000000000210210     15      5      0   0             0       0  is_stmt prologue_end
+0x0000000000210218      0      5      0   0             0       0 
+0x0000000000210238     11     37      0   0             0       0 
+0x000000000021023c     15     23      0   0             0       0  is_stmt
+0x0000000000210244     11     37      0   0             0       0 
+0x000000000021024c      0     37      0   0             0       0 
+0x0000000000210250     15     29      0   0             0       0  is_stmt
+0x0000000000210254     15     23      0   0             0       0  is_stmt
+0x0000000000210258     15     54      0   0             0       0 
+0x000000000021025c     15     23      0   0             0       0 
+0x0000000000210260     15     29      0   0             0       0  is_stmt
+0x0000000000210264     15      5      0   0             0       0  is_stmt
+0x0000000000210268     16      5      0   0             0       0  is_stmt
+0x0000000000210278      0      5      0   0             0       0 
+0x000000000021027c     16      5      0   0             0       0  is_stmt
+0x0000000000210280     16      5      0   0             0       0  is_stmt end_sequence
+0x0000000000210280     19     49      0   0             0       0  is_stmt prologue_end
+0x0000000000210288     19     49      0   0             0       0  is_stmt end_sequence
+0x0000000000210288     21      0      0   0             0       0  is_stmt
+0x0000000000210290     22     31      0   0             0       0  is_stmt prologue_end
+0x0000000000210298     22     23      0   0             0       0 
+0x000000000021029c     22     15      0   0             0       0  is_stmt
+0x00000000002102a4     23     20      0   0             0       0  is_stmt
+0x00000000002102a8     23     38      0   0             0       0  is_stmt
+0x00000000002102ac     23     18      0   0             0       0 
+0x00000000002102b0     23     38      0   0             0       0 
+0x00000000002102bc     23     36      0   0             0       0 
+0x00000000002102c0     23     18      0   0             0       0 
+0x00000000002102c4     24      5      0   0             0       0  is_stmt
+0x00000000002102c8     24      5      0   0             0       0  is_stmt end_sequence
+
+debug_line[0x000000e0]
+Line table prologue:
+    total_length: 0x000000a9
+          format: DWARF32
+         version: 5
+    address_size: 8
+ seg_select_size: 0
+ prologue_length: 0x00000037
+ min_inst_length: 1
+max_ops_per_inst: 1
+ default_is_stmt: 1
+       line_base: -5
+      line_range: 14
+     opcode_base: 13
+standard_opcode_lengths[DW_LNS_copy] = 0
+standard_opcode_lengths[DW_LNS_advance_pc] = 1
+standard_opcode_lengths[DW_LNS_advance_line] = 1
+standard_opcode_lengths[DW_LNS_set_file] = 1
+standard_opcode_lengths[DW_LNS_set_column] = 1
+standard_opcode_lengths[DW_LNS_negate_stmt] = 0
+standard_opcode_lengths[DW_LNS_set_basic_block] = 0
+standard_opcode_lengths[DW_LNS_const_add_pc] = 0
+standard_opcode_lengths[DW_LNS_fixed_advance_pc] = 1
+standard_opcode_lengths[DW_LNS_set_prologue_end] = 0
+standard_opcode_lengths[DW_LNS_set_epilogue_begin] = 0
+standard_opcode_lengths[DW_LNS_set_isa] = 1
+include_directories[  0] = "."
+file_names[  0]:
+           name: "second.c"
+      dir_index: 0
+   md5_checksum: 012191a6f1fdb7b5e5b2b6a55a94019f
+
+Address            Line   Column File   ISA Discriminator OpIndex Flags
+------------------ ------ ------ ------ --- ------------- ------- -------------
+0x00000000002102c8      9      5      0   0             0       0  is_stmt prologue_end
+0x00000000002102d0      0      5      0   0             0       0 
+0x00000000002102d4      9     10      0   0             0       0 
+0x00000000002102e4      0     10      0   0             0       0 
+0x00000000002102ec      9     48      0   0             0       0  is_stmt
+0x00000000002102f0      9     27      0   0             0       0 
+0x00000000002102f4      9     45      0   0             0       0  is_stmt
+0x00000000002102f8      9      5      0   0             0       0  is_stmt
+0x00000000002102fc     10      5      0   0             0       0  is_stmt
+0x0000000000210300      0      5      0   0             0       0 
+0x0000000000210304     10      5      0   0             0       0  is_stmt
+0x0000000000210308     10      5      0   0             0       0  is_stmt end_sequence
+0x0000000000210308     13      0      0   0             0       0  is_stmt
+0x0000000000210318      9     48      0   0             0       0  is_stmt prologue_end
+0x000000000021031c      9     27      0   0             0       0 
+0x0000000000210320      9      5      0   0             0       0  is_stmt
+0x0000000000210324      9     45      0   0             0       0  is_stmt
+0x0000000000210328      9      5      0   0             0       0  is_stmt
+0x000000000021032c     14     37      0   0             0       0  is_stmt
+0x0000000000210330     14      5      0   0             0       0 
+0x0000000000210334     14      5      0   0             0       0  end_sequence
+

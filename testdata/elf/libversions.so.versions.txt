@@ -1,0 +1,94 @@
+
+File: libversions.so
+Format: elf64-x86-64
+Arch: x86_64
+AddressSize: 64bit
+LoadName: libversions.so
+DynamicSymbols [
+  Symbol {
+    Name:  (0)
+    Value: 0x0
+    Size: 0
+    Binding: Local (0x0)
+    Type: None (0x0)
+    Other: 0
+    Section: Undefined (0x0)
+  }
+  Symbol {
+    Name: table@@VERS_1 (1)
+    Value: 0x3580
+    Size: 56
+    Binding: Global (0x1)
+    Type: Object (0x1)
+    Other: 0
+    Section: .data (0xC)
+  }
+  Symbol {
+    Name: handlers@@VERS_1 (7)
+    Value: 0x35C0
+    Size: 16
+    Binding: Global (0x1)
+    Type: Object (0x1)
+    Other: 0
+    Section: .data (0xC)
+  }
+  Symbol {
+    Name: far@@VERS_2 (16)
+    Value: 0x3800
+    Size: 8
+    Binding: Global (0x1)
+    Type: Object (0x1)
+    Other: 0
+    Section: .data (0xC)
+  }
+]
+VersionSymbols [
+  Symbol {
+    Version: 0
+    Name: 
+  }
+  Symbol {
+    Version: 2
+    Name: table@@VERS_1
+  }
+  Symbol {
+    Version: 2
+    Name: handlers@@VERS_1
+  }
+  Symbol {
+    Version: 3
+    Name: far@@VERS_2
+  }
+]
+VersionDefinitions [
+  Definition {
+    Version: 1
+    Flags [ (0x1)
+      Base (0x1)
+    ]
+    Index: 1
+    Hash: 31042351
+    Name: libversions.so
+    Predecessors: []
+  }
+  Definition {
+    Version: 1
+    Flags [ (0x0)
+    ]
+    Index: 2
+    Hash: 95058209
+    Name: VERS_1
+    Predecessors: []
+  }
+  Definition {
+    Version: 1
+    Flags [ (0x0)
+    ]
+    Index: 3
+    Hash: 95058210
+    Name: VERS_2
+    Predecessors: []
+  }
+]
+VersionRequirements [
+]

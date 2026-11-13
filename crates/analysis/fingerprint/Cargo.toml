@@ -1,0 +1,19 @@
+[package]
+name = "hexcavator-fingerprint"
+description = "Fingerprints of functions and data that don't depend on where they are: what they do, and what they refer to, refined until stable"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+hexcavator-core.workspace = true
+hexcavator-x86.workspace = true
+hexcavator-arm64.workspace = true
+hexcavator-xref.workspace = true
+rustc-hash.workspace = true
+
+[lints]
+workspace = true

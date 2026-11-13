@@ -1,0 +1,12 @@
+[package]
+name = "hexcavator-arm32"
+description = "AArch32 (A32 and T32) instruction decoder"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license = "Apache-2.0 AND BSD-3-Clause"
+authors.workspace = true
+repository.workspace = true
+
+[lints]
+workspace = true

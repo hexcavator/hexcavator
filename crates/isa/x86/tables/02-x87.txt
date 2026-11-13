@@ -1,0 +1,157 @@
+# x87 FPU instructions (D8-DF), Intel SDM Vol. 2, Tables A-7 to A-22.
+# STi is st(i) from ModRM.rm; "st" is the implicit top of stack.
+
+D8 /0 mem : fadd Md
+D8 /1 mem : fmul Md
+D8 /2 mem : fcom Md
+D8 /3 mem : fcomp Md
+D8 /4 mem : fsub Md
+D8 /5 mem : fsubr Md
+D8 /6 mem : fdiv Md
+D8 /7 mem : fdivr Md
+D8 /0 reg : fadd st,STi
+D8 /1 reg : fmul st,STi
+D8 /2 reg : fcom STi
+D8 /3 reg : fcomp STi
+D8 /4 reg : fsub st,STi
+D8 /5 reg : fsubr st,STi
+D8 /6 reg : fdiv st,STi
+D8 /7 reg : fdivr st,STi
+
+D9 /0 mem : fld Md
+D9 /2 mem : fst Md
+D9 /3 mem : fstp Md
+D9 /4 mem : fldenv M
+D9 /5 mem : fldcw Mw
+D9 /6 mem : fnstenv M
+D9 /7 mem : fnstcw Mw
+D9 /0 reg : fld STi
+D9 /1 reg : fxch STi
+D9 !D0 : fnop
+D9 !E0 : fchs
+D9 !E1 : fabs
+D9 !E4 : ftst
+D9 !E5 : fxam
+D9 !E8 : fld1
+D9 !E9 : fldl2t
+D9 !EA : fldl2e
+D9 !EB : fldpi
+D9 !EC : fldlg2
+D9 !ED : fldln2
+D9 !EE : fldz
+D9 !F0 : f2xm1
+D9 !F1 : fyl2x
+D9 !F2 : fptan
+D9 !F3 : fpatan
+D9 !F4 : fxtract
+D9 !F5 : fprem1
+D9 !F6 : fdecstp
+D9 !F7 : fincstp
+D9 !F8 : fprem
+D9 !F9 : fyl2xp1
+D9 !FA : fsqrt
+D9 !FB : fsincos
+D9 !FC : frndint
+D9 !FD : fscale
+D9 !FE : fsin
+D9 !FF : fcos
+
+DA /0 mem : fiadd Md
+DA /1 mem : fimul Md
+DA /2 mem : ficom Md
+DA /3 mem : ficomp Md
+DA /4 mem : fisub Md
+DA /5 mem : fisubr Md
+DA /6 mem : fidiv Md
+DA /7 mem : fidivr Md
+DA /0 reg : fcmovb st,STi
+DA /1 reg : fcmove st,STi
+DA /2 reg : fcmovbe st,STi
+DA /3 reg : fcmovu st,STi
+DA !E9 : fucompp
+
+DB /0 mem : fild Md
+DB /1 mem : fisttp Md
+DB /2 mem : fist Md
+DB /3 mem : fistp Md
+DB /5 mem : fld Mt
+DB /7 mem : fstp Mt
+DB /0 reg : fcmovnb st,STi
+DB /1 reg : fcmovne st,STi
+DB /2 reg : fcmovnbe st,STi
+DB /3 reg : fcmovnu st,STi
+DB !E2 : fnclex
+DB !E3 : fninit
+DB /5 reg : fucomi st,STi
+DB /6 reg : fcomi st,STi
+
+DC /0 mem : fadd Mq
+DC /1 mem : fmul Mq
+DC /2 mem : fcom Mq
+DC /3 mem : fcomp Mq
+DC /4 mem : fsub Mq
+DC /5 mem : fsubr Mq
+DC /6 mem : fdiv Mq
+DC /7 mem : fdivr Mq
+DC /0 reg : fadd STi,st
+DC /1 reg : fmul STi,st
+DC /4 reg : fsubr STi,st
+DC /5 reg : fsub STi,st
+DC /6 reg : fdivr STi,st
+DC /7 reg : fdiv STi,st
+
+DD /0 mem : fld Mq
+DD /1 mem : fisttp Mq
+DD /2 mem : fst Mq
+DD /3 mem : fstp Mq
+DD /4 mem : frstor M
+DD /6 mem : fnsave M
+DD /7 mem : fnstsw Mw
+DD /0 reg : ffree STi
+DD /2 reg : fst STi
+DD /3 reg : fstp STi
+DD /4 reg : fucom STi
+DD /5 reg : fucomp STi
+
+DE /0 mem : fiadd Mw
+DE /1 mem : fimul Mw
+DE /2 mem : ficom Mw
+DE /3 mem : ficomp Mw
+DE /4 mem : fisub Mw
+DE /5 mem : fisubr Mw
+DE /6 mem : fidiv Mw
+DE /7 mem : fidivr Mw
+DE /0 reg : faddp STi,st
+DE /1 reg : fmulp STi,st
+DE !D9 : fcompp
+DE /4 reg : fsubrp STi,st
+DE /5 reg : fsubp STi,st
+DE /6 reg : fdivrp STi,st
+DE /7 reg : fdivp STi,st
+
+DF /0 mem : fild Mw
+DF /1 mem : fisttp Mw
+DF /2 mem : fist Mw
+DF /3 mem : fistp Mw
+DF /4 mem : fbld Mt
+DF /5 mem : fild Mq
+DF /6 mem : fbstp Mt
+DF /7 mem : fistp Mq
+DF !E0 : fnstsw ax
+DF /0 reg : ffreep STi
+DF /5 reg : fucomip st,STi
+DF /6 reg : fcomip st,STi
+
+# Undocumented aliases and obsolete 8087/287 instructions, which dumpbin
+# also decodes.
+D9 /3 reg : fstp1 STi
+DB !E0 : feni
+DB !E1 : fdisi
+DB !E4 : fsetpm
+DC /2 reg : fcom2 STi
+DC /3 reg : fcomp3 STi
+DD /1 reg : fxch4 STi
+DE /2 reg : fcomp5 STi
+DF /1 reg : fxch7 STi
+DF /2 reg : fstp8 STi
+DF /3 reg : fstp9 STi

@@ -1,0 +1,2902 @@
+
+ops.wasm:	file format wasm
+
+Disassembly of section CODE:
+
+00000258 <CODE>:
+        # 578 functions in section.
+
+0000025a <>:
+
+     25c: 00           	unreachable
+     25d: 01           	nop
+     25e: 01           	nop
+     25f: 0b           	end
+
+00000260 <>:
+
+     262: 01           	nop
+     263: 0b           	end
+
+00000264 <>:
+
+     266: 02 40        	block   	
+     268: 0b           	end
+
+00000269 <>:
+
+     26b: 03 40        	loop    	                        # label1:
+     26d: 0b           	end
+
+0000026e <>:
+
+     270: 04 40        	if    	
+     272: 0b           	end
+
+00000273 <>:
+
+     275: 05           	else
+     276: 0b           	end
+
+00000277 <>:
+
+     279: 06 40        	try     	
+     27b: 0b           	end
+
+0000027c <>:
+
+     27e: 07 01        	catch   	1                       # catch2:
+     280: 0b           	end
+
+00000281 <>:
+
+     283: 08 01        	throw   	1
+     285: 0b           	end
+
+00000286 <>:
+
+     288: 09 01        	rethrow 	1                       # to caller
+     28a: 0b           	end
+
+0000028b <>:
+
+     28d: 0a           	throw_ref
+     28e: 0b           	end
+
+0000028f <>:
+
+     291: 0b           	end
+     292: 0b           	end
+
+00000293 <>:
+
+     295: 0c 01        	br      	1                       # 1: up to label1
+     297: 0b           	end
+
+00000298 <>:
+
+     29a: 0d 01        	br_if   	1                       # 1: up to label1
+     29c: 0b           	end
+
+0000029d <>:
+
+     29f: 0e 02 00 01 02       	br_table 	{0, 1, 2} # 1: up to label1
+                                                        # 2: down to label0
+     2a4: 0b           	end
+
+000002a5 <>:
+
+     2a7: 0f           	return
+     2a8: 0b           	end
+
+000002a9 <>:
+
+     2ab: 10 01        	call	1
+     2ad: 0b           	end
+
+000002ae <>:
+
+     2b0: 11 01 00     	call_indirect	 1
+     2b3: 0b           	end
+
+000002b4 <>:
+
+     2b6: 12 01        	return_call	1
+     2b8: 0b           	end
+
+000002b9 <>:
+
+     2bb: 13 01 00     	return_call_indirect	 1
+     2be: 0b           	end
+
+000002bf <>:
+
+     2c1: 14 01        	call_ref	1
+     2c3: 0b           	end
+
+000002c4 <>:
+
+     2c6: 15 01        	return_call_ref	1
+     2c8: 0b           	end
+
+000002c9 <>:
+
+     2cb: 18 01        	delegate 	 1              # try-delegate mismatch!
+     2cd: 0b           	end
+
+000002ce <>:
+
+     2d0: 19           	catch_all
+     2d1: 0b           	end
+
+000002d2 <>:
+
+     2d4: 1a           	drop
+     2d5: 0b           	end
+
+000002d6 <>:
+
+     2d8: 1b           	f32.select
+     2d9: 0b           	end
+
+000002da <>:
+
+     2dc: 1c 01 7f     	select	i32
+     2df: 0b           	end
+
+000002e0 <>:
+
+     2e2: 1f 40 01 00 00 00    	try_table 	 (catch 0 0) # 0: down to label2
+     2e8: 0b           	end
+
+000002e9 <>:
+
+     2eb: 20 03        	local.get	3
+     2ed: 0b           	end
+
+000002ee <>:
+
+     2f0: 21 03        	local.set	3
+     2f2: 0b           	end
+
+000002f3 <>:
+
+     2f5: 22 03        	local.tee	3
+     2f7: 0b           	end
+
+000002f8 <>:
+
+     2fa: 23 01        	global.get	1
+     2fc: 0b           	end
+
+000002fd <>:
+
+     2ff: 24 01        	global.set	1
+     301: 0b           	end
+
+00000302 <>:
+
+     304: 25 00        	table.get	0
+     306: 0b           	end
+
+00000307 <>:
+
+     309: 26 00        	table.set	0
+     30b: 0b           	end
+
+0000030c <>:
+
+     30e: 28 02 10     	i32.load	16
+     311: 0b           	end
+
+00000312 <>:
+
+     314: 29 02 10     	i64.load	16:p2align=2
+     317: 0b           	end
+
+00000318 <>:
+
+     31a: 2a 02 10     	f32.load	16
+     31d: 0b           	end
+
+0000031e <>:
+
+     320: 2b 02 10     	f64.load	16:p2align=2
+     323: 0b           	end
+
+00000324 <>:
+
+     326: 2c 02 10     	i32.load8_s	16:p2align=2
+     329: 0b           	end
+
+0000032a <>:
+
+     32c: 2d 02 10     	i32.load8_u	16:p2align=2
+     32f: 0b           	end
+
+00000330 <>:
+
+     332: 2e 02 10     	i32.load16_s	16:p2align=2
+     335: 0b           	end
+
+00000336 <>:
+
+     338: 2f 02 10     	i32.load16_u	16:p2align=2
+     33b: 0b           	end
+
+0000033c <>:
+
+     33e: 30 02 10     	i64.load8_s	16:p2align=2
+     341: 0b           	end
+
+00000342 <>:
+
+     344: 31 02 10     	i64.load8_u	16:p2align=2
+     347: 0b           	end
+
+00000348 <>:
+
+     34a: 32 02 10     	i64.load16_s	16:p2align=2
+     34d: 0b           	end
+
+0000034e <>:
+
+     350: 33 02 10     	i64.load16_u	16:p2align=2
+     353: 0b           	end
+
+00000354 <>:
+
+     356: 34 02 10     	i64.load32_s	16
+     359: 0b           	end
+
+0000035a <>:
+
+     35c: 35 02 10     	i64.load32_u	16
+     35f: 0b           	end
+
+00000360 <>:
+
+     362: 36 02 10     	i32.store	16
+     365: 0b           	end
+
+00000366 <>:
+
+     368: 37 02 10     	i64.store	16:p2align=2
+     36b: 0b           	end
+
+0000036c <>:
+
+     36e: 38 02 10     	f32.store	16
+     371: 0b           	end
+
+00000372 <>:
+
+     374: 39 02 10     	f64.store	16:p2align=2
+     377: 0b           	end
+
+00000378 <>:
+
+     37a: 3a 02 10     	i32.store8	16:p2align=2
+     37d: 0b           	end
+
+0000037e <>:
+
+     380: 3b 02 10     	i32.store16	16:p2align=2
+     383: 0b           	end
+
+00000384 <>:
+
+     386: 3c 02 10     	i64.store8	16:p2align=2
+     389: 0b           	end
+
+0000038a <>:
+
+     38c: 3d 02 10     	i64.store16	16:p2align=2
+     38f: 0b           	end
+
+00000390 <>:
+
+     392: 3e 02 10     	i64.store32	16
+     395: 0b           	end
+
+00000396 <>:
+
+     398: 3f 00        	memory.size	0
+     39a: 0b           	end
+
+0000039b <>:
+
+     39d: 40 00        	memory.grow	0
+     39f: 0b           	end
+
+000003a0 <>:
+
+     3a2: 41 7b        	i32.const	-5
+     3a4: 0b           	end
+
+000003a5 <>:
+
+     3a7: 42 ac 02     	i64.const	300
+     3aa: 0b           	end
+
+000003ab <>:
+
+     3ad: 43 00 00 c0 3f       	f32.const	0x1.8p0
+     3b2: 0b           	end
+
+000003b3 <>:
+
+     3b5: 44 00 00 00 00 00 00 02 c0   	f64.const	-0x1.2p1
+     3be: 0b           	end
+
+000003bf <>:
+
+     3c1: 45           	i32.eqz
+     3c2: 0b           	end
+
+000003c3 <>:
+
+     3c5: 46           	i32.eq  
+     3c6: 0b           	end
+
+000003c7 <>:
+
+     3c9: 47           	i32.ne  
+     3ca: 0b           	end
+
+000003cb <>:
+
+     3cd: 48           	i32.lt_s
+     3ce: 0b           	end
+
+000003cf <>:
+
+     3d1: 49           	i32.lt_u
+     3d2: 0b           	end
+
+000003d3 <>:
+
+     3d5: 4a           	i32.gt_s
+     3d6: 0b           	end
+
+000003d7 <>:
+
+     3d9: 4b           	i32.gt_u
+     3da: 0b           	end
+
+000003db <>:
+
+     3dd: 4c           	i32.le_s
+     3de: 0b           	end
+
+000003df <>:
+
+     3e1: 4d           	i32.le_u
+     3e2: 0b           	end
+
+000003e3 <>:
+
+     3e5: 4e           	i32.ge_s
+     3e6: 0b           	end
+
+000003e7 <>:
+
+     3e9: 4f           	i32.ge_u
+     3ea: 0b           	end
+
+000003eb <>:
+
+     3ed: 50           	i64.eqz
+     3ee: 0b           	end
+
+000003ef <>:
+
+     3f1: 51           	i64.eq  
+     3f2: 0b           	end
+
+000003f3 <>:
+
+     3f5: 52           	i64.ne  
+     3f6: 0b           	end
+
+000003f7 <>:
+
+     3f9: 53           	i64.lt_s
+     3fa: 0b           	end
+
+000003fb <>:
+
+     3fd: 54           	i64.lt_u
+     3fe: 0b           	end
+
+000003ff <>:
+
+     401: 55           	i64.gt_s
+     402: 0b           	end
+
+00000403 <>:
+
+     405: 56           	i64.gt_u
+     406: 0b           	end
+
+00000407 <>:
+
+     409: 57           	i64.le_s
+     40a: 0b           	end
+
+0000040b <>:
+
+     40d: 58           	i64.le_u
+     40e: 0b           	end
+
+0000040f <>:
+
+     411: 59           	i64.ge_s
+     412: 0b           	end
+
+00000413 <>:
+
+     415: 5a           	i64.ge_u
+     416: 0b           	end
+
+00000417 <>:
+
+     419: 5b           	f32.eq  
+     41a: 0b           	end
+
+0000041b <>:
+
+     41d: 5c           	f32.ne  
+     41e: 0b           	end
+
+0000041f <>:
+
+     421: 5d           	f32.lt  
+     422: 0b           	end
+
+00000423 <>:
+
+     425: 5e           	f32.gt  
+     426: 0b           	end
+
+00000427 <>:
+
+     429: 5f           	f32.le  
+     42a: 0b           	end
+
+0000042b <>:
+
+     42d: 60           	f32.ge  
+     42e: 0b           	end
+
+0000042f <>:
+
+     431: 61           	f64.eq  
+     432: 0b           	end
+
+00000433 <>:
+
+     435: 62           	f64.ne  
+     436: 0b           	end
+
+00000437 <>:
+
+     439: 63           	f64.lt  
+     43a: 0b           	end
+
+0000043b <>:
+
+     43d: 64           	f64.gt  
+     43e: 0b           	end
+
+0000043f <>:
+
+     441: 65           	f64.le  
+     442: 0b           	end
+
+00000443 <>:
+
+     445: 66           	f64.ge  
+     446: 0b           	end
+
+00000447 <>:
+
+     449: 67           	i32.clz 
+     44a: 0b           	end
+
+0000044b <>:
+
+     44d: 68           	i32.ctz 
+     44e: 0b           	end
+
+0000044f <>:
+
+     451: 69           	i32.popcnt
+     452: 0b           	end
+
+00000453 <>:
+
+     455: 6a           	i32.add 
+     456: 0b           	end
+
+00000457 <>:
+
+     459: 6b           	i32.sub 
+     45a: 0b           	end
+
+0000045b <>:
+
+     45d: 6c           	i32.mul 
+     45e: 0b           	end
+
+0000045f <>:
+
+     461: 6d           	i32.div_s
+     462: 0b           	end
+
+00000463 <>:
+
+     465: 6e           	i32.div_u
+     466: 0b           	end
+
+00000467 <>:
+
+     469: 6f           	i32.rem_s
+     46a: 0b           	end
+
+0000046b <>:
+
+     46d: 70           	i32.rem_u
+     46e: 0b           	end
+
+0000046f <>:
+
+     471: 71           	i32.and 
+     472: 0b           	end
+
+00000473 <>:
+
+     475: 72           	i32.or  
+     476: 0b           	end
+
+00000477 <>:
+
+     479: 73           	i32.xor 
+     47a: 0b           	end
+
+0000047b <>:
+
+     47d: 74           	i32.shl 
+     47e: 0b           	end
+
+0000047f <>:
+
+     481: 75           	i32.shr_s
+     482: 0b           	end
+
+00000483 <>:
+
+     485: 76           	i32.shr_u
+     486: 0b           	end
+
+00000487 <>:
+
+     489: 77           	i32.rotl
+     48a: 0b           	end
+
+0000048b <>:
+
+     48d: 78           	i32.rotr
+     48e: 0b           	end
+
+0000048f <>:
+
+     491: 79           	i64.clz 
+     492: 0b           	end
+
+00000493 <>:
+
+     495: 7a           	i64.ctz 
+     496: 0b           	end
+
+00000497 <>:
+
+     499: 7b           	i64.popcnt
+     49a: 0b           	end
+
+0000049b <>:
+
+     49d: 7c           	i64.add 
+     49e: 0b           	end
+
+0000049f <>:
+
+     4a1: 7d           	i64.sub 
+     4a2: 0b           	end
+
+000004a3 <>:
+
+     4a5: 7e           	i64.mul 
+     4a6: 0b           	end
+
+000004a7 <>:
+
+     4a9: 7f           	i64.div_s
+     4aa: 0b           	end
+
+000004ab <>:
+
+     4ad: 80           	i64.div_u
+     4ae: 0b           	end
+
+000004af <>:
+
+     4b1: 81           	i64.rem_s
+     4b2: 0b           	end
+
+000004b3 <>:
+
+     4b5: 82           	i64.rem_u
+     4b6: 0b           	end
+
+000004b7 <>:
+
+     4b9: 83           	i64.and 
+     4ba: 0b           	end
+
+000004bb <>:
+
+     4bd: 84           	i64.or  
+     4be: 0b           	end
+
+000004bf <>:
+
+     4c1: 85           	i64.xor 
+     4c2: 0b           	end
+
+000004c3 <>:
+
+     4c5: 86           	i64.shl 
+     4c6: 0b           	end
+
+000004c7 <>:
+
+     4c9: 87           	i64.shr_s
+     4ca: 0b           	end
+
+000004cb <>:
+
+     4cd: 88           	i64.shr_u
+     4ce: 0b           	end
+
+000004cf <>:
+
+     4d1: 89           	i64.rotl
+     4d2: 0b           	end
+
+000004d3 <>:
+
+     4d5: 8a           	i64.rotr
+     4d6: 0b           	end
+
+000004d7 <>:
+
+     4d9: 8b           	f32.abs 
+     4da: 0b           	end
+
+000004db <>:
+
+     4dd: 8c           	f32.neg 
+     4de: 0b           	end
+
+000004df <>:
+
+     4e1: 8d           	f32.ceil
+     4e2: 0b           	end
+
+000004e3 <>:
+
+     4e5: 8e           	f32.floor
+     4e6: 0b           	end
+
+000004e7 <>:
+
+     4e9: 8f           	f32.trunc
+     4ea: 0b           	end
+
+000004eb <>:
+
+     4ed: 90           	f32.nearest
+     4ee: 0b           	end
+
+000004ef <>:
+
+     4f1: 91           	f32.sqrt
+     4f2: 0b           	end
+
+000004f3 <>:
+
+     4f5: 92           	f32.add 
+     4f6: 0b           	end
+
+000004f7 <>:
+
+     4f9: 93           	f32.sub 
+     4fa: 0b           	end
+
+000004fb <>:
+
+     4fd: 94           	f32.mul 
+     4fe: 0b           	end
+
+000004ff <>:
+
+     501: 95           	f32.div 
+     502: 0b           	end
+
+00000503 <>:
+
+     505: 96           	f32.min 
+     506: 0b           	end
+
+00000507 <>:
+
+     509: 97           	f32.max 
+     50a: 0b           	end
+
+0000050b <>:
+
+     50d: 98           	f32.copysign
+     50e: 0b           	end
+
+0000050f <>:
+
+     511: 99           	f64.abs 
+     512: 0b           	end
+
+00000513 <>:
+
+     515: 9a           	f64.neg 
+     516: 0b           	end
+
+00000517 <>:
+
+     519: 9b           	f64.ceil
+     51a: 0b           	end
+
+0000051b <>:
+
+     51d: 9c           	f64.floor
+     51e: 0b           	end
+
+0000051f <>:
+
+     521: 9d           	f64.trunc
+     522: 0b           	end
+
+00000523 <>:
+
+     525: 9e           	f64.nearest
+     526: 0b           	end
+
+00000527 <>:
+
+     529: 9f           	f64.sqrt
+     52a: 0b           	end
+
+0000052b <>:
+
+     52d: a0           	f64.add 
+     52e: 0b           	end
+
+0000052f <>:
+
+     531: a1           	f64.sub 
+     532: 0b           	end
+
+00000533 <>:
+
+     535: a2           	f64.mul 
+     536: 0b           	end
+
+00000537 <>:
+
+     539: a3           	f64.div 
+     53a: 0b           	end
+
+0000053b <>:
+
+     53d: a4           	f64.min 
+     53e: 0b           	end
+
+0000053f <>:
+
+     541: a5           	f64.max 
+     542: 0b           	end
+
+00000543 <>:
+
+     545: a6           	f64.copysign
+     546: 0b           	end
+
+00000547 <>:
+
+     549: a7           	i32.wrap_i64
+     54a: 0b           	end
+
+0000054b <>:
+
+     54d: a8           	i32.trunc_f32_s
+     54e: 0b           	end
+
+0000054f <>:
+
+     551: a9           	i32.trunc_f32_u
+     552: 0b           	end
+
+00000553 <>:
+
+     555: aa           	i32.trunc_f64_s
+     556: 0b           	end
+
+00000557 <>:
+
+     559: ab           	i32.trunc_f64_u
+     55a: 0b           	end
+
+0000055b <>:
+
+     55d: ac           	i64.extend_i32_s
+     55e: 0b           	end
+
+0000055f <>:
+
+     561: ad           	i64.extend_i32_u
+     562: 0b           	end
+
+00000563 <>:
+
+     565: ae           	i64.trunc_f32_s
+     566: 0b           	end
+
+00000567 <>:
+
+     569: af           	i64.trunc_f32_u
+     56a: 0b           	end
+
+0000056b <>:
+
+     56d: b0           	i64.trunc_f64_s
+     56e: 0b           	end
+
+0000056f <>:
+
+     571: b1           	i64.trunc_f64_u
+     572: 0b           	end
+
+00000573 <>:
+
+     575: b2           	f32.convert_i32_s
+     576: 0b           	end
+
+00000577 <>:
+
+     579: b3           	f32.convert_i32_u
+     57a: 0b           	end
+
+0000057b <>:
+
+     57d: b4           	f32.convert_i64_s
+     57e: 0b           	end
+
+0000057f <>:
+
+     581: b5           	f32.convert_i64_u
+     582: 0b           	end
+
+00000583 <>:
+
+     585: b6           	f32.demote_f64
+     586: 0b           	end
+
+00000587 <>:
+
+     589: b7           	f64.convert_i32_s
+     58a: 0b           	end
+
+0000058b <>:
+
+     58d: b8           	f64.convert_i32_u
+     58e: 0b           	end
+
+0000058f <>:
+
+     591: b9           	f64.convert_i64_s
+     592: 0b           	end
+
+00000593 <>:
+
+     595: ba           	f64.convert_i64_u
+     596: 0b           	end
+
+00000597 <>:
+
+     599: bb           	f64.promote_f32
+     59a: 0b           	end
+
+0000059b <>:
+
+     59d: bc           	i32.reinterpret_f32
+     59e: 0b           	end
+
+0000059f <>:
+
+     5a1: bd           	i64.reinterpret_f64
+     5a2: 0b           	end
+
+000005a3 <>:
+
+     5a5: be           	f32.reinterpret_i32
+     5a6: 0b           	end
+
+000005a7 <>:
+
+     5a9: bf           	f64.reinterpret_i64
+     5aa: 0b           	end
+
+000005ab <>:
+
+     5ad: c0           	i32.extend8_s
+     5ae: 0b           	end
+
+000005af <>:
+
+     5b1: c1           	i32.extend16_s
+     5b2: 0b           	end
+
+000005b3 <>:
+
+     5b5: c2           	i64.extend8_s
+     5b6: 0b           	end
+
+000005b7 <>:
+
+     5b9: c3           	i64.extend16_s
+     5ba: 0b           	end
+
+000005bb <>:
+
+     5bd: c4           	i64.extend32_s
+     5be: 0b           	end
+
+000005bf <>:
+
+     5c1: d1           	ref.is_null
+     5c2: 0b           	end
+
+000005c3 <>:
+
+     5c5: d2 01        	ref.func 1
+     5c7: 0b           	end
+
+000005c8 <>:
+
+     5ca: d0 69        	ref.null_exn
+     5cc: 0b           	end
+
+000005cd <>:
+
+     5cf: d0 6f        	ref.null_extern
+     5d1: 0b           	end
+
+000005d2 <>:
+
+     5d4: d0 70        	ref.null_func
+     5d6: 0b           	end
+
+000005d7 <>:
+
+     5d9: fb 14 01     	ref.test 1
+     5dc: 0b           	end
+
+000005dd <>:
+
+     5df: fb 16 01     	ref.cast 1
+     5e2: 0b           	end
+
+000005e3 <>:
+
+     5e5: fc 00        	i32.trunc_sat_f32_s
+     5e7: 0b           	end
+
+000005e8 <>:
+
+     5ea: fc 01        	i32.trunc_sat_f32_u
+     5ec: 0b           	end
+
+000005ed <>:
+
+     5ef: fc 02        	i32.trunc_sat_f64_s
+     5f1: 0b           	end
+
+000005f2 <>:
+
+     5f4: fc 03        	i32.trunc_sat_f64_u
+     5f6: 0b           	end
+
+000005f7 <>:
+
+     5f9: fc 04        	i64.trunc_sat_f32_s
+     5fb: 0b           	end
+
+000005fc <>:
+
+     5fe: fc 05        	i64.trunc_sat_f32_u
+     600: 0b           	end
+
+00000601 <>:
+
+     603: fc 06        	i64.trunc_sat_f64_s
+     605: 0b           	end
+
+00000606 <>:
+
+     608: fc 07        	i64.trunc_sat_f64_u
+     60a: 0b           	end
+
+0000060b <>:
+
+     60d: fc 08 00 00  	memory.init	0, 0
+     611: 0b           	end
+
+00000612 <>:
+
+     614: fc 09 00     	data.drop	0
+     617: 0b           	end
+
+00000618 <>:
+
+     61a: fc 0a 00 00  	memory.copy	0, 0
+     61e: 0b           	end
+
+0000061f <>:
+
+     621: fc 0b 00     	memory.fill	0
+     624: 0b           	end
+
+00000625 <>:
+
+     627: fc 0e 00 00  	table.copy	0, 0
+     62b: 0b           	end
+
+0000062c <>:
+
+     62e: fc 0f 00     	table.grow	0
+     631: 0b           	end
+
+00000632 <>:
+
+     634: fc 10 00     	table.size	0
+     637: 0b           	end
+
+00000638 <>:
+
+     63a: fc 11 00     	table.fill	0
+     63d: 0b           	end
+
+0000063e <>:
+
+     640: fc 13        	i64.add128
+     642: 0b           	end
+
+00000643 <>:
+
+     645: fc 14        	i64.sub128
+     647: 0b           	end
+
+00000648 <>:
+
+     64a: fc 15        	i64.mul_wide_s
+     64c: 0b           	end
+
+0000064d <>:
+
+     64f: fc 16        	i64.mul_wide_u
+     651: 0b           	end
+
+00000652 <>:
+
+     654: fc 30 02 10  	f32.load_f16	16:p2align=2
+     658: 0b           	end
+
+00000659 <>:
+
+     65b: fc 31 02 10  	f32.store_f16	16:p2align=2
+     65f: 0b           	end
+
+00000660 <>:
+
+     662: fd 00 02 10  	v128.load	16:p2align=2
+     666: 0b           	end
+
+00000667 <>:
+
+     669: fd 01 02 10  	i16x8.load8x8_s	16:p2align=2
+     66d: 0b           	end
+
+0000066e <>:
+
+     670: fd 02 02 10  	i16x8.load8x8_u	16:p2align=2
+     674: 0b           	end
+
+00000675 <>:
+
+     677: fd 03 02 10  	i32x4.load16x4_s	16:p2align=2
+     67b: 0b           	end
+
+0000067c <>:
+
+     67e: fd 04 02 10  	i32x4.load16x4_u	16:p2align=2
+     682: 0b           	end
+
+00000683 <>:
+
+     685: fd 05 02 10  	i64x2.load32x2_s	16:p2align=2
+     689: 0b           	end
+
+0000068a <>:
+
+     68c: fd 06 02 10  	i64x2.load32x2_u	16:p2align=2
+     690: 0b           	end
+
+00000691 <>:
+
+     693: fd 07 02 10  	v128.load8_splat	16:p2align=2
+     697: 0b           	end
+
+00000698 <>:
+
+     69a: fd 08 02 10  	v128.load16_splat	16:p2align=2
+     69e: 0b           	end
+
+0000069f <>:
+
+     6a1: fd 09 02 10  	v128.load32_splat	16
+     6a5: 0b           	end
+
+000006a6 <>:
+
+     6a8: fd 0a 02 10  	v128.load64_splat	16:p2align=2
+     6ac: 0b           	end
+
+000006ad <>:
+
+     6af: fd 0b 02 10  	v128.store	16:p2align=2
+     6b3: 0b           	end
+
+000006b4 <>:
+
+     6b6: fd 0c 00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f	v128.const	50462976, 117835012, 185207048, 252579084
+     6c8: 0b           	end
+
+000006c9 <>:
+
+     6cb: fd 0d 00 11 02 13 04 15 06 17 08 19 0a 1b 0c 1d 0e 1f	i8x16.shuffle	0, 17, 2, 19, 4, 21, 6, 23, 8, 25, 10, 27, 12, 29, 14, 31
+     6dd: 0b           	end
+
+000006de <>:
+
+     6e0: fd 0e        	i8x16.swizzle
+     6e2: 0b           	end
+
+000006e3 <>:
+
+     6e5: fd 0f        	i8x16.splat
+     6e7: 0b           	end
+
+000006e8 <>:
+
+     6ea: fd 10        	i16x8.splat
+     6ec: 0b           	end
+
+000006ed <>:
+
+     6ef: fd 11        	i32x4.splat
+     6f1: 0b           	end
+
+000006f2 <>:
+
+     6f4: fd 12        	i64x2.splat
+     6f6: 0b           	end
+
+000006f7 <>:
+
+     6f9: fd 13        	f32x4.splat
+     6fb: 0b           	end
+
+000006fc <>:
+
+     6fe: fd 14        	f64x2.splat
+     700: 0b           	end
+
+00000701 <>:
+
+     703: fd 15 01     	i8x16.extract_lane_s	1
+     706: 0b           	end
+
+00000707 <>:
+
+     709: fd 16 01     	i8x16.extract_lane_u	1
+     70c: 0b           	end
+
+0000070d <>:
+
+     70f: fd 17 01     	i8x16.replace_lane	1
+     712: 0b           	end
+
+00000713 <>:
+
+     715: fd 18 01     	i16x8.extract_lane_s	1
+     718: 0b           	end
+
+00000719 <>:
+
+     71b: fd 19 01     	i16x8.extract_lane_u	1
+     71e: 0b           	end
+
+0000071f <>:
+
+     721: fd 1a 01     	i16x8.replace_lane	1
+     724: 0b           	end
+
+00000725 <>:
+
+     727: fd 1b 01     	i32x4.extract_lane	1
+     72a: 0b           	end
+
+0000072b <>:
+
+     72d: fd 1c 01     	i32x4.replace_lane	1
+     730: 0b           	end
+
+00000731 <>:
+
+     733: fd 1d 01     	i64x2.extract_lane	1
+     736: 0b           	end
+
+00000737 <>:
+
+     739: fd 1e 01     	i64x2.replace_lane	1
+     73c: 0b           	end
+
+0000073d <>:
+
+     73f: fd 1f 01     	f32x4.extract_lane	1
+     742: 0b           	end
+
+00000743 <>:
+
+     745: fd 20 01     	f32x4.replace_lane	1
+     748: 0b           	end
+
+00000749 <>:
+
+     74b: fd 21 01     	f64x2.extract_lane	1
+     74e: 0b           	end
+
+0000074f <>:
+
+     751: fd 22 01     	f64x2.replace_lane	1
+     754: 0b           	end
+
+00000755 <>:
+
+     757: fd 23        	i8x16.eq
+     759: 0b           	end
+
+0000075a <>:
+
+     75c: fd 24        	i8x16.ne
+     75e: 0b           	end
+
+0000075f <>:
+
+     761: fd 25        	i8x16.lt_s
+     763: 0b           	end
+
+00000764 <>:
+
+     766: fd 26        	i8x16.lt_u
+     768: 0b           	end
+
+00000769 <>:
+
+     76b: fd 27        	i8x16.gt_s
+     76d: 0b           	end
+
+0000076e <>:
+
+     770: fd 28        	i8x16.gt_u
+     772: 0b           	end
+
+00000773 <>:
+
+     775: fd 29        	i8x16.le_s
+     777: 0b           	end
+
+00000778 <>:
+
+     77a: fd 2a        	i8x16.le_u
+     77c: 0b           	end
+
+0000077d <>:
+
+     77f: fd 2b        	i8x16.ge_s
+     781: 0b           	end
+
+00000782 <>:
+
+     784: fd 2c        	i8x16.ge_u
+     786: 0b           	end
+
+00000787 <>:
+
+     789: fd 2d        	i16x8.eq
+     78b: 0b           	end
+
+0000078c <>:
+
+     78e: fd 2e        	i16x8.ne
+     790: 0b           	end
+
+00000791 <>:
+
+     793: fd 2f        	i16x8.lt_s
+     795: 0b           	end
+
+00000796 <>:
+
+     798: fd 30        	i16x8.lt_u
+     79a: 0b           	end
+
+0000079b <>:
+
+     79d: fd 31        	i16x8.gt_s
+     79f: 0b           	end
+
+000007a0 <>:
+
+     7a2: fd 32        	i16x8.gt_u
+     7a4: 0b           	end
+
+000007a5 <>:
+
+     7a7: fd 33        	i16x8.le_s
+     7a9: 0b           	end
+
+000007aa <>:
+
+     7ac: fd 34        	i16x8.le_u
+     7ae: 0b           	end
+
+000007af <>:
+
+     7b1: fd 35        	i16x8.ge_s
+     7b3: 0b           	end
+
+000007b4 <>:
+
+     7b6: fd 36        	i16x8.ge_u
+     7b8: 0b           	end
+
+000007b9 <>:
+
+     7bb: fd 37        	i32x4.eq
+     7bd: 0b           	end
+
+000007be <>:
+
+     7c0: fd 38        	i32x4.ne
+     7c2: 0b           	end
+
+000007c3 <>:
+
+     7c5: fd 39        	i32x4.lt_s
+     7c7: 0b           	end
+
+000007c8 <>:
+
+     7ca: fd 3a        	i32x4.lt_u
+     7cc: 0b           	end
+
+000007cd <>:
+
+     7cf: fd 3b        	i32x4.gt_s
+     7d1: 0b           	end
+
+000007d2 <>:
+
+     7d4: fd 3c        	i32x4.gt_u
+     7d6: 0b           	end
+
+000007d7 <>:
+
+     7d9: fd 3d        	i32x4.le_s
+     7db: 0b           	end
+
+000007dc <>:
+
+     7de: fd 3e        	i32x4.le_u
+     7e0: 0b           	end
+
+000007e1 <>:
+
+     7e3: fd 3f        	i32x4.ge_s
+     7e5: 0b           	end
+
+000007e6 <>:
+
+     7e8: fd 40        	i32x4.ge_u
+     7ea: 0b           	end
+
+000007eb <>:
+
+     7ed: fd 41        	f32x4.eq
+     7ef: 0b           	end
+
+000007f0 <>:
+
+     7f2: fd 42        	f32x4.ne
+     7f4: 0b           	end
+
+000007f5 <>:
+
+     7f7: fd 43        	f32x4.lt
+     7f9: 0b           	end
+
+000007fa <>:
+
+     7fc: fd 44        	f32x4.gt
+     7fe: 0b           	end
+
+000007ff <>:
+
+     801: fd 45        	f32x4.le
+     803: 0b           	end
+
+00000804 <>:
+
+     806: fd 46        	f32x4.ge
+     808: 0b           	end
+
+00000809 <>:
+
+     80b: fd 47        	f64x2.eq
+     80d: 0b           	end
+
+0000080e <>:
+
+     810: fd 48        	f64x2.ne
+     812: 0b           	end
+
+00000813 <>:
+
+     815: fd 49        	f64x2.lt
+     817: 0b           	end
+
+00000818 <>:
+
+     81a: fd 4a        	f64x2.gt
+     81c: 0b           	end
+
+0000081d <>:
+
+     81f: fd 4b        	f64x2.le
+     821: 0b           	end
+
+00000822 <>:
+
+     824: fd 4c        	f64x2.ge
+     826: 0b           	end
+
+00000827 <>:
+
+     829: fd 4d        	v128.not
+     82b: 0b           	end
+
+0000082c <>:
+
+     82e: fd 4e        	v128.and
+     830: 0b           	end
+
+00000831 <>:
+
+     833: fd 4f        	v128.andnot
+     835: 0b           	end
+
+00000836 <>:
+
+     838: fd 50        	v128.or
+     83a: 0b           	end
+
+0000083b <>:
+
+     83d: fd 51        	v128.xor
+     83f: 0b           	end
+
+00000840 <>:
+
+     842: fd 52        	v128.bitselect
+     844: 0b           	end
+
+00000845 <>:
+
+     847: fd 53        	v128.any_true
+     849: 0b           	end
+
+0000084a <>:
+
+     84c: fd 54 02 10 01       	v128.load8_lane	16:p2align=2, 1
+     851: 0b           	end
+
+00000852 <>:
+
+     854: fd 55 02 10 01       	v128.load16_lane	16:p2align=2, 1
+     859: 0b           	end
+
+0000085a <>:
+
+     85c: fd 56 02 10 01       	v128.load32_lane	16, 1
+     861: 0b           	end
+
+00000862 <>:
+
+     864: fd 57 02 10 01       	v128.load64_lane	16:p2align=2, 1
+     869: 0b           	end
+
+0000086a <>:
+
+     86c: fd 58 02 10 01       	v128.store8_lane	16:p2align=2, 1
+     871: 0b           	end
+
+00000872 <>:
+
+     874: fd 59 02 10 01       	v128.store16_lane	16:p2align=2, 1
+     879: 0b           	end
+
+0000087a <>:
+
+     87c: fd 5a 02 10 01       	v128.store32_lane	16, 1
+     881: 0b           	end
+
+00000882 <>:
+
+     884: fd 5b 02 10 01       	v128.store64_lane	16:p2align=2, 1
+     889: 0b           	end
+
+0000088a <>:
+
+     88c: fd 5c 02 10  	v128.load32_zero	16
+     890: 0b           	end
+
+00000891 <>:
+
+     893: fd 5d 02 10  	v128.load64_zero	16:p2align=2
+     897: 0b           	end
+
+00000898 <>:
+
+     89a: fd 5e        	f32x4.demote_f64x2_zero
+     89c: 0b           	end
+
+0000089d <>:
+
+     89f: fd 5f        	f64x2.promote_low_f32x4
+     8a1: 0b           	end
+
+000008a2 <>:
+
+     8a4: fd 60        	i8x16.abs
+     8a6: 0b           	end
+
+000008a7 <>:
+
+     8a9: fd 61        	i8x16.neg
+     8ab: 0b           	end
+
+000008ac <>:
+
+     8ae: fd 62        	i8x16.popcnt
+     8b0: 0b           	end
+
+000008b1 <>:
+
+     8b3: fd 63        	i8x16.all_true
+     8b5: 0b           	end
+
+000008b6 <>:
+
+     8b8: fd 64        	i8x16.bitmask
+     8ba: 0b           	end
+
+000008bb <>:
+
+     8bd: fd 65        	i8x16.narrow_i16x8_s
+     8bf: 0b           	end
+
+000008c0 <>:
+
+     8c2: fd 66        	i8x16.narrow_i16x8_u
+     8c4: 0b           	end
+
+000008c5 <>:
+
+     8c7: fd 67        	f32x4.ceil
+     8c9: 0b           	end
+
+000008ca <>:
+
+     8cc: fd 68        	f32x4.floor
+     8ce: 0b           	end
+
+000008cf <>:
+
+     8d1: fd 69        	f32x4.trunc
+     8d3: 0b           	end
+
+000008d4 <>:
+
+     8d6: fd 6a        	f32x4.nearest
+     8d8: 0b           	end
+
+000008d9 <>:
+
+     8db: fd 6b        	i8x16.shl
+     8dd: 0b           	end
+
+000008de <>:
+
+     8e0: fd 6c        	i8x16.shr_s
+     8e2: 0b           	end
+
+000008e3 <>:
+
+     8e5: fd 6d        	i8x16.shr_u
+     8e7: 0b           	end
+
+000008e8 <>:
+
+     8ea: fd 6e        	i8x16.add
+     8ec: 0b           	end
+
+000008ed <>:
+
+     8ef: fd 6f        	i8x16.add_sat_s
+     8f1: 0b           	end
+
+000008f2 <>:
+
+     8f4: fd 70        	i8x16.add_sat_u
+     8f6: 0b           	end
+
+000008f7 <>:
+
+     8f9: fd 71        	i8x16.sub
+     8fb: 0b           	end
+
+000008fc <>:
+
+     8fe: fd 72        	i8x16.sub_sat_s
+     900: 0b           	end
+
+00000901 <>:
+
+     903: fd 73        	i8x16.sub_sat_u
+     905: 0b           	end
+
+00000906 <>:
+
+     908: fd 74        	f64x2.ceil
+     90a: 0b           	end
+
+0000090b <>:
+
+     90d: fd 75        	f64x2.floor
+     90f: 0b           	end
+
+00000910 <>:
+
+     912: fd 76        	i8x16.min_s
+     914: 0b           	end
+
+00000915 <>:
+
+     917: fd 77        	i8x16.min_u
+     919: 0b           	end
+
+0000091a <>:
+
+     91c: fd 78        	i8x16.max_s
+     91e: 0b           	end
+
+0000091f <>:
+
+     921: fd 79        	i8x16.max_u
+     923: 0b           	end
+
+00000924 <>:
+
+     926: fd 7a        	f64x2.trunc
+     928: 0b           	end
+
+00000929 <>:
+
+     92b: fd 7b        	i8x16.avgr_u
+     92d: 0b           	end
+
+0000092e <>:
+
+     930: fd 7c        	i16x8.extadd_pairwise_i8x16_s
+     932: 0b           	end
+
+00000933 <>:
+
+     935: fd 7d        	i16x8.extadd_pairwise_i8x16_u
+     937: 0b           	end
+
+00000938 <>:
+
+     93a: fd 7e        	i32x4.extadd_pairwise_i16x8_s
+     93c: 0b           	end
+
+0000093d <>:
+
+     93f: fd 7f        	i32x4.extadd_pairwise_i16x8_u
+     941: 0b           	end
+
+00000942 <>:
+
+     944: fd 80 01     	i16x8.abs
+     947: 0b           	end
+
+00000948 <>:
+
+     94a: fd 81 01     	i16x8.neg
+     94d: 0b           	end
+
+0000094e <>:
+
+     950: fd 82 01     	i16x8.q15mulr_sat_s
+     953: 0b           	end
+
+00000954 <>:
+
+     956: fd 83 01     	i16x8.all_true
+     959: 0b           	end
+
+0000095a <>:
+
+     95c: fd 84 01     	i16x8.bitmask
+     95f: 0b           	end
+
+00000960 <>:
+
+     962: fd 85 01     	i16x8.narrow_i32x4_s
+     965: 0b           	end
+
+00000966 <>:
+
+     968: fd 86 01     	i16x8.narrow_i32x4_u
+     96b: 0b           	end
+
+0000096c <>:
+
+     96e: fd 87 01     	i16x8.extend_low_i8x16_s
+     971: 0b           	end
+
+00000972 <>:
+
+     974: fd 88 01     	i16x8.extend_high_i8x16_s
+     977: 0b           	end
+
+00000978 <>:
+
+     97a: fd 89 01     	i16x8.extend_low_i8x16_u
+     97d: 0b           	end
+
+0000097e <>:
+
+     980: fd 8a 01     	i16x8.extend_high_i8x16_u
+     983: 0b           	end
+
+00000984 <>:
+
+     986: fd 8b 01     	i16x8.shl
+     989: 0b           	end
+
+0000098a <>:
+
+     98c: fd 8c 01     	i16x8.shr_s
+     98f: 0b           	end
+
+00000990 <>:
+
+     992: fd 8d 01     	i16x8.shr_u
+     995: 0b           	end
+
+00000996 <>:
+
+     998: fd 8e 01     	i16x8.add
+     99b: 0b           	end
+
+0000099c <>:
+
+     99e: fd 8f 01     	i16x8.add_sat_s
+     9a1: 0b           	end
+
+000009a2 <>:
+
+     9a4: fd 90 01     	i16x8.add_sat_u
+     9a7: 0b           	end
+
+000009a8 <>:
+
+     9aa: fd 91 01     	i16x8.sub
+     9ad: 0b           	end
+
+000009ae <>:
+
+     9b0: fd 92 01     	i16x8.sub_sat_s
+     9b3: 0b           	end
+
+000009b4 <>:
+
+     9b6: fd 93 01     	i16x8.sub_sat_u
+     9b9: 0b           	end
+
+000009ba <>:
+
+     9bc: fd 94 01     	f64x2.nearest
+     9bf: 0b           	end
+
+000009c0 <>:
+
+     9c2: fd 95 01     	i16x8.mul
+     9c5: 0b           	end
+
+000009c6 <>:
+
+     9c8: fd 96 01     	i16x8.min_s
+     9cb: 0b           	end
+
+000009cc <>:
+
+     9ce: fd 97 01     	i16x8.min_u
+     9d1: 0b           	end
+
+000009d2 <>:
+
+     9d4: fd 98 01     	i16x8.max_s
+     9d7: 0b           	end
+
+000009d8 <>:
+
+     9da: fd 99 01     	i16x8.max_u
+     9dd: 0b           	end
+
+000009de <>:
+
+     9e0: fd 9b 01     	i16x8.avgr_u
+     9e3: 0b           	end
+
+000009e4 <>:
+
+     9e6: fd 9c 01     	i16x8.extmul_low_i8x16_s
+     9e9: 0b           	end
+
+000009ea <>:
+
+     9ec: fd 9d 01     	i16x8.extmul_high_i8x16_s
+     9ef: 0b           	end
+
+000009f0 <>:
+
+     9f2: fd 9e 01     	i16x8.extmul_low_i8x16_u
+     9f5: 0b           	end
+
+000009f6 <>:
+
+     9f8: fd 9f 01     	i16x8.extmul_high_i8x16_u
+     9fb: 0b           	end
+
+000009fc <>:
+
+     9fe: fd a0 01     	i32x4.abs
+     a01: 0b           	end
+
+00000a02 <>:
+
+     a04: fd a1 01     	i32x4.neg
+     a07: 0b           	end
+
+00000a08 <>:
+
+     a0a: fd a3 01     	i32x4.all_true
+     a0d: 0b           	end
+
+00000a0e <>:
+
+     a10: fd a4 01     	i32x4.bitmask
+     a13: 0b           	end
+
+00000a14 <>:
+
+     a16: fd a7 01     	i32x4.extend_low_i16x8_s
+     a19: 0b           	end
+
+00000a1a <>:
+
+     a1c: fd a8 01     	i32x4.extend_high_i16x8_s
+     a1f: 0b           	end
+
+00000a20 <>:
+
+     a22: fd a9 01     	i32x4.extend_low_i16x8_u
+     a25: 0b           	end
+
+00000a26 <>:
+
+     a28: fd aa 01     	i32x4.extend_high_i16x8_u
+     a2b: 0b           	end
+
+00000a2c <>:
+
+     a2e: fd ab 01     	i32x4.shl
+     a31: 0b           	end
+
+00000a32 <>:
+
+     a34: fd ac 01     	i32x4.shr_s
+     a37: 0b           	end
+
+00000a38 <>:
+
+     a3a: fd ad 01     	i32x4.shr_u
+     a3d: 0b           	end
+
+00000a3e <>:
+
+     a40: fd ae 01     	i32x4.add
+     a43: 0b           	end
+
+00000a44 <>:
+
+     a46: fd b1 01     	i32x4.sub
+     a49: 0b           	end
+
+00000a4a <>:
+
+     a4c: fd b5 01     	i32x4.mul
+     a4f: 0b           	end
+
+00000a50 <>:
+
+     a52: fd b6 01     	i32x4.min_s
+     a55: 0b           	end
+
+00000a56 <>:
+
+     a58: fd b7 01     	i32x4.min_u
+     a5b: 0b           	end
+
+00000a5c <>:
+
+     a5e: fd b8 01     	i32x4.max_s
+     a61: 0b           	end
+
+00000a62 <>:
+
+     a64: fd b9 01     	i32x4.max_u
+     a67: 0b           	end
+
+00000a68 <>:
+
+     a6a: fd ba 01     	i32x4.dot_i16x8_s
+     a6d: 0b           	end
+
+00000a6e <>:
+
+     a70: fd bc 01     	i32x4.extmul_low_i16x8_s
+     a73: 0b           	end
+
+00000a74 <>:
+
+     a76: fd bd 01     	i32x4.extmul_high_i16x8_s
+     a79: 0b           	end
+
+00000a7a <>:
+
+     a7c: fd be 01     	i32x4.extmul_low_i16x8_u
+     a7f: 0b           	end
+
+00000a80 <>:
+
+     a82: fd bf 01     	i32x4.extmul_high_i16x8_u
+     a85: 0b           	end
+
+00000a86 <>:
+
+     a88: fd c0 01     	i64x2.abs
+     a8b: 0b           	end
+
+00000a8c <>:
+
+     a8e: fd c1 01     	i64x2.neg
+     a91: 0b           	end
+
+00000a92 <>:
+
+     a94: fd c3 01     	i64x2.all_true
+     a97: 0b           	end
+
+00000a98 <>:
+
+     a9a: fd c4 01     	i64x2.bitmask
+     a9d: 0b           	end
+
+00000a9e <>:
+
+     aa0: fd c7 01     	i64x2.extend_low_i32x4_s
+     aa3: 0b           	end
+
+00000aa4 <>:
+
+     aa6: fd c8 01     	i64x2.extend_high_i32x4_s
+     aa9: 0b           	end
+
+00000aaa <>:
+
+     aac: fd c9 01     	i64x2.extend_low_i32x4_u
+     aaf: 0b           	end
+
+00000ab0 <>:
+
+     ab2: fd ca 01     	i64x2.extend_high_i32x4_u
+     ab5: 0b           	end
+
+00000ab6 <>:
+
+     ab8: fd cb 01     	i64x2.shl
+     abb: 0b           	end
+
+00000abc <>:
+
+     abe: fd cc 01     	i64x2.shr_s
+     ac1: 0b           	end
+
+00000ac2 <>:
+
+     ac4: fd cd 01     	i64x2.shr_u
+     ac7: 0b           	end
+
+00000ac8 <>:
+
+     aca: fd ce 01     	i64x2.add
+     acd: 0b           	end
+
+00000ace <>:
+
+     ad0: fd d1 01     	i64x2.sub
+     ad3: 0b           	end
+
+00000ad4 <>:
+
+     ad6: fd d5 01     	i64x2.mul
+     ad9: 0b           	end
+
+00000ada <>:
+
+     adc: fd d6 01     	i64x2.eq
+     adf: 0b           	end
+
+00000ae0 <>:
+
+     ae2: fd d7 01     	i64x2.ne
+     ae5: 0b           	end
+
+00000ae6 <>:
+
+     ae8: fd d8 01     	i64x2.lt_s
+     aeb: 0b           	end
+
+00000aec <>:
+
+     aee: fd d9 01     	i64x2.gt_s
+     af1: 0b           	end
+
+00000af2 <>:
+
+     af4: fd da 01     	i64x2.le_s
+     af7: 0b           	end
+
+00000af8 <>:
+
+     afa: fd db 01     	i64x2.ge_s
+     afd: 0b           	end
+
+00000afe <>:
+
+     b00: fd dc 01     	i64x2.extmul_low_i32x4_s
+     b03: 0b           	end
+
+00000b04 <>:
+
+     b06: fd dd 01     	i64x2.extmul_high_i32x4_s
+     b09: 0b           	end
+
+00000b0a <>:
+
+     b0c: fd de 01     	i64x2.extmul_low_i32x4_u
+     b0f: 0b           	end
+
+00000b10 <>:
+
+     b12: fd df 01     	i64x2.extmul_high_i32x4_u
+     b15: 0b           	end
+
+00000b16 <>:
+
+     b18: fd e0 01     	f32x4.abs
+     b1b: 0b           	end
+
+00000b1c <>:
+
+     b1e: fd e1 01     	f32x4.neg
+     b21: 0b           	end
+
+00000b22 <>:
+
+     b24: fd e3 01     	f32x4.sqrt
+     b27: 0b           	end
+
+00000b28 <>:
+
+     b2a: fd e4 01     	f32x4.add
+     b2d: 0b           	end
+
+00000b2e <>:
+
+     b30: fd e5 01     	f32x4.sub
+     b33: 0b           	end
+
+00000b34 <>:
+
+     b36: fd e6 01     	f32x4.mul
+     b39: 0b           	end
+
+00000b3a <>:
+
+     b3c: fd e7 01     	f32x4.div
+     b3f: 0b           	end
+
+00000b40 <>:
+
+     b42: fd e8 01     	f32x4.min
+     b45: 0b           	end
+
+00000b46 <>:
+
+     b48: fd e9 01     	f32x4.max
+     b4b: 0b           	end
+
+00000b4c <>:
+
+     b4e: fd ea 01     	f32x4.pmin
+     b51: 0b           	end
+
+00000b52 <>:
+
+     b54: fd eb 01     	f32x4.pmax
+     b57: 0b           	end
+
+00000b58 <>:
+
+     b5a: fd ec 01     	f64x2.abs
+     b5d: 0b           	end
+
+00000b5e <>:
+
+     b60: fd ed 01     	f64x2.neg
+     b63: 0b           	end
+
+00000b64 <>:
+
+     b66: fd ef 01     	f64x2.sqrt
+     b69: 0b           	end
+
+00000b6a <>:
+
+     b6c: fd f0 01     	f64x2.add
+     b6f: 0b           	end
+
+00000b70 <>:
+
+     b72: fd f1 01     	f64x2.sub
+     b75: 0b           	end
+
+00000b76 <>:
+
+     b78: fd f2 01     	f64x2.mul
+     b7b: 0b           	end
+
+00000b7c <>:
+
+     b7e: fd f3 01     	f64x2.div
+     b81: 0b           	end
+
+00000b82 <>:
+
+     b84: fd f4 01     	f64x2.min
+     b87: 0b           	end
+
+00000b88 <>:
+
+     b8a: fd f5 01     	f64x2.max
+     b8d: 0b           	end
+
+00000b8e <>:
+
+     b90: fd f6 01     	f64x2.pmin
+     b93: 0b           	end
+
+00000b94 <>:
+
+     b96: fd f7 01     	f64x2.pmax
+     b99: 0b           	end
+
+00000b9a <>:
+
+     b9c: fd f8 01     	i32x4.trunc_sat_f32x4_s
+     b9f: 0b           	end
+
+00000ba0 <>:
+
+     ba2: fd f9 01     	i32x4.trunc_sat_f32x4_u
+     ba5: 0b           	end
+
+00000ba6 <>:
+
+     ba8: fd fa 01     	f32x4.convert_i32x4_s
+     bab: 0b           	end
+
+00000bac <>:
+
+     bae: fd fb 01     	f32x4.convert_i32x4_u
+     bb1: 0b           	end
+
+00000bb2 <>:
+
+     bb4: fd fc 01     	i32x4.trunc_sat_f64x2_s_zero
+     bb7: 0b           	end
+
+00000bb8 <>:
+
+     bba: fd fd 01     	i32x4.trunc_sat_f64x2_u_zero
+     bbd: 0b           	end
+
+00000bbe <>:
+
+     bc0: fd fe 01     	f64x2.convert_low_i32x4_s
+     bc3: 0b           	end
+
+00000bc4 <>:
+
+     bc6: fd ff 01     	f64x2.convert_low_i32x4_u
+     bc9: 0b           	end
+
+00000bca <>:
+
+     bcc: fe 00 02 10  	memory.atomic.notify 	 16
+     bd0: 0b           	end
+
+00000bd1 <>:
+
+     bd3: fe 01 02 10  	memory.atomic.wait32 	 16
+     bd7: 0b           	end
+
+00000bd8 <>:
+
+     bda: fe 02 02 10  	memory.atomic.wait64 	 16:p2align=2
+     bde: 0b           	end
+
+00000bdf <>:
+
+     be1: fe 03 00     	atomic.fence	
+     be4: 0b           	end
+
+00000be5 <>:
+
+     be7: fe 10 02 10  	i32.atomic.load	 16
+     beb: 0b           	end
+
+00000bec <>:
+
+     bee: fe 11 02 10  	i64.atomic.load	 16:p2align=2
+     bf2: 0b           	end
+
+00000bf3 <>:
+
+     bf5: fe 12 02 10  	i32.atomic.load8_u	 16:p2align=2
+     bf9: 0b           	end
+
+00000bfa <>:
+
+     bfc: fe 13 02 10  	i32.atomic.load16_u	 16:p2align=2
+     c00: 0b           	end
+
+00000c01 <>:
+
+     c03: fe 14 02 10  	i64.atomic.load8_u	 16:p2align=2
+     c07: 0b           	end
+
+00000c08 <>:
+
+     c0a: fe 15 02 10  	i64.atomic.load16_u	 16:p2align=2
+     c0e: 0b           	end
+
+00000c0f <>:
+
+     c11: fe 16 02 10  	i64.atomic.load32_u	 16
+     c15: 0b           	end
+
+00000c16 <>:
+
+     c18: fe 17 02 10  	i32.atomic.store	 16
+     c1c: 0b           	end
+
+00000c1d <>:
+
+     c1f: fe 18 02 10  	i64.atomic.store	 16:p2align=2
+     c23: 0b           	end
+
+00000c24 <>:
+
+     c26: fe 19 02 10  	i32.atomic.store8	 16:p2align=2
+     c2a: 0b           	end
+
+00000c2b <>:
+
+     c2d: fe 1a 02 10  	i32.atomic.store16	 16:p2align=2
+     c31: 0b           	end
+
+00000c32 <>:
+
+     c34: fe 1b 02 10  	i64.atomic.store8	 16:p2align=2
+     c38: 0b           	end
+
+00000c39 <>:
+
+     c3b: fe 1c 02 10  	i64.atomic.store16	 16:p2align=2
+     c3f: 0b           	end
+
+00000c40 <>:
+
+     c42: fe 1d 02 10  	i64.atomic.store32	 16
+     c46: 0b           	end
+
+00000c47 <>:
+
+     c49: fe 1e 02 10  	i32.atomic.rmw.add	 16
+     c4d: 0b           	end
+
+00000c4e <>:
+
+     c50: fe 1f 02 10  	i64.atomic.rmw.add	 16:p2align=2
+     c54: 0b           	end
+
+00000c55 <>:
+
+     c57: fe 20 02 10  	i32.atomic.rmw8.add_u	 16:p2align=2
+     c5b: 0b           	end
+
+00000c5c <>:
+
+     c5e: fe 21 02 10  	i32.atomic.rmw16.add_u	 16:p2align=2
+     c62: 0b           	end
+
+00000c63 <>:
+
+     c65: fe 22 02 10  	i64.atomic.rmw8.add_u	 16:p2align=2
+     c69: 0b           	end
+
+00000c6a <>:
+
+     c6c: fe 23 02 10  	i64.atomic.rmw16.add_u	 16:p2align=2
+     c70: 0b           	end
+
+00000c71 <>:
+
+     c73: fe 24 02 10  	i64.atomic.rmw32.add_u	 16
+     c77: 0b           	end
+
+00000c78 <>:
+
+     c7a: fe 25 02 10  	i32.atomic.rmw.sub	 16
+     c7e: 0b           	end
+
+00000c7f <>:
+
+     c81: fe 26 02 10  	i64.atomic.rmw.sub	 16:p2align=2
+     c85: 0b           	end
+
+00000c86 <>:
+
+     c88: fe 27 02 10  	i32.atomic.rmw8.sub_u	 16:p2align=2
+     c8c: 0b           	end
+
+00000c8d <>:
+
+     c8f: fe 28 02 10  	i32.atomic.rmw16.sub_u	 16:p2align=2
+     c93: 0b           	end
+
+00000c94 <>:
+
+     c96: fe 29 02 10  	i64.atomic.rmw8.sub_u	 16:p2align=2
+     c9a: 0b           	end
+
+00000c9b <>:
+
+     c9d: fe 2a 02 10  	i64.atomic.rmw16.sub_u	 16:p2align=2
+     ca1: 0b           	end
+
+00000ca2 <>:
+
+     ca4: fe 2b 02 10  	i64.atomic.rmw32.sub_u	 16
+     ca8: 0b           	end
+
+00000ca9 <>:
+
+     cab: fe 2c 02 10  	i32.atomic.rmw.and	 16
+     caf: 0b           	end
+
+00000cb0 <>:
+
+     cb2: fe 2d 02 10  	i64.atomic.rmw.and	 16:p2align=2
+     cb6: 0b           	end
+
+00000cb7 <>:
+
+     cb9: fe 2e 02 10  	i32.atomic.rmw8.and_u	 16:p2align=2
+     cbd: 0b           	end
+
+00000cbe <>:
+
+     cc0: fe 2f 02 10  	i32.atomic.rmw16.and_u	 16:p2align=2
+     cc4: 0b           	end
+
+00000cc5 <>:
+
+     cc7: fe 30 02 10  	i64.atomic.rmw8.and_u	 16:p2align=2
+     ccb: 0b           	end
+
+00000ccc <>:
+
+     cce: fe 31 02 10  	i64.atomic.rmw16.and_u	 16:p2align=2
+     cd2: 0b           	end
+
+00000cd3 <>:
+
+     cd5: fe 32 02 10  	i64.atomic.rmw32.and_u	 16
+     cd9: 0b           	end
+
+00000cda <>:
+
+     cdc: fe 33 02 10  	i32.atomic.rmw.or	 16
+     ce0: 0b           	end
+
+00000ce1 <>:
+
+     ce3: fe 34 02 10  	i64.atomic.rmw.or	 16:p2align=2
+     ce7: 0b           	end
+
+00000ce8 <>:
+
+     cea: fe 35 02 10  	i32.atomic.rmw8.or_u	 16:p2align=2
+     cee: 0b           	end
+
+00000cef <>:
+
+     cf1: fe 36 02 10  	i32.atomic.rmw16.or_u	 16:p2align=2
+     cf5: 0b           	end
+
+00000cf6 <>:
+
+     cf8: fe 37 02 10  	i64.atomic.rmw8.or_u	 16:p2align=2
+     cfc: 0b           	end
+
+00000cfd <>:
+
+     cff: fe 38 02 10  	i64.atomic.rmw16.or_u	 16:p2align=2
+     d03: 0b           	end
+
+00000d04 <>:
+
+     d06: fe 39 02 10  	i64.atomic.rmw32.or_u	 16
+     d0a: 0b           	end
+
+00000d0b <>:
+
+     d0d: fe 3a 02 10  	i32.atomic.rmw.xor	 16
+     d11: 0b           	end
+
+00000d12 <>:
+
+     d14: fe 3b 02 10  	i64.atomic.rmw.xor	 16:p2align=2
+     d18: 0b           	end
+
+00000d19 <>:
+
+     d1b: fe 3c 02 10  	i32.atomic.rmw8.xor_u	 16:p2align=2
+     d1f: 0b           	end
+
+00000d20 <>:
+
+     d22: fe 3d 02 10  	i32.atomic.rmw16.xor_u	 16:p2align=2
+     d26: 0b           	end
+
+00000d27 <>:
+
+     d29: fe 3e 02 10  	i64.atomic.rmw8.xor_u	 16:p2align=2
+     d2d: 0b           	end
+
+00000d2e <>:
+
+     d30: fe 3f 02 10  	i64.atomic.rmw16.xor_u	 16:p2align=2
+     d34: 0b           	end
+
+00000d35 <>:
+
+     d37: fe 40 02 10  	i64.atomic.rmw32.xor_u	 16
+     d3b: 0b           	end
+
+00000d3c <>:
+
+     d3e: fe 41 02 10  	i32.atomic.rmw.xchg	 16
+     d42: 0b           	end
+
+00000d43 <>:
+
+     d45: fe 42 02 10  	i64.atomic.rmw.xchg	 16:p2align=2
+     d49: 0b           	end
+
+00000d4a <>:
+
+     d4c: fe 43 02 10  	i32.atomic.rmw8.xchg_u	 16:p2align=2
+     d50: 0b           	end
+
+00000d51 <>:
+
+     d53: fe 44 02 10  	i32.atomic.rmw16.xchg_u	 16:p2align=2
+     d57: 0b           	end
+
+00000d58 <>:
+
+     d5a: fe 45 02 10  	i64.atomic.rmw8.xchg_u	 16:p2align=2
+     d5e: 0b           	end
+
+00000d5f <>:
+
+     d61: fe 46 02 10  	i64.atomic.rmw16.xchg_u	 16:p2align=2
+     d65: 0b           	end
+
+00000d66 <>:
+
+     d68: fe 47 02 10  	i64.atomic.rmw32.xchg_u	 16
+     d6c: 0b           	end
+
+00000d6d <>:
+
+     d6f: fe 48 02 10  	i32.atomic.rmw.cmpxchg	 16
+     d73: 0b           	end
+
+00000d74 <>:
+
+     d76: fe 49 02 10  	i64.atomic.rmw.cmpxchg	 16:p2align=2
+     d7a: 0b           	end
+
+00000d7b <>:
+
+     d7d: fe 4a 02 10  	i32.atomic.rmw8.cmpxchg_u	 16:p2align=2
+     d81: 0b           	end
+
+00000d82 <>:
+
+     d84: fe 4b 02 10  	i32.atomic.rmw16.cmpxchg_u	 16:p2align=2
+     d88: 0b           	end
+
+00000d89 <>:
+
+     d8b: fe 4c 02 10  	i64.atomic.rmw8.cmpxchg_u	 16:p2align=2
+     d8f: 0b           	end
+
+00000d90 <>:
+
+     d92: fe 4d 02 10  	i64.atomic.rmw16.cmpxchg_u	 16:p2align=2
+     d96: 0b           	end
+
+00000d97 <>:
+
+     d99: fe 4e 02 10  	i64.atomic.rmw32.cmpxchg_u	 16
+     d9d: 0b           	end
+
+00000d9e <>:
+
+     da0: fe ff 01     	compiler_fence
+     da3: 0b           	end
+
+00000da4 <>:
+
+     da6: fd 80 02     	<unknown>
+     da9: 0b           	end
+
+00000daa <>:
+
+     dac: fd 81 02     	<unknown>
+     daf: 0b           	end
+
+00000db0 <>:
+
+     db2: fd 82 02     	<unknown>
+     db5: 0b           	end
+
+00000db6 <>:
+
+     db8: fd 83 02     	<unknown>
+     dbb: 0b           	end
+
+00000dbc <>:
+
+     dbe: fd 84 02     	<unknown>
+     dc1: 0b           	end
+
+00000dc2 <>:
+
+     dc4: fd 85 02     	<unknown>
+     dc7: 0b           	end
+
+00000dc8 <>:
+
+     dca: fd 86 02     	<unknown>
+     dcd: 0b           	end
+
+00000dce <>:
+
+     dd0: fd 87 02     	<unknown>
+     dd3: 0b           	end
+
+00000dd4 <>:
+
+     dd6: fd 88 02     	<unknown>
+     dd9: 0b           	end
+
+00000dda <>:
+
+     ddc: fd 89 02     	<unknown>
+     ddf: 0b           	end
+
+00000de0 <>:
+
+     de2: fd 8a 02     	<unknown>
+     de5: 0b           	end
+
+00000de6 <>:
+
+     de8: fd 8b 02     	<unknown>
+     deb: 0b           	end
+
+00000dec <>:
+
+     dee: fd 8c 02     	<unknown>
+     df1: 0b           	end
+
+00000df2 <>:
+
+     df4: fd 8d 02     	<unknown>
+     df7: 0b           	end
+
+00000df8 <>:
+
+     dfa: fd 8e 02     	<unknown>
+     dfd: 0b           	end
+
+00000dfe <>:
+
+     e00: fd 8f 02     	<unknown>
+     e03: 0b           	end
+
+00000e04 <>:
+
+     e06: fd 90 02     	<unknown>
+     e09: 0b           	end
+
+00000e0a <>:
+
+     e0c: fd 91 02     	<unknown>
+     e0f: 0b           	end
+
+00000e10 <>:
+
+     e12: fd 92 02     	<unknown>
+     e15: 0b           	end
+
+00000e16 <>:
+
+     e18: fd 93 02     	<unknown>
+     e1b: 0b           	end
+
+00000e1c <>:
+
+     e1e: fd 94 02     	<unknown>
+     e21: 0b           	end
+
+00000e22 <>:
+
+     e24: fd a0 02     	<unknown>
+     e27: 0b           	end
+
+00000e28 <>:
+
+     e2a: fd a1 02     	<unknown>
+     e2d: 01           	nop
+     e2e: 0b           	end
+
+00000e2f <>:
+
+     e31: fd a2 02     	<unknown>
+     e34: 01           	nop
+     e35: 0b           	end
+
+00000e36 <>:
+
+     e38: fd b0 02     	<unknown>
+     e3b: 0b           	end
+
+00000e3c <>:
+
+     e3e: fd b1 02     	<unknown>
+     e41: 0b           	end
+
+00000e42 <>:
+
+     e44: fd b2 02     	<unknown>
+     e47: 0b           	end
+
+00000e48 <>:
+
+     e4a: fd b3 02     	<unknown>
+     e4d: 0b           	end
+
+00000e4e <>:
+
+     e50: fd b4 02     	<unknown>
+     e53: 0b           	end
+
+00000e54 <>:
+
+     e56: fd b5 02     	<unknown>
+     e59: 0b           	end
+
+00000e5a <>:
+
+     e5c: fd b6 02     	<unknown>
+     e5f: 0b           	end
+
+00000e60 <>:
+
+     e62: fd b7 02     	<unknown>
+     e65: 0b           	end
+
+00000e66 <>:
+
+     e68: fd b8 02     	<unknown>
+     e6b: 0b           	end
+
+00000e6c <>:
+
+     e6e: fd b9 02     	<unknown>
+     e71: 0b           	end
+
+00000e72 <>:
+
+     e74: fd ba 02     	<unknown>
+     e77: 0b           	end
+
+00000e78 <>:
+
+     e7a: fd bb 02     	<unknown>
+     e7d: 0b           	end
+
+00000e7e <>:
+
+     e80: fd bc 02     	<unknown>
+     e83: 0b           	end
+
+00000e84 <>:
+
+     e86: fd bd 02     	<unknown>
+     e89: 0b           	end
+
+00000e8a <>:
+
+     e8c: fd be 02     	<unknown>
+     e8f: 0b           	end
+
+00000e90 <>:
+
+     e92: fd bf 02     	<unknown>
+     e95: 0b           	end
+
+00000e96 <>:
+
+     e98: fd c0 02     	<unknown>
+     e9b: 0b           	end
+
+00000e9c <>:
+
+     e9e: fd c1 02     	<unknown>
+     ea1: 0b           	end
+
+00000ea2 <>:
+
+     ea4: fd c2 02     	<unknown>
+     ea7: 0b           	end
+
+00000ea8 <>:
+
+     eaa: fd c3 02     	<unknown>
+     ead: 0b           	end
+
+00000eae <>:
+
+     eb0: fd c4 02     	<unknown>
+     eb3: 0b           	end
+
+00000eb4 <>:
+
+     eb6: fd c5 02     	<unknown>
+     eb9: 0b           	end
+
+00000eba <>:
+
+     ebc: fd c6 02     	<unknown>
+     ebf: 0b           	end
+
+00000ec0 <>:
+
+     ec2: fd c7 02     	<unknown>
+     ec5: 0b           	end
+
+00000ec6 <>:
+
+     ec8: fd c8 02     	<unknown>
+     ecb: 0b           	end
+
+00000ecc <>:
+
+     ece: fd c9 02     	<unknown>
+     ed1: 0b           	end
+
+00000ed2 <>:
+
+     ed4: fd cb 02     	<unknown>
+     ed7: 0b           	end
+
+00000ed8 <>:
+
+     eda: fd ce 02     	<unknown>
+     edd: 0b           	end
+
+00000ede <>:
+
+     ee0: fd cf 02     	<unknown>
+     ee3: 0b           	end

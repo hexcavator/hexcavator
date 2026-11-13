@@ -1,0 +1,146 @@
+
+File: module.wasm
+Format: WASM
+Arch: wasm32
+AddressSize: 32bit
+Sections [
+  Section {
+    Type: TYPE (0x1)
+    Size: 19
+    Offset: 10
+  }
+  Section {
+    Type: IMPORT (0x2)
+    Size: 23
+    Offset: 31
+  }
+  Section {
+    Type: FUNCTION (0x3)
+    Size: 5
+    Offset: 56
+  }
+  Section {
+    Type: TABLE (0x4)
+    Size: 4
+    Offset: 63
+  }
+  Section {
+    Type: GLOBAL (0x6)
+    Size: 7
+    Offset: 69
+  }
+  Section {
+    Type: EXPORT (0x7)
+    Size: 19
+    Offset: 78
+  }
+  Section {
+    Type: START (0x8)
+    Size: 1
+    Offset: 99
+  }
+  Section {
+    Type: ELEM (0x9)
+    Size: 8
+    Offset: 102
+  }
+  Section {
+    Type: DATACOUNT (0xC)
+    Size: 1
+    Offset: 112
+  }
+  Section {
+    Type: CODE (0xA)
+    Size: 40
+    Offset: 115
+  }
+  Section {
+    Type: DATA (0xB)
+    Size: 35
+    Offset: 157
+    Segments [
+      Segment {
+        Size: 5
+        Offset: 16
+      }
+      Segment {
+        Size: 12
+        Offset: 0
+      }
+      Segment {
+        Size: 4
+        Offset: 64
+      }
+    ]
+  }
+  Section {
+    Type: CUSTOM (0x0)
+    Size: 66
+    Offset: 194
+    Name: name
+  }
+  Section {
+    Type: CUSTOM (0x0)
+    Size: 41
+    Offset: 267
+    Name: producers
+  }
+  Section {
+    Type: CUSTOM (0x0)
+    Size: 16
+    Offset: 320
+    Name: sourceMappingURL
+  }
+]
+Symbols [
+  Symbol {
+    Name: log
+    Type: FUNCTION (0x0)
+    Flags [ (0x10)
+      UNDEFINED (0x10)
+    ]
+    ElementIndex: 0x0
+  }
+  Symbol {
+    Name: add
+    Type: FUNCTION (0x0)
+    Flags [ (0x0)
+    ]
+    ElementIndex: 0x1
+  }
+  Symbol {
+    Name: square
+    Type: FUNCTION (0x0)
+    Flags [ (0x2)
+      BINDING_LOCAL (0x2)
+    ]
+    ElementIndex: 0x2
+  }
+  Symbol {
+    Name: main
+    Type: FUNCTION (0x0)
+    Flags [ (0x0)
+    ]
+    ElementIndex: 0x3
+  }
+  Symbol {
+    Name: .rodata
+    Type: DATA (0x1)
+    Flags [ (0x2)
+      BINDING_LOCAL (0x2)
+    ]
+    Offset: 0x0
+    Segment: 0x0
+    Size: 0x5
+  }
+  Symbol {
+    Name: .data
+    Type: DATA (0x1)
+    Flags [ (0x2)
+      BINDING_LOCAL (0x2)
+    ]
+    Offset: 0x0
+    Segment: 0x1
+    Size: 0xC
+  }
+]

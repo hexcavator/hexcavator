@@ -1,0 +1,53 @@
+[package]
+name = "hexcavator"
+description = "hexc: explore executables, objects, and libraries and their debug information (PE, ELF, Mach-O, WebAssembly; PDB, DWARF) from the command line, or serve it to editors and AI agents"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license = "Apache-2.0 AND Apache-2.0 WITH LLVM-exception"
+authors.workspace = true
+repository.workspace = true
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "hexc"
+path = "src/main.rs"
+
+[dependencies]
+hexcavator-codeview.workspace = true
+regex.workspace = true
+hexcavator-core.workspace = true
+hexcavator-mmap.workspace = true
+hexcavator-mz.workspace = true
+hexcavator-pe.workspace = true
+hexcavator-signature.workspace = true
+hexcavator-x86.workspace = true
+hexcavator-arm64.workspace = true
+hexcavator-pdb.workspace = true
+hexcavator-dwarf.workspace = true
+hexcavator-demangle.workspace = true
+hexcavator-image.workspace = true
+hexcavator-macho.workspace = true
+hexcavator-ne.workspace = true
+hexcavator-lx.workspace = true
+hexcavator-debuginfo.workspace = true
+hexcavator-wasm.workspace = true
+hexcavator-elf.workspace = true
+rustc-hash.workspace = true
+hexcavator-size.workspace = true
+hexcavator-archive.workspace = true
+hexcavator-linkerlog.workspace = true
+hexcavator-linkmap.workspace = true
+hexcavator-xref.workspace = true
+hexcavator-query.workspace = true
+hexcavator-program.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
+
+[lints]
+workspace = true

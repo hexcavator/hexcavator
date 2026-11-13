@@ -1,0 +1,658 @@
+# EVEX-encoded instructions (AVX-512 F, CD, BW, DQ, VL, IFMA, VBMI, VBMI2,
+# VNNI, BITALG, VPOPCNTDQ, BF16, GFNI, VAES, VPCLMULQDQ).
+#
+# Attributes: k = merge masking, kz = merge or zero masking, kr = a mask is
+# required; bcst = embedded broadcast (element size from e1/e2/e4/e8, or ew
+# for W ? 8 : 4); er = embedded rounding; sae = suppress all exceptions;
+# t:<tuple> = disp8*N compression (SDM Vol. 2, 2.7.5).
+
+# ---- EVEX 0F ----
+EVEX.0F 10 NP /r W0 : vmovups Vx,Wx ; kz t:fvm
+EVEX.0F 10 66 /r W1 : vmovupd Vx,Wx ; kz t:fvm
+EVEX.0F 10 F3 reg W0 : vmovss Vdq,Hdq,Udq ; kz LIG
+EVEX.0F 10 F3 mem W0 : vmovss Vdq,Md ; kz t:t1s e4 LIG
+EVEX.0F 10 F2 reg W1 : vmovsd Vdq,Hdq,Udq ; kz LIG
+EVEX.0F 10 F2 mem W1 : vmovsd Vdq,Mq ; kz t:t1s e8 LIG
+EVEX.0F 11 NP /r W0 : vmovups Wx,Vx ; kz t:fvm
+EVEX.0F 11 66 /r W1 : vmovupd Wx,Vx ; kz t:fvm
+EVEX.0F 11 F3 reg W0 : vmovss Udq,Hdq,Vdq ; kz LIG
+EVEX.0F 11 F3 mem W0 : vmovss Md,Vdq ; k t:t1s e4 LIG
+EVEX.0F 11 F2 reg W1 : vmovsd Udq,Hdq,Vdq ; kz LIG
+EVEX.0F 11 F2 mem W1 : vmovsd Mq,Vdq ; k t:t1s e8 LIG
+EVEX.0F 12 NP mem L0 W0 : vmovlps Vdq,Hdq,Mq ; t:t2 e4
+EVEX.0F 12 NP reg L0 W0 : vmovhlps Vdq,Hdq,Udq
+EVEX.0F 12 66 mem L0 W1 : vmovlpd Vdq,Hdq,Mq ; t:t1s e8
+EVEX.0F 12 F3 /r W0 : vmovsldup Vx,Wx ; kz t:fvm
+EVEX.0F 12 F2 /r L0 W1 : vmovddup Vdq,Wdq:mm ; kz t:dup
+EVEX.0F 12 F2 /r L1 L2 W1 : vmovddup Vx,Wx ; kz t:dup
+EVEX.0F 13 NP mem L0 W0 : vmovlps Mq,Vdq ; t:t2 e4
+EVEX.0F 13 66 mem L0 W1 : vmovlpd Mq,Vdq ; t:t1s e8
+EVEX.0F 14 NP /r W0 : vunpcklps Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F 14 66 /r W1 : vunpcklpd Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F 15 NP /r W0 : vunpckhps Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F 15 66 /r W1 : vunpckhpd Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F 16 NP mem L0 W0 : vmovhps Vdq,Hdq,Mq ; t:t2 e4
+EVEX.0F 16 NP reg L0 W0 : vmovlhps Vdq,Hdq,Udq
+EVEX.0F 16 66 mem L0 W1 : vmovhpd Vdq,Hdq,Mq ; t:t1s e8
+EVEX.0F 16 F3 /r W0 : vmovshdup Vx,Wx ; kz t:fvm
+EVEX.0F 17 NP mem L0 W0 : vmovhps Mq,Vdq ; t:t2 e4
+EVEX.0F 17 66 mem L0 W1 : vmovhpd Mq,Vdq ; t:t1s e8
+EVEX.0F 28 NP /r W0 : vmovaps Vx,Wx ; kz t:fvm
+EVEX.0F 28 66 /r W1 : vmovapd Vx,Wx ; kz t:fvm
+EVEX.0F 29 NP /r W0 : vmovaps Wx,Vx ; kz t:fvm
+EVEX.0F 29 66 /r W1 : vmovapd Wx,Vx ; kz t:fvm
+EVEX.0F 2A F3 /r : vcvtsi2ss Vdq,Hdq,Ey ; er t:t1s ew LIG
+EVEX.0F 2A F2 /r : vcvtsi2sd Vdq,Hdq,Ey ; er t:t1s ew LIG
+EVEX.0F 2B NP mem W0 : vmovntps Mx,Vx ; t:fvm
+EVEX.0F 2B 66 mem W1 : vmovntpd Mx,Vx ; t:fvm
+EVEX.0F 2C F3 /r W0 : vcvttss2si Gy,Wdq:d ; sae t:t1f e4 LIG
+EVEX.0F 2C F3 /r W1 : vcvttss2si Gy,Wdq:d ; sae t:t1f e4 LIG
+EVEX.0F 2C F2 /r : vcvttsd2si Gy,Wdq:mm ; sae t:t1f e8 LIG
+EVEX.0F 2D F3 /r : vcvtss2si Gy,Wdq:d ; er t:t1f e4 LIG
+EVEX.0F 2D F2 /r : vcvtsd2si Gy,Wdq:mm ; er t:t1f e8 LIG
+EVEX.0F 2E NP /r W0 : vucomiss Vdq,Wdq:d ; sae t:t1s e4 LIG
+EVEX.0F 2E 66 /r W1 : vucomisd Vdq,Wdq:mm ; sae t:t1s e8 LIG
+EVEX.0F 2F NP /r W0 : vcomiss Vdq,Wdq:d ; sae t:t1s e4 LIG
+EVEX.0F 2F 66 /r W1 : vcomisd Vdq,Wdq:mm ; sae t:t1s e8 LIG
+EVEX.0F 51 NP /r W0 : vsqrtps Vx,Wx ; kz bcst er t:fv e4
+EVEX.0F 51 66 /r W1 : vsqrtpd Vx,Wx ; kz bcst er t:fv e8
+EVEX.0F 51 F3 /r W0 : vsqrtss Vdq,Hdq,Wdq:d ; kz er t:t1s e4 LIG
+EVEX.0F 51 F2 /r W1 : vsqrtsd Vdq,Hdq,Wdq:mm ; kz er t:t1s e8 LIG
+EVEX.0F 54 NP /r W0 : vandps Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F 54 66 /r W1 : vandpd Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F 55 NP /r W0 : vandnps Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F 55 66 /r W1 : vandnpd Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F 56 NP /r W0 : vorps Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F 56 66 /r W1 : vorpd Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F 57 NP /r W0 : vxorps Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F 57 66 /r W1 : vxorpd Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F 58 NP /r W0 : vaddps Vx,Hx,Wx ; kz bcst er t:fv e4
+EVEX.0F 58 66 /r W1 : vaddpd Vx,Hx,Wx ; kz bcst er t:fv e8
+EVEX.0F 58 F3 /r W0 : vaddss Vdq,Hdq,Wdq:d ; kz er t:t1s e4 LIG
+EVEX.0F 58 F2 /r W1 : vaddsd Vdq,Hdq,Wdq:mm ; kz er t:t1s e8 LIG
+EVEX.0F 59 NP /r W0 : vmulps Vx,Hx,Wx ; kz bcst er t:fv e4
+EVEX.0F 59 66 /r W1 : vmulpd Vx,Hx,Wx ; kz bcst er t:fv e8
+EVEX.0F 59 F3 /r W0 : vmulss Vdq,Hdq,Wdq:d ; kz er t:t1s e4 LIG
+EVEX.0F 59 F2 /r W1 : vmulsd Vdq,Hdq,Wdq:mm ; kz er t:t1s e8 LIG
+EVEX.0F 5A NP /r W0 : vcvtps2pd Vx,Wh ; kz bcst sae t:hv e4
+EVEX.0F 5A 66 /r W1 : vcvtpd2ps Vh,Wx ; kz bcst er t:fv e8
+EVEX.0F 5A F3 /r W0 : vcvtss2sd Vdq,Hdq,Wdq:d ; kz sae t:t1s e4 LIG
+EVEX.0F 5A F2 /r W1 : vcvtsd2ss Vdq,Hdq,Wdq:mm ; kz er t:t1s e8 LIG
+EVEX.0F 5B NP /r W0 : vcvtdq2ps Vx,Wx ; kz bcst er t:fv e4
+EVEX.0F 5B NP /r W1 : vcvtqq2ps Vh,Wx ; kz bcst er t:fv e8
+EVEX.0F 5B 66 /r W0 : vcvtps2dq Vx,Wx ; kz bcst er t:fv e4
+EVEX.0F 5B F3 /r W0 : vcvttps2dq Vx,Wx ; kz bcst sae t:fv e4
+EVEX.0F 5C NP /r W0 : vsubps Vx,Hx,Wx ; kz bcst er t:fv e4
+EVEX.0F 5C 66 /r W1 : vsubpd Vx,Hx,Wx ; kz bcst er t:fv e8
+EVEX.0F 5C F3 /r W0 : vsubss Vdq,Hdq,Wdq:d ; kz er t:t1s e4 LIG
+EVEX.0F 5C F2 /r W1 : vsubsd Vdq,Hdq,Wdq:mm ; kz er t:t1s e8 LIG
+EVEX.0F 5D NP /r W0 : vminps Vx,Hx,Wx ; kz bcst sae t:fv e4
+EVEX.0F 5D 66 /r W1 : vminpd Vx,Hx,Wx ; kz bcst sae t:fv e8
+EVEX.0F 5D F3 /r W0 : vminss Vdq,Hdq,Wdq:d ; kz sae t:t1s e4 LIG
+EVEX.0F 5D F2 /r W1 : vminsd Vdq,Hdq,Wdq:mm ; kz sae t:t1s e8 LIG
+EVEX.0F 5E NP /r W0 : vdivps Vx,Hx,Wx ; kz bcst er t:fv e4
+EVEX.0F 5E 66 /r W1 : vdivpd Vx,Hx,Wx ; kz bcst er t:fv e8
+EVEX.0F 5E F3 /r W0 : vdivss Vdq,Hdq,Wdq:d ; kz er t:t1s e4 LIG
+EVEX.0F 5E F2 /r W1 : vdivsd Vdq,Hdq,Wdq:mm ; kz er t:t1s e8 LIG
+EVEX.0F 5F NP /r W0 : vmaxps Vx,Hx,Wx ; kz bcst sae t:fv e4
+EVEX.0F 5F 66 /r W1 : vmaxpd Vx,Hx,Wx ; kz bcst sae t:fv e8
+EVEX.0F 5F F3 /r W0 : vmaxss Vdq,Hdq,Wdq:d ; kz sae t:t1s e4 LIG
+EVEX.0F 5F F2 /r W1 : vmaxsd Vdq,Hdq,Wdq:mm ; kz sae t:t1s e8 LIG
+EVEX.0F 60 66 /r : vpunpcklbw Vx,Hx,Wx ; kz t:fvm
+EVEX.0F 61 66 /r : vpunpcklwd Vx,Hx,Wx ; kz t:fvm
+EVEX.0F 62 66 /r W0 : vpunpckldq Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F 63 66 /r : vpacksswb Vx,Hx,Wx ; kz t:fvm
+EVEX.0F 64 66 /r : vpcmpgtb KG,Hx,Wx ; k t:fvm
+EVEX.0F 65 66 /r : vpcmpgtw KG,Hx,Wx ; k t:fvm
+EVEX.0F 66 66 /r W0 : vpcmpgtd KG,Hx,Wx ; k bcst t:fv e4
+EVEX.0F 67 66 /r : vpackuswb Vx,Hx,Wx ; kz t:fvm
+EVEX.0F 68 66 /r : vpunpckhbw Vx,Hx,Wx ; kz t:fvm
+EVEX.0F 69 66 /r : vpunpckhwd Vx,Hx,Wx ; kz t:fvm
+EVEX.0F 6A 66 /r W0 : vpunpckhdq Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F 6B 66 /r W0 : vpackssdw Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F 6C 66 /r W1 : vpunpcklqdq Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F 6D 66 /r W1 : vpunpckhqdq Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F 6E 66 /r L0 W0 : vmovd Vdq,Ed ; t:t1s e4
+EVEX.0F 6E 66 /r L0 W1 : vmovq Vdq,Eq ; t:t1s e8
+EVEX.0F 6F 66 /r W0 : vmovdqa32 Vx,Wx ; kz t:fvm
+EVEX.0F 6F 66 /r W1 : vmovdqa64 Vx,Wx ; kz t:fvm
+EVEX.0F 6F F3 /r W0 : vmovdqu32 Vx,Wx ; kz t:fvm
+EVEX.0F 6F F3 /r W1 : vmovdqu64 Vx,Wx ; kz t:fvm
+EVEX.0F 6F F2 /r W0 : vmovdqu8 Vx,Wx ; kz t:fvm
+EVEX.0F 6F F2 /r W1 : vmovdqu16 Vx,Wx ; kz t:fvm
+EVEX.0F 70 66 /r W0 : vpshufd Vx,Wx,Ib ; kz bcst t:fv e4
+EVEX.0F 70 F3 /r : vpshufhw Vx,Wx,Ib ; kz t:fvm
+EVEX.0F 70 F2 /r : vpshuflw Vx,Wx,Ib ; kz t:fvm
+EVEX.0F 71 66 /2 : vpsrlw Hx,Wx,Ib ; kz t:fvm
+EVEX.0F 71 66 /4 : vpsraw Hx,Wx,Ib ; kz t:fvm
+EVEX.0F 71 66 /6 : vpsllw Hx,Wx,Ib ; kz t:fvm
+EVEX.0F 72 66 /0 W0 : vprord Hx,Wx,Ib ; kz bcst t:fv e4
+EVEX.0F 72 66 /0 W1 : vprorq Hx,Wx,Ib ; kz bcst t:fv e8
+EVEX.0F 72 66 /1 W0 : vprold Hx,Wx,Ib ; kz bcst t:fv e4
+EVEX.0F 72 66 /1 W1 : vprolq Hx,Wx,Ib ; kz bcst t:fv e8
+EVEX.0F 72 66 /2 W0 : vpsrld Hx,Wx,Ib ; kz bcst t:fv e4
+EVEX.0F 72 66 /4 W0 : vpsrad Hx,Wx,Ib ; kz bcst t:fv e4
+EVEX.0F 72 66 /4 W1 : vpsraq Hx,Wx,Ib ; kz bcst t:fv e8
+EVEX.0F 72 66 /6 W0 : vpslld Hx,Wx,Ib ; kz bcst t:fv e4
+EVEX.0F 73 66 /2 W1 : vpsrlq Hx,Wx,Ib ; kz bcst t:fv e8
+EVEX.0F 73 66 /3 : vpsrldq Hx,Wx,Ib ; t:fvm
+EVEX.0F 73 66 /6 W1 : vpsllq Hx,Wx,Ib ; kz bcst t:fv e8
+EVEX.0F 73 66 /7 : vpslldq Hx,Wx,Ib ; t:fvm
+EVEX.0F 74 66 /r : vpcmpeqb KG,Hx,Wx ; k t:fvm
+EVEX.0F 75 66 /r : vpcmpeqw KG,Hx,Wx ; k t:fvm
+EVEX.0F 76 66 /r W0 : vpcmpeqd KG,Hx,Wx ; k bcst t:fv e4
+EVEX.0F 78 NP /r W0 : vcvttps2udq Vx,Wx ; kz bcst sae t:fv e4
+EVEX.0F 78 NP /r W1 : vcvttpd2udq Vh,Wx ; kz bcst sae t:fv e8
+EVEX.0F 78 66 /r W0 : vcvttps2uqq Vx,Wh ; kz bcst sae t:hv e4
+EVEX.0F 78 66 /r W1 : vcvttpd2uqq Vx,Wx ; kz bcst sae t:fv e8
+EVEX.0F 78 F3 /r : vcvttss2usi Gy,Wdq:d ; sae t:t1f e4 LIG
+EVEX.0F 78 F2 /r : vcvttsd2usi Gy,Wdq:mm ; sae t:t1f e8 LIG
+EVEX.0F 79 NP /r W0 : vcvtps2udq Vx,Wx ; kz bcst er t:fv e4
+EVEX.0F 79 NP /r W1 : vcvtpd2udq Vh,Wx ; kz bcst er t:fv e8
+EVEX.0F 79 66 /r W0 : vcvtps2uqq Vx,Wh ; kz bcst er t:hv e4
+EVEX.0F 79 66 /r W1 : vcvtpd2uqq Vx,Wx ; kz bcst er t:fv e8
+EVEX.0F 79 F3 /r : vcvtss2usi Gy,Wdq:d ; er t:t1f e4 LIG
+EVEX.0F 79 F2 /r : vcvtsd2usi Gy,Wdq:mm ; er t:t1f e8 LIG
+EVEX.0F 7A 66 /r W0 : vcvttps2qq Vx,Wh ; kz bcst sae t:hv e4
+EVEX.0F 7A 66 /r W1 : vcvttpd2qq Vx,Wx ; kz bcst sae t:fv e8
+EVEX.0F 7A F3 /r W0 : vcvtudq2pd Vx,Wh ; kz bcst t:hv e4
+EVEX.0F 7A F3 /r W1 : vcvtuqq2pd Vx,Wx ; kz bcst er t:fv e8
+EVEX.0F 7A F2 /r W0 : vcvtudq2ps Vx,Wx ; kz bcst er t:fv e4
+EVEX.0F 7A F2 /r W1 : vcvtuqq2ps Vh,Wx ; kz bcst er t:fv e8
+EVEX.0F 7B 66 /r W0 : vcvtps2qq Vx,Wh ; kz bcst er t:hv e4
+EVEX.0F 7B 66 /r W1 : vcvtpd2qq Vx,Wx ; kz bcst er t:fv e8
+EVEX.0F 7B F3 /r : vcvtusi2ss Vdq,Hdq,Ey ; er t:t1s ew LIG
+EVEX.0F 7B F2 /r : vcvtusi2sd Vdq,Hdq,Ey ; er t:t1s ew LIG
+EVEX.0F 7E 66 /r L0 W0 : vmovd Ed,Vdq ; t:t1s e4
+EVEX.0F 7E 66 /r L0 W1 : vmovq Eq,Vdq ; t:t1s e8
+EVEX.0F 7E F3 /r L0 W1 : vmovq Vdq,Wdq:mm ; t:t1s e8
+EVEX.0F 7F 66 /r W0 : vmovdqa32 Wx,Vx ; kz t:fvm
+EVEX.0F 7F 66 /r W1 : vmovdqa64 Wx,Vx ; kz t:fvm
+EVEX.0F 7F F3 /r W0 : vmovdqu32 Wx,Vx ; kz t:fvm
+EVEX.0F 7F F3 /r W1 : vmovdqu64 Wx,Vx ; kz t:fvm
+EVEX.0F 7F F2 /r W0 : vmovdqu8 Wx,Vx ; kz t:fvm
+EVEX.0F 7F F2 /r W1 : vmovdqu16 Wx,Vx ; kz t:fvm
+EVEX.0F C2 NP /r W0 : vcmpps KG,Hx,Wx,Ib ; k bcst sae t:fv e4
+EVEX.0F C2 66 /r W1 : vcmppd KG,Hx,Wx,Ib ; k bcst sae t:fv e8
+EVEX.0F C2 F3 /r W0 : vcmpss KG,Hdq,Wdq:d,Ib ; k sae t:t1s e4 LIG
+EVEX.0F C2 F2 /r W1 : vcmpsd KG,Hdq,Wdq:mm,Ib ; k sae t:t1s e8 LIG
+EVEX.0F C4 66 /r L0 : vpinsrw Vdq,Hdq,Ed:w,Ib ; t:t1s e2
+EVEX.0F C5 66 reg L0 : vpextrw Gy,Udq,Ib
+EVEX.0F C6 NP /r W0 : vshufps Vx,Hx,Wx,Ib ; kz bcst t:fv e4
+EVEX.0F C6 66 /r W1 : vshufpd Vx,Hx,Wx,Ib ; kz bcst t:fv e8
+EVEX.0F D1 66 /r : vpsrlw Vx,Hx,Wdq ; kz t:m128
+EVEX.0F D2 66 /r W0 : vpsrld Vx,Hx,Wdq ; kz t:m128
+EVEX.0F D3 66 /r W1 : vpsrlq Vx,Hx,Wdq ; kz t:m128
+EVEX.0F D4 66 /r W1 : vpaddq Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F D5 66 /r : vpmullw Vx,Hx,Wx ; kz t:fvm
+EVEX.0F D6 66 /r L0 W1 : vmovq Wdq:mm,Vdq ; t:t1s e8
+EVEX.0F D8 66 /r : vpsubusb Vx,Hx,Wx ; kz t:fvm
+EVEX.0F D9 66 /r : vpsubusw Vx,Hx,Wx ; kz t:fvm
+EVEX.0F DA 66 /r : vpminub Vx,Hx,Wx ; kz t:fvm
+EVEX.0F DB 66 /r W0 : vpandd Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F DB 66 /r W1 : vpandq Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F DC 66 /r : vpaddusb Vx,Hx,Wx ; kz t:fvm
+EVEX.0F DD 66 /r : vpaddusw Vx,Hx,Wx ; kz t:fvm
+EVEX.0F DE 66 /r : vpmaxub Vx,Hx,Wx ; kz t:fvm
+EVEX.0F DF 66 /r W0 : vpandnd Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F DF 66 /r W1 : vpandnq Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F E0 66 /r : vpavgb Vx,Hx,Wx ; kz t:fvm
+EVEX.0F E1 66 /r : vpsraw Vx,Hx,Wdq ; kz t:m128
+EVEX.0F E2 66 /r W0 : vpsrad Vx,Hx,Wdq ; kz t:m128
+EVEX.0F E2 66 /r W1 : vpsraq Vx,Hx,Wdq ; kz t:m128
+EVEX.0F E3 66 /r : vpavgw Vx,Hx,Wx ; kz t:fvm
+EVEX.0F E4 66 /r : vpmulhuw Vx,Hx,Wx ; kz t:fvm
+EVEX.0F E5 66 /r : vpmulhw Vx,Hx,Wx ; kz t:fvm
+EVEX.0F E6 66 /r W1 : vcvttpd2dq Vh,Wx ; kz bcst sae t:fv e8
+EVEX.0F E6 F3 /r W0 : vcvtdq2pd Vx,Wh ; kz bcst t:hv e4
+EVEX.0F E6 F3 /r W1 : vcvtqq2pd Vx,Wx ; kz bcst er t:fv e8
+EVEX.0F E6 F2 /r W1 : vcvtpd2dq Vh,Wx ; kz bcst er t:fv e8
+EVEX.0F E7 66 mem W0 : vmovntdq Mx,Vx ; t:fvm
+EVEX.0F E8 66 /r : vpsubsb Vx,Hx,Wx ; kz t:fvm
+EVEX.0F E9 66 /r : vpsubsw Vx,Hx,Wx ; kz t:fvm
+EVEX.0F EA 66 /r : vpminsw Vx,Hx,Wx ; kz t:fvm
+EVEX.0F EB 66 /r W0 : vpord Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F EB 66 /r W1 : vporq Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F EC 66 /r : vpaddsb Vx,Hx,Wx ; kz t:fvm
+EVEX.0F ED 66 /r : vpaddsw Vx,Hx,Wx ; kz t:fvm
+EVEX.0F EE 66 /r : vpmaxsw Vx,Hx,Wx ; kz t:fvm
+EVEX.0F EF 66 /r W0 : vpxord Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F EF 66 /r W1 : vpxorq Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F F1 66 /r : vpsllw Vx,Hx,Wdq ; kz t:m128
+EVEX.0F F2 66 /r W0 : vpslld Vx,Hx,Wdq ; kz t:m128
+EVEX.0F F3 66 /r W1 : vpsllq Vx,Hx,Wdq ; kz t:m128
+EVEX.0F F4 66 /r W1 : vpmuludq Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F F5 66 /r : vpmaddwd Vx,Hx,Wx ; kz t:fvm
+EVEX.0F F6 66 /r : vpsadbw Vx,Hx,Wx ; t:fvm
+EVEX.0F F8 66 /r : vpsubb Vx,Hx,Wx ; kz t:fvm
+EVEX.0F F9 66 /r : vpsubw Vx,Hx,Wx ; kz t:fvm
+EVEX.0F FA 66 /r W0 : vpsubd Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F FB 66 /r W1 : vpsubq Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F FC 66 /r : vpaddb Vx,Hx,Wx ; kz t:fvm
+EVEX.0F FD 66 /r : vpaddw Vx,Hx,Wx ; kz t:fvm
+EVEX.0F FE 66 /r W0 : vpaddd Vx,Hx,Wx ; kz bcst t:fv e4
+
+# ---- EVEX 0F 38 ----
+EVEX.0F38 00 66 /r : vpshufb Vx,Hx,Wx ; kz t:fvm
+EVEX.0F38 04 66 /r : vpmaddubsw Vx,Hx,Wx ; kz t:fvm
+EVEX.0F38 0B 66 /r : vpmulhrsw Vx,Hx,Wx ; kz t:fvm
+EVEX.0F38 0C 66 /r W0 : vpermilps Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F38 0D 66 /r W1 : vpermilpd Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F38 10 66 /r W1 : vpsrlvw Vx,Hx,Wx ; kz t:fvm
+EVEX.0F38 11 66 /r W1 : vpsravw Vx,Hx,Wx ; kz t:fvm
+EVEX.0F38 12 66 /r W1 : vpsllvw Vx,Hx,Wx ; kz t:fvm
+EVEX.0F38 10 F3 /r W0 : vpmovuswb Wh,Vx ; kz t:hvm
+EVEX.0F38 11 F3 /r W0 : vpmovusdb Wq4,Vx ; kz t:qvm
+EVEX.0F38 12 F3 /r W0 : vpmovusqb We8,Vx ; kz t:ovm
+EVEX.0F38 13 F3 /r W0 : vpmovusdw Wh,Vx ; kz t:hvm
+EVEX.0F38 14 F3 /r W0 : vpmovusqw Wq4,Vx ; kz t:qvm
+EVEX.0F38 15 F3 /r W0 : vpmovusqd Wh,Vx ; kz t:hvm
+EVEX.0F38 20 F3 /r W0 : vpmovswb Wh,Vx ; kz t:hvm
+EVEX.0F38 21 F3 /r W0 : vpmovsdb Wq4,Vx ; kz t:qvm
+EVEX.0F38 22 F3 /r W0 : vpmovsqb We8,Vx ; kz t:ovm
+EVEX.0F38 23 F3 /r W0 : vpmovsdw Wh,Vx ; kz t:hvm
+EVEX.0F38 24 F3 /r W0 : vpmovsqw Wq4,Vx ; kz t:qvm
+EVEX.0F38 25 F3 /r W0 : vpmovsqd Wh,Vx ; kz t:hvm
+EVEX.0F38 30 F3 /r W0 : vpmovwb Wh,Vx ; kz t:hvm
+EVEX.0F38 31 F3 /r W0 : vpmovdb Wq4,Vx ; kz t:qvm
+EVEX.0F38 32 F3 /r W0 : vpmovqb We8,Vx ; kz t:ovm
+EVEX.0F38 33 F3 /r W0 : vpmovdw Wh,Vx ; kz t:hvm
+EVEX.0F38 34 F3 /r W0 : vpmovqw Wq4,Vx ; kz t:qvm
+EVEX.0F38 35 F3 /r W0 : vpmovqd Wh,Vx ; kz t:hvm
+EVEX.0F38 13 66 /r W0 : vcvtph2ps Vx,Wh ; kz sae t:hvm
+EVEX.0F38 14 66 /r W0 : vprorvd Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F38 14 66 /r W1 : vprorvq Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F38 15 66 /r W0 : vprolvd Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F38 15 66 /r W1 : vprolvq Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F38 16 66 /r L1 L2 W0 : vpermps Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F38 16 66 /r L1 L2 W1 : vpermpd Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F38 18 66 /r W0 : vbroadcastss Vx,Wdq:d ; kz t:t1s e4
+EVEX.0F38 19 66 /r L1 L2 W0 : vbroadcastf32x2 Vx,Wdq:mm ; kz t:t2 e4
+EVEX.0F38 19 66 /r L1 L2 W1 : vbroadcastsd Vx,Wdq:mm ; kz t:t1s e8
+EVEX.0F38 1A 66 mem L1 L2 W0 : vbroadcastf32x4 Vx,Mdq ; kz t:t4 e4
+EVEX.0F38 1A 66 mem L1 L2 W1 : vbroadcastf64x2 Vx,Mdq ; kz t:t2 e8
+EVEX.0F38 1B 66 mem L2 W0 : vbroadcastf32x8 Vx,Mqq ; kz t:t8 e4
+EVEX.0F38 1B 66 mem L2 W1 : vbroadcastf64x4 Vx,Mqq ; kz t:t4 e8
+EVEX.0F38 1C 66 /r : vpabsb Vx,Wx ; kz t:fvm
+EVEX.0F38 1D 66 /r : vpabsw Vx,Wx ; kz t:fvm
+EVEX.0F38 1E 66 /r W0 : vpabsd Vx,Wx ; kz bcst t:fv e4
+EVEX.0F38 1F 66 /r W1 : vpabsq Vx,Wx ; kz bcst t:fv e8
+EVEX.0F38 20 66 /r : vpmovsxbw Vx,Wh ; kz t:hvm
+EVEX.0F38 21 66 /r : vpmovsxbd Vx,Wq4 ; kz t:qvm
+EVEX.0F38 22 66 /r : vpmovsxbq Vx,We8 ; kz t:ovm
+EVEX.0F38 23 66 /r : vpmovsxwd Vx,Wh ; kz t:hvm
+EVEX.0F38 24 66 /r : vpmovsxwq Vx,Wq4 ; kz t:qvm
+EVEX.0F38 25 66 /r W0 : vpmovsxdq Vx,Wh ; kz t:hvm
+EVEX.0F38 26 66 /r W0 : vptestmb KG,Hx,Wx ; k t:fvm
+EVEX.0F38 26 66 /r W1 : vptestmw KG,Hx,Wx ; k t:fvm
+EVEX.0F38 26 F3 /r W0 : vptestnmb KG,Hx,Wx ; k t:fvm
+EVEX.0F38 26 F3 /r W1 : vptestnmw KG,Hx,Wx ; k t:fvm
+EVEX.0F38 27 66 /r W0 : vptestmd KG,Hx,Wx ; k bcst t:fv e4
+EVEX.0F38 27 66 /r W1 : vptestmq KG,Hx,Wx ; k bcst t:fv e8
+EVEX.0F38 27 F3 /r W0 : vptestnmd KG,Hx,Wx ; k bcst t:fv e4
+EVEX.0F38 27 F3 /r W1 : vptestnmq KG,Hx,Wx ; k bcst t:fv e8
+EVEX.0F38 28 66 /r W1 : vpmuldq Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F38 28 F3 reg W0 : vpmovm2b Vx,KE
+EVEX.0F38 28 F3 reg W1 : vpmovm2w Vx,KE
+EVEX.0F38 29 66 /r W1 : vpcmpeqq KG,Hx,Wx ; k bcst t:fv e8
+EVEX.0F38 29 F3 reg W0 : vpmovb2m KG,Ux
+EVEX.0F38 29 F3 reg W1 : vpmovw2m KG,Ux
+EVEX.0F38 2A 66 mem W0 : vmovntdqa Vx,Mx ; t:fvm
+EVEX.0F38 2A F3 reg W1 : vpbroadcastmb2q Vx,KE
+EVEX.0F38 2B 66 /r W0 : vpackusdw Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F38 2C 66 /r W0 : vscalefps Vx,Hx,Wx ; kz bcst er t:fv e4
+EVEX.0F38 2C 66 /r W1 : vscalefpd Vx,Hx,Wx ; kz bcst er t:fv e8
+EVEX.0F38 2D 66 /r W0 : vscalefss Vdq,Hdq,Wdq:d ; kz er t:t1s e4 LIG
+EVEX.0F38 2D 66 /r W1 : vscalefsd Vdq,Hdq,Wdq:mm ; kz er t:t1s e8 LIG
+EVEX.0F38 30 66 /r : vpmovzxbw Vx,Wh ; kz t:hvm
+EVEX.0F38 31 66 /r : vpmovzxbd Vx,Wq4 ; kz t:qvm
+EVEX.0F38 32 66 /r : vpmovzxbq Vx,We8 ; kz t:ovm
+EVEX.0F38 33 66 /r : vpmovzxwd Vx,Wh ; kz t:hvm
+EVEX.0F38 34 66 /r : vpmovzxwq Vx,Wq4 ; kz t:qvm
+EVEX.0F38 35 66 /r W0 : vpmovzxdq Vx,Wh ; kz t:hvm
+EVEX.0F38 36 66 /r L1 L2 W0 : vpermd Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F38 36 66 /r L1 L2 W1 : vpermq Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F38 37 66 /r W1 : vpcmpgtq KG,Hx,Wx ; k bcst t:fv e8
+EVEX.0F38 38 66 /r : vpminsb Vx,Hx,Wx ; kz t:fvm
+EVEX.0F38 38 F3 reg W0 : vpmovm2d Vx,KE
+EVEX.0F38 38 F3 reg W1 : vpmovm2q Vx,KE
+EVEX.0F38 39 66 /r W0 : vpminsd Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F38 39 66 /r W1 : vpminsq Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F38 39 F3 reg W0 : vpmovd2m KG,Ux
+EVEX.0F38 39 F3 reg W1 : vpmovq2m KG,Ux
+EVEX.0F38 3A 66 /r : vpminuw Vx,Hx,Wx ; kz t:fvm
+EVEX.0F38 3A F3 reg W0 : vpbroadcastmw2d Vx,KE
+EVEX.0F38 3B 66 /r W0 : vpminud Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F38 3B 66 /r W1 : vpminuq Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F38 3C 66 /r : vpmaxsb Vx,Hx,Wx ; kz t:fvm
+EVEX.0F38 3D 66 /r W0 : vpmaxsd Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F38 3D 66 /r W1 : vpmaxsq Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F38 3E 66 /r : vpmaxuw Vx,Hx,Wx ; kz t:fvm
+EVEX.0F38 3F 66 /r W0 : vpmaxud Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F38 3F 66 /r W1 : vpmaxuq Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F38 40 66 /r W0 : vpmulld Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F38 40 66 /r W1 : vpmullq Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F38 42 66 /r W0 : vgetexpps Vx,Wx ; kz bcst sae t:fv e4
+EVEX.0F38 42 66 /r W1 : vgetexppd Vx,Wx ; kz bcst sae t:fv e8
+EVEX.0F38 43 66 /r W0 : vgetexpss Vdq,Hdq,Wdq:d ; kz sae t:t1s e4 LIG
+EVEX.0F38 43 66 /r W1 : vgetexpsd Vdq,Hdq,Wdq:mm ; kz sae t:t1s e8 LIG
+EVEX.0F38 44 66 /r W0 : vplzcntd Vx,Wx ; kz bcst t:fv e4
+EVEX.0F38 44 66 /r W1 : vplzcntq Vx,Wx ; kz bcst t:fv e8
+EVEX.0F38 45 66 /r W0 : vpsrlvd Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F38 45 66 /r W1 : vpsrlvq Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F38 46 66 /r W0 : vpsravd Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F38 46 66 /r W1 : vpsravq Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F38 47 66 /r W0 : vpsllvd Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F38 47 66 /r W1 : vpsllvq Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F38 4C 66 /r W0 : vrcp14ps Vx,Wx ; kz bcst t:fv e4
+EVEX.0F38 4C 66 /r W1 : vrcp14pd Vx,Wx ; kz bcst t:fv e8
+EVEX.0F38 4D 66 /r W0 : vrcp14ss Vdq,Hdq,Wdq:d ; kz t:t1s e4 LIG
+EVEX.0F38 4D 66 /r W1 : vrcp14sd Vdq,Hdq,Wdq:mm ; kz t:t1s e8 LIG
+EVEX.0F38 4E 66 /r W0 : vrsqrt14ps Vx,Wx ; kz bcst t:fv e4
+EVEX.0F38 4E 66 /r W1 : vrsqrt14pd Vx,Wx ; kz bcst t:fv e8
+EVEX.0F38 4F 66 /r W0 : vrsqrt14ss Vdq,Hdq,Wdq:d ; kz t:t1s e4 LIG
+EVEX.0F38 4F 66 /r W1 : vrsqrt14sd Vdq,Hdq,Wdq:mm ; kz t:t1s e8 LIG
+EVEX.0F38 50 66 /r W0 : vpdpbusd Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F38 51 66 /r W0 : vpdpbusds Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F38 52 66 /r W0 : vpdpwssd Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F38 53 66 /r W0 : vpdpwssds Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F38 52 F3 /r W0 : vdpbf16ps Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F38 54 66 /r W0 : vpopcntb Vx,Wx ; kz t:fvm
+EVEX.0F38 54 66 /r W1 : vpopcntw Vx,Wx ; kz t:fvm
+EVEX.0F38 55 66 /r W0 : vpopcntd Vx,Wx ; kz bcst t:fv e4
+EVEX.0F38 55 66 /r W1 : vpopcntq Vx,Wx ; kz bcst t:fv e8
+EVEX.0F38 58 66 /r W0 : vpbroadcastd Vx,Wdq:d ; kz t:t1s e4
+EVEX.0F38 59 66 /r W0 : vbroadcasti32x2 Vx,Wdq:mm ; kz t:t2 e4
+EVEX.0F38 59 66 /r W1 : vpbroadcastq Vx,Wdq:mm ; kz t:t1s e8
+EVEX.0F38 5A 66 mem L1 L2 W0 : vbroadcasti32x4 Vx,Mdq ; kz t:t4 e4
+EVEX.0F38 5A 66 mem L1 L2 W1 : vbroadcasti64x2 Vx,Mdq ; kz t:t2 e8
+EVEX.0F38 5B 66 mem L2 W0 : vbroadcasti32x8 Vx,Mqq ; kz t:t8 e4
+EVEX.0F38 5B 66 mem L2 W1 : vbroadcasti64x4 Vx,Mqq ; kz t:t4 e8
+EVEX.0F38 62 66 /r W0 : vpexpandb Vx,Wx ; kz t:t1s e1
+EVEX.0F38 62 66 /r W1 : vpexpandw Vx,Wx ; kz t:t1s e2
+EVEX.0F38 63 66 /r W0 : vpcompressb Wx,Vx ; kz t:t1s e1
+EVEX.0F38 63 66 /r W1 : vpcompressw Wx,Vx ; kz t:t1s e2
+EVEX.0F38 64 66 /r W0 : vpblendmd Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F38 64 66 /r W1 : vpblendmq Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F38 65 66 /r W0 : vblendmps Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F38 65 66 /r W1 : vblendmpd Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F38 66 66 /r W0 : vpblendmb Vx,Hx,Wx ; kz t:fvm
+EVEX.0F38 66 66 /r W1 : vpblendmw Vx,Hx,Wx ; kz t:fvm
+EVEX.0F38 68 F2 /r W0 : vp2intersectd KG,Hx,Wx ; bcst t:fv e4
+EVEX.0F38 68 F2 /r W1 : vp2intersectq KG,Hx,Wx ; bcst t:fv e8
+EVEX.0F38 70 66 /r W1 : vpshldvw Vx,Hx,Wx ; kz t:fvm
+EVEX.0F38 71 66 /r W0 : vpshldvd Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F38 71 66 /r W1 : vpshldvq Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F38 72 66 /r W1 : vpshrdvw Vx,Hx,Wx ; kz t:fvm
+EVEX.0F38 72 F3 /r W0 : vcvtneps2bf16 Vh,Wx ; kz bcst t:fv e4
+EVEX.0F38 72 F2 /r W0 : vcvtne2ps2bf16 Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F38 73 66 /r W0 : vpshrdvd Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F38 73 66 /r W1 : vpshrdvq Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F38 75 66 /r W0 : vpermi2b Vx,Hx,Wx ; kz t:fvm
+EVEX.0F38 75 66 /r W1 : vpermi2w Vx,Hx,Wx ; kz t:fvm
+EVEX.0F38 76 66 /r W0 : vpermi2d Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F38 76 66 /r W1 : vpermi2q Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F38 77 66 /r W0 : vpermi2ps Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F38 77 66 /r W1 : vpermi2pd Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F38 78 66 /r W0 : vpbroadcastb Vx,Wdq:b ; kz t:t1s e1
+EVEX.0F38 79 66 /r W0 : vpbroadcastw Vx,Wdq:w ; kz t:t1s e2
+EVEX.0F38 7A 66 reg W0 : vpbroadcastb Vx,Rd ; kz
+EVEX.0F38 7B 66 reg W0 : vpbroadcastw Vx,Rd ; kz
+EVEX.0F38 7C 66 reg W0 : vpbroadcastd Vx,Rd ; kz
+EVEX.0F38 7C 66 reg W1 : vpbroadcastq Vx,Rq ; kz
+EVEX.0F38 7D 66 /r W0 : vpermt2b Vx,Hx,Wx ; kz t:fvm
+EVEX.0F38 7D 66 /r W1 : vpermt2w Vx,Hx,Wx ; kz t:fvm
+EVEX.0F38 7E 66 /r W0 : vpermt2d Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F38 7E 66 /r W1 : vpermt2q Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F38 7F 66 /r W0 : vpermt2ps Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F38 7F 66 /r W1 : vpermt2pd Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F38 83 66 /r W1 : vpmultishiftqb Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F38 88 66 /r W0 : vexpandps Vx,Wx:d ; kz t:t1s e4
+EVEX.0F38 88 66 /r W1 : vexpandpd Vx,Wx:mm ; kz t:t1s e8
+EVEX.0F38 89 66 /r W0 : vpexpandd Vx,Wx:d ; kz t:t1s e4
+EVEX.0F38 89 66 /r W1 : vpexpandq Vx,Wx:mm ; kz t:t1s e8
+EVEX.0F38 8A 66 /r W0 : vcompressps Wx:d,Vx ; kz t:t1s e4
+EVEX.0F38 8A 66 /r W1 : vcompresspd Wx:mm,Vx ; kz t:t1s e8
+EVEX.0F38 8B 66 /r W0 : vpcompressd Wx:d,Vx ; kz t:t1s e4
+EVEX.0F38 8B 66 /r W1 : vpcompressq Wx:mm,Vx ; kz t:t1s e8
+EVEX.0F38 8D 66 /r W0 : vpermb Vx,Hx,Wx ; kz t:fvm
+EVEX.0F38 8D 66 /r W1 : vpermw Vx,Hx,Wx ; kz t:fvm
+EVEX.0F38 8F 66 /r W0 : vpshufbitqmb KG,Hx,Wx ; k t:fvm
+EVEX.0F38 90 66 mem W0 : vpgatherdd Vx,VSx:d ; kr t:t1s e4
+EVEX.0F38 90 66 mem W1 : vpgatherdq Vx,VSh:q ; kr t:t1s e8
+EVEX.0F38 91 66 mem W0 : vpgatherqd Vh,VSx:d ; kr t:t1s e4
+EVEX.0F38 91 66 mem W1 : vpgatherqq Vx,VSx:q ; kr t:t1s e8
+EVEX.0F38 92 66 mem W0 : vgatherdps Vx,VSx:d ; kr t:t1s e4
+EVEX.0F38 92 66 mem W1 : vgatherdpd Vx,VSh:q ; kr t:t1s e8
+EVEX.0F38 93 66 mem W0 : vgatherqps Vh,VSx:d ; kr t:t1s e4
+EVEX.0F38 93 66 mem W1 : vgatherqpd Vx,VSx:q ; kr t:t1s e8
+EVEX.0F38 A0 66 mem W0 : vpscatterdd VSx:d,Vx ; kr t:t1s e4
+EVEX.0F38 A0 66 mem W1 : vpscatterdq VSh:q,Vx ; kr t:t1s e8
+EVEX.0F38 A1 66 mem W0 : vpscatterqd VSx:d,Vh ; kr t:t1s e4
+EVEX.0F38 A1 66 mem W1 : vpscatterqq VSx:q,Vx ; kr t:t1s e8
+EVEX.0F38 A2 66 mem W0 : vscatterdps VSx:d,Vx ; kr t:t1s e4
+EVEX.0F38 A2 66 mem W1 : vscatterdpd VSh:q,Vx ; kr t:t1s e8
+EVEX.0F38 A3 66 mem W0 : vscatterqps VSx:d,Vh ; kr t:t1s e4
+EVEX.0F38 A3 66 mem W1 : vscatterqpd VSx:q,Vx ; kr t:t1s e8
+EVEX.0F38 B4 66 /r W1 : vpmadd52luq Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F38 B5 66 /r W1 : vpmadd52huq Vx,Hx,Wx ; kz bcst t:fv e8
+EVEX.0F38 C4 66 /r W0 : vpconflictd Vx,Wx ; kz bcst t:fv e4
+EVEX.0F38 C4 66 /r W1 : vpconflictq Vx,Wx ; kz bcst t:fv e8
+EVEX.0F38 CF 66 /r W0 : vgf2p8mulb Vx,Hx,Wx ; kz t:fvm
+EVEX.0F38 DC 66 /r : vaesenc Vx,Hx,Wx ; t:fvm
+EVEX.0F38 DD 66 /r : vaesenclast Vx,Hx,Wx ; t:fvm
+EVEX.0F38 DE 66 /r : vaesdec Vx,Hx,Wx ; t:fvm
+EVEX.0F38 DF 66 /r : vaesdeclast Vx,Hx,Wx ; t:fvm
+
+# FMA (EVEX): W0 = single, W1 = double.
+EVEX.0F38 96 66 /r W0 : vfmaddsub132ps Vx,Hx,Wx ; kz bcst er t:fv e4
+EVEX.0F38 96 66 /r W1 : vfmaddsub132pd Vx,Hx,Wx ; kz bcst er t:fv e8
+EVEX.0F38 97 66 /r W0 : vfmsubadd132ps Vx,Hx,Wx ; kz bcst er t:fv e4
+EVEX.0F38 97 66 /r W1 : vfmsubadd132pd Vx,Hx,Wx ; kz bcst er t:fv e8
+EVEX.0F38 98 66 /r W0 : vfmadd132ps Vx,Hx,Wx ; kz bcst er t:fv e4
+EVEX.0F38 98 66 /r W1 : vfmadd132pd Vx,Hx,Wx ; kz bcst er t:fv e8
+EVEX.0F38 99 66 /r W0 : vfmadd132ss Vdq,Hdq,Wdq:d ; kz er t:t1s e4 LIG
+EVEX.0F38 99 66 /r W1 : vfmadd132sd Vdq,Hdq,Wdq:mm ; kz er t:t1s e8 LIG
+EVEX.0F38 9A 66 /r W0 : vfmsub132ps Vx,Hx,Wx ; kz bcst er t:fv e4
+EVEX.0F38 9A 66 /r W1 : vfmsub132pd Vx,Hx,Wx ; kz bcst er t:fv e8
+EVEX.0F38 9B 66 /r W0 : vfmsub132ss Vdq,Hdq,Wdq:d ; kz er t:t1s e4 LIG
+EVEX.0F38 9B 66 /r W1 : vfmsub132sd Vdq,Hdq,Wdq:mm ; kz er t:t1s e8 LIG
+EVEX.0F38 9C 66 /r W0 : vfnmadd132ps Vx,Hx,Wx ; kz bcst er t:fv e4
+EVEX.0F38 9C 66 /r W1 : vfnmadd132pd Vx,Hx,Wx ; kz bcst er t:fv e8
+EVEX.0F38 9D 66 /r W0 : vfnmadd132ss Vdq,Hdq,Wdq:d ; kz er t:t1s e4 LIG
+EVEX.0F38 9D 66 /r W1 : vfnmadd132sd Vdq,Hdq,Wdq:mm ; kz er t:t1s e8 LIG
+EVEX.0F38 9E 66 /r W0 : vfnmsub132ps Vx,Hx,Wx ; kz bcst er t:fv e4
+EVEX.0F38 9E 66 /r W1 : vfnmsub132pd Vx,Hx,Wx ; kz bcst er t:fv e8
+EVEX.0F38 9F 66 /r W0 : vfnmsub132ss Vdq,Hdq,Wdq:d ; kz er t:t1s e4 LIG
+EVEX.0F38 9F 66 /r W1 : vfnmsub132sd Vdq,Hdq,Wdq:mm ; kz er t:t1s e8 LIG
+EVEX.0F38 A6 66 /r W0 : vfmaddsub213ps Vx,Hx,Wx ; kz bcst er t:fv e4
+EVEX.0F38 A6 66 /r W1 : vfmaddsub213pd Vx,Hx,Wx ; kz bcst er t:fv e8
+EVEX.0F38 A7 66 /r W0 : vfmsubadd213ps Vx,Hx,Wx ; kz bcst er t:fv e4
+EVEX.0F38 A7 66 /r W1 : vfmsubadd213pd Vx,Hx,Wx ; kz bcst er t:fv e8
+EVEX.0F38 A8 66 /r W0 : vfmadd213ps Vx,Hx,Wx ; kz bcst er t:fv e4
+EVEX.0F38 A8 66 /r W1 : vfmadd213pd Vx,Hx,Wx ; kz bcst er t:fv e8
+EVEX.0F38 A9 66 /r W0 : vfmadd213ss Vdq,Hdq,Wdq:d ; kz er t:t1s e4 LIG
+EVEX.0F38 A9 66 /r W1 : vfmadd213sd Vdq,Hdq,Wdq:mm ; kz er t:t1s e8 LIG
+EVEX.0F38 AA 66 /r W0 : vfmsub213ps Vx,Hx,Wx ; kz bcst er t:fv e4
+EVEX.0F38 AA 66 /r W1 : vfmsub213pd Vx,Hx,Wx ; kz bcst er t:fv e8
+EVEX.0F38 AB 66 /r W0 : vfmsub213ss Vdq,Hdq,Wdq:d ; kz er t:t1s e4 LIG
+EVEX.0F38 AB 66 /r W1 : vfmsub213sd Vdq,Hdq,Wdq:mm ; kz er t:t1s e8 LIG
+EVEX.0F38 AC 66 /r W0 : vfnmadd213ps Vx,Hx,Wx ; kz bcst er t:fv e4
+EVEX.0F38 AC 66 /r W1 : vfnmadd213pd Vx,Hx,Wx ; kz bcst er t:fv e8
+EVEX.0F38 AD 66 /r W0 : vfnmadd213ss Vdq,Hdq,Wdq:d ; kz er t:t1s e4 LIG
+EVEX.0F38 AD 66 /r W1 : vfnmadd213sd Vdq,Hdq,Wdq:mm ; kz er t:t1s e8 LIG
+EVEX.0F38 AE 66 /r W0 : vfnmsub213ps Vx,Hx,Wx ; kz bcst er t:fv e4
+EVEX.0F38 AE 66 /r W1 : vfnmsub213pd Vx,Hx,Wx ; kz bcst er t:fv e8
+EVEX.0F38 AF 66 /r W0 : vfnmsub213ss Vdq,Hdq,Wdq:d ; kz er t:t1s e4 LIG
+EVEX.0F38 AF 66 /r W1 : vfnmsub213sd Vdq,Hdq,Wdq:mm ; kz er t:t1s e8 LIG
+EVEX.0F38 B6 66 /r W0 : vfmaddsub231ps Vx,Hx,Wx ; kz bcst er t:fv e4
+EVEX.0F38 B6 66 /r W1 : vfmaddsub231pd Vx,Hx,Wx ; kz bcst er t:fv e8
+EVEX.0F38 B7 66 /r W0 : vfmsubadd231ps Vx,Hx,Wx ; kz bcst er t:fv e4
+EVEX.0F38 B7 66 /r W1 : vfmsubadd231pd Vx,Hx,Wx ; kz bcst er t:fv e8
+EVEX.0F38 B8 66 /r W0 : vfmadd231ps Vx,Hx,Wx ; kz bcst er t:fv e4
+EVEX.0F38 B8 66 /r W1 : vfmadd231pd Vx,Hx,Wx ; kz bcst er t:fv e8
+EVEX.0F38 B9 66 /r W0 : vfmadd231ss Vdq,Hdq,Wdq:d ; kz er t:t1s e4 LIG
+EVEX.0F38 B9 66 /r W1 : vfmadd231sd Vdq,Hdq,Wdq:mm ; kz er t:t1s e8 LIG
+EVEX.0F38 BA 66 /r W0 : vfmsub231ps Vx,Hx,Wx ; kz bcst er t:fv e4
+EVEX.0F38 BA 66 /r W1 : vfmsub231pd Vx,Hx,Wx ; kz bcst er t:fv e8
+EVEX.0F38 BB 66 /r W0 : vfmsub231ss Vdq,Hdq,Wdq:d ; kz er t:t1s e4 LIG
+EVEX.0F38 BB 66 /r W1 : vfmsub231sd Vdq,Hdq,Wdq:mm ; kz er t:t1s e8 LIG
+EVEX.0F38 BC 66 /r W0 : vfnmadd231ps Vx,Hx,Wx ; kz bcst er t:fv e4
+EVEX.0F38 BC 66 /r W1 : vfnmadd231pd Vx,Hx,Wx ; kz bcst er t:fv e8
+EVEX.0F38 BD 66 /r W0 : vfnmadd231ss Vdq,Hdq,Wdq:d ; kz er t:t1s e4 LIG
+EVEX.0F38 BD 66 /r W1 : vfnmadd231sd Vdq,Hdq,Wdq:mm ; kz er t:t1s e8 LIG
+EVEX.0F38 BE 66 /r W0 : vfnmsub231ps Vx,Hx,Wx ; kz bcst er t:fv e4
+EVEX.0F38 BE 66 /r W1 : vfnmsub231pd Vx,Hx,Wx ; kz bcst er t:fv e8
+EVEX.0F38 BF 66 /r W0 : vfnmsub231ss Vdq,Hdq,Wdq:d ; kz er t:t1s e4 LIG
+EVEX.0F38 BF 66 /r W1 : vfnmsub231sd Vdq,Hdq,Wdq:mm ; kz er t:t1s e8 LIG
+
+# ---- EVEX 0F 3A ----
+EVEX.0F3A 00 66 /r L1 L2 W1 : vpermq Vx,Wx,Ib ; kz bcst t:fv e8
+EVEX.0F3A 01 66 /r L1 L2 W1 : vpermpd Vx,Wx,Ib ; kz bcst t:fv e8
+EVEX.0F3A 03 66 /r W0 : valignd Vx,Hx,Wx,Ib ; kz bcst t:fv e4
+EVEX.0F3A 03 66 /r W1 : valignq Vx,Hx,Wx,Ib ; kz bcst t:fv e8
+EVEX.0F3A 04 66 /r W0 : vpermilps Vx,Wx,Ib ; kz bcst t:fv e4
+EVEX.0F3A 05 66 /r W1 : vpermilpd Vx,Wx,Ib ; kz bcst t:fv e8
+EVEX.0F3A 08 66 /r W0 : vrndscaleps Vx,Wx,Ib ; kz bcst sae t:fv e4
+EVEX.0F3A 09 66 /r W1 : vrndscalepd Vx,Wx,Ib ; kz bcst sae t:fv e8
+EVEX.0F3A 0A 66 /r W0 : vrndscaless Vdq,Hdq,Wdq:d,Ib ; kz sae t:t1s e4 LIG
+EVEX.0F3A 0B 66 /r W1 : vrndscalesd Vdq,Hdq,Wdq:mm,Ib ; kz sae t:t1s e8 LIG
+EVEX.0F3A 0F 66 /r : vpalignr Vx,Hx,Wx,Ib ; kz t:fvm
+EVEX.0F3A 14 66 /r L0 : vpextrb Ey:b,Vdq,Ib ; t:t1s e1
+EVEX.0F3A 15 66 /r L0 : vpextrw Ey:w,Vdq,Ib ; t:t1s e2
+EVEX.0F3A 16 66 /r L0 W0 : vpextrd Ed,Vdq,Ib ; t:t1s e4
+EVEX.0F3A 16 66 /r L0 W1 : vpextrq Eq,Vdq,Ib ; t:t1s e8
+EVEX.0F3A 17 66 /r L0 : vextractps Ed,Vdq,Ib ; t:t1s e4
+EVEX.0F3A 18 66 /r L1 L2 W0 : vinsertf32x4 Vx,Hx,Wdq,Ib ; kz t:t4 e4
+EVEX.0F3A 18 66 /r L1 L2 W1 : vinsertf64x2 Vx,Hx,Wdq,Ib ; kz t:t2 e8
+EVEX.0F3A 19 66 /r L1 L2 W0 : vextractf32x4 Wdq,Vx,Ib ; kz t:t4 e4
+EVEX.0F3A 19 66 /r L1 L2 W1 : vextractf64x2 Wdq,Vx,Ib ; kz t:t2 e8
+EVEX.0F3A 1A 66 /r L2 W0 : vinsertf32x8 Vx,Hx,Wqq,Ib ; kz t:t8 e4
+EVEX.0F3A 1A 66 /r L2 W1 : vinsertf64x4 Vx,Hx,Wqq,Ib ; kz t:t4 e8
+EVEX.0F3A 1B 66 /r L2 W0 : vextractf32x8 Wqq,Vx,Ib ; kz t:t8 e4
+EVEX.0F3A 1B 66 /r L2 W1 : vextractf64x4 Wqq,Vx,Ib ; kz t:t4 e8
+EVEX.0F3A 1D 66 /r W0 : vcvtps2ph Wh,Vx,Ib ; kz sae t:hvm
+EVEX.0F3A 1E 66 /r W0 : vpcmpud KG,Hx,Wx,Ib ; k bcst t:fv e4
+EVEX.0F3A 1E 66 /r W1 : vpcmpuq KG,Hx,Wx,Ib ; k bcst t:fv e8
+EVEX.0F3A 1F 66 /r W0 : vpcmpd KG,Hx,Wx,Ib ; k bcst t:fv e4
+EVEX.0F3A 1F 66 /r W1 : vpcmpq KG,Hx,Wx,Ib ; k bcst t:fv e8
+EVEX.0F3A 20 66 /r L0 : vpinsrb Vdq,Hdq,Ed:b,Ib ; t:t1s e1
+EVEX.0F3A 21 66 /r L0 W0 : vinsertps Vdq,Hdq,Wdq:d,Ib ; t:t1s e4
+EVEX.0F3A 22 66 /r L0 W0 : vpinsrd Vdq,Hdq,Ed,Ib ; t:t1s e4
+EVEX.0F3A 22 66 /r L0 W1 : vpinsrq Vdq,Hdq,Eq,Ib ; t:t1s e8
+EVEX.0F3A 23 66 /r L1 L2 W0 : vshuff32x4 Vx,Hx,Wx,Ib ; kz bcst t:fv e4
+EVEX.0F3A 23 66 /r L1 L2 W1 : vshuff64x2 Vx,Hx,Wx,Ib ; kz bcst t:fv e8
+EVEX.0F3A 25 66 /r W0 : vpternlogd Vx,Hx,Wx,Ib ; kz bcst t:fv e4
+EVEX.0F3A 25 66 /r W1 : vpternlogq Vx,Hx,Wx,Ib ; kz bcst t:fv e8
+EVEX.0F3A 26 66 /r W0 : vgetmantps Vx,Wx,Ib ; kz bcst sae t:fv e4
+EVEX.0F3A 26 66 /r W1 : vgetmantpd Vx,Wx,Ib ; kz bcst sae t:fv e8
+EVEX.0F3A 27 66 /r W0 : vgetmantss Vdq,Hdq,Wdq:d,Ib ; kz sae t:t1s e4 LIG
+EVEX.0F3A 27 66 /r W1 : vgetmantsd Vdq,Hdq,Wdq:mm,Ib ; kz sae t:t1s e8 LIG
+EVEX.0F3A 38 66 /r L1 L2 W0 : vinserti32x4 Vx,Hx,Wdq,Ib ; kz t:t4 e4
+EVEX.0F3A 38 66 /r L1 L2 W1 : vinserti64x2 Vx,Hx,Wdq,Ib ; kz t:t2 e8
+EVEX.0F3A 39 66 /r L1 L2 W0 : vextracti32x4 Wdq,Vx,Ib ; kz t:t4 e4
+EVEX.0F3A 39 66 /r L1 L2 W1 : vextracti64x2 Wdq,Vx,Ib ; kz t:t2 e8
+EVEX.0F3A 3A 66 /r L2 W0 : vinserti32x8 Vx,Hx,Wqq,Ib ; kz t:t8 e4
+EVEX.0F3A 3A 66 /r L2 W1 : vinserti64x4 Vx,Hx,Wqq,Ib ; kz t:t4 e8
+EVEX.0F3A 3B 66 /r L2 W0 : vextracti32x8 Wqq,Vx,Ib ; kz t:t8 e4
+EVEX.0F3A 3B 66 /r L2 W1 : vextracti64x4 Wqq,Vx,Ib ; kz t:t4 e8
+EVEX.0F3A 3E 66 /r W0 : vpcmpub KG,Hx,Wx,Ib ; k t:fvm
+EVEX.0F3A 3E 66 /r W1 : vpcmpuw KG,Hx,Wx,Ib ; k t:fvm
+EVEX.0F3A 3F 66 /r W0 : vpcmpb KG,Hx,Wx,Ib ; k t:fvm
+EVEX.0F3A 3F 66 /r W1 : vpcmpw KG,Hx,Wx,Ib ; k t:fvm
+EVEX.0F3A 42 66 /r W0 : vdbpsadbw Vx,Hx,Wx,Ib ; kz t:fvm
+EVEX.0F3A 43 66 /r L1 L2 W0 : vshufi32x4 Vx,Hx,Wx,Ib ; kz bcst t:fv e4
+EVEX.0F3A 43 66 /r L1 L2 W1 : vshufi64x2 Vx,Hx,Wx,Ib ; kz bcst t:fv e8
+EVEX.0F3A 44 66 /r : vpclmulqdq Vx,Hx,Wx,Ib ; t:fvm
+EVEX.0F3A 50 66 /r W0 : vrangeps Vx,Hx,Wx,Ib ; kz bcst sae t:fv e4
+EVEX.0F3A 50 66 /r W1 : vrangepd Vx,Hx,Wx,Ib ; kz bcst sae t:fv e8
+EVEX.0F3A 51 66 /r W0 : vrangess Vdq,Hdq,Wdq:d,Ib ; kz sae t:t1s e4 LIG
+EVEX.0F3A 51 66 /r W1 : vrangesd Vdq,Hdq,Wdq:mm,Ib ; kz sae t:t1s e8 LIG
+EVEX.0F3A 54 66 /r W0 : vfixupimmps Vx,Hx,Wx,Ib ; kz bcst sae t:fv e4
+EVEX.0F3A 54 66 /r W1 : vfixupimmpd Vx,Hx,Wx,Ib ; kz bcst sae t:fv e8
+EVEX.0F3A 55 66 /r W0 : vfixupimmss Vdq,Hdq,Wdq:d,Ib ; kz sae t:t1s e4 LIG
+EVEX.0F3A 55 66 /r W1 : vfixupimmsd Vdq,Hdq,Wdq:mm,Ib ; kz sae t:t1s e8 LIG
+EVEX.0F3A 56 66 /r W0 : vreduceps Vx,Wx,Ib ; kz bcst sae t:fv e4
+EVEX.0F3A 56 66 /r W1 : vreducepd Vx,Wx,Ib ; kz bcst sae t:fv e8
+EVEX.0F3A 57 66 /r W0 : vreducess Vdq,Hdq,Wdq:d,Ib ; kz sae t:t1s e4 LIG
+EVEX.0F3A 57 66 /r W1 : vreducesd Vdq,Hdq,Wdq:mm,Ib ; kz sae t:t1s e8 LIG
+EVEX.0F3A 66 66 /r W0 : vfpclassps KG,Wx,Ib ; k bcst t:fv e4
+EVEX.0F3A 66 66 /r W1 : vfpclasspd KG,Wx,Ib ; k bcst t:fv e8
+EVEX.0F3A 67 66 /r W0 : vfpclassss KG,Wdq:d,Ib ; k t:t1s e4 LIG
+EVEX.0F3A 67 66 /r W1 : vfpclasssd KG,Wdq:mm,Ib ; k t:t1s e8 LIG
+EVEX.0F3A 70 66 /r W1 : vpshldw Vx,Hx,Wx,Ib ; kz t:fvm
+EVEX.0F3A 71 66 /r W0 : vpshldd Vx,Hx,Wx,Ib ; kz bcst t:fv e4
+EVEX.0F3A 71 66 /r W1 : vpshldq Vx,Hx,Wx,Ib ; kz bcst t:fv e8
+EVEX.0F3A 72 66 /r W1 : vpshrdw Vx,Hx,Wx,Ib ; kz t:fvm
+EVEX.0F3A 73 66 /r W0 : vpshrdd Vx,Hx,Wx,Ib ; kz bcst t:fv e4
+EVEX.0F3A 73 66 /r W1 : vpshrdq Vx,Hx,Wx,Ib ; kz bcst t:fv e8
+EVEX.0F3A CE 66 /r W1 : vgf2p8affineqb Vx,Hx,Wx,Ib ; kz bcst t:fv e8
+EVEX.0F3A CF 66 /r W1 : vgf2p8affineinvqb Vx,Hx,Wx,Ib ; kz bcst t:fv e8
+
+# AVX10.2 scalar compares.
+EVEX.0F 2E F3 /r W0 : vucomxss Vdq,Wdq:d ; sae t:t1s e4 LIG
+EVEX.0F 2E F2 /r W1 : vucomxsd Vdq,Wdq:mm ; sae t:t1s e8 LIG
+EVEX.0F 2F F3 /r W0 : vcomxss Vdq,Wdq:d ; sae t:t1s e4 LIG
+EVEX.0F 2F F2 /r W1 : vcomxsd Vdq,Wdq:mm ; sae t:t1s e8 LIG
+
+# APX EVEX forms of KMOV.
+EVEX.0F 90 NP /r L0 W0 : kmovw KG,KW:w ; evexv
+EVEX.0F 90 NP /r L0 W1 : kmovq KG,KW:q ; evexv
+EVEX.0F 90 66 /r L0 W0 : kmovb KG,KW:b ; evexv
+EVEX.0F 90 66 /r L0 W1 : kmovd KG,KW:d ; evexv
+EVEX.0F 91 NP mem L0 W0 : kmovw Mw,KG ; evexv
+EVEX.0F 91 NP mem L0 W1 : kmovq Mq,KG ; evexv
+EVEX.0F 91 66 mem L0 W0 : kmovb Mb,KG ; evexv
+EVEX.0F 91 66 mem L0 W1 : kmovd Md,KG ; evexv
+EVEX.0F 92 NP reg L0 W0 : kmovw KG,Rd ; evexv
+EVEX.0F 92 66 reg L0 W0 : kmovb KG,Rd ; evexv
+EVEX.0F 92 F2 reg L0 W0 : kmovd KG,Rd ; evexv
+EVEX.0F 92 F2 reg L0 W1 : kmovq KG,Rq ; evexv
+EVEX.0F 93 NP reg L0 W0 : kmovw Gd,KE ; evexv
+EVEX.0F 93 66 reg L0 W0 : kmovb Gd,KE ; evexv
+EVEX.0F 93 F2 reg L0 W0 : kmovd Gd,KE ; evexv
+EVEX.0F 93 F2 reg L0 W1 : kmovq Gq,KE ; evexv
+
+# AVX10.2 zero-extending moves.
+EVEX.0F 7E F3 /r L0 W0 : vmovd Vdq,Wdq:d ; t:t1s e4
+EVEX.0F D6 66 /r L0 W0 : vmovd Wdq:d,Vdq ; t:t1s e4
+
+# AVX10.2 VNNI-INT8 / VNNI-INT16 (EVEX forms).
+EVEX.0F38 50 NP /r W0 : vpdpbuud Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F38 50 F3 /r W0 : vpdpbsud Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F38 50 F2 /r W0 : vpdpbssd Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F38 51 NP /r W0 : vpdpbuuds Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F38 51 F3 /r W0 : vpdpbsuds Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F38 51 F2 /r W0 : vpdpbssds Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F38 D2 NP /r W0 : vpdpwuud Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F38 D2 66 /r W0 : vpdpwusd Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F38 D2 F3 /r W0 : vpdpwsud Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F38 D3 NP /r W0 : vpdpwuuds Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F38 D3 66 /r W0 : vpdpwusds Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F38 D3 F3 /r W0 : vpdpwsuds Vx,Hx,Wx ; kz bcst t:fv e4
+EVEX.0F3A 42 F3 /r W0 : vmpsadbw Vx,Hx,Wx,Ib ; kz t:fvm
+EVEX.0F38 DA F3 /r W0 : vsm4key4 Vx,Hx,Wx ; bcst t:fv e4
+EVEX.0F38 DA F2 /r W0 : vsm4rnds4 Vx,Hx,Wx ; bcst t:fv e4
+
+# AMX-AVX512: a tile row to a vector, by a GPR or an immediate row index
+# (from Intel XED's amx-dmr data, Apache-2.0: Copyright (c) 2026 Intel
+# Corporation).
+EVEX.0F38 4A F3 reg L2 W0 : tcvtrowd2ps Vzz,TE,Bd
+EVEX.0F3A 07 F3 reg L2 W0 : tcvtrowd2ps Vzz,TE,Ib
+EVEX.0F38 6D F2 reg L2 W0 : tcvtrowps2bf16h Vzz,TE,Bd
+EVEX.0F3A 07 F2 reg L2 W0 : tcvtrowps2bf16h Vzz,TE,Ib
+EVEX.0F38 6D F3 reg L2 W0 : tcvtrowps2bf16l Vzz,TE,Bd
+EVEX.0F3A 77 F3 reg L2 W0 : tcvtrowps2bf16l Vzz,TE,Ib
+EVEX.0F38 6D NP reg L2 W0 : tcvtrowps2phh Vzz,TE,Bd
+EVEX.0F3A 07 NP reg L2 W0 : tcvtrowps2phh Vzz,TE,Ib
+EVEX.0F38 6D 66 reg L2 W0 : tcvtrowps2phl Vzz,TE,Bd
+EVEX.0F3A 77 F2 reg L2 W0 : tcvtrowps2phl Vzz,TE,Ib
+EVEX.0F38 4A 66 reg L2 W0 : tilemovrow Vzz,TE,Bd
+EVEX.0F3A 07 66 reg L2 W0 : tilemovrow Vzz,TE,Ib
+
+# AMD AVX512_BMM (bit-matrix multiply, bit reversal), from LLVM's
+# X86InstrAVX512.td (Apache-2.0 WITH LLVM-exception; see LICENSE-LLVM);
+# checked against LLVM.
+EVEX.M6 80 NP /r L1 L2 W0 : vbmacor16x16x16 Vx,Hx,Wx ; kz bcst t:fv e2
+EVEX.M6 80 NP /r L1 L2 W1 : vbmacxor16x16x16 Vx,Hx,Wx ; kz bcst t:fv e2
+EVEX.M6 81 NP /r : vbitrevb Vx,Wx ; kz t:fvm

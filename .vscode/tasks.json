@@ -1,0 +1,14 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build hexc (release)",
+      "type": "shell",
+      "command": "cargo",
+      "args": ["build", "--release", "-p", "hexcavator"],
+      "group": "build",
+      "problemMatcher": ["$rustc"],
+      "presentation": { "reveal": "silent", "panel": "dedicated", "clear": true }
+    }
+  ]
+}

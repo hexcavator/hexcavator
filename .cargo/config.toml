@@ -1,0 +1,12 @@
+[alias]
+# `cargo xtask test`: every test, all at once (apps/xtask).
+xtask = "run --quiet --package xtask --"
+
+# Link with LLVM's linker, which comes with Rust's Windows toolchains: a
+# clean build of the tests takes a fifth less time than with link.exe, and
+# the programs are the same (as fast; their PDBs as complete).
+[target.x86_64-pc-windows-msvc]
+linker = "rust-lld"
+
+[target.aarch64-pc-windows-msvc]
+linker = "rust-lld"

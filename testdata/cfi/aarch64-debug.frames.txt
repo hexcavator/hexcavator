@@ -1,0 +1,138 @@
+aarch64-debug:	file format elf64-littleaarch64
+
+.debug_frame contents:
+
+00000000 00000014 ffffffff CIE
+  Format:                DWARF32
+  Version:               4
+  Augmentation:          ""
+  Address size:          8
+  Segment desc size:     0
+  Code alignment factor: 1
+  Data alignment factor: -4
+  Return address column: 30
+
+  DW_CFA_def_cfa: WSP +0
+  DW_CFA_nop:
+  DW_CFA_nop:
+  DW_CFA_nop:
+  DW_CFA_nop:
+  DW_CFA_nop:
+  DW_CFA_nop:
+
+  CFA=WSP
+
+00000018 0000001c 00000000 FDE cie=00000000 pc=002101b0...00210218
+  Format:       DWARF32
+  DW_CFA_advance_loc: 8 to 0x2101b8
+  DW_CFA_def_cfa_offset: +32
+  DW_CFA_nop:
+  DW_CFA_nop:
+  DW_CFA_nop:
+  DW_CFA_nop:
+  DW_CFA_nop:
+
+  0x2101b0: CFA=WSP
+  0x2101b8: CFA=WSP+32
+
+00000038 00000014 00000000 FDE cie=00000000 pc=00210218...00210224
+  Format:       DWARF32
+
+  0x210218: CFA=WSP
+
+00000050 00000024 00000000 FDE cie=00000000 pc=00210224...00210260
+  Format:       DWARF32
+  DW_CFA_advance_loc: 4 to 0x210228
+  DW_CFA_AARCH64_negate_ra_state:
+  DW_CFA_advance_loc: 8 to 0x210230
+  DW_CFA_def_cfa: W29 +16
+  DW_CFA_offset: W30 -8
+  DW_CFA_offset: W29 -16
+  DW_CFA_nop:
+  DW_CFA_nop:
+  DW_CFA_nop:
+  DW_CFA_nop:
+  DW_CFA_nop:
+  DW_CFA_nop:
+
+  0x210224: CFA=WSP
+  0x210228: CFA=WSP: reg34=1
+  0x210230: CFA=W29+16: W29=[CFA-16], W30=[CFA-8], reg34=1
+
+00000078 00000014 00000000 FDE cie=00000000 pc=00210260...0021028c
+  Format:       DWARF32
+
+  0x210260: CFA=WSP
+
+00000090 00000014 00000000 FDE cie=00000000 pc=0021028c...00210298
+  Format:       DWARF32
+
+  0x21028c: CFA=WSP
+
+000000a8 00000024 00000000 FDE cie=00000000 pc=00210298...002102f0
+  Format:       DWARF32
+  DW_CFA_advance_loc: 4 to 0x21029c
+  DW_CFA_AARCH64_negate_ra_state:
+  DW_CFA_advance_loc: 12 to 0x2102a8
+  DW_CFA_def_cfa: W29 +32
+  DW_CFA_offset: W19 -8
+  DW_CFA_offset: W20 -16
+  DW_CFA_offset: W30 -24
+  DW_CFA_offset: W29 -32
+  DW_CFA_nop:
+  DW_CFA_nop:
+
+  0x210298: CFA=WSP
+  0x21029c: CFA=WSP: reg34=1
+  0x2102a8: CFA=W29+32: W19=[CFA-8], W20=[CFA-16], W29=[CFA-32], W30=[CFA-24], reg34=1
+
+000000d0 00000024 00000000 FDE cie=00000000 pc=002102f0...00210324
+  Format:       DWARF32
+  DW_CFA_advance_loc: 4 to 0x2102f4
+  DW_CFA_AARCH64_negate_ra_state:
+  DW_CFA_advance_loc: 12 to 0x210300
+  DW_CFA_def_cfa: W29 +32
+  DW_CFA_offset: W19 -16
+  DW_CFA_offset: W30 -24
+  DW_CFA_offset: W29 -32
+  DW_CFA_nop:
+  DW_CFA_nop:
+  DW_CFA_nop:
+  DW_CFA_nop:
+
+  0x2102f0: CFA=WSP
+  0x2102f4: CFA=WSP: reg34=1
+  0x210300: CFA=W29+32: W19=[CFA-16], W29=[CFA-32], W30=[CFA-24], reg34=1
+
+000000f8 0000001c 00000000 FDE cie=00000000 pc=00210324...00210354
+  Format:       DWARF32
+  DW_CFA_advance_loc: 16 to 0x210334
+  DW_CFA_def_cfa_offset: +70016
+  DW_CFA_offset: W29 -16
+  DW_CFA_nop:
+
+  0x210324: CFA=WSP
+  0x210334: CFA=WSP+70016: W29=[CFA-16]
+
+00000118 00000024 00000000 FDE cie=00000000 pc=00210354...002103b8
+  Format:       DWARF32
+  DW_CFA_advance_loc: 4 to 0x210358
+  DW_CFA_AARCH64_negate_ra_state:
+  DW_CFA_advance_loc: 12 to 0x210364
+  DW_CFA_def_cfa: W29 +16
+  DW_CFA_offset: W30 -8
+  DW_CFA_offset: W29 -16
+  DW_CFA_nop:
+  DW_CFA_nop:
+  DW_CFA_nop:
+  DW_CFA_nop:
+  DW_CFA_nop:
+  DW_CFA_nop:
+
+  0x210354: CFA=WSP
+  0x210358: CFA=WSP: reg34=1
+  0x210364: CFA=W29+16: W29=[CFA-16], W30=[CFA-8], reg34=1
+
+
+.eh_frame contents:
+

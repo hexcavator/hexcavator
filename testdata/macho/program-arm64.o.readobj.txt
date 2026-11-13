@@ -1,0 +1,523 @@
+
+File: program-arm64.o
+Format: Mach-O arm64
+Arch: aarch64
+AddressSize: 64bit
+MachHeader {
+  Magic: Magic64 (0xFEEDFACF)
+  CpuType: Arm64 (0x100000C)
+  CpuSubType: CPU_SUBTYPE_ARM64_ALL (0x0)
+  CpuCapabilities: 0x0
+  FileType: Relocatable (0x1)
+  NumOfLoadCommands: 5
+  SizeOfLoadCommands: 1576
+  Flags [ (0x2000)
+    MH_SUBSECTIONS_VIA_SYMBOLS (0x2000)
+  ]
+  Reserved: 0x0
+}
+Sections [
+  Section {
+    Index: 0
+    Name: __text (5F 5F 74 65 78 74 00 00 00 00 00 00 00 00 00 00)
+    Segment: __TEXT (5F 5F 54 45 58 54 00 00 00 00 00 00 00 00 00 00)
+    Address: 0x0
+    Size: 0xC4
+    Offset: 1608
+    Alignment: 2
+    RelocationOffset: 0xEE0
+    RelocationCount: 14
+    Type: Regular (0x0)
+    Attributes [ (0x800004)
+      PureInstructions (0x800000)
+      SomeInstructions (0x4)
+    ]
+    Reserved1: 0x0
+    Reserved2: 0x0
+    Reserved3: 0x0
+  }
+  Section {
+    Index: 1
+    Name: __data (5F 5F 64 61 74 61 00 00 00 00 00 00 00 00 00 00)
+    Segment: __DATA (5F 5F 44 41 54 41 00 00 00 00 00 00 00 00 00 00)
+    Address: 0xC4
+    Size: 0x4
+    Offset: 1804
+    Alignment: 2
+    RelocationOffset: 0x0
+    RelocationCount: 0
+    Type: Regular (0x0)
+    Attributes [ (0x0)
+    ]
+    Reserved1: 0x0
+    Reserved2: 0x0
+    Reserved3: 0x0
+  }
+  Section {
+    Index: 2
+    Name: __thread_data (5F 5F 74 68 72 65 61 64 5F 64 61 74 61 00 00 00)
+    Segment: __DATA (5F 5F 44 41 54 41 00 00 00 00 00 00 00 00 00 00)
+    Address: 0xC8
+    Size: 0x4
+    Offset: 1808
+    Alignment: 2
+    RelocationOffset: 0x0
+    RelocationCount: 0
+    Type: ThreadLocalRegular (0x11)
+    Attributes [ (0x0)
+    ]
+    Reserved1: 0x0
+    Reserved2: 0x0
+    Reserved3: 0x0
+  }
+  Section {
+    Index: 3
+    Name: __thread_vars (5F 5F 74 68 72 65 61 64 5F 76 61 72 73 00 00 00)
+    Segment: __DATA (5F 5F 44 41 54 41 00 00 00 00 00 00 00 00 00 00)
+    Address: 0xCC
+    Size: 0x18
+    Offset: 1812
+    Alignment: 0
+    RelocationOffset: 0xF50
+    RelocationCount: 2
+    Type: ThreadLocalVariables (0x13)
+    Attributes [ (0x0)
+    ]
+    Reserved1: 0x0
+    Reserved2: 0x0
+    Reserved3: 0x0
+  }
+  Section {
+    Index: 4
+    Name: __cstring (5F 5F 63 73 74 72 69 6E 67 00 00 00 00 00 00 00)
+    Segment: __TEXT (5F 5F 54 45 58 54 00 00 00 00 00 00 00 00 00 00)
+    Address: 0xE4
+    Size: 0x10
+    Offset: 1836
+    Alignment: 0
+    RelocationOffset: 0x0
+    RelocationCount: 0
+    Type: CStringLiterals (0x2)
+    Attributes [ (0x0)
+    ]
+    Reserved1: 0x0
+    Reserved2: 0x0
+    Reserved3: 0x0
+  }
+  Section {
+    Index: 5
+    Name: __common (5F 5F 63 6F 6D 6D 6F 6E 00 00 00 00 00 00 00 00)
+    Segment: __DATA (5F 5F 44 41 54 41 00 00 00 00 00 00 00 00 00 00)
+    Address: 0x894
+    Size: 0x1000
+    Offset: 0
+    Alignment: 0
+    RelocationOffset: 0x0
+    RelocationCount: 0
+    Type: ZeroFill (0x1)
+    Attributes [ (0x0)
+    ]
+    Reserved1: 0x0
+    Reserved2: 0x0
+    Reserved3: 0x0
+  }
+  Section {
+    Index: 6
+    Name: __bss (5F 5F 62 73 73 00 00 00 00 00 00 00 00 00 00 00)
+    Segment: __DATA (5F 5F 44 41 54 41 00 00 00 00 00 00 00 00 00 00)
+    Address: 0x1894
+    Size: 0x4
+    Offset: 0
+    Alignment: 2
+    RelocationOffset: 0x0
+    RelocationCount: 0
+    Type: ZeroFill (0x1)
+    Attributes [ (0x0)
+    ]
+    Reserved1: 0x0
+    Reserved2: 0x0
+    Reserved3: 0x0
+  }
+  Section {
+    Index: 7
+    Name: __debug_loc (5F 5F 64 65 62 75 67 5F 6C 6F 63 00 00 00 00 00)
+    Segment: __DWARF (5F 5F 44 57 41 52 46 00 00 00 00 00 00 00 00 00)
+    Address: 0xF4
+    Size: 0xD4
+    Offset: 1852
+    Alignment: 0
+    RelocationOffset: 0x0
+    RelocationCount: 0
+    Type: Regular (0x0)
+    Attributes [ (0x20000)
+      Debug (0x20000)
+    ]
+    Reserved1: 0x0
+    Reserved2: 0x0
+    Reserved3: 0x0
+  }
+  Section {
+    Index: 8
+    Name: __debug_abbrev (5F 5F 64 65 62 75 67 5F 61 62 62 72 65 76 00 00)
+    Segment: __DWARF (5F 5F 44 57 41 52 46 00 00 00 00 00 00 00 00 00)
+    Address: 0x1C8
+    Size: 0x14E
+    Offset: 2064
+    Alignment: 0
+    RelocationOffset: 0x0
+    RelocationCount: 0
+    Type: Regular (0x0)
+    Attributes [ (0x20000)
+      Debug (0x20000)
+    ]
+    Reserved1: 0x0
+    Reserved2: 0x0
+    Reserved3: 0x0
+  }
+  Section {
+    Index: 9
+    Name: __debug_info (5F 5F 64 65 62 75 67 5F 69 6E 66 6F 00 00 00 00)
+    Segment: __DWARF (5F 5F 44 57 41 52 46 00 00 00 00 00 00 00 00 00)
+    Address: 0x316
+    Size: 0x1B4
+    Offset: 2398
+    Alignment: 0
+    RelocationOffset: 0xF60
+    RelocationCount: 14
+    Type: Regular (0x0)
+    Attributes [ (0x20000)
+      Debug (0x20000)
+    ]
+    Reserved1: 0x0
+    Reserved2: 0x0
+    Reserved3: 0x0
+  }
+  Section {
+    Index: 10
+    Name: __debug_str (5F 5F 64 65 62 75 67 5F 73 74 72 00 00 00 00 00)
+    Segment: __DWARF (5F 5F 44 57 41 52 46 00 00 00 00 00 00 00 00 00)
+    Address: 0x4CA
+    Size: 0xAC
+    Offset: 2834
+    Alignment: 0
+    RelocationOffset: 0x0
+    RelocationCount: 0
+    Type: Regular (0x0)
+    Attributes [ (0x20000)
+      Debug (0x20000)
+    ]
+    Reserved1: 0x0
+    Reserved2: 0x0
+    Reserved3: 0x0
+  }
+  Section {
+    Index: 11
+    Name: __apple_names (5F 5F 61 70 70 6C 65 5F 6E 61 6D 65 73 00 00 00)
+    Segment: __DWARF (5F 5F 44 57 41 52 46 00 00 00 00 00 00 00 00 00)
+    Address: 0x576
+    Size: 0x154
+    Offset: 3006
+    Alignment: 0
+    RelocationOffset: 0x0
+    RelocationCount: 0
+    Type: Regular (0x0)
+    Attributes [ (0x20000)
+      Debug (0x20000)
+    ]
+    Reserved1: 0x0
+    Reserved2: 0x0
+    Reserved3: 0x0
+  }
+  Section {
+    Index: 12
+    Name: __apple_objc (5F 5F 61 70 70 6C 65 5F 6F 62 6A 63 00 00 00 00)
+    Segment: __DWARF (5F 5F 44 57 41 52 46 00 00 00 00 00 00 00 00 00)
+    Address: 0x6CA
+    Size: 0x24
+    Offset: 3346
+    Alignment: 0
+    RelocationOffset: 0x0
+    RelocationCount: 0
+    Type: Regular (0x0)
+    Attributes [ (0x20000)
+      Debug (0x20000)
+    ]
+    Reserved1: 0x0
+    Reserved2: 0x0
+    Reserved3: 0x0
+  }
+  Section {
+    Index: 13
+    Name: __apple_namespac (5F 5F 61 70 70 6C 65 5F 6E 61 6D 65 73 70 61 63)
+    Segment: __DWARF (5F 5F 44 57 41 52 46 00 00 00 00 00 00 00 00 00)
+    Address: 0x6EE
+    Size: 0x24
+    Offset: 3382
+    Alignment: 0
+    RelocationOffset: 0x0
+    RelocationCount: 0
+    Type: Regular (0x0)
+    Attributes [ (0x20000)
+      Debug (0x20000)
+    ]
+    Reserved1: 0x0
+    Reserved2: 0x0
+    Reserved3: 0x0
+  }
+  Section {
+    Index: 14
+    Name: __apple_types (5F 5F 61 70 70 6C 65 5F 74 79 70 65 73 00 00 00)
+    Segment: __DWARF (5F 5F 44 57 41 52 46 00 00 00 00 00 00 00 00 00)
+    Address: 0x712
+    Size: 0x85
+    Offset: 3418
+    Alignment: 0
+    RelocationOffset: 0x0
+    RelocationCount: 0
+    Type: Regular (0x0)
+    Attributes [ (0x20000)
+      Debug (0x20000)
+    ]
+    Reserved1: 0x0
+    Reserved2: 0x0
+    Reserved3: 0x0
+  }
+  Section {
+    Index: 15
+    Name: __debug_frame (5F 5F 64 65 62 75 67 5F 66 72 61 6D 65 00 00 00)
+    Segment: __DWARF (5F 5F 44 57 41 52 46 00 00 00 00 00 00 00 00 00)
+    Address: 0x798
+    Size: 0x70
+    Offset: 3552
+    Alignment: 3
+    RelocationOffset: 0xFD0
+    RelocationCount: 3
+    Type: Regular (0x0)
+    Attributes [ (0x20000)
+      Debug (0x20000)
+    ]
+    Reserved1: 0x0
+    Reserved2: 0x0
+    Reserved3: 0x0
+  }
+  Section {
+    Index: 16
+    Name: __debug_line (5F 5F 64 65 62 75 67 5F 6C 69 6E 65 00 00 00 00)
+    Segment: __DWARF (5F 5F 44 57 41 52 46 00 00 00 00 00 00 00 00 00)
+    Address: 0x808
+    Size: 0x8C
+    Offset: 3664
+    Alignment: 0
+    RelocationOffset: 0xFE8
+    RelocationCount: 1
+    Type: Regular (0x0)
+    Attributes [ (0x20000)
+      Debug (0x20000)
+    ]
+    Reserved1: 0x0
+    Reserved2: 0x0
+    Reserved3: 0x0
+  }
+]
+Symbols [
+  Symbol {
+    Name: ltmp0 (154)
+    Type: Section (0xE)
+    Section: __text (0x1)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x0
+  }
+  Symbol {
+    Name: _hidden_state (83)
+    Type: Section (0xE)
+    Section: __bss (0x7)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x1894
+  }
+  Symbol {
+    Name: _message (97)
+    Type: Section (0xE)
+    Section: __cstring (0x5)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0xE4
+  }
+  Symbol {
+    Name: ltmp1 (148)
+    Type: Section (0xE)
+    Section: __data (0x2)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0xC4
+  }
+  Symbol {
+    Name: ltmp2 (142)
+    Type: Section (0xE)
+    Section: __thread_data (0x3)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0xC8
+  }
+  Symbol {
+    Name: _per_thread$tlv$init (8)
+    Type: Section (0xE)
+    Section: __thread_data (0x3)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0xC8
+  }
+  Symbol {
+    Name: ltmp3 (136)
+    Type: Section (0xE)
+    Section: __thread_vars (0x4)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0xCC
+  }
+  Symbol {
+    Name: ltmp4 (130)
+    Type: Section (0xE)
+    Section: __cstring (0x5)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0xE4
+  }
+  Symbol {
+    Name: ltmp5 (124)
+    Type: Section (0xE)
+    Section: __common (0x6)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x894
+  }
+  Symbol {
+    Name: ltmp6 (118)
+    Type: Section (0xE)
+    Section: __bss (0x7)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x1894
+  }
+  Symbol {
+    Name: __tlv_bootstrap (46)
+    Extern
+    Type: Section (0xE)
+    Section: __text (0x1)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x0
+  }
+  Symbol {
+    Name: _buffer (38)
+    Extern
+    Type: Section (0xE)
+    Section: __common (0x6)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x894
+  }
+  Symbol {
+    Name: _compute (74)
+    Extern
+    Type: Section (0xE)
+    Section: __text (0x1)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x4
+  }
+  Symbol {
+    Name: _counter (29)
+    Extern
+    Type: Section (0xE)
+    Section: __data (0x2)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0xC4
+  }
+  Symbol {
+    Name: _per_thread (106)
+    Extern
+    Type: Section (0xE)
+    Section: __thread_vars (0x4)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0xCC
+  }
+  Symbol {
+    Name: _start (1)
+    Extern
+    Type: Section (0xE)
+    Section: __text (0x1)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x74
+  }
+  Symbol {
+    Name: _second_len (62)
+    Extern
+    Type: Undef (0x0)
+    Section:  (0x0)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x0
+  }
+]
+Segment {
+  Cmd: LC_SEGMENT_64
+  Name: 
+  Size: 1432
+  vmaddr: 0x0
+  vmsize: 0x1898
+  fileoff: 1608
+  filesize: 2196
+  maxprot: rwx
+  initprot: rwx
+  nsects: 17
+  flags: 0x0
+}
+MinVersion {
+  Cmd: LC_BUILD_VERSION
+  Size: 24
+  Platform: macos
+  Version: 13.0
+  SDK: n/a
+}
+Dysymtab {
+  ilocalsym: 0
+  nlocalsym: 10
+  iextdefsym: 10
+  nextdefsym: 6
+  iundefsym: 16
+  nundefsym: 1
+  tocoff: 0
+  ntoc: 0
+  modtaboff: 0
+  nmodtab: 0
+  extrefsymoff: 0
+  nextrefsyms: 0
+  indirectsymoff: 0
+  nindirectsyms: 0
+  extreloff: 0
+  nextrel: 0
+  locreloff: 0
+  nlocrel: 0
+}

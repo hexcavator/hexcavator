@@ -1,0 +1,2752 @@
+sample-dwarf.wasm:	file format WASM
+
+.debug_info contents:
+0x00000000: Compile Unit: length = 0x000011c7, format = DWARF32, version = 0x0004, abbr_offset = 0x0000, addr_size = 0x04 (next unit at 0x000011cb)
+
+0x0000000b: DW_TAG_compile_unit
+              DW_AT_producer	("clang LLVM (rustc version 1.99.1 (58cf8f9c3 2026-10-13))")
+              DW_AT_language	(DW_LANG_Rust)
+              DW_AT_name	("R:\\tools\\wasm\\sample.rs\\@\\sample.d4b8a622cc79eb70-cgu.0")
+              DW_AT_stmt_list	(0x00000000)
+              DW_AT_comp_dir	("R:\\testdata\\wasm")
+              DW_AT_low_pc	(0x00000000)
+              DW_AT_ranges	(0x00000180
+                 [0x00000002, 0x00000026)
+                 [0x00000027, 0x0000002e)
+                 [0x0000002f, 0x00000036)
+                 [0x00000037, 0x00000051)
+                 [0x00000052, 0x00000068)
+                 [0x00000069, 0x00000083)
+                 [0x00000084, 0x0000009b)
+                 [0x0000009c, 0x000000b3)
+                 [0x000000b4, 0x000000c2)
+                 [0x000000c3, 0x000000f6)
+                 [0x000000f7, 0x0000013c)
+                 [0x0000013d, 0x0000015c)
+                 [0x0000015e, 0x00000253)
+                 [0x00000254, 0x0000027f)
+                 [0x00000280, 0x00000293)
+                 [0x00000295, 0x00000377))
+
+0x00000026:   DW_TAG_namespace
+                DW_AT_name	("core")
+
+0x0000002b:     DW_TAG_namespace
+                  DW_AT_name	("core_arch")
+
+0x00000030:       DW_TAG_namespace
+                    DW_AT_name	("simd")
+
+0x00000035:         DW_TAG_structure_type
+                      DW_AT_name	("Simd<u32, 4>")
+                      DW_AT_byte_size	(0x10)
+                      DW_AT_accessibility	(DW_ACCESS_protected)
+                      DW_AT_alignment	(16)
+
+0x0000003d:           DW_TAG_template_type_parameter
+                        DW_AT_type	(0x00000b0d "u32")
+                        DW_AT_name	("T")
+
+0x00000046:           DW_TAG_member
+                        DW_AT_name	("__0")
+                        DW_AT_type	(0x00000b14 "u32[4]")
+                        DW_AT_alignment	(4)
+                        DW_AT_data_member_location	(0x00)
+                        DW_AT_accessibility	(DW_ACCESS_private)
+
+0x00000052:           DW_TAG_subprogram
+                        DW_AT_linkage_name	("_RNvMs8_NtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd128INtNtB9_4simd4SimdmKj4_E4v128")
+                        DW_AT_name	("v128")
+                        DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                        DW_AT_decl_line	(54)
+                        DW_AT_type	(0x0000010c "core::core_arch::wasm32::simd128::v128")
+                        DW_AT_declaration	(true)
+
+0x00000061:             DW_TAG_formal_parameter
+                          DW_AT_type	(0x00000035 "core::core_arch::simd::Simd<u32, 4>")
+
+0x00000066:             NULL
+
+0x00000067:           NULL
+
+0x00000068:         DW_TAG_structure_type
+                      DW_AT_name	("Simd<u8, 16>")
+                      DW_AT_byte_size	(0x10)
+                      DW_AT_accessibility	(DW_ACCESS_protected)
+                      DW_AT_alignment	(16)
+
+0x00000070:           DW_TAG_template_type_parameter
+                        DW_AT_type	(0x00000f42 "u8")
+                        DW_AT_name	("T")
+
+0x00000079:           DW_TAG_member
+                        DW_AT_name	("__0")
+                        DW_AT_type	(0x00000f49 "u8[16]")
+                        DW_AT_alignment	(1)
+                        DW_AT_data_member_location	(0x00)
+                        DW_AT_accessibility	(DW_ACCESS_private)
+
+0x00000085:           DW_TAG_subprogram
+                        DW_AT_linkage_name	("_RNvMs6_NtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd128INtNtB9_4simd4SimdhKj10_E4v128")
+                        DW_AT_name	("v128")
+                        DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                        DW_AT_decl_line	(54)
+                        DW_AT_type	(0x0000010c "core::core_arch::wasm32::simd128::v128")
+                        DW_AT_declaration	(true)
+
+0x00000094:             DW_TAG_formal_parameter
+                          DW_AT_type	(0x00000068 "core::core_arch::simd::Simd<u8, 16>")
+
+0x00000099:             NULL
+
+0x0000009a:           NULL
+
+0x0000009b:         DW_TAG_structure_type
+                      DW_AT_name	("Simd<i8, 16>")
+                      DW_AT_byte_size	(0x10)
+                      DW_AT_accessibility	(DW_ACCESS_protected)
+                      DW_AT_alignment	(16)
+
+0x000000a3:           DW_TAG_template_type_parameter
+                        DW_AT_type	(0x00000f68 "i8")
+                        DW_AT_name	("T")
+
+0x000000ac:           DW_TAG_member
+                        DW_AT_name	("__0")
+                        DW_AT_type	(0x00000f6f "i8[16]")
+                        DW_AT_alignment	(1)
+                        DW_AT_data_member_location	(0x00)
+                        DW_AT_accessibility	(DW_ACCESS_private)
+
+0x000000b8:           DW_TAG_subprogram
+                        DW_AT_linkage_name	("_RNvMsa_NtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd128INtNtB9_4simd4SimdaKj10_E4v128")
+                        DW_AT_name	("v128")
+                        DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                        DW_AT_decl_line	(54)
+                        DW_AT_type	(0x0000010c "core::core_arch::wasm32::simd128::v128")
+                        DW_AT_declaration	(true)
+
+0x000000c7:             DW_TAG_formal_parameter
+                          DW_AT_type	(0x0000009b "core::core_arch::simd::Simd<i8, 16>")
+
+0x000000cc:             NULL
+
+0x000000cd:           NULL
+
+0x000000ce:         DW_TAG_structure_type
+                      DW_AT_name	("Simd<i32, 4>")
+                      DW_AT_byte_size	(0x10)
+                      DW_AT_accessibility	(DW_ACCESS_protected)
+                      DW_AT_alignment	(16)
+
+0x000000d6:           DW_TAG_template_type_parameter
+                        DW_AT_type	(0x00000b35 "i32")
+                        DW_AT_name	("T")
+
+0x000000df:           DW_TAG_member
+                        DW_AT_name	("__0")
+                        DW_AT_type	(0x00000b28 "i32[4]")
+                        DW_AT_alignment	(4)
+                        DW_AT_data_member_location	(0x00)
+                        DW_AT_accessibility	(DW_ACCESS_private)
+
+0x000000eb:           DW_TAG_subprogram
+                        DW_AT_linkage_name	("_RNvMsc_NtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd128INtNtB9_4simd4SimdlKj4_E4v128")
+                        DW_AT_name	("v128")
+                        DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                        DW_AT_decl_line	(54)
+                        DW_AT_type	(0x0000010c "core::core_arch::wasm32::simd128::v128")
+                        DW_AT_declaration	(true)
+
+0x000000fa:             DW_TAG_formal_parameter
+                          DW_AT_type	(0x000000ce "core::core_arch::simd::Simd<i32, 4>")
+
+0x000000ff:             NULL
+
+0x00000100:           NULL
+
+0x00000101:         NULL
+
+0x00000102:       DW_TAG_namespace
+                    DW_AT_name	("wasm32")
+
+0x00000107:         DW_TAG_namespace
+                      DW_AT_name	("simd128")
+
+0x0000010c:           DW_TAG_structure_type
+                        DW_AT_name	("v128")
+                        DW_AT_byte_size	(0x10)
+                        DW_AT_accessibility	(DW_ACCESS_public)
+                        DW_AT_alignment	(16)
+
+0x00000114:             DW_TAG_member
+                          DW_AT_name	("__0")
+                          DW_AT_type	(0x00000b28 "i32[4]")
+                          DW_AT_alignment	(4)
+                          DW_AT_data_member_location	(0x00)
+                          DW_AT_accessibility	(DW_ACCESS_private)
+
+0x00000120:             NULL
+
+0x00000121:           DW_TAG_subprogram
+                        DW_AT_low_pc	(0x00000002)
+                        DW_AT_high_pc	(0x00000026)
+                        DW_AT_frame_base	(DW_OP_WASM_location 0x3 0x0, DW_OP_stack_value)
+                        DW_AT_linkage_name	("_RINvNtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd12813i32x4_shuffleKj2_Kj3_Kj0_Kj1_ECsigjfd5Cify6_6sample")
+                        DW_AT_name	("i32x4_shuffle<2, 3, 0, 1>")
+                        DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                        DW_AT_decl_line	(977)
+                        DW_AT_calling_convention	(DW_CC_nocall)
+                        DW_AT_type	(0x0000010c "core::core_arch::wasm32::simd128::v128")
+
+0x00000142:             DW_TAG_formal_parameter
+                          DW_AT_name	("a")
+                          DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                          DW_AT_decl_line	(978)
+                          DW_AT_type	(0x0000010c "core::core_arch::wasm32::simd128::v128")
+
+0x0000014e:             DW_TAG_formal_parameter
+                          DW_AT_name	("b")
+                          DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                          DW_AT_decl_line	(979)
+                          DW_AT_type	(0x0000010c "core::core_arch::wasm32::simd128::v128")
+
+0x0000015a:             DW_TAG_lexical_block
+                          DW_AT_low_pc	(0x00000021)
+                          DW_AT_high_pc	(0x00000025)
+
+0x00000163:               DW_TAG_variable
+                            DW_AT_location	(DW_OP_WASM_location 0x2 0x1, DW_OP_stack_value)
+                            DW_AT_name	("shuf")
+                            DW_AT_alignment	(16)
+                            DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                            DW_AT_decl_line	(985)
+                            DW_AT_type	(0x00000035 "core::core_arch::simd::Simd<u32, 4>")
+
+0x00000175:               DW_TAG_inlined_subroutine
+                            DW_AT_abstract_origin	(0x00000b3c "_RNvMs8_NtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd128INtNtB9_4simd4SimdmKj4_E4v128")
+                            DW_AT_low_pc	(0x00000021)
+                            DW_AT_high_pc	(0x00000025)
+                            DW_AT_call_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                            DW_AT_call_line	(992)
+                            DW_AT_call_column	(10)
+
+0x00000186:                 DW_TAG_formal_parameter
+                              DW_AT_location	(0x00000000: 
+                                 [0x00000021, 0x00000025): DW_OP_WASM_location 0x2 0x1, DW_OP_stack_value)
+                              DW_AT_abstract_origin	(0x00000b42 "self")
+
+0x0000018f:                 NULL
+
+0x00000190:               NULL
+
+0x00000191:             NULL
+
+0x00000192:           DW_TAG_subprogram
+                        DW_AT_low_pc	(0x00000027)
+                        DW_AT_high_pc	(0x0000002e)
+                        DW_AT_frame_base	(DW_OP_WASM_location 0x3 0x0, DW_OP_stack_value)
+                        DW_AT_linkage_name	("_RINvNtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd12818i32x4_extract_laneKj0_ECsigjfd5Cify6_6sample")
+                        DW_AT_name	("i32x4_extract_lane<0>")
+                        DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                        DW_AT_decl_line	(1142)
+                        DW_AT_type	(0x00000b35 "i32")
+
+0x000001b2:             DW_TAG_formal_parameter
+                          DW_AT_name	("a")
+                          DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                          DW_AT_decl_line	(1142)
+                          DW_AT_type	(0x0000010c "core::core_arch::wasm32::simd128::v128")
+
+0x000001be:             NULL
+
+0x000001bf:           DW_TAG_subprogram
+                        DW_AT_low_pc	(0x0000002f)
+                        DW_AT_high_pc	(0x00000036)
+                        DW_AT_frame_base	(DW_OP_WASM_location 0x3 0x0, DW_OP_stack_value)
+                        DW_AT_linkage_name	("_RINvNtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd12818i32x4_extract_laneKj1_ECsigjfd5Cify6_6sample")
+                        DW_AT_name	("i32x4_extract_lane<1>")
+                        DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                        DW_AT_decl_line	(1142)
+                        DW_AT_type	(0x00000b35 "i32")
+
+0x000001df:             DW_TAG_formal_parameter
+                          DW_AT_name	("a")
+                          DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                          DW_AT_decl_line	(1142)
+                          DW_AT_type	(0x0000010c "core::core_arch::wasm32::simd128::v128")
+
+0x000001eb:             NULL
+
+0x000001ec:           DW_TAG_subprogram
+                        DW_AT_low_pc	(0x00000037)
+                        DW_AT_high_pc	(0x00000051)
+                        DW_AT_frame_base	(DW_OP_WASM_location 0x3 0x0, DW_OP_stack_value)
+                        DW_AT_linkage_name	("_RNvNtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd12811u8x16_splat")
+                        DW_AT_name	("u8x16_splat")
+                        DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                        DW_AT_decl_line	(1330)
+                        DW_AT_calling_convention	(DW_CC_nocall)
+                        DW_AT_type	(0x0000010c "core::core_arch::wasm32::simd128::v128")
+
+0x0000020d:             DW_TAG_formal_parameter
+                          DW_AT_const_value	(3)
+                          DW_AT_name	("a")
+                          DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                          DW_AT_decl_line	(1330)
+                          DW_AT_type	(0x00000f42 "u8")
+
+0x0000021a:             DW_TAG_inlined_subroutine
+                          DW_AT_abstract_origin	(0x00000f56 "_RNvMs6_NtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd128INtNtB9_4simd4SimdhKj10_E4v128")
+                          DW_AT_low_pc	(0x00000037)
+                          DW_AT_high_pc	(0x00000050)
+                          DW_AT_call_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                          DW_AT_call_line	(1331)
+                          DW_AT_call_column	(27)
+
+0x0000022b:               DW_TAG_formal_parameter
+                            DW_AT_location	(0x0000001e: 
+                               [0x0000004c, 0x00000050): DW_OP_WASM_location 0x2 0x1, DW_OP_stack_value)
+                            DW_AT_abstract_origin	(0x00000f5c "self")
+
+0x00000234:               NULL
+
+0x00000235:             NULL
+
+0x00000236:           DW_TAG_subprogram
+                        DW_AT_low_pc	(0x00000052)
+                        DW_AT_high_pc	(0x00000068)
+                        DW_AT_frame_base	(DW_OP_WASM_location 0x3 0x0, DW_OP_stack_value)
+                        DW_AT_linkage_name	("_RNvNtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd12813i8x16_swizzle")
+                        DW_AT_name	("i8x16_swizzle")
+                        DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                        DW_AT_decl_line	(1303)
+                        DW_AT_type	(0x0000010c "core::core_arch::wasm32::simd128::v128")
+
+0x00000256:             DW_TAG_formal_parameter
+                          DW_AT_name	("a")
+                          DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                          DW_AT_decl_line	(1303)
+                          DW_AT_type	(0x0000010c "core::core_arch::wasm32::simd128::v128")
+
+0x00000262:             DW_TAG_formal_parameter
+                          DW_AT_name	("s")
+                          DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                          DW_AT_decl_line	(1303)
+                          DW_AT_type	(0x0000010c "core::core_arch::wasm32::simd128::v128")
+
+0x0000026e:             DW_TAG_inlined_subroutine
+                          DW_AT_abstract_origin	(0x00000f7c "_RNvMsa_NtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd128INtNtB9_4simd4SimdaKj10_E4v128")
+                          DW_AT_low_pc	(0x00000063)
+                          DW_AT_high_pc	(0x00000067)
+                          DW_AT_call_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                          DW_AT_call_line	(1304)
+                          DW_AT_call_column	(55)
+
+0x0000027f:               DW_TAG_formal_parameter
+                            DW_AT_location	(0x0000003c: 
+                               [0x00000063, 0x00000067): DW_OP_WASM_location 0x2 0x1, DW_OP_stack_value)
+                            DW_AT_abstract_origin	(0x00000f82 "self")
+
+0x00000288:               NULL
+
+0x00000289:             NULL
+
+0x0000028a:           DW_TAG_subprogram
+                        DW_AT_low_pc	(0x00000069)
+                        DW_AT_high_pc	(0x00000083)
+                        DW_AT_frame_base	(DW_OP_WASM_location 0x3 0x0, DW_OP_stack_value)
+                        DW_AT_linkage_name	("_RNvNtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd1285i32x4")
+                        DW_AT_name	("i32x4")
+                        DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                        DW_AT_decl_line	(739)
+                        DW_AT_calling_convention	(DW_CC_nocall)
+                        DW_AT_type	(0x0000010c "core::core_arch::wasm32::simd128::v128")
+
+0x000002ab:             DW_TAG_formal_parameter
+                          DW_AT_const_value	(7)
+                          DW_AT_name	("a0")
+                          DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                          DW_AT_decl_line	(739)
+                          DW_AT_type	(0x00000b35 "i32")
+
+0x000002b8:             DW_TAG_formal_parameter
+                          DW_AT_const_value	(-7)
+                          DW_AT_name	("a1")
+                          DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                          DW_AT_decl_line	(739)
+                          DW_AT_type	(0x00000b35 "i32")
+
+0x000002c5:             DW_TAG_formal_parameter
+                          DW_AT_const_value	(9)
+                          DW_AT_name	("a2")
+                          DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                          DW_AT_decl_line	(739)
+                          DW_AT_type	(0x00000b35 "i32")
+
+0x000002d2:             DW_TAG_formal_parameter
+                          DW_AT_const_value	(-9)
+                          DW_AT_name	("a3")
+                          DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                          DW_AT_decl_line	(739)
+                          DW_AT_type	(0x00000b35 "i32")
+
+0x000002df:             DW_TAG_inlined_subroutine
+                          DW_AT_abstract_origin	(0x00000f8e "_RNvMsc_NtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd128INtNtB9_4simd4SimdlKj4_E4v128")
+                          DW_AT_low_pc	(0x00000069)
+                          DW_AT_high_pc	(0x00000082)
+                          DW_AT_call_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                          DW_AT_call_line	(740)
+                          DW_AT_call_column	(38)
+
+0x000002f0:               DW_TAG_formal_parameter
+                            DW_AT_location	(0x0000005a: 
+                               [0x0000007e, 0x00000082): DW_OP_WASM_location 0x2 0x1, DW_OP_stack_value)
+                            DW_AT_abstract_origin	(0x00000f94 "self")
+
+0x000002f9:               NULL
+
+0x000002fa:             NULL
+
+0x000002fb:           DW_TAG_subprogram
+                        DW_AT_low_pc	(0x00000084)
+                        DW_AT_high_pc	(0x0000009b)
+                        DW_AT_frame_base	(DW_OP_WASM_location 0x3 0x0, DW_OP_stack_value)
+                        DW_AT_linkage_name	("_RNvNtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd1289i32x4_add")
+                        DW_AT_name	("i32x4_add")
+                        DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                        DW_AT_decl_line	(3251)
+                        DW_AT_type	(0x0000010c "core::core_arch::wasm32::simd128::v128")
+
+0x0000031b:             DW_TAG_formal_parameter
+                          DW_AT_name	("a")
+                          DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                          DW_AT_decl_line	(3251)
+                          DW_AT_type	(0x0000010c "core::core_arch::wasm32::simd128::v128")
+
+0x00000327:             DW_TAG_formal_parameter
+                          DW_AT_name	("b")
+                          DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                          DW_AT_decl_line	(3251)
+                          DW_AT_type	(0x0000010c "core::core_arch::wasm32::simd128::v128")
+
+0x00000333:             DW_TAG_inlined_subroutine
+                          DW_AT_abstract_origin	(0x00000f8e "_RNvMsc_NtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd128INtNtB9_4simd4SimdlKj4_E4v128")
+                          DW_AT_low_pc	(0x00000096)
+                          DW_AT_high_pc	(0x0000009a)
+                          DW_AT_call_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                          DW_AT_call_line	(3252)
+                          DW_AT_call_column	(51)
+
+0x00000344:               DW_TAG_formal_parameter
+                            DW_AT_location	(0x00000078: 
+                               [0x00000096, 0x0000009a): DW_OP_WASM_location 0x2 0x1, DW_OP_stack_value)
+                            DW_AT_abstract_origin	(0x00000f94 "self")
+
+0x0000034d:               NULL
+
+0x0000034e:             NULL
+
+0x0000034f:           DW_TAG_subprogram
+                        DW_AT_low_pc	(0x0000009c)
+                        DW_AT_high_pc	(0x000000b3)
+                        DW_AT_frame_base	(DW_OP_WASM_location 0x3 0x0, DW_OP_stack_value)
+                        DW_AT_linkage_name	("_RNvNtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd1289i32x4_mul")
+                        DW_AT_name	("i32x4_mul")
+                        DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                        DW_AT_decl_line	(3278)
+                        DW_AT_type	(0x0000010c "core::core_arch::wasm32::simd128::v128")
+
+0x0000036f:             DW_TAG_formal_parameter
+                          DW_AT_name	("a")
+                          DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                          DW_AT_decl_line	(3278)
+                          DW_AT_type	(0x0000010c "core::core_arch::wasm32::simd128::v128")
+
+0x0000037b:             DW_TAG_formal_parameter
+                          DW_AT_name	("b")
+                          DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                          DW_AT_decl_line	(3278)
+                          DW_AT_type	(0x0000010c "core::core_arch::wasm32::simd128::v128")
+
+0x00000387:             DW_TAG_inlined_subroutine
+                          DW_AT_abstract_origin	(0x00000f8e "_RNvMsc_NtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd128INtNtB9_4simd4SimdlKj4_E4v128")
+                          DW_AT_low_pc	(0x000000ae)
+                          DW_AT_high_pc	(0x000000b2)
+                          DW_AT_call_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                          DW_AT_call_line	(3279)
+                          DW_AT_call_column	(51)
+
+0x00000398:               DW_TAG_formal_parameter
+                            DW_AT_location	(0x00000096: 
+                               [0x000000ae, 0x000000b2): DW_OP_WASM_location 0x2 0x1, DW_OP_stack_value)
+                            DW_AT_abstract_origin	(0x00000f94 "self")
+
+0x000003a1:               NULL
+
+0x000003a2:             NULL
+
+0x000003a3:           DW_TAG_subprogram
+                        DW_AT_low_pc	(0x000000b4)
+                        DW_AT_high_pc	(0x000000c2)
+                        DW_AT_frame_base	(DW_OP_WASM_location 0x3 0x0, DW_OP_stack_value)
+                        DW_AT_linkage_name	("_RNvNtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd1289v128_load")
+                        DW_AT_name	("v128_load")
+                        DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                        DW_AT_decl_line	(163)
+                        DW_AT_type	(0x0000010c "core::core_arch::wasm32::simd128::v128")
+
+0x000003c2:             DW_TAG_formal_parameter
+                          DW_AT_location	(DW_OP_WASM_location 0x0 0x1, DW_OP_stack_value)
+                          DW_AT_name	("m")
+                          DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                          DW_AT_decl_line	(163)
+                          DW_AT_type	(0x00000fa0 "core::core_arch::wasm32::simd128::v128 *")
+
+0x000003d2:             DW_TAG_inlined_subroutine
+                          DW_AT_abstract_origin	(0x00000499 "_RNvMNtNtCsjyCYk6C1TV_4core3ptr9const_ptrPNtNtNtNtB6_9core_arch6wasm327simd1284v12814read_unalignedCsigjfd5Cify6_6sample")
+                          DW_AT_low_pc	(0x000000b4)
+                          DW_AT_high_pc	(0x000000c1)
+                          DW_AT_call_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                          DW_AT_call_line	(164)
+                          DW_AT_call_column	(7)
+
+0x000003e2:               DW_TAG_formal_parameter
+                            DW_AT_location	(DW_OP_WASM_location 0x0 0x1, DW_OP_stack_value)
+                            DW_AT_abstract_origin	(0x000004b3 "self")
+
+0x000003ec:               DW_TAG_inlined_subroutine
+                            DW_AT_abstract_origin	(0x00000468 "_RINvNtCsjyCYk6C1TV_4core3ptr14read_unalignedNtNtNtNtB4_9core_arch6wasm327simd1284v128ECsigjfd5Cify6_6sample")
+                            DW_AT_low_pc	(0x000000b4)
+                            DW_AT_high_pc	(0x000000c1)
+                            DW_AT_call_file	("/rust\lib/rustlib/src/rust\library/core/src/ptr\const_ptr.rs")
+                            DW_AT_call_line	(1195)
+                            DW_AT_call_column	(18)
+
+0x000003fd:                 DW_TAG_formal_parameter
+                              DW_AT_location	(DW_OP_WASM_location 0x0 0x1, DW_OP_stack_value)
+                              DW_AT_abstract_origin	(0x00000482 "src")
+
+0x00000407:                 DW_TAG_inlined_subroutine
+                              DW_AT_abstract_origin	(0x0000042f "_RINvNtCsjyCYk6C1TV_4core3ptr4readINtB2_9UnalignedNtNtNtNtB4_9core_arch6wasm327simd1284v128EECsigjfd5Cify6_6sample")
+                              DW_AT_low_pc	(0x000000b4)
+                              DW_AT_high_pc	(0x000000c1)
+                              DW_AT_call_file	("/rust\lib/rustlib/src/rust\library/core/src/ptr\mod.rs")
+                              DW_AT_call_line	(1850)
+                              DW_AT_call_column	(25)
+
+0x00000418:                 NULL
+
+0x00000419:               NULL
+
+0x0000041a:             NULL
+
+0x0000041b:           NULL
+
+0x0000041c:         DW_TAG_subprogram
+                      DW_AT_linkage_name	("_RNvNtNtCsjyCYk6C1TV_4core9core_arch6wasm3211unreachable")
+                      DW_AT_name	("unreachable")
+                      DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\mod.rs")
+                      DW_AT_decl_line	(31)
+                      DW_AT_noreturn	(true)
+                      DW_AT_inline	(DW_INL_inlined)
+
+0x00000428:         NULL
+
+0x00000429:       NULL
+
+0x0000042a:     DW_TAG_namespace
+                  DW_AT_name	("ptr")
+
+0x0000042f:       DW_TAG_subprogram
+                    DW_AT_linkage_name	("_RINvNtCsjyCYk6C1TV_4core3ptr4readINtB2_9UnalignedNtNtNtNtB4_9core_arch6wasm327simd1284v128EECsigjfd5Cify6_6sample")
+                    DW_AT_name	("read<core::ptr::Unaligned<core::core_arch::wasm32::simd128::v128>>")
+                    DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/ptr\mod.rs")
+                    DW_AT_decl_line	(1716)
+                    DW_AT_type	(0x0000044a "core::ptr::Unaligned<core::core_arch::wasm32::simd128::v128>")
+                    DW_AT_inline	(DW_INL_inlined)
+
+0x00000440:         DW_TAG_template_type_parameter
+                      DW_AT_type	(0x0000044a "core::ptr::Unaligned<core::core_arch::wasm32::simd128::v128>")
+                      DW_AT_name	("T")
+
+0x00000449:         NULL
+
+0x0000044a:       DW_TAG_structure_type
+                    DW_AT_name	("Unaligned<core::core_arch::wasm32::simd128::v128>")
+                    DW_AT_byte_size	(0x10)
+                    DW_AT_accessibility	(DW_ACCESS_private)
+                    DW_AT_alignment	(1)
+
+0x00000452:         DW_TAG_template_type_parameter
+                      DW_AT_type	(0x0000010c "core::core_arch::wasm32::simd128::v128")
+                      DW_AT_name	("T")
+
+0x0000045b:         DW_TAG_member
+                      DW_AT_name	("__0")
+                      DW_AT_type	(0x0000010c "core::core_arch::wasm32::simd128::v128")
+                      DW_AT_alignment	(16)
+                      DW_AT_data_member_location	(0x00)
+                      DW_AT_accessibility	(DW_ACCESS_private)
+
+0x00000467:         NULL
+
+0x00000468:       DW_TAG_subprogram
+                    DW_AT_linkage_name	("_RINvNtCsjyCYk6C1TV_4core3ptr14read_unalignedNtNtNtNtB4_9core_arch6wasm327simd1284v128ECsigjfd5Cify6_6sample")
+                    DW_AT_name	("read_unaligned<core::core_arch::wasm32::simd128::v128>")
+                    DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/ptr\mod.rs")
+                    DW_AT_decl_line	(1834)
+                    DW_AT_type	(0x0000010c "core::core_arch::wasm32::simd128::v128")
+                    DW_AT_inline	(DW_INL_inlined)
+
+0x00000479:         DW_TAG_template_type_parameter
+                      DW_AT_type	(0x0000010c "core::core_arch::wasm32::simd128::v128")
+                      DW_AT_name	("T")
+
+0x00000482:         DW_TAG_formal_parameter
+                      DW_AT_name	("src")
+                      DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/ptr\mod.rs")
+                      DW_AT_decl_line	(1834)
+                      DW_AT_type	(0x00000fa0 "core::core_arch::wasm32::simd128::v128 *")
+
+0x0000048e:         NULL
+
+0x0000048f:       DW_TAG_namespace
+                    DW_AT_name	("const_ptr")
+
+0x00000494:         DW_TAG_namespace
+                      DW_AT_name	("{impl#0}")
+
+0x00000499:           DW_TAG_subprogram
+                        DW_AT_linkage_name	("_RNvMNtNtCsjyCYk6C1TV_4core3ptr9const_ptrPNtNtNtNtB6_9core_arch6wasm327simd1284v12814read_unalignedCsigjfd5Cify6_6sample")
+                        DW_AT_name	("read_unaligned<core::core_arch::wasm32::simd128::v128>")
+                        DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/ptr\const_ptr.rs")
+                        DW_AT_decl_line	(1190)
+                        DW_AT_type	(0x0000010c "core::core_arch::wasm32::simd128::v128")
+                        DW_AT_inline	(DW_INL_inlined)
+
+0x000004aa:             DW_TAG_template_type_parameter
+                          DW_AT_type	(0x0000010c "core::core_arch::wasm32::simd128::v128")
+                          DW_AT_name	("T")
+
+0x000004b3:             DW_TAG_formal_parameter
+                          DW_AT_name	("self")
+                          DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/ptr\const_ptr.rs")
+                          DW_AT_decl_line	(1190)
+                          DW_AT_type	(0x00000fa0 "core::core_arch::wasm32::simd128::v128 *")
+
+0x000004bf:             NULL
+
+0x000004c0:           NULL
+
+0x000004c1:         NULL
+
+0x000004c2:       DW_TAG_subprogram
+                    DW_AT_linkage_name	("_RINvNtCsjyCYk6C1TV_4core3ptr4copyhECsigjfd5Cify6_6sample")
+                    DW_AT_name	("copy<u8>")
+                    DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/ptr\mod.rs")
+                    DW_AT_decl_line	(649)
+                    DW_AT_inline	(DW_INL_inlined)
+
+0x000004cf:         DW_TAG_template_type_parameter
+                      DW_AT_type	(0x00000f42 "u8")
+                      DW_AT_name	("T")
+
+0x000004d8:         DW_TAG_formal_parameter
+                      DW_AT_name	("src")
+                      DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/ptr\mod.rs")
+                      DW_AT_decl_line	(649)
+                      DW_AT_type	(0x00000fbb "u8 *")
+
+0x000004e4:         DW_TAG_formal_parameter
+                      DW_AT_name	("dst")
+                      DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/ptr\mod.rs")
+                      DW_AT_decl_line	(649)
+                      DW_AT_type	(0x00000fc8 "u8 *")
+
+0x000004f0:         DW_TAG_formal_parameter
+                      DW_AT_name	("count")
+                      DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/ptr\mod.rs")
+                      DW_AT_decl_line	(649)
+                      DW_AT_type	(0x00000fd5 "usize")
+
+0x000004fc:         NULL
+
+0x000004fd:       DW_TAG_subprogram
+                    DW_AT_linkage_name	("_RINvNtCsjyCYk6C1TV_4core3ptr11write_byteshECsigjfd5Cify6_6sample")
+                    DW_AT_name	("write_bytes<u8>")
+                    DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/ptr\mod.rs")
+                    DW_AT_decl_line	(723)
+                    DW_AT_inline	(DW_INL_inlined)
+
+0x0000050a:         DW_TAG_template_type_parameter
+                      DW_AT_type	(0x00000f42 "u8")
+                      DW_AT_name	("T")
+
+0x00000513:         DW_TAG_formal_parameter
+                      DW_AT_name	("dst")
+                      DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/ptr\mod.rs")
+                      DW_AT_decl_line	(723)
+                      DW_AT_type	(0x00000fc8 "u8 *")
+
+0x0000051f:         DW_TAG_formal_parameter
+                      DW_AT_name	("count")
+                      DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/ptr\mod.rs")
+                      DW_AT_decl_line	(723)
+                      DW_AT_type	(0x00000fd5 "usize")
+
+0x0000052b:         DW_TAG_variable
+                      DW_AT_name	("val")
+                      DW_AT_alignment	(1)
+                      DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/ptr\mod.rs")
+                      DW_AT_decl_line	(723)
+                      DW_AT_type	(0x00000f42 "u8")
+
+0x00000538:         NULL
+
+0x00000539:       DW_TAG_namespace
+                    DW_AT_name	("non_null")
+
+0x0000053e:         DW_TAG_structure_type
+                      DW_AT_name	("NonNull<u32>")
+                      DW_AT_byte_size	(0x04)
+                      DW_AT_accessibility	(DW_ACCESS_public)
+                      DW_AT_alignment	(4)
+
+0x00000546:           DW_TAG_template_type_parameter
+                        DW_AT_type	(0x00000b0d "u32")
+                        DW_AT_name	("T")
+
+0x0000054f:           DW_TAG_member
+                        DW_AT_name	("pointer")
+                        DW_AT_type	(0x00000ff6 "u32 *")
+                        DW_AT_alignment	(4)
+                        DW_AT_data_member_location	(0x00)
+                        DW_AT_accessibility	(DW_ACCESS_private)
+
+0x0000055b:           DW_TAG_subprogram
+                        DW_AT_linkage_name	("_RNvMs1_NtNtCsjyCYk6C1TV_4core3ptr8non_nullINtB5_7NonNullmE3addCsigjfd5Cify6_6sample")
+                        DW_AT_name	("add<u32>")
+                        DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/ptr\non_null.rs")
+                        DW_AT_decl_line	(619)
+                        DW_AT_type	(0x0000053e "core::ptr::non_null::NonNull<u32>")
+                        DW_AT_declaration	(true)
+
+0x0000056b:             DW_TAG_template_type_parameter
+                          DW_AT_type	(0x00000b0d "u32")
+                          DW_AT_name	("T")
+
+0x00000574:             DW_TAG_formal_parameter
+                          DW_AT_type	(0x0000053e "core::ptr::non_null::NonNull<u32>")
+
+0x00000579:             DW_TAG_formal_parameter
+                          DW_AT_type	(0x00000fd5 "usize")
+
+0x0000057e:             NULL
+
+0x0000057f:           NULL
+
+0x00000580:         DW_TAG_structure_type
+                      DW_AT_name	("NonNull<u8>")
+                      DW_AT_byte_size	(0x04)
+                      DW_AT_accessibility	(DW_ACCESS_public)
+                      DW_AT_alignment	(4)
+
+0x00000588:           DW_TAG_template_type_parameter
+                        DW_AT_type	(0x00000f42 "u8")
+                        DW_AT_name	("T")
+
+0x00000591:           DW_TAG_member
+                        DW_AT_name	("pointer")
+                        DW_AT_type	(0x00000fbb "u8 *")
+                        DW_AT_alignment	(4)
+                        DW_AT_data_member_location	(0x00)
+                        DW_AT_accessibility	(DW_ACCESS_private)
+
+0x0000059d:           NULL
+
+0x0000059e:         DW_TAG_structure_type
+                      DW_AT_name	("NonNull<core::fmt::rt::Argument>")
+                      DW_AT_byte_size	(0x04)
+                      DW_AT_accessibility	(DW_ACCESS_public)
+                      DW_AT_alignment	(4)
+
+0x000005a6:           DW_TAG_template_type_parameter
+                        DW_AT_type	(0x000009a6 "core::fmt::rt::Argument")
+                        DW_AT_name	("T")
+
+0x000005af:           DW_TAG_member
+                        DW_AT_name	("pointer")
+                        DW_AT_type	(0x00001112 "core::fmt::rt::Argument *")
+                        DW_AT_alignment	(4)
+                        DW_AT_data_member_location	(0x00)
+                        DW_AT_accessibility	(DW_ACCESS_private)
+
+0x000005bb:           NULL
+
+0x000005bc:         DW_TAG_structure_type
+                      DW_AT_name	("NonNull<()>")
+                      DW_AT_byte_size	(0x04)
+                      DW_AT_accessibility	(DW_ACCESS_public)
+                      DW_AT_alignment	(4)
+
+0x000005c4:           DW_TAG_template_type_parameter
+                        DW_AT_type	(0x00001078 "()")
+                        DW_AT_name	("T")
+
+0x000005cd:           DW_TAG_member
+                        DW_AT_name	("pointer")
+                        DW_AT_type	(0x0000107f "() *")
+                        DW_AT_alignment	(4)
+                        DW_AT_data_member_location	(0x00)
+                        DW_AT_accessibility	(DW_ACCESS_private)
+
+0x000005d9:           NULL
+
+0x000005da:         DW_TAG_structure_type
+                      DW_AT_name	("NonNull<str>")
+                      DW_AT_byte_size	(0x08)
+                      DW_AT_accessibility	(DW_ACCESS_public)
+                      DW_AT_alignment	(4)
+
+0x000005e2:           DW_TAG_template_type_parameter
+                        DW_AT_type	(0x0000112c "u8[]")
+                        DW_AT_name	("T")
+
+0x000005eb:           DW_TAG_member
+                        DW_AT_name	("pointer")
+                        DW_AT_type	(0x00001138 "*const str")
+                        DW_AT_alignment	(4)
+                        DW_AT_data_member_location	(0x00)
+                        DW_AT_accessibility	(DW_ACCESS_private)
+
+0x000005f7:           NULL
+
+0x000005f8:         NULL
+
+0x000005f9:       NULL
+
+0x000005fa:     DW_TAG_namespace
+                  DW_AT_name	("convert")
+
+0x000005ff:       DW_TAG_namespace
+                    DW_AT_name	("num")
+
+0x00000604:         DW_TAG_namespace
+                      DW_AT_name	("{impl#118}")
+
+0x00000609:           DW_TAG_subprogram
+                        DW_AT_linkage_name	("_RNvXs1S_NtNtCsjyCYk6C1TV_4core7convert3numdINtB8_4FromfE4from")
+                        DW_AT_name	("from")
+                        DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/convert\num.rs")
+                        DW_AT_decl_line	(69)
+                        DW_AT_type	(0x00000fad "f64")
+                        DW_AT_inline	(DW_INL_inlined)
+
+0x00000619:             DW_TAG_formal_parameter
+                          DW_AT_name	("small")
+                          DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/convert\num.rs")
+                          DW_AT_decl_line	(69)
+                          DW_AT_type	(0x00000fb4 "f32")
+
+0x00000624:             NULL
+
+0x00000625:           NULL
+
+0x00000626:         NULL
+
+0x00000627:       DW_TAG_structure_type
+                    DW_AT_name	("Infallible")
+                    DW_AT_byte_size	(0x00)
+                    DW_AT_accessibility	(DW_ACCESS_public)
+                    DW_AT_alignment	(1)
+
+0x0000062f:         DW_TAG_variant_part
+
+0x00000630:         NULL
+
+0x00000631:       NULL
+
+0x00000632:     DW_TAG_namespace
+                  DW_AT_name	("slice")
+
+0x00000637:       DW_TAG_namespace
+                    DW_AT_name	("iter")
+
+0x0000063c:         DW_TAG_namespace
+                      DW_AT_name	("{impl#171}")
+
+0x00000641:           DW_TAG_subprogram
+                        DW_AT_linkage_name	("_RNvXs2J_NtNtCsjyCYk6C1TV_4core5slice4iterINtB6_4ItermENtNtNtNtBa_4iter6traits8iterator8Iterator4nextCsigjfd5Cify6_6sample")
+                        DW_AT_name	("next<u32>")
+                        DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/slice/iter\macros.rs")
+                        DW_AT_decl_line	(157)
+                        DW_AT_type	(0x000006ce "core::option::Option<&u32>")
+                        DW_AT_inline	(DW_INL_inlined)
+
+0x00000651:             DW_TAG_template_type_parameter
+                          DW_AT_type	(0x00000b0d "u32")
+                          DW_AT_name	("T")
+
+0x0000065a:             DW_TAG_formal_parameter
+                          DW_AT_name	("self")
+                          DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/slice/iter\macros.rs")
+                          DW_AT_decl_line	(157)
+                          DW_AT_type	(0x00000fe9 "core::slice::iter::Iter<u32> *")
+
+0x00000665:             DW_TAG_lexical_block
+
+0x00000666:               DW_TAG_variable
+                            DW_AT_name	("ptr")
+                            DW_AT_alignment	(4)
+                            DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/slice/iter\macros.rs")
+                            DW_AT_decl_line	(161)
+                            DW_AT_type	(0x0000053e "core::ptr::non_null::NonNull<u32>")
+
+0x00000672:               DW_TAG_lexical_block
+
+0x00000673:                 DW_TAG_variable
+                              DW_AT_name	("end_or_len")
+                              DW_AT_alignment	(4)
+                              DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/slice/iter\macros.rs")
+                              DW_AT_decl_line	(162)
+                              DW_AT_type	(0x00000ff6 "u32 *")
+
+0x0000067f:                 DW_TAG_lexical_block
+
+0x00000680:                   DW_TAG_variable
+                                DW_AT_name	("len")
+                                DW_AT_alignment	(4)
+                                DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/slice/iter\macros.rs")
+                                DW_AT_decl_line	(167)
+                                DW_AT_type	(0x00000fd5 "usize")
+
+0x0000068c:                   NULL
+
+0x0000068d:                 NULL
+
+0x0000068e:               NULL
+
+0x0000068f:             NULL
+
+0x00000690:           NULL
+
+0x00000691:         DW_TAG_structure_type
+                      DW_AT_name	("Iter<u32>")
+                      DW_AT_byte_size	(0x08)
+                      DW_AT_accessibility	(DW_ACCESS_public)
+                      DW_AT_alignment	(4)
+
+0x00000699:           DW_TAG_template_type_parameter
+                        DW_AT_type	(0x00000b0d "u32")
+                        DW_AT_name	("T")
+
+0x000006a2:           DW_TAG_member
+                        DW_AT_name	("ptr")
+                        DW_AT_type	(0x0000053e "core::ptr::non_null::NonNull<u32>")
+                        DW_AT_alignment	(4)
+                        DW_AT_data_member_location	(0x00)
+                        DW_AT_accessibility	(DW_ACCESS_private)
+
+0x000006ae:           DW_TAG_member
+                        DW_AT_name	("end_or_len")
+                        DW_AT_type	(0x00000ff6 "u32 *")
+                        DW_AT_alignment	(4)
+                        DW_AT_data_member_location	(0x04)
+                        DW_AT_accessibility	(DW_ACCESS_private)
+
+0x000006ba:           DW_TAG_member
+                        DW_AT_name	("_marker")
+                        DW_AT_type	(0x000007eb "core::marker::PhantomData<&u32>")
+                        DW_AT_alignment	(1)
+                        DW_AT_data_member_location	(0x08)
+                        DW_AT_accessibility	(DW_ACCESS_private)
+
+0x000006c6:           NULL
+
+0x000006c7:         NULL
+
+0x000006c8:       NULL
+
+0x000006c9:     DW_TAG_namespace
+                  DW_AT_name	("option")
+
+0x000006ce:       DW_TAG_structure_type
+                    DW_AT_name	("Option<&u32>")
+                    DW_AT_byte_size	(0x04)
+                    DW_AT_accessibility	(DW_ACCESS_public)
+                    DW_AT_alignment	(4)
+
+0x000006d6:         DW_TAG_variant_part
+                      DW_AT_discr	(0x000006db)
+
+0x000006db:           DW_TAG_member
+                        DW_AT_type	(0x00000b0d "u32")
+                        DW_AT_alignment	(4)
+                        DW_AT_data_member_location	(0x00)
+                        DW_AT_artificial	(true)
+
+0x000006e2:           DW_TAG_variant
+                        DW_AT_discr_value	(0x00)
+
+0x000006e4:             DW_TAG_member
+                          DW_AT_name	("None")
+                          DW_AT_type	(0x000006fe "core::option::Option<&u32>::None<u32 *>")
+                          DW_AT_alignment	(4)
+                          DW_AT_data_member_location	(0x00)
+
+0x000006ef:             NULL
+
+0x000006f0:           DW_TAG_variant
+
+0x000006f1:             DW_TAG_member
+                          DW_AT_name	("Some")
+                          DW_AT_type	(0x00000710 "core::option::Option<&u32>::Some<u32 *>")
+                          DW_AT_alignment	(4)
+                          DW_AT_data_member_location	(0x00)
+
+0x000006fc:             NULL
+
+0x000006fd:           NULL
+
+0x000006fe:         DW_TAG_structure_type
+                      DW_AT_name	("None")
+                      DW_AT_byte_size	(0x04)
+                      DW_AT_accessibility	(DW_ACCESS_public)
+                      DW_AT_alignment	(4)
+
+0x00000706:           DW_TAG_template_type_parameter
+                        DW_AT_type	(0x00000fdc "u32 *")
+                        DW_AT_name	("T")
+
+0x0000070f:           NULL
+
+0x00000710:         DW_TAG_structure_type
+                      DW_AT_name	("Some")
+                      DW_AT_byte_size	(0x04)
+                      DW_AT_accessibility	(DW_ACCESS_public)
+                      DW_AT_alignment	(4)
+
+0x00000718:           DW_TAG_template_type_parameter
+                        DW_AT_type	(0x00000fdc "u32 *")
+                        DW_AT_name	("T")
+
+0x00000721:           DW_TAG_member
+                        DW_AT_name	("__0")
+                        DW_AT_type	(0x00000fdc "u32 *")
+                        DW_AT_alignment	(4)
+                        DW_AT_data_member_location	(0x00)
+                        DW_AT_accessibility	(DW_ACCESS_public)
+
+0x0000072d:           NULL
+
+0x0000072e:         NULL
+
+0x0000072f:       DW_TAG_structure_type
+                    DW_AT_name	("Option<(usize, &u32)>")
+                    DW_AT_byte_size	(0x08)
+                    DW_AT_accessibility	(DW_ACCESS_public)
+                    DW_AT_alignment	(4)
+
+0x00000737:         DW_TAG_variant_part
+                      DW_AT_discr	(0x0000073c)
+
+0x0000073c:           DW_TAG_member
+                        DW_AT_type	(0x00000b0d "u32")
+                        DW_AT_alignment	(4)
+                        DW_AT_data_member_location	(0x04)
+                        DW_AT_artificial	(true)
+
+0x00000743:           DW_TAG_variant
+                        DW_AT_discr_value	(0x00)
+
+0x00000745:             DW_TAG_member
+                          DW_AT_name	("None")
+                          DW_AT_type	(0x0000075f "core::option::Option<(usize, &u32)>::None<(usize, &u32)>")
+                          DW_AT_alignment	(4)
+                          DW_AT_data_member_location	(0x00)
+
+0x00000750:             NULL
+
+0x00000751:           DW_TAG_variant
+
+0x00000752:             DW_TAG_member
+                          DW_AT_name	("Some")
+                          DW_AT_type	(0x00000771 "core::option::Option<(usize, &u32)>::Some<(usize, &u32)>")
+                          DW_AT_alignment	(4)
+                          DW_AT_data_member_location	(0x00)
+
+0x0000075d:             NULL
+
+0x0000075e:           NULL
+
+0x0000075f:         DW_TAG_structure_type
+                      DW_AT_name	("None")
+                      DW_AT_byte_size	(0x08)
+                      DW_AT_accessibility	(DW_ACCESS_public)
+                      DW_AT_alignment	(4)
+
+0x00000767:           DW_TAG_template_type_parameter
+                        DW_AT_type	(0x00001003 "(usize, &u32)")
+                        DW_AT_name	("T")
+
+0x00000770:           NULL
+
+0x00000771:         DW_TAG_structure_type
+                      DW_AT_name	("Some")
+                      DW_AT_byte_size	(0x08)
+                      DW_AT_accessibility	(DW_ACCESS_public)
+                      DW_AT_alignment	(4)
+
+0x00000779:           DW_TAG_template_type_parameter
+                        DW_AT_type	(0x00001003 "(usize, &u32)")
+                        DW_AT_name	("T")
+
+0x00000782:           DW_TAG_member
+                        DW_AT_name	("__0")
+                        DW_AT_type	(0x00001003 "(usize, &u32)")
+                        DW_AT_alignment	(4)
+                        DW_AT_data_member_location	(0x00)
+                        DW_AT_accessibility	(DW_ACCESS_public)
+
+0x0000078e:           NULL
+
+0x0000078f:         NULL
+
+0x00000790:       DW_TAG_structure_type
+                    DW_AT_name	("Option<core::convert::Infallible>")
+                    DW_AT_byte_size	(0x00)
+                    DW_AT_accessibility	(DW_ACCESS_public)
+                    DW_AT_alignment	(1)
+
+0x00000798:         DW_TAG_variant_part
+
+0x00000799:           DW_TAG_variant
+
+0x0000079a:             DW_TAG_member
+                          DW_AT_name	("None")
+                          DW_AT_type	(0x000007b4 "core::option::Option<core::convert::Infallible>::None<core::convert::Infallible>")
+                          DW_AT_alignment	(1)
+                          DW_AT_data_member_location	(0x00)
+
+0x000007a5:             NULL
+
+0x000007a6:           DW_TAG_variant
+
+0x000007a7:             DW_TAG_member
+                          DW_AT_name	("Some")
+                          DW_AT_type	(0x000007c6 "core::option::Option<core::convert::Infallible>::Some<core::convert::Infallible>")
+                          DW_AT_alignment	(1)
+                          DW_AT_data_member_location	(0x00)
+
+0x000007b2:             NULL
+
+0x000007b3:           NULL
+
+0x000007b4:         DW_TAG_structure_type
+                      DW_AT_name	("None")
+                      DW_AT_byte_size	(0x00)
+                      DW_AT_accessibility	(DW_ACCESS_public)
+                      DW_AT_alignment	(1)
+
+0x000007bc:           DW_TAG_template_type_parameter
+                        DW_AT_type	(0x00000627 "core::convert::Infallible")
+                        DW_AT_name	("T")
+
+0x000007c5:           NULL
+
+0x000007c6:         DW_TAG_structure_type
+                      DW_AT_name	("Some")
+                      DW_AT_byte_size	(0x00)
+                      DW_AT_accessibility	(DW_ACCESS_public)
+                      DW_AT_alignment	(1)
+
+0x000007ce:           DW_TAG_template_type_parameter
+                        DW_AT_type	(0x00000627 "core::convert::Infallible")
+                        DW_AT_name	("T")
+
+0x000007d7:           DW_TAG_member
+                        DW_AT_name	("__0")
+                        DW_AT_type	(0x00000627 "core::convert::Infallible")
+                        DW_AT_alignment	(1)
+                        DW_AT_data_member_location	(0x00)
+                        DW_AT_accessibility	(DW_ACCESS_public)
+
+0x000007e3:           NULL
+
+0x000007e4:         NULL
+
+0x000007e5:       NULL
+
+0x000007e6:     DW_TAG_namespace
+                  DW_AT_name	("marker")
+
+0x000007eb:       DW_TAG_structure_type
+                    DW_AT_name	("PhantomData<&u32>")
+                    DW_AT_byte_size	(0x00)
+                    DW_AT_accessibility	(DW_ACCESS_public)
+                    DW_AT_alignment	(1)
+
+0x000007f3:         DW_TAG_template_type_parameter
+                      DW_AT_type	(0x00000fdc "u32 *")
+                      DW_AT_name	("T")
+
+0x000007fc:         NULL
+
+0x000007fd:       DW_TAG_structure_type
+                    DW_AT_name	("PhantomData<&()>")
+                    DW_AT_byte_size	(0x00)
+                    DW_AT_accessibility	(DW_ACCESS_public)
+                    DW_AT_alignment	(1)
+
+0x00000805:         DW_TAG_template_type_parameter
+                      DW_AT_type	(0x00001105 "() *")
+                      DW_AT_name	("T")
+
+0x0000080e:         NULL
+
+0x0000080f:       DW_TAG_structure_type
+                    DW_AT_name	("PhantomData<&str>")
+                    DW_AT_byte_size	(0x00)
+                    DW_AT_accessibility	(DW_ACCESS_public)
+                    DW_AT_alignment	(1)
+
+0x00000817:         DW_TAG_template_type_parameter
+                      DW_AT_type	(0x0000115f "&str")
+                      DW_AT_name	("T")
+
+0x00000820:         NULL
+
+0x00000821:       NULL
+
+0x00000822:     DW_TAG_namespace
+                  DW_AT_name	("iter")
+
+0x00000827:       DW_TAG_namespace
+                    DW_AT_name	("adapters")
+
+0x0000082c:         DW_TAG_namespace
+                      DW_AT_name	("enumerate")
+
+0x00000831:           DW_TAG_namespace
+                        DW_AT_name	("{impl#1}")
+
+0x00000836:             DW_TAG_subprogram
+                          DW_AT_linkage_name	("_RNvXs_NtNtNtCsjyCYk6C1TV_4core4iter8adapters9enumerateINtB4_9EnumerateINtNtNtBa_5slice4iter4ItermEENtNtNtB8_6traits8iterator8Iterator4nextCsigjfd5Cify6_6sample")
+                          DW_AT_name	("next<core::slice::iter::Iter<u32>>")
+                          DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/iter/adapters\enumerate.rs")
+                          DW_AT_decl_line	(79)
+                          DW_AT_type	(0x0000072f "core::option::Option<(usize, &u32)>")
+                          DW_AT_inline	(DW_INL_inlined)
+
+0x00000846:               DW_TAG_template_type_parameter
+                            DW_AT_type	(0x00000691 "core::slice::iter::Iter<u32>")
+                            DW_AT_name	("I")
+
+0x0000084f:               DW_TAG_formal_parameter
+                            DW_AT_name	("self")
+                            DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/iter/adapters\enumerate.rs")
+                            DW_AT_decl_line	(79)
+                            DW_AT_type	(0x00001021 "core::iter::adapters::enumerate::Enumerate<core::slice::iter::Iter<u32>> *")
+
+0x0000085a:               DW_TAG_lexical_block
+
+0x0000085b:                 DW_TAG_variable
+                              DW_AT_name	("a")
+                              DW_AT_alignment	(4)
+                              DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/iter/adapters\enumerate.rs")
+                              DW_AT_decl_line	(80)
+                              DW_AT_type	(0x00000fdc "u32 *")
+
+0x00000867:                 DW_TAG_lexical_block
+
+0x00000868:                   DW_TAG_variable
+                                DW_AT_name	("i")
+                                DW_AT_alignment	(4)
+                                DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/iter/adapters\enumerate.rs")
+                                DW_AT_decl_line	(81)
+                                DW_AT_type	(0x00000fd5 "usize")
+
+0x00000874:                   NULL
+
+0x00000875:                 NULL
+
+0x00000876:               DW_TAG_lexical_block
+
+0x00000877:                 DW_TAG_variable
+                              DW_AT_name	("residual")
+                              DW_AT_alignment	(1)
+                              DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/iter/adapters\enumerate.rs")
+                              DW_AT_decl_line	(80)
+                              DW_AT_type	(0x00000790 "core::option::Option<core::convert::Infallible>")
+
+0x00000883:                 NULL
+
+0x00000884:               DW_TAG_lexical_block
+
+0x00000885:                 DW_TAG_variable
+                              DW_AT_name	("val")
+                              DW_AT_alignment	(4)
+                              DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/iter/adapters\enumerate.rs")
+                              DW_AT_decl_line	(80)
+                              DW_AT_type	(0x00000fdc "u32 *")
+
+0x00000891:                 NULL
+
+0x00000892:               NULL
+
+0x00000893:             NULL
+
+0x00000894:           DW_TAG_structure_type
+                        DW_AT_name	("Enumerate<core::slice::iter::Iter<u32>>")
+                        DW_AT_byte_size	(0x0c)
+                        DW_AT_accessibility	(DW_ACCESS_public)
+                        DW_AT_alignment	(4)
+
+0x0000089c:             DW_TAG_template_type_parameter
+                          DW_AT_type	(0x00000691 "core::slice::iter::Iter<u32>")
+                          DW_AT_name	("I")
+
+0x000008a5:             DW_TAG_member
+                          DW_AT_name	("iter")
+                          DW_AT_type	(0x00000691 "core::slice::iter::Iter<u32>")
+                          DW_AT_alignment	(4)
+                          DW_AT_data_member_location	(0x00)
+                          DW_AT_accessibility	(DW_ACCESS_private)
+
+0x000008b1:             DW_TAG_member
+                          DW_AT_name	("count")
+                          DW_AT_type	(0x00000fd5 "usize")
+                          DW_AT_alignment	(4)
+                          DW_AT_data_member_location	(0x08)
+                          DW_AT_accessibility	(DW_ACCESS_private)
+
+0x000008bd:             NULL
+
+0x000008be:           NULL
+
+0x000008bf:         NULL
+
+0x000008c0:       NULL
+
+0x000008c1:     DW_TAG_namespace
+                  DW_AT_name	("num")
+
+0x000008c6:       DW_TAG_namespace
+                    DW_AT_name	("{impl#9}")
+
+0x000008cb:         DW_TAG_subprogram
+                      DW_AT_linkage_name	("_RNvMs7_NtCsjyCYk6C1TV_4core3numy12wrapping_add")
+                      DW_AT_name	("wrapping_add")
+                      DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/num\uint_macros.rs")
+                      DW_AT_decl_line	(2651)
+                      DW_AT_type	(0x0000102e "u64")
+                      DW_AT_inline	(DW_INL_inlined)
+
+0x000008dc:           DW_TAG_formal_parameter
+                        DW_AT_name	("self")
+                        DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/num\uint_macros.rs")
+                        DW_AT_decl_line	(2651)
+                        DW_AT_type	(0x0000102e "u64")
+
+0x000008e8:           DW_TAG_formal_parameter
+                        DW_AT_name	("rhs")
+                        DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/num\uint_macros.rs")
+                        DW_AT_decl_line	(2651)
+                        DW_AT_type	(0x0000102e "u64")
+
+0x000008f4:           NULL
+
+0x000008f5:         NULL
+
+0x000008f6:       NULL
+
+0x000008f7:     DW_TAG_namespace
+                  DW_AT_name	("panic")
+
+0x000008fc:       DW_TAG_namespace
+                    DW_AT_name	("panic_info")
+
+0x00000901:         DW_TAG_structure_type
+                      DW_AT_name	("PanicInfo")
+                      DW_AT_byte_size	(0x0c)
+                      DW_AT_accessibility	(DW_ACCESS_public)
+                      DW_AT_alignment	(4)
+
+0x00000909:           DW_TAG_member
+                        DW_AT_name	("message")
+                        DW_AT_type	(0x0000106b "core::fmt::Arguments *")
+                        DW_AT_alignment	(4)
+                        DW_AT_data_member_location	(0x00)
+                        DW_AT_accessibility	(DW_ACCESS_private)
+
+0x00000915:           DW_TAG_member
+                        DW_AT_name	("location")
+                        DW_AT_type	(0x0000111f "core::panic::location::Location *")
+                        DW_AT_alignment	(4)
+                        DW_AT_data_member_location	(0x04)
+                        DW_AT_accessibility	(DW_ACCESS_private)
+
+0x00000921:           DW_TAG_member
+                        DW_AT_name	("can_unwind")
+                        DW_AT_type	(0x0000117d "bool")
+                        DW_AT_alignment	(1)
+                        DW_AT_data_member_location	(0x08)
+                        DW_AT_accessibility	(DW_ACCESS_private)
+
+0x0000092d:           DW_TAG_member
+                        DW_AT_name	("force_no_backtrace")
+                        DW_AT_type	(0x0000117d "bool")
+                        DW_AT_alignment	(1)
+                        DW_AT_data_member_location	(0x09)
+                        DW_AT_accessibility	(DW_ACCESS_private)
+
+0x00000939:           NULL
+
+0x0000093a:         NULL
+
+0x0000093b:       DW_TAG_namespace
+                    DW_AT_name	("location")
+
+0x00000940:         DW_TAG_structure_type
+                      DW_AT_name	("Location")
+                      DW_AT_byte_size	(0x10)
+                      DW_AT_accessibility	(DW_ACCESS_public)
+                      DW_AT_alignment	(4)
+
+0x00000948:           DW_TAG_member
+                        DW_AT_name	("filename")
+                        DW_AT_type	(0x000005da "core::ptr::non_null::NonNull<str>")
+                        DW_AT_alignment	(4)
+                        DW_AT_data_member_location	(0x00)
+                        DW_AT_accessibility	(DW_ACCESS_private)
+
+0x00000954:           DW_TAG_member
+                        DW_AT_name	("line")
+                        DW_AT_type	(0x00000b0d "u32")
+                        DW_AT_alignment	(4)
+                        DW_AT_data_member_location	(0x08)
+                        DW_AT_accessibility	(DW_ACCESS_private)
+
+0x00000960:           DW_TAG_member
+                        DW_AT_name	("col")
+                        DW_AT_type	(0x00000b0d "u32")
+                        DW_AT_alignment	(4)
+                        DW_AT_data_member_location	(0x0c)
+                        DW_AT_accessibility	(DW_ACCESS_private)
+
+0x0000096c:           DW_TAG_member
+                        DW_AT_name	("_filename")
+                        DW_AT_type	(0x0000080f "core::marker::PhantomData<&str>")
+                        DW_AT_alignment	(1)
+                        DW_AT_data_member_location	(0x10)
+                        DW_AT_accessibility	(DW_ACCESS_private)
+
+0x00000978:           NULL
+
+0x00000979:         NULL
+
+0x0000097a:       NULL
+
+0x0000097b:     DW_TAG_namespace
+                  DW_AT_name	("fmt")
+
+0x00000980:       DW_TAG_structure_type
+                    DW_AT_name	("Arguments")
+                    DW_AT_byte_size	(0x08)
+                    DW_AT_accessibility	(DW_ACCESS_public)
+                    DW_AT_alignment	(4)
+
+0x00000988:         DW_TAG_member
+                      DW_AT_name	("template")
+                      DW_AT_type	(0x00000580 "core::ptr::non_null::NonNull<u8>")
+                      DW_AT_alignment	(4)
+                      DW_AT_data_member_location	(0x00)
+                      DW_AT_accessibility	(DW_ACCESS_private)
+
+0x00000994:         DW_TAG_member
+                      DW_AT_name	("args")
+                      DW_AT_type	(0x0000059e "core::ptr::non_null::NonNull<core::fmt::rt::Argument>")
+                      DW_AT_alignment	(4)
+                      DW_AT_data_member_location	(0x04)
+                      DW_AT_accessibility	(DW_ACCESS_private)
+
+0x000009a0:         NULL
+
+0x000009a1:       DW_TAG_namespace
+                    DW_AT_name	("rt")
+
+0x000009a6:         DW_TAG_structure_type
+                      DW_AT_name	("Argument")
+                      DW_AT_byte_size	(0x08)
+                      DW_AT_accessibility	(DW_ACCESS_public)
+                      DW_AT_alignment	(4)
+
+0x000009ae:           DW_TAG_member
+                        DW_AT_name	("ty")
+                        DW_AT_type	(0x000009bb "core::fmt::rt::ArgumentType")
+                        DW_AT_alignment	(4)
+                        DW_AT_data_member_location	(0x00)
+                        DW_AT_accessibility	(DW_ACCESS_private)
+
+0x000009ba:           NULL
+
+0x000009bb:         DW_TAG_structure_type
+                      DW_AT_name	("ArgumentType")
+                      DW_AT_byte_size	(0x08)
+                      DW_AT_accessibility	(DW_ACCESS_private)
+                      DW_AT_alignment	(4)
+
+0x000009c3:           DW_TAG_variant_part
+                        DW_AT_discr	(0x000009c8)
+
+0x000009c8:             DW_TAG_member
+                          DW_AT_type	(0x00000b0d "u32")
+                          DW_AT_alignment	(4)
+                          DW_AT_data_member_location	(0x00)
+                          DW_AT_artificial	(true)
+
+0x000009cf:             DW_TAG_variant
+
+0x000009d0:               DW_TAG_member
+                            DW_AT_name	("Placeholder")
+                            DW_AT_type	(0x000009eb "core::fmt::rt::ArgumentType::Placeholder")
+                            DW_AT_alignment	(4)
+                            DW_AT_data_member_location	(0x00)
+
+0x000009db:               NULL
+
+0x000009dc:             DW_TAG_variant
+                          DW_AT_discr_value	(0x00)
+
+0x000009de:               DW_TAG_member
+                            DW_AT_name	("Count")
+                            DW_AT_type	(0x00000a18 "core::fmt::rt::ArgumentType::Count")
+                            DW_AT_alignment	(4)
+                            DW_AT_data_member_location	(0x00)
+
+0x000009e9:               NULL
+
+0x000009ea:             NULL
+
+0x000009eb:           DW_TAG_structure_type
+                        DW_AT_name	("Placeholder")
+                        DW_AT_byte_size	(0x08)
+                        DW_AT_accessibility	(DW_ACCESS_private)
+                        DW_AT_alignment	(4)
+
+0x000009f3:             DW_TAG_member
+                          DW_AT_name	("value")
+                          DW_AT_type	(0x000005bc "core::ptr::non_null::NonNull<()>")
+                          DW_AT_alignment	(4)
+                          DW_AT_data_member_location	(0x00)
+                          DW_AT_accessibility	(DW_ACCESS_private)
+
+0x000009ff:             DW_TAG_member
+                          DW_AT_name	("formatter")
+                          DW_AT_type	(0x0000108c "core::result::Result<(), core::fmt::Error> (*)(core::ptr::non_null::NonNull<()>, core::fmt::Formatter *)")
+                          DW_AT_alignment	(4)
+                          DW_AT_data_member_location	(0x04)
+                          DW_AT_accessibility	(DW_ACCESS_private)
+
+0x00000a0b:             DW_TAG_member
+                          DW_AT_name	("_lifetime")
+                          DW_AT_type	(0x000007fd "core::marker::PhantomData<&()>")
+                          DW_AT_alignment	(1)
+                          DW_AT_data_member_location	(0x08)
+                          DW_AT_accessibility	(DW_ACCESS_private)
+
+0x00000a17:             NULL
+
+0x00000a18:           DW_TAG_structure_type
+                        DW_AT_name	("Count")
+                        DW_AT_byte_size	(0x08)
+                        DW_AT_accessibility	(DW_ACCESS_private)
+                        DW_AT_alignment	(4)
+
+0x00000a20:             DW_TAG_member
+                          DW_AT_name	("__0")
+                          DW_AT_type	(0x000010b6 "u16")
+                          DW_AT_alignment	(2)
+                          DW_AT_data_member_location	(0x04)
+                          DW_AT_accessibility	(DW_ACCESS_private)
+
+0x00000a2c:             NULL
+
+0x00000a2d:           NULL
+
+0x00000a2e:         NULL
+
+0x00000a2f:       DW_TAG_structure_type
+                    DW_AT_name	("Error")
+                    DW_AT_byte_size	(0x00)
+                    DW_AT_accessibility	(DW_ACCESS_public)
+                    DW_AT_alignment	(1)
+
+0x00000a37:       DW_TAG_structure_type
+                    DW_AT_name	("Formatter")
+                    DW_AT_byte_size	(0x10)
+                    DW_AT_accessibility	(DW_ACCESS_public)
+                    DW_AT_alignment	(4)
+
+0x00000a3f:         DW_TAG_member
+                      DW_AT_name	("options")
+                      DW_AT_type	(0x00000a58 "core::fmt::FormattingOptions")
+                      DW_AT_alignment	(4)
+                      DW_AT_data_member_location	(0x08)
+                      DW_AT_accessibility	(DW_ACCESS_private)
+
+0x00000a4b:         DW_TAG_member
+                      DW_AT_name	("buf")
+                      DW_AT_type	(0x000010bd "&mut dyn core::fmt::Write")
+                      DW_AT_alignment	(4)
+                      DW_AT_data_member_location	(0x00)
+                      DW_AT_accessibility	(DW_ACCESS_private)
+
+0x00000a57:         NULL
+
+0x00000a58:       DW_TAG_structure_type
+                    DW_AT_name	("FormattingOptions")
+                    DW_AT_byte_size	(0x08)
+                    DW_AT_accessibility	(DW_ACCESS_public)
+                    DW_AT_alignment	(4)
+
+0x00000a60:         DW_TAG_member
+                      DW_AT_name	("flags")
+                      DW_AT_type	(0x00000b0d "u32")
+                      DW_AT_alignment	(4)
+                      DW_AT_data_member_location	(0x00)
+                      DW_AT_accessibility	(DW_ACCESS_private)
+
+0x00000a6c:         DW_TAG_member
+                      DW_AT_name	("width")
+                      DW_AT_type	(0x000010b6 "u16")
+                      DW_AT_alignment	(2)
+                      DW_AT_data_member_location	(0x04)
+                      DW_AT_accessibility	(DW_ACCESS_private)
+
+0x00000a78:         DW_TAG_member
+                      DW_AT_name	("precision")
+                      DW_AT_type	(0x000010b6 "u16")
+                      DW_AT_alignment	(2)
+                      DW_AT_data_member_location	(0x06)
+                      DW_AT_accessibility	(DW_ACCESS_private)
+
+0x00000a84:         NULL
+
+0x00000a85:       NULL
+
+0x00000a86:     DW_TAG_namespace
+                  DW_AT_name	("result")
+
+0x00000a8b:       DW_TAG_structure_type
+                    DW_AT_name	("Result<(), core::fmt::Error>")
+                    DW_AT_byte_size	(0x01)
+                    DW_AT_accessibility	(DW_ACCESS_public)
+                    DW_AT_alignment	(1)
+
+0x00000a93:         DW_TAG_variant_part
+                      DW_AT_discr	(0x00000a98)
+
+0x00000a98:           DW_TAG_member
+                        DW_AT_type	(0x00000f42 "u8")
+                        DW_AT_alignment	(1)
+                        DW_AT_data_member_location	(0x00)
+                        DW_AT_artificial	(true)
+
+0x00000a9f:           DW_TAG_variant
+                        DW_AT_discr_value	(0x00)
+
+0x00000aa1:             DW_TAG_member
+                          DW_AT_name	("Ok")
+                          DW_AT_type	(0x00000abc "core::result::Result<(), core::fmt::Error>::Ok<(), core::fmt::Error>")
+                          DW_AT_alignment	(1)
+                          DW_AT_data_member_location	(0x00)
+
+0x00000aac:             NULL
+
+0x00000aad:           DW_TAG_variant
+                        DW_AT_discr_value	(0x01)
+
+0x00000aaf:             DW_TAG_member
+                          DW_AT_name	("Err")
+                          DW_AT_type	(0x00000ae3 "core::result::Result<(), core::fmt::Error>::Err<(), core::fmt::Error>")
+                          DW_AT_alignment	(1)
+                          DW_AT_data_member_location	(0x00)
+
+0x00000aba:             NULL
+
+0x00000abb:           NULL
+
+0x00000abc:         DW_TAG_structure_type
+                      DW_AT_name	("Ok")
+                      DW_AT_byte_size	(0x01)
+                      DW_AT_accessibility	(DW_ACCESS_public)
+                      DW_AT_alignment	(1)
+
+0x00000ac4:           DW_TAG_template_type_parameter
+                        DW_AT_type	(0x00001078 "()")
+                        DW_AT_name	("T")
+
+0x00000acd:           DW_TAG_template_type_parameter
+                        DW_AT_type	(0x00000a2f "core::fmt::Error")
+                        DW_AT_name	("E")
+
+0x00000ad6:           DW_TAG_member
+                        DW_AT_name	("__0")
+                        DW_AT_type	(0x00001078 "()")
+                        DW_AT_alignment	(1)
+                        DW_AT_data_member_location	(0x01)
+                        DW_AT_accessibility	(DW_ACCESS_public)
+
+0x00000ae2:           NULL
+
+0x00000ae3:         DW_TAG_structure_type
+                      DW_AT_name	("Err")
+                      DW_AT_byte_size	(0x01)
+                      DW_AT_accessibility	(DW_ACCESS_public)
+                      DW_AT_alignment	(1)
+
+0x00000aeb:           DW_TAG_template_type_parameter
+                        DW_AT_type	(0x00001078 "()")
+                        DW_AT_name	("T")
+
+0x00000af4:           DW_TAG_template_type_parameter
+                        DW_AT_type	(0x00000a2f "core::fmt::Error")
+                        DW_AT_name	("E")
+
+0x00000afd:           DW_TAG_member
+                        DW_AT_name	("__0")
+                        DW_AT_type	(0x00000a2f "core::fmt::Error")
+                        DW_AT_alignment	(1)
+                        DW_AT_data_member_location	(0x01)
+                        DW_AT_accessibility	(DW_ACCESS_public)
+
+0x00000b09:           NULL
+
+0x00000b0a:         NULL
+
+0x00000b0b:       NULL
+
+0x00000b0c:     NULL
+
+0x00000b0d:   DW_TAG_base_type
+                DW_AT_name	("u32")
+                DW_AT_encoding	(DW_ATE_unsigned)
+                DW_AT_byte_size	(0x04)
+
+0x00000b14:   DW_TAG_array_type
+                DW_AT_type	(0x00000b0d "u32")
+
+0x00000b19:     DW_TAG_subrange_type
+                  DW_AT_type	(0x00000b21 "__ARRAY_SIZE_TYPE__")
+                  DW_AT_lower_bound	(0)
+                  DW_AT_count	(0x04)
+
+0x00000b20:     NULL
+
+0x00000b21:   DW_TAG_base_type
+                DW_AT_name	("__ARRAY_SIZE_TYPE__")
+                DW_AT_byte_size	(0x08)
+                DW_AT_encoding	(DW_ATE_unsigned)
+
+0x00000b28:   DW_TAG_array_type
+                DW_AT_type	(0x00000b35 "i32")
+
+0x00000b2d:     DW_TAG_subrange_type
+                  DW_AT_type	(0x00000b21 "__ARRAY_SIZE_TYPE__")
+                  DW_AT_lower_bound	(0)
+                  DW_AT_count	(0x04)
+
+0x00000b34:     NULL
+
+0x00000b35:   DW_TAG_base_type
+                DW_AT_name	("i32")
+                DW_AT_encoding	(DW_ATE_signed)
+                DW_AT_byte_size	(0x04)
+
+0x00000b3c:   DW_TAG_subprogram
+                DW_AT_specification	(0x00000052 "_RNvMs8_NtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd128INtNtB9_4simd4SimdmKj4_E4v128")
+                DW_AT_inline	(DW_INL_inlined)
+
+0x00000b42:     DW_TAG_formal_parameter
+                  DW_AT_name	("self")
+                  DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                  DW_AT_decl_line	(54)
+                  DW_AT_type	(0x00000035 "core::core_arch::simd::Simd<u32, 4>")
+
+0x00000b4d:     NULL
+
+0x00000b4e:   DW_TAG_namespace
+                DW_AT_name	("sample")
+
+0x00000b53:     DW_TAG_subprogram
+                  DW_AT_low_pc	(dead code)
+                  DW_AT_high_pc	(0x00000003)
+                  DW_AT_frame_base	(DW_OP_WASM_location 0x3 0x0, DW_OP_stack_value)
+                  DW_AT_linkage_name	("_RNvCs5fGHjzWXRav_7___rustc17rust_begin_unwind")
+                  DW_AT_name	("panic")
+                  DW_AT_decl_file	("R:\tools\wasm\sample.rs")
+                  DW_AT_decl_line	(13)
+                  DW_AT_noreturn	(true)
+
+0x00000b6e:       DW_TAG_formal_parameter
+                    DW_AT_decl_file	("R:\tools\wasm\sample.rs")
+                    DW_AT_decl_line	(13)
+                    DW_AT_type	(0x0000105e "core::panic::panic_info::PanicInfo *")
+
+0x00000b75:       DW_TAG_inlined_subroutine
+                    DW_AT_abstract_origin	(0x0000041c "_RNvNtNtCsjyCYk6C1TV_4core9core_arch6wasm3211unreachable")
+                    DW_AT_low_pc	(dead code)
+                    DW_AT_high_pc	(0x00000003)
+                    DW_AT_call_file	("R:\tools\wasm\sample.rs")
+                    DW_AT_call_line	(14)
+                    DW_AT_call_column	(5)
+
+0x00000b85:       NULL
+
+0x00000b86:     DW_TAG_subprogram
+                  DW_AT_name	("classify")
+                  DW_AT_decl_file	("R:\tools\wasm\sample.rs")
+                  DW_AT_decl_line	(19)
+                  DW_AT_type	(0x00000b0d "u32")
+                  DW_AT_external	(true)
+                  DW_AT_inline	(DW_INL_inlined)
+
+0x00000b92:       DW_TAG_formal_parameter
+                    DW_AT_name	("x")
+                    DW_AT_decl_file	("R:\tools\wasm\sample.rs")
+                    DW_AT_decl_line	(19)
+                    DW_AT_type	(0x00000b0d "u32")
+
+0x00000b9d:       NULL
+
+0x00000b9e:     DW_TAG_subprogram
+                  DW_AT_low_pc	(0x000000c3)
+                  DW_AT_high_pc	(0x000000f6)
+                  DW_AT_frame_base	(DW_OP_WASM_location 0x3 0x0, DW_OP_stack_value)
+                  DW_AT_name	("apply")
+                  DW_AT_decl_file	("R:\tools\wasm\sample.rs")
+                  DW_AT_decl_line	(74)
+                  DW_AT_type	(0x00000b0d "u32")
+                  DW_AT_external	(true)
+
+0x00000bb9:       DW_TAG_formal_parameter
+                    DW_AT_location	(0x000000b4: 
+                       [0x000000c3, 0x000000e4): DW_OP_WASM_location 0x0 0x0, DW_OP_stack_value)
+                    DW_AT_name	("f")
+                    DW_AT_decl_file	("R:\tools\wasm\sample.rs")
+                    DW_AT_decl_line	(74)
+                    DW_AT_type	(0x00001184 "u32 (*)(u32)")
+
+0x00000bc8:       DW_TAG_formal_parameter
+                    DW_AT_location	(DW_OP_WASM_location 0x0 0x1, DW_OP_stack_value)
+                    DW_AT_name	("x")
+                    DW_AT_decl_file	("R:\tools\wasm\sample.rs")
+                    DW_AT_decl_line	(74)
+                    DW_AT_type	(0x00000b0d "u32")
+
+0x00000bd8:       DW_TAG_inlined_subroutine
+                    DW_AT_abstract_origin	(0x00000b86 "classify")
+                    DW_AT_low_pc	(0x000000db)
+                    DW_AT_high_pc	(0x000000ef)
+                    DW_AT_call_file	("R:\tools\wasm\sample.rs")
+                    DW_AT_call_line	(75)
+                    DW_AT_call_column	(12)
+
+0x00000be8:         DW_TAG_formal_parameter
+                      DW_AT_location	(DW_OP_WASM_location 0x0 0x1, DW_OP_stack_value)
+                      DW_AT_abstract_origin	(0x00000b92 "x")
+
+0x00000bf2:         NULL
+
+0x00000bf3:       NULL
+
+0x00000bf4:     DW_TAG_subprogram
+                  DW_AT_low_pc	(0x000000f7)
+                  DW_AT_high_pc	(0x0000013c)
+                  DW_AT_frame_base	(DW_OP_WASM_location 0x3 0x0, DW_OP_stack_value)
+                  DW_AT_name	("blend")
+                  DW_AT_decl_file	("R:\tools\wasm\sample.rs")
+                  DW_AT_decl_line	(44)
+                  DW_AT_type	(0x00000fad "f64")
+                  DW_AT_external	(true)
+
+0x00000c0f:       DW_TAG_formal_parameter
+                    DW_AT_location	(DW_OP_WASM_location 0x0 0x0, DW_OP_stack_value)
+                    DW_AT_name	("a")
+                    DW_AT_decl_file	("R:\tools\wasm\sample.rs")
+                    DW_AT_decl_line	(44)
+                    DW_AT_type	(0x00000fb4 "f32")
+
+0x00000c1f:       DW_TAG_formal_parameter
+                    DW_AT_location	(DW_OP_WASM_location 0x0 0x1, DW_OP_stack_value)
+                    DW_AT_name	("b")
+                    DW_AT_decl_file	("R:\tools\wasm\sample.rs")
+                    DW_AT_decl_line	(44)
+                    DW_AT_type	(0x00000fad "f64")
+
+0x00000c2f:       DW_TAG_formal_parameter
+                    DW_AT_location	(DW_OP_WASM_location 0x0 0x2, DW_OP_stack_value)
+                    DW_AT_name	("k")
+                    DW_AT_decl_file	("R:\tools\wasm\sample.rs")
+                    DW_AT_decl_line	(44)
+                    DW_AT_type	(0x00000b35 "i32")
+
+0x00000c3f:       DW_TAG_inlined_subroutine
+                    DW_AT_abstract_origin	(0x00000609 "_RNvXs1S_NtNtCsjyCYk6C1TV_4core7convert3numdINtB8_4FromfE4from")
+                    DW_AT_low_pc	(0x00000101)
+                    DW_AT_high_pc	(0x0000010d)
+                    DW_AT_call_file	("R:\tools\wasm\sample.rs")
+                    DW_AT_call_line	(45)
+                    DW_AT_call_column	(13)
+
+0x00000c4f:         DW_TAG_formal_parameter
+                      DW_AT_location	(DW_OP_WASM_location 0x0 0x0, DW_OP_stack_value)
+                      DW_AT_abstract_origin	(0x00000619 "small")
+
+0x00000c59:         NULL
+
+0x00000c5a:       DW_TAG_lexical_block
+                    DW_AT_low_pc	(0x00000128)
+                    DW_AT_high_pc	(0x0000013b)
+
+0x00000c63:         DW_TAG_variable
+                      DW_AT_location	(DW_OP_WASM_location 0x0 0x1, DW_OP_stack_value)
+                      DW_AT_name	("x")
+                      DW_AT_alignment	(8)
+                      DW_AT_decl_file	("R:\tools\wasm\sample.rs")
+                      DW_AT_decl_line	(45)
+                      DW_AT_type	(0x00000fad "f64")
+
+0x00000c74:         DW_TAG_lexical_block
+                      DW_AT_low_pc	(0x0000012a)
+                      DW_AT_high_pc	(0x0000013b)
+
+0x00000c7d:           DW_TAG_variable
+                        DW_AT_location	(0x000000d2: 
+                           [0x0000012a, 0x00000135): DW_OP_WASM_location 0x2 0x0, DW_OP_stack_value)
+                        DW_AT_name	("y")
+                        DW_AT_alignment	(8)
+                        DW_AT_decl_file	("R:\tools\wasm\sample.rs")
+                        DW_AT_decl_line	(46)
+                        DW_AT_type	(0x00000fad "f64")
+
+0x00000c8d:           DW_TAG_inlined_subroutine
+                        DW_AT_abstract_origin	(0x00000609 "_RNvXs1S_NtNtCsjyCYk6C1TV_4core7convert3numdINtB8_4FromfE4from")
+                        DW_AT_low_pc	(0x00000133)
+                        DW_AT_high_pc	(0x00000134)
+                        DW_AT_call_file	("R:\tools\wasm\sample.rs")
+                        DW_AT_call_line	(47)
+                        DW_AT_call_column	(9)
+
+0x00000c9d:             DW_TAG_formal_parameter
+                          DW_AT_location	(0x000000f0: 
+                             [0x00000133, 0x00000134): DW_OP_WASM_location 0x2 0x1, DW_OP_stack_value)
+                          DW_AT_abstract_origin	(0x00000619 "small")
+
+0x00000ca6:             NULL
+
+0x00000ca7:           NULL
+
+0x00000ca8:         NULL
+
+0x00000ca9:       NULL
+
+0x00000caa:     DW_TAG_subprogram
+                  DW_AT_low_pc	(0x0000013d)
+                  DW_AT_high_pc	(0x0000015c)
+                  DW_AT_frame_base	(DW_OP_WASM_location 0x3 0x0, DW_OP_stack_value)
+                  DW_AT_abstract_origin	(0x00000b86 "classify")
+
+0x00000cbf:       DW_TAG_formal_parameter
+                    DW_AT_location	(DW_OP_WASM_location 0x0 0x0, DW_OP_stack_value)
+                    DW_AT_abstract_origin	(0x00000b92 "x")
+
+0x00000cc9:       NULL
+
+0x00000cca:     DW_TAG_subprogram
+                  DW_AT_low_pc	(0x0000015e)
+                  DW_AT_high_pc	(0x00000253)
+                  DW_AT_frame_base	(DW_OP_WASM_location 0x0 0x2, DW_OP_stack_value)
+                  DW_AT_name	("dot")
+                  DW_AT_decl_file	("R:\tools\wasm\sample.rs")
+                  DW_AT_decl_line	(52)
+                  DW_AT_type	(0x00000b35 "i32")
+                  DW_AT_external	(true)
+
+0x00000ce2:       DW_TAG_formal_parameter
+                    DW_AT_location	(DW_OP_WASM_location 0x0 0x0, DW_OP_stack_value)
+                    DW_AT_name	("a")
+                    DW_AT_decl_file	("R:\tools\wasm\sample.rs")
+                    DW_AT_decl_line	(52)
+                    DW_AT_type	(0x00000fa0 "core::core_arch::wasm32::simd128::v128 *")
+
+0x00000cf2:       DW_TAG_formal_parameter
+                    DW_AT_location	(0x0000010e: 
+                       [0x0000015e, 0x00000253): DW_OP_WASM_location 0x0 0x1, DW_OP_stack_value)
+                    DW_AT_name	("b")
+                    DW_AT_decl_file	("R:\tools\wasm\sample.rs")
+                    DW_AT_decl_line	(52)
+                    DW_AT_type	(0x00000fa0 "core::core_arch::wasm32::simd128::v128 *")
+
+0x00000d01:       DW_TAG_lexical_block
+                    DW_AT_ranges	(0x00000000
+                       [0x00000181, 0x00000242)
+                       [0x0000024d, 0x00000252))
+
+0x00000d06:         DW_TAG_variable
+                      DW_AT_name	("x")
+                      DW_AT_alignment	(16)
+                      DW_AT_decl_file	("R:\tools\wasm\sample.rs")
+                      DW_AT_decl_line	(54)
+                      DW_AT_type	(0x0000010c "core::core_arch::wasm32::simd128::v128")
+
+0x00000d12:         DW_TAG_lexical_block
+                      DW_AT_ranges	(0x00000018
+                         [0x0000018e, 0x00000242)
+                         [0x0000024d, 0x00000252))
+
+0x00000d17:           DW_TAG_variable
+                        DW_AT_name	("y")
+                        DW_AT_alignment	(16)
+                        DW_AT_decl_file	("R:\tools\wasm\sample.rs")
+                        DW_AT_decl_line	(55)
+                        DW_AT_type	(0x0000010c "core::core_arch::wasm32::simd128::v128")
+
+0x00000d23:           DW_TAG_lexical_block
+                        DW_AT_ranges	(0x00000030
+                           [0x000001a8, 0x00000242)
+                           [0x0000024d, 0x00000252))
+
+0x00000d28:             DW_TAG_variable
+                          DW_AT_location	(0x0000012c: 
+                             [0x000001a8, 0x000001aa): DW_OP_WASM_location 0x2 0x1, DW_OP_stack_value
+                             [0x000001aa, 0x00000253): DW_OP_WASM_location 0x0 0x3, DW_OP_stack_value)
+                          DW_AT_name	("p")
+                          DW_AT_alignment	(16)
+                          DW_AT_decl_file	("R:\tools\wasm\sample.rs")
+                          DW_AT_decl_line	(56)
+                          DW_AT_type	(0x0000010c "core::core_arch::wasm32::simd128::v128")
+
+0x00000d38:             DW_TAG_lexical_block
+                          DW_AT_ranges	(0x00000048
+                             [0x000001d8, 0x00000242)
+                             [0x0000024d, 0x00000252))
+
+0x00000d3d:               DW_TAG_variable
+                            DW_AT_name	("q")
+                            DW_AT_alignment	(16)
+                            DW_AT_decl_file	("R:\tools\wasm\sample.rs")
+                            DW_AT_decl_line	(57)
+                            DW_AT_type	(0x0000010c "core::core_arch::wasm32::simd128::v128")
+
+0x00000d49:               DW_TAG_lexical_block
+                            DW_AT_ranges	(0x00000060
+                               [0x000001fd, 0x00000242)
+                               [0x0000024d, 0x00000252))
+
+0x00000d4e:                 DW_TAG_variable
+                              DW_AT_location	(0x00000158: 
+                                 [0x000001fd, 0x000001ff): DW_OP_WASM_location 0x2 0x1, DW_OP_stack_value
+                                 [0x000001ff, 0x00000253): DW_OP_WASM_location 0x0 0x3, DW_OP_stack_value)
+                              DW_AT_name	("r")
+                              DW_AT_alignment	(16)
+                              DW_AT_decl_file	("R:\tools\wasm\sample.rs")
+                              DW_AT_decl_line	(58)
+                              DW_AT_type	(0x0000010c "core::core_arch::wasm32::simd128::v128")
+
+0x00000d5e:                 NULL
+
+0x00000d5f:               NULL
+
+0x00000d60:             NULL
+
+0x00000d61:           NULL
+
+0x00000d62:         NULL
+
+0x00000d63:       NULL
+
+0x00000d64:     DW_TAG_subprogram
+                  DW_AT_low_pc	(0x00000254)
+                  DW_AT_high_pc	(0x0000027f)
+                  DW_AT_frame_base	(DW_OP_WASM_location 0x3 0x0, DW_OP_stack_value)
+                  DW_AT_name	("move_and_clear")
+                  DW_AT_decl_file	("R:\tools\wasm\sample.rs")
+                  DW_AT_decl_line	(65)
+                  DW_AT_external	(true)
+
+0x00000d7b:       DW_TAG_formal_parameter
+                    DW_AT_location	(DW_OP_WASM_location 0x0 0x0, DW_OP_stack_value)
+                    DW_AT_name	("dst")
+                    DW_AT_decl_file	("R:\tools\wasm\sample.rs")
+                    DW_AT_decl_line	(65)
+                    DW_AT_type	(0x00000fc8 "u8 *")
+
+0x00000d8b:       DW_TAG_formal_parameter
+                    DW_AT_location	(DW_OP_WASM_location 0x0 0x1, DW_OP_stack_value)
+                    DW_AT_name	("src")
+                    DW_AT_decl_file	("R:\tools\wasm\sample.rs")
+                    DW_AT_decl_line	(65)
+                    DW_AT_type	(0x00000fbb "u8 *")
+
+0x00000d9b:       DW_TAG_formal_parameter
+                    DW_AT_location	(DW_OP_WASM_location 0x0 0x2, DW_OP_stack_value)
+                    DW_AT_name	("n")
+                    DW_AT_decl_file	("R:\tools\wasm\sample.rs")
+                    DW_AT_decl_line	(65)
+                    DW_AT_type	(0x00000fd5 "usize")
+
+0x00000dab:       DW_TAG_inlined_subroutine
+                    DW_AT_abstract_origin	(0x000004c2 "_RINvNtCsjyCYk6C1TV_4core3ptr4copyhECsigjfd5Cify6_6sample")
+                    DW_AT_low_pc	(0x00000254)
+                    DW_AT_high_pc	(0x0000026a)
+                    DW_AT_call_file	("R:\tools\wasm\sample.rs")
+                    DW_AT_call_line	(67)
+                    DW_AT_call_column	(9)
+
+0x00000dbb:         DW_TAG_formal_parameter
+                      DW_AT_location	(DW_OP_WASM_location 0x0 0x1, DW_OP_stack_value)
+                      DW_AT_abstract_origin	(0x000004d8 "src")
+
+0x00000dc5:         DW_TAG_formal_parameter
+                      DW_AT_location	(DW_OP_WASM_location 0x0 0x0, DW_OP_stack_value)
+                      DW_AT_abstract_origin	(0x000004e4 "dst")
+
+0x00000dcf:         DW_TAG_formal_parameter
+                      DW_AT_location	(DW_OP_WASM_location 0x0 0x2, DW_OP_stack_value)
+                      DW_AT_abstract_origin	(0x000004f0 "count")
+
+0x00000dd9:         NULL
+
+0x00000dda:       DW_TAG_inlined_subroutine
+                    DW_AT_abstract_origin	(0x000004fd "_RINvNtCsjyCYk6C1TV_4core3ptr11write_byteshECsigjfd5Cify6_6sample")
+                    DW_AT_low_pc	(0x0000026b)
+                    DW_AT_high_pc	(0x0000027d)
+                    DW_AT_call_file	("R:\tools\wasm\sample.rs")
+                    DW_AT_call_line	(68)
+                    DW_AT_call_column	(9)
+
+0x00000dea:         DW_TAG_formal_parameter
+                      DW_AT_location	(0x00000184: 
+                         [0x00000276, 0x0000027d): DW_OP_WASM_location 0x2 0x0, DW_OP_stack_value)
+                      DW_AT_abstract_origin	(0x00000513 "dst")
+
+0x00000df3:         NULL
+
+0x00000df4:       NULL
+
+0x00000df5:     DW_TAG_subprogram
+                  DW_AT_low_pc	(0x00000280)
+                  DW_AT_high_pc	(0x00000293)
+                  DW_AT_frame_base	(DW_OP_WASM_location 0x3 0x0, DW_OP_stack_value)
+                  DW_AT_name	("narrow")
+                  DW_AT_decl_file	("R:\tools\wasm\sample.rs")
+                  DW_AT_decl_line	(80)
+                  DW_AT_type	(0x00000b35 "i32")
+                  DW_AT_external	(true)
+
+0x00000e10:       DW_TAG_formal_parameter
+                    DW_AT_location	(DW_OP_WASM_location 0x0 0x0, DW_OP_stack_value)
+                    DW_AT_name	("x")
+                    DW_AT_decl_file	("R:\tools\wasm\sample.rs")
+                    DW_AT_decl_line	(80)
+                    DW_AT_type	(0x0000119c "i64")
+
+0x00000e20:       DW_TAG_formal_parameter
+                    DW_AT_location	(DW_OP_WASM_location 0x0 0x1, DW_OP_stack_value)
+                    DW_AT_name	("f")
+                    DW_AT_decl_file	("R:\tools\wasm\sample.rs")
+                    DW_AT_decl_line	(80)
+                    DW_AT_type	(0x00000fb4 "f32")
+
+0x00000e30:       NULL
+
+0x00000e31:     DW_TAG_subprogram
+                  DW_AT_low_pc	(0x00000295)
+                  DW_AT_high_pc	(0x00000377)
+                  DW_AT_frame_base	(DW_OP_WASM_location 0x3 0x0, DW_OP_stack_value)
+                  DW_AT_name	("sum")
+                  DW_AT_decl_file	("R:\tools\wasm\sample.rs")
+                  DW_AT_decl_line	(33)
+                  DW_AT_type	(0x0000102e "u64")
+                  DW_AT_external	(true)
+
+0x00000e4c:       DW_TAG_formal_parameter
+                    DW_AT_location	(0x0000020c: 
+                       [0x00000295, 0x000002e9): DW_OP_WASM_location 0x0 0x0, DW_OP_stack_value)
+                    DW_AT_name	("p")
+                    DW_AT_decl_file	("R:\tools\wasm\sample.rs")
+                    DW_AT_decl_line	(33)
+                    DW_AT_type	(0x00000ff6 "u32 *")
+
+0x00000e5b:       DW_TAG_formal_parameter
+                    DW_AT_location	(0x000001a2: 
+                       [0x00000295, 0x000002cb): DW_OP_WASM_location 0x0 0x1, DW_OP_stack_value)
+                    DW_AT_name	("n")
+                    DW_AT_decl_file	("R:\tools\wasm\sample.rs")
+                    DW_AT_decl_line	(33)
+                    DW_AT_type	(0x00000fd5 "usize")
+
+0x00000e6a:       DW_TAG_lexical_block
+                    DW_AT_ranges	(0x00000078
+                       [0x00000295, 0x000002a2)
+                       [0x000002a6, 0x00000374))
+
+0x00000e6f:         DW_TAG_variable
+                      DW_AT_location	(0x000001c0: 
+                         [0x00000295, 0x000002a2): DW_OP_WASM_location 0x0 0x0, DW_OP_stack_value, DW_OP_piece 0x4, DW_OP_WASM_location 0x0 0x1, DW_OP_stack_value, DW_OP_piece 0x4
+                         [0x000002a5, 0x000002cb): DW_OP_WASM_location 0x0 0x0, DW_OP_stack_value, DW_OP_piece 0x4, DW_OP_WASM_location 0x0 0x1, DW_OP_stack_value, DW_OP_piece 0x4
+                         [0x000002cb, 0x000002e9): DW_OP_WASM_location 0x0 0x0, DW_OP_stack_value, DW_OP_piece 0x4)
+                      DW_AT_name	("s")
+                      DW_AT_alignment	(4)
+                      DW_AT_decl_file	("R:\tools\wasm\sample.rs")
+                      DW_AT_decl_line	(34)
+                      DW_AT_type	(0x000011a3 "*const [u32]")
+
+0x00000e7f:         DW_TAG_lexical_block
+                      DW_AT_ranges	(0x00000078
+                         [0x00000295, 0x000002a2)
+                         [0x000002a6, 0x00000374))
+
+0x00000e84:           DW_TAG_variable
+                        DW_AT_location	(0x00000340: 
+                           [0x00000295, 0x000002a2): DW_OP_lit0, DW_OP_stack_value
+                           [0x000002a5, 0x000002e9): DW_OP_lit0, DW_OP_stack_value
+                           [0x0000032b, 0x0000032c): DW_OP_WASM_location 0x2 0x1, DW_OP_stack_value
+                           [0x0000032e, 0x00000347): DW_OP_WASM_location 0x0 0x4, DW_OP_stack_value
+                           [0x0000035b, 0x00000377): DW_OP_WASM_location 0x0 0x4, DW_OP_stack_value)
+                        DW_AT_name	("t")
+                        DW_AT_alignment	(8)
+                        DW_AT_decl_file	("R:\tools\wasm\sample.rs")
+                        DW_AT_decl_line	(35)
+                        DW_AT_type	(0x0000102e "u64")
+
+0x00000e94:           DW_TAG_lexical_block
+                        DW_AT_ranges	(0x00000078
+                           [0x00000295, 0x000002a2)
+                           [0x000002a6, 0x00000374))
+
+0x00000e99:             DW_TAG_variable
+                          DW_AT_location	(0x0000022a: 
+                             [0x00000295, 0x000002a2): DW_OP_WASM_location 0x0 0x0, DW_OP_stack_value, DW_OP_piece 0x4, DW_OP_piece 0x4, DW_OP_lit0, DW_OP_stack_value, DW_OP_piece 0x4
+                             [0x000002a5, 0x000002e9): DW_OP_WASM_location 0x0 0x0, DW_OP_stack_value, DW_OP_piece 0x4, DW_OP_piece 0x4, DW_OP_lit0, DW_OP_stack_value, DW_OP_piece 0x4
+                             [0x000002e9, 0x000002eb): DW_OP_WASM_location 0x0 0x0, DW_OP_stack_value, DW_OP_piece 0x4
+                             [0x00000335, 0x0000033c): DW_OP_WASM_location 0x0 0x0, DW_OP_stack_value, DW_OP_piece 0x4
+                             [0x0000033c, 0x0000033e): DW_OP_WASM_location 0x0 0x0, DW_OP_stack_value, DW_OP_piece 0x4, DW_OP_piece 0x4, DW_OP_WASM_location 0x2 0x1, DW_OP_stack_value, DW_OP_piece 0x4
+                             [0x0000033e, 0x00000347): DW_OP_WASM_location 0x0 0x0, DW_OP_stack_value, DW_OP_piece 0x4, DW_OP_piece 0x4, DW_OP_WASM_location 0x0 0x1, DW_OP_stack_value, DW_OP_piece 0x4
+                             [0x00000347, 0x00000348): DW_OP_WASM_location 0x0 0x0, DW_OP_stack_value, DW_OP_piece 0x4
+                             [0x00000360, 0x00000362): DW_OP_WASM_location 0x2 0x0, DW_OP_stack_value, DW_OP_piece 0x4
+                             [0x00000367, 0x00000369): DW_OP_piece 0x8, DW_OP_WASM_location 0x2 0x0, DW_OP_stack_value, DW_OP_piece 0x4)
+                          DW_AT_name	("iter")
+                          DW_AT_alignment	(4)
+                          DW_AT_decl_file	("R:\tools\wasm\sample.rs")
+                          DW_AT_decl_line	(36)
+                          DW_AT_type	(0x00000894 "core::iter::adapters::enumerate::Enumerate<core::slice::iter::Iter<u32>>")
+
+0x00000ea9:             DW_TAG_inlined_subroutine
+                          DW_AT_abstract_origin	(0x00000836 "_RNvXs_NtNtNtCsjyCYk6C1TV_4core4iter8adapters9enumerateINtB4_9EnumerateINtNtNtBa_5slice4iter4ItermEENtNtNtB8_6traits8iterator8Iterator4nextCsigjfd5Cify6_6sample")
+                          DW_AT_ranges	(0x00000090
+                             [0x00000295, 0x000002a2)
+                             [0x000002a6, 0x000002e9)
+                             [0x000002f8, 0x000002fc)
+                             [0x00000316, 0x0000031a)
+                             [0x00000332, 0x00000347)
+                             [0x0000035f, 0x00000374))
+                          DW_AT_call_file	("R:\tools\wasm\sample.rs")
+                          DW_AT_call_line	(36)
+                          DW_AT_call_column	(19)
+                          DW_AT_GNU_discriminator	(0x02)
+
+0x00000eb6:               DW_TAG_inlined_subroutine
+                            DW_AT_abstract_origin	(0x00000641 "_RNvXs2J_NtNtCsjyCYk6C1TV_4core5slice4iterINtB6_4ItermENtNtNtNtBa_4iter6traits8iterator8Iterator4nextCsigjfd5Cify6_6sample")
+                            DW_AT_ranges	(0x000000c8
+                               [0x00000295, 0x000002a2)
+                               [0x000002a6, 0x000002e9)
+                               [0x000002f8, 0x000002fc)
+                               [0x00000316, 0x0000031a)
+                               [0x00000332, 0x0000033b)
+                               [0x0000033c, 0x00000347)
+                               [0x0000035f, 0x00000366)
+                               [0x00000369, 0x00000374))
+                            DW_AT_call_file	("/rust\lib/rustlib/src/rust\library/core/src/iter/adapters\enumerate.rs")
+                            DW_AT_call_line	(80)
+                            DW_AT_call_column	(27)
+
+0x00000ec2:                 DW_TAG_lexical_block
+                              DW_AT_ranges	(0x000000c8
+                                 [0x00000295, 0x000002a2)
+                                 [0x000002a6, 0x000002e9)
+                                 [0x000002f8, 0x000002fc)
+                                 [0x00000316, 0x0000031a)
+                                 [0x00000332, 0x0000033b)
+                                 [0x0000033c, 0x00000347)
+                                 [0x0000035f, 0x00000366)
+                                 [0x00000369, 0x00000374))
+                              DW_AT_abstract_origin	(0x00000665)
+
+0x00000ecb:                   DW_TAG_variable
+                                DW_AT_location	(0x000002e8: 
+                                   [0x00000295, 0x000002a2): DW_OP_WASM_location 0x0 0x0, DW_OP_stack_value
+                                   [0x000002a5, 0x000002e9): DW_OP_WASM_location 0x0 0x0, DW_OP_stack_value
+                                   [0x00000335, 0x00000347): DW_OP_WASM_location 0x0 0x0, DW_OP_stack_value)
+                                DW_AT_abstract_origin	(0x00000666 "ptr")
+
+0x00000ed4:                   DW_TAG_inlined_subroutine
+                                DW_AT_abstract_origin	(0x00001035 "_RNvMs1_NtNtCsjyCYk6C1TV_4core3ptr8non_nullINtB5_7NonNullmE3addCsigjfd5Cify6_6sample")
+                                DW_AT_ranges	(0x00000110
+                                   [0x00000332, 0x0000033b)
+                                   [0x0000035f, 0x00000362))
+                                DW_AT_call_file	("/rust\lib/rustlib/src/rust\library/core/src/slice/iter\macros.rs")
+                                DW_AT_call_line	(185)
+                                DW_AT_call_column	(40)
+
+0x00000ee0:                     DW_TAG_formal_parameter
+                                  DW_AT_location	(0x00000322: 
+                                     [0x00000335, 0x00000341): DW_OP_WASM_location 0x0 0x0, DW_OP_stack_value)
+                                  DW_AT_abstract_origin	(0x00001044 "self")
+
+0x00000ee9:                     NULL
+
+0x00000eea:                   NULL
+
+0x00000eeb:                 NULL
+
+0x00000eec:               DW_TAG_lexical_block
+                            DW_AT_ranges	(0x00000128
+                               [0x0000033b, 0x0000033c)
+                               [0x00000366, 0x00000369))
+                            DW_AT_abstract_origin	(0x0000085a)
+
+0x00000ef5:                 DW_TAG_variable
+                              DW_AT_location	(0x000003cc: 
+                                 [0x00000335, 0x00000341): DW_OP_WASM_location 0x0 0x0, DW_OP_plus_uconst 0xc, DW_OP_stack_value)
+                              DW_AT_abstract_origin	(0x0000085b "a")
+
+0x00000efe:                 NULL
+
+0x00000eff:               NULL
+
+0x00000f00:             DW_TAG_lexical_block
+                          DW_AT_ranges	(0x00000140
+                             [0x000002ef, 0x000002f8)
+                             [0x000002fc, 0x00000316)
+                             [0x0000031a, 0x00000332)
+                             [0x00000348, 0x0000035f))
+
+0x00000f05:               DW_TAG_variable
+                            DW_AT_name	("i")
+                            DW_AT_alignment	(4)
+                            DW_AT_decl_file	("R:\tools\wasm\sample.rs")
+                            DW_AT_decl_line	(36)
+                            DW_AT_type	(0x00000fd5 "usize")
+
+0x00000f11:               DW_TAG_variable
+                            DW_AT_name	("v")
+                            DW_AT_alignment	(4)
+                            DW_AT_decl_file	("R:\tools\wasm\sample.rs")
+                            DW_AT_decl_line	(36)
+                            DW_AT_type	(0x00000fdc "u32 *")
+
+0x00000f1d:               DW_TAG_inlined_subroutine
+                            DW_AT_abstract_origin	(0x000008cb "_RNvMs7_NtCsjyCYk6C1TV_4core3numy12wrapping_add")
+                            DW_AT_ranges	(0x00000168
+                               [0x00000326, 0x00000332)
+                               [0x00000356, 0x0000035f))
+                            DW_AT_call_file	("R:\tools\wasm\sample.rs")
+                            DW_AT_call_line	(37)
+                            DW_AT_call_column	(15)
+
+0x00000f29:                 DW_TAG_formal_parameter
+                              DW_AT_location	(0x00000392: 
+                                 [0x0000032b, 0x0000032e): DW_OP_WASM_location 0x2 0x1, DW_OP_stack_value
+                                 [0x0000032e, 0x00000341): DW_OP_WASM_location 0x0 0x4, DW_OP_stack_value
+                                 [0x0000035b, 0x00000372): DW_OP_WASM_location 0x0 0x4, DW_OP_stack_value)
+                              DW_AT_abstract_origin	(0x000008dc "self")
+
+0x00000f32:                 DW_TAG_formal_parameter
+                              DW_AT_location	(0x000003ec: 
+                                 [0x000002ff, 0x0000032c): DW_OP_WASM_location 0x2 0x0, DW_OP_stack_value
+                                 [0x00000356, 0x00000359): DW_OP_WASM_location 0x2 0x0, DW_OP_stack_value)
+                              DW_AT_abstract_origin	(0x000008e8 "rhs")
+
+0x00000f3b:                 NULL
+
+0x00000f3c:               NULL
+
+0x00000f3d:             NULL
+
+0x00000f3e:           NULL
+
+0x00000f3f:         NULL
+
+0x00000f40:       NULL
+
+0x00000f41:     NULL
+
+0x00000f42:   DW_TAG_base_type
+                DW_AT_name	("u8")
+                DW_AT_encoding	(DW_ATE_unsigned)
+                DW_AT_byte_size	(0x01)
+
+0x00000f49:   DW_TAG_array_type
+                DW_AT_type	(0x00000f42 "u8")
+
+0x00000f4e:     DW_TAG_subrange_type
+                  DW_AT_type	(0x00000b21 "__ARRAY_SIZE_TYPE__")
+                  DW_AT_lower_bound	(0)
+                  DW_AT_count	(0x10)
+
+0x00000f55:     NULL
+
+0x00000f56:   DW_TAG_subprogram
+                DW_AT_specification	(0x00000085 "_RNvMs6_NtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd128INtNtB9_4simd4SimdhKj10_E4v128")
+                DW_AT_inline	(DW_INL_inlined)
+
+0x00000f5c:     DW_TAG_formal_parameter
+                  DW_AT_name	("self")
+                  DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                  DW_AT_decl_line	(54)
+                  DW_AT_type	(0x00000068 "core::core_arch::simd::Simd<u8, 16>")
+
+0x00000f67:     NULL
+
+0x00000f68:   DW_TAG_base_type
+                DW_AT_name	("i8")
+                DW_AT_encoding	(DW_ATE_signed)
+                DW_AT_byte_size	(0x01)
+
+0x00000f6f:   DW_TAG_array_type
+                DW_AT_type	(0x00000f68 "i8")
+
+0x00000f74:     DW_TAG_subrange_type
+                  DW_AT_type	(0x00000b21 "__ARRAY_SIZE_TYPE__")
+                  DW_AT_lower_bound	(0)
+                  DW_AT_count	(0x10)
+
+0x00000f7b:     NULL
+
+0x00000f7c:   DW_TAG_subprogram
+                DW_AT_specification	(0x000000b8 "_RNvMsa_NtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd128INtNtB9_4simd4SimdaKj10_E4v128")
+                DW_AT_inline	(DW_INL_inlined)
+
+0x00000f82:     DW_TAG_formal_parameter
+                  DW_AT_name	("self")
+                  DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                  DW_AT_decl_line	(54)
+                  DW_AT_type	(0x0000009b "core::core_arch::simd::Simd<i8, 16>")
+
+0x00000f8d:     NULL
+
+0x00000f8e:   DW_TAG_subprogram
+                DW_AT_specification	(0x000000eb "_RNvMsc_NtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd128INtNtB9_4simd4SimdlKj4_E4v128")
+                DW_AT_inline	(DW_INL_inlined)
+
+0x00000f94:     DW_TAG_formal_parameter
+                  DW_AT_name	("self")
+                  DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/../../stdarch/crates/core_arch/src/wasm32\simd128.rs")
+                  DW_AT_decl_line	(54)
+                  DW_AT_type	(0x000000ce "core::core_arch::simd::Simd<i32, 4>")
+
+0x00000f9f:     NULL
+
+0x00000fa0:   DW_TAG_pointer_type
+                DW_AT_type	(0x0000010c "core::core_arch::wasm32::simd128::v128")
+                DW_AT_name	("*const core::core_arch::wasm32::simd128::v128")
+                DW_AT_address_class	(0x00000000)
+
+0x00000fad:   DW_TAG_base_type
+                DW_AT_name	("f64")
+                DW_AT_encoding	(DW_ATE_float)
+                DW_AT_byte_size	(0x08)
+
+0x00000fb4:   DW_TAG_base_type
+                DW_AT_name	("f32")
+                DW_AT_encoding	(DW_ATE_float)
+                DW_AT_byte_size	(0x04)
+
+0x00000fbb:   DW_TAG_pointer_type
+                DW_AT_type	(0x00000f42 "u8")
+                DW_AT_name	("*const u8")
+                DW_AT_address_class	(0x00000000)
+
+0x00000fc8:   DW_TAG_pointer_type
+                DW_AT_type	(0x00000f42 "u8")
+                DW_AT_name	("*mut u8")
+                DW_AT_address_class	(0x00000000)
+
+0x00000fd5:   DW_TAG_base_type
+                DW_AT_name	("usize")
+                DW_AT_encoding	(DW_ATE_unsigned)
+                DW_AT_byte_size	(0x04)
+
+0x00000fdc:   DW_TAG_pointer_type
+                DW_AT_type	(0x00000b0d "u32")
+                DW_AT_name	("&u32")
+                DW_AT_address_class	(0x00000000)
+
+0x00000fe9:   DW_TAG_pointer_type
+                DW_AT_type	(0x00000691 "core::slice::iter::Iter<u32>")
+                DW_AT_name	("&mut core::slice::iter::Iter<u32>")
+                DW_AT_address_class	(0x00000000)
+
+0x00000ff6:   DW_TAG_pointer_type
+                DW_AT_type	(0x00000b0d "u32")
+                DW_AT_name	("*const u32")
+                DW_AT_address_class	(0x00000000)
+
+0x00001003:   DW_TAG_structure_type
+                DW_AT_name	("(usize, &u32)")
+                DW_AT_byte_size	(0x08)
+                DW_AT_alignment	(4)
+
+0x0000100a:     DW_TAG_member
+                  DW_AT_name	("__0")
+                  DW_AT_type	(0x00000fd5 "usize")
+                  DW_AT_alignment	(4)
+                  DW_AT_data_member_location	(0x00)
+
+0x00001015:     DW_TAG_member
+                  DW_AT_name	("__1")
+                  DW_AT_type	(0x00000fdc "u32 *")
+                  DW_AT_alignment	(4)
+                  DW_AT_data_member_location	(0x04)
+
+0x00001020:     NULL
+
+0x00001021:   DW_TAG_pointer_type
+                DW_AT_type	(0x00000894 "core::iter::adapters::enumerate::Enumerate<core::slice::iter::Iter<u32>>")
+                DW_AT_name	("&mut core::iter::adapters::enumerate::Enumerate<core::slice::iter::Iter<u32>>")
+                DW_AT_address_class	(0x00000000)
+
+0x0000102e:   DW_TAG_base_type
+                DW_AT_name	("u64")
+                DW_AT_encoding	(DW_ATE_unsigned)
+                DW_AT_byte_size	(0x08)
+
+0x00001035:   DW_TAG_subprogram
+                DW_AT_specification	(0x0000055b "_RNvMs1_NtNtCsjyCYk6C1TV_4core3ptr8non_nullINtB5_7NonNullmE3addCsigjfd5Cify6_6sample")
+                DW_AT_inline	(DW_INL_inlined)
+
+0x0000103b:     DW_TAG_template_type_parameter
+                  DW_AT_type	(0x00000b0d "u32")
+                  DW_AT_name	("T")
+
+0x00001044:     DW_TAG_formal_parameter
+                  DW_AT_name	("self")
+                  DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/ptr\non_null.rs")
+                  DW_AT_decl_line	(619)
+                  DW_AT_type	(0x0000053e "core::ptr::non_null::NonNull<u32>")
+
+0x00001050:     DW_TAG_variable
+                  DW_AT_name	("count")
+                  DW_AT_alignment	(4)
+                  DW_AT_decl_file	("/rust\lib/rustlib/src/rust\library/core/src/ptr\non_null.rs")
+                  DW_AT_decl_line	(619)
+                  DW_AT_type	(0x00000fd5 "usize")
+
+0x0000105d:     NULL
+
+0x0000105e:   DW_TAG_pointer_type
+                DW_AT_type	(0x00000901 "core::panic::panic_info::PanicInfo")
+                DW_AT_name	("&core::panic::panic_info::PanicInfo")
+                DW_AT_address_class	(0x00000000)
+
+0x0000106b:   DW_TAG_pointer_type
+                DW_AT_type	(0x00000980 "core::fmt::Arguments")
+                DW_AT_name	("&core::fmt::Arguments")
+                DW_AT_address_class	(0x00000000)
+
+0x00001078:   DW_TAG_base_type
+                DW_AT_name	("()")
+                DW_AT_encoding	(DW_ATE_unsigned)
+                DW_AT_byte_size	(0x00)
+
+0x0000107f:   DW_TAG_pointer_type
+                DW_AT_type	(0x00001078 "()")
+                DW_AT_name	("*const ()")
+                DW_AT_address_class	(0x00000000)
+
+0x0000108c:   DW_TAG_pointer_type
+                DW_AT_type	(0x00001099 "core::result::Result<(), core::fmt::Error> (core::ptr::non_null::NonNull<()>, core::fmt::Formatter *)")
+                DW_AT_name	("unsafe fn(core::ptr::non_null::NonNull<()>, &mut core::fmt::Formatter) -> core::result::Result<(), core::fmt::Error>")
+                DW_AT_address_class	(0x00000000)
+
+0x00001099:   DW_TAG_subroutine_type
+                DW_AT_type	(0x00000a8b "core::result::Result<(), core::fmt::Error>")
+
+0x0000109e:     DW_TAG_formal_parameter
+                  DW_AT_type	(0x000005bc "core::ptr::non_null::NonNull<()>")
+
+0x000010a3:     DW_TAG_formal_parameter
+                  DW_AT_type	(0x000010a9 "core::fmt::Formatter *")
+
+0x000010a8:     NULL
+
+0x000010a9:   DW_TAG_pointer_type
+                DW_AT_type	(0x00000a37 "core::fmt::Formatter")
+                DW_AT_name	("&mut core::fmt::Formatter")
+                DW_AT_address_class	(0x00000000)
+
+0x000010b6:   DW_TAG_base_type
+                DW_AT_name	("u16")
+                DW_AT_encoding	(DW_ATE_unsigned)
+                DW_AT_byte_size	(0x02)
+
+0x000010bd:   DW_TAG_structure_type
+                DW_AT_name	("&mut dyn core::fmt::Write")
+                DW_AT_byte_size	(0x08)
+                DW_AT_alignment	(4)
+
+0x000010c4:     DW_TAG_member
+                  DW_AT_name	("pointer")
+                  DW_AT_type	(0x000010db "dyn core::fmt::Write *")
+                  DW_AT_alignment	(4)
+                  DW_AT_data_member_location	(0x00)
+
+0x000010cf:     DW_TAG_member
+                  DW_AT_name	("vtable")
+                  DW_AT_type	(0x000010eb "usize (*)[6]")
+                  DW_AT_alignment	(4)
+                  DW_AT_data_member_location	(0x04)
+
+0x000010da:     NULL
+
+0x000010db:   DW_TAG_pointer_type
+                DW_AT_type	(0x000010e4 "dyn core::fmt::Write")
+                DW_AT_address_class	(0x00000000)
+
+0x000010e4:   DW_TAG_structure_type
+                DW_AT_name	("dyn core::fmt::Write")
+                DW_AT_byte_size	(0x00)
+                DW_AT_alignment	(1)
+
+0x000010eb:   DW_TAG_pointer_type
+                DW_AT_type	(0x000010f8 "usize[6]")
+                DW_AT_name	("&[usize; 6]")
+                DW_AT_address_class	(0x00000000)
+
+0x000010f8:   DW_TAG_array_type
+                DW_AT_type	(0x00000fd5 "usize")
+
+0x000010fd:     DW_TAG_subrange_type
+                  DW_AT_type	(0x00000b21 "__ARRAY_SIZE_TYPE__")
+                  DW_AT_lower_bound	(0)
+                  DW_AT_count	(0x06)
+
+0x00001104:     NULL
+
+0x00001105:   DW_TAG_pointer_type
+                DW_AT_type	(0x00001078 "()")
+                DW_AT_name	("&()")
+                DW_AT_address_class	(0x00000000)
+
+0x00001112:   DW_TAG_pointer_type
+                DW_AT_type	(0x000009a6 "core::fmt::rt::Argument")
+                DW_AT_name	("*const core::fmt::rt::Argument")
+                DW_AT_address_class	(0x00000000)
+
+0x0000111f:   DW_TAG_pointer_type
+                DW_AT_type	(0x00000940 "core::panic::location::Location")
+                DW_AT_name	("&core::panic::location::Location")
+                DW_AT_address_class	(0x00000000)
+
+0x0000112c:   DW_TAG_array_type
+                DW_AT_type	(0x00000f42 "u8")
+
+0x00001131:     DW_TAG_subrange_type
+                  DW_AT_type	(0x00000b21 "__ARRAY_SIZE_TYPE__")
+                  DW_AT_lower_bound	(0)
+
+0x00001137:     NULL
+
+0x00001138:   DW_TAG_structure_type
+                DW_AT_name	("*const str")
+                DW_AT_byte_size	(0x08)
+                DW_AT_alignment	(4)
+
+0x0000113f:     DW_TAG_member
+                  DW_AT_name	("data_ptr")
+                  DW_AT_type	(0x00001156 "u8 *")
+                  DW_AT_alignment	(4)
+                  DW_AT_data_member_location	(0x00)
+
+0x0000114a:     DW_TAG_member
+                  DW_AT_name	("length")
+                  DW_AT_type	(0x00000fd5 "usize")
+                  DW_AT_alignment	(4)
+                  DW_AT_data_member_location	(0x04)
+
+0x00001155:     NULL
+
+0x00001156:   DW_TAG_pointer_type
+                DW_AT_type	(0x00000f42 "u8")
+                DW_AT_address_class	(0x00000000)
+
+0x0000115f:   DW_TAG_structure_type
+                DW_AT_name	("&str")
+                DW_AT_byte_size	(0x08)
+                DW_AT_alignment	(4)
+
+0x00001166:     DW_TAG_member
+                  DW_AT_name	("data_ptr")
+                  DW_AT_type	(0x00001156 "u8 *")
+                  DW_AT_alignment	(4)
+                  DW_AT_data_member_location	(0x00)
+
+0x00001171:     DW_TAG_member
+                  DW_AT_name	("length")
+                  DW_AT_type	(0x00000fd5 "usize")
+                  DW_AT_alignment	(4)
+                  DW_AT_data_member_location	(0x04)
+
+0x0000117c:     NULL
+
+0x0000117d:   DW_TAG_base_type
+                DW_AT_name	("bool")
+                DW_AT_encoding	(DW_ATE_boolean)
+                DW_AT_byte_size	(0x01)
+
+0x00001184:   DW_TAG_pointer_type
+                DW_AT_type	(0x00001191 "u32 (u32)")
+                DW_AT_name	("extern \"C\" fn(u32) -> u32")
+                DW_AT_address_class	(0x00000000)
+
+0x00001191:   DW_TAG_subroutine_type
+                DW_AT_type	(0x00000b0d "u32")
+
+0x00001196:     DW_TAG_formal_parameter
+                  DW_AT_type	(0x00000b0d "u32")
+
+0x0000119b:     NULL
+
+0x0000119c:   DW_TAG_base_type
+                DW_AT_name	("i64")
+                DW_AT_encoding	(DW_ATE_signed)
+                DW_AT_byte_size	(0x08)
+
+0x000011a3:   DW_TAG_structure_type
+                DW_AT_name	("*const [u32]")
+                DW_AT_byte_size	(0x08)
+                DW_AT_alignment	(4)
+
+0x000011aa:     DW_TAG_member
+                  DW_AT_name	("data_ptr")
+                  DW_AT_type	(0x000011c1 "u32 *")
+                  DW_AT_alignment	(4)
+                  DW_AT_data_member_location	(0x00)
+
+0x000011b5:     DW_TAG_member
+                  DW_AT_name	("length")
+                  DW_AT_type	(0x00000fd5 "usize")
+                  DW_AT_alignment	(4)
+                  DW_AT_data_member_location	(0x04)
+
+0x000011c0:     NULL
+
+0x000011c1:   DW_TAG_pointer_type
+                DW_AT_type	(0x00000b0d "u32")
+                DW_AT_address_class	(0x00000000)
+
+0x000011ca:   NULL

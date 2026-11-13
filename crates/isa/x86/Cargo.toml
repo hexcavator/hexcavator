@@ -1,0 +1,13 @@
+[package]
+name = "hexcavator-x86"
+description = "x86 / x86-64 instruction decoder and formatter"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license = "Apache-2.0 AND Apache-2.0 WITH LLVM-exception"
+authors.workspace = true
+repository.workspace = true
+build = "build.rs"
+
+[lints]
+workspace = true

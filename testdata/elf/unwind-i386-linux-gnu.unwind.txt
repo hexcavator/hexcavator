@@ -1,0 +1,182 @@
+
+File: unwind-i386-linux-gnu
+Format: elf32-i386
+Arch: i386
+AddressSize: 32bit
+LoadName: <Not found>
+Relocations [
+  Section (10) .rel.text {
+    0x40123B R_386_GOTPC _GLOBAL_OFFSET_TABLE_
+    0x401241 R_386_GOTOFF .bss
+    0x401253 R_386_GOTOFF message
+    0x4012BC R_386_GOTPC _GLOBAL_OFFSET_TABLE_
+    0x4012C2 R_386_GOTOFF counter
+    0x4012CA R_386_PC32 compute
+    0x4012D0 R_386_GOTOFF buffer
+    0x4012D5 R_386_PC32 optional_hook
+    0x4012DC R_386_TLS_LE per_thread
+    0x4012E2 R_386_GOTOFF .bss
+  }
+  Section (14) .rel.debug_info {
+    0x8 R_386_32 .debug_abbrev
+    0x11 R_386_32 .debug_str_offsets
+    0x15 R_386_32 .debug_line
+    0x1F R_386_32 .debug_addr
+    0x23 R_386_32 .debug_loclists
+    0xBF R_386_TLS_LDO_32 per_thread
+  }
+  Section (16) .rel.debug_str_offsets {
+    0x8 R_386_32 .debug_str
+    0xC R_386_32 .debug_str
+    0x10 R_386_32 .debug_str
+    0x14 R_386_32 .debug_str
+    0x18 R_386_32 .debug_str
+    0x1C R_386_32 .debug_str
+    0x20 R_386_32 .debug_str
+    0x24 R_386_32 .debug_str
+    0x28 R_386_32 .debug_str
+    0x2C R_386_32 .debug_str
+    0x30 R_386_32 .debug_str
+    0x34 R_386_32 .debug_str
+    0x38 R_386_32 .debug_str
+    0x3C R_386_32 .debug_str
+    0x40 R_386_32 .debug_str
+    0x44 R_386_32 .debug_str
+    0x48 R_386_32 .debug_str
+    0x4C R_386_32 .debug_str
+    0x50 R_386_32 .debug_str
+  }
+  Section (19) .rel.debug_addr {
+    0x8 R_386_32 .text
+    0xC R_386_32 .text
+    0x10 R_386_32 .text
+    0x14 R_386_32 .text
+    0x18 R_386_32 .text
+    0x1C R_386_32 .text
+    0x20 R_386_32 .text
+    0x24 R_386_32 counter
+    0x28 R_386_32 .bss
+    0x2C R_386_32 buffer
+    0x30 R_386_32 .rodata
+  }
+  Section (20) .rel.eh_frame {
+    0x400184 R_386_PC32 .text
+    0x4001C4 R_386_PC32 .text
+    0x4001D8 R_386_PC32 .text
+  }
+  Section (22) .rel.debug_line {
+    0x22 R_386_32 .debug_line_str
+    0x2E R_386_32 .debug_line_str
+    0x48 R_386_32 .text
+  }
+]
+EHFrameHeader {
+  Address: 0x4001f4
+  Offset: 0x1f4
+  Size: 0x24
+  Corresponding Section: .eh_frame_hdr
+  Header {
+    version: 1
+    eh_frame_ptr_enc: 0x1b
+    fde_count_enc: 0x3
+    table_enc: 0x3b
+    eh_frame_ptr: 0x400164
+    fde_count: 3
+    entry 0 {
+      initial_location: 0x401220
+      address: 0x40017c
+    }
+    entry 1 {
+      initial_location: 0x4012a8
+      address: 0x4001bc
+    }
+    entry 2 {
+      initial_location: 0x4012b0
+      address: 0x4001d0
+    }
+  }
+}
+.eh_frame section at offset 0x164 address 0x400164:
+  [0x400164] CIE length=20
+    version: 1
+    augmentation: zR
+    code_alignment_factor: 1
+    data_alignment_factor: -4
+    return_address_register: 8
+
+    Program:
+      DW_CFA_def_cfa: reg4 +4
+      DW_CFA_offset: reg8 -4
+      DW_CFA_nop:
+      DW_CFA_nop:
+
+  [0x40017c] FDE length=60 cie=[0x400164]
+    initial_location: 0x401220
+    address_range: 0x88 (end : 0x4012a8)
+
+    Program:
+      DW_CFA_advance_loc: 1 to 0x401221
+      DW_CFA_def_cfa_offset: +8
+      DW_CFA_advance_loc: 1 to 0x401222
+      DW_CFA_def_cfa_offset: +12
+      DW_CFA_advance_loc: 1 to 0x401223
+      DW_CFA_def_cfa_offset: +16
+      DW_CFA_advance_loc: 1 to 0x401224
+      DW_CFA_def_cfa_offset: +20
+      DW_CFA_advance_loc: 3 to 0x401227
+      DW_CFA_def_cfa_offset: +32
+      DW_CFA_offset: reg6 -20
+      DW_CFA_offset: reg7 -16
+      DW_CFA_offset: reg3 -12
+      DW_CFA_offset: reg5 -8
+      DW_CFA_advance_loc: 17 to 0x401238
+      DW_CFA_def_cfa_offset: +36
+      DW_CFA_advance_loc: 1 to 0x401239
+      DW_CFA_def_cfa_offset: +32
+      DW_CFA_advance_loc1: 106 to 0x4012a3
+      DW_CFA_def_cfa_offset: +20
+      DW_CFA_advance_loc: 1 to 0x4012a4
+      DW_CFA_def_cfa_offset: +16
+      DW_CFA_advance_loc: 1 to 0x4012a5
+      DW_CFA_def_cfa_offset: +12
+      DW_CFA_advance_loc: 1 to 0x4012a6
+      DW_CFA_def_cfa_offset: +8
+      DW_CFA_advance_loc: 1 to 0x4012a7
+      DW_CFA_def_cfa_offset: +4
+      DW_CFA_nop:
+      DW_CFA_nop:
+
+  [0x4001bc] FDE length=16 cie=[0x400164]
+    initial_location: 0x4012a8
+    address_range: 0x3 (end : 0x4012ab)
+
+    Program:
+      DW_CFA_nop:
+      DW_CFA_nop:
+      DW_CFA_nop:
+
+  [0x4001d0] FDE length=28 cie=[0x400164]
+    initial_location: 0x4012b0
+    address_range: 0x42 (end : 0x4012f2)
+
+    Program:
+      DW_CFA_advance_loc: 1 to 0x4012b1
+      DW_CFA_def_cfa_offset: +8
+      DW_CFA_advance_loc: 3 to 0x4012b4
+      DW_CFA_def_cfa_offset: +16
+      DW_CFA_offset: reg3 -8
+      DW_CFA_advance_loc: 5 to 0x4012b9
+      DW_CFA_def_cfa_offset: +20
+      DW_CFA_advance_loc: 1 to 0x4012ba
+      DW_CFA_def_cfa_offset: +16
+      DW_CFA_nop:
+
+  [0x4001f0] CIE length=0
+    version: 0
+    augmentation: 
+    code_alignment_factor: 0
+    data_alignment_factor: 0
+    return_address_register: 0
+
+    Program:
+

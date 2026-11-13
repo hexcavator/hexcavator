@@ -1,0 +1,59 @@
+
+program-arm-linux-gnueabihf:	file format elf32-littlearm
+
+Disassembly of section .text:
+
+000201c8 <compute>:
+   201c8:      	cmp	r0, #1
+   201cc:      	movlt	r0, #0
+   201d0:      	bxlt	lr
+   201d4:      	push	{r4, r5, r11, lr}
+   201d8:      	ldr	r1, [pc, #80]           @ 0x20230 <compute+0x68>
+   201dc:      	add	r1, pc, r1
+   201e0:      	mov	r3, #0
+   201e4:      	ldr	r2, [pc, #72]           @ 0x20234 <compute+0x6c>
+   201e8:      	ldr	r2, [pc, r2]
+   201ec:      	movw	r12, #34953
+   201f0:      	movt	r12, #34952
+   201f4:      	mov	lr, #0
+   201f8:      	umull	r4, r5, r3, r12
+   201fc:      	lsr	r4, r5, #3
+   20200:      	sub	r4, r4, r4, lsl #4
+   20204:      	ldrb	r4, [r1, r4]
+   20208:      	add	r4, lr, r4
+   2020c:      	add	lr, r2, r4
+   20210:      	add	r2, r2, #3
+   20214:      	add	r1, r1, #1
+   20218:      	add	r3, r3, #1
+   2021c:      	subs	r0, r0, #1
+   20220:      	bne	0x201f8 <compute+0x30>  @ imm = #-48
+   20224:      	add	r0, r4, r2
+   20228:      	sub	r0, r0, #3
+   2022c:      	pop	{r4, r5, r11, pc}
+   20230: d4 ff fe ff  	.word	0xfffeffd4
+   20234: a4 10 02 00  	.word	0x000210a4
+
+00020238 <optional_hook>:
+   20238:      	mov	r0, #0
+   2023c:      	bx	lr
+
+00020240 <_start>:
+   20240:      	ldr	r0, [pc, #56]           @ 0x20280 <_start+0x40>
+   20244:      	ldr	r0, [pc, r0]
+   20248:      	bl	0x201c8 <compute>       @ imm = #-136
+   2024c:      	ldr	r1, [pc, #48]           @ 0x20284 <_start+0x44>
+   20250:      	add	r1, pc, r1
+   20254:      	strb	r0, [r1]
+   20258:      	bl	0x20238 <optional_hook> @ imm = #-40
+   2025c:      	ldr	r1, [pc, #24]           @ 0x2027c <_start+0x3c>
+   20260:      	ldr	r2, [pc, #32]           @ 0x20288 <_start+0x48>
+   20264:      	add	r2, pc, r2
+   20268:      	mrc	p15, #0, r3, c13, c0, #3
+   2026c:      	ldr	r1, [r3, r1]
+   20270:      	add	r0, r1, r0
+   20274:      	str	r0, [r2]
+   20278:      	b	0x20278 <_start+0x38>   @ imm = #-8
+   2027c: 08 00 00 00  	.word	0x00000008
+   20280: 44 00 02 00  	.word	0x00020044
+   20284: 3c 00 02 00  	.word	0x0002003c
+   20288: 28 10 02 00  	.word	0x00021028

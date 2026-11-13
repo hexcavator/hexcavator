@@ -1,0 +1,103 @@
+
+refs-x86_64:	file format mach-o 64-bit x86-64
+
+Disassembly of section __TEXT,__text:
+
+00000001000003c0 <_greet>:
+1000003c0:     	pushq	%rbp
+1000003c1:     	movq	%rsp, %rbp
+1000003c4:     	leaq	0x127(%rip), %rax       ## 0x1000004f2
+1000003cb:     	movq	%rax, 0xc2e(%rip)       ## 0x100001000 <_sink>
+1000003d2:     	popq	%rbp
+1000003d3:     	retq
+1000003d4:     	nopw	%cs:(%rax,%rax)
+
+00000001000003e0 <_shared_first>:
+1000003e0:     	pushq	%rbp
+1000003e1:     	movq	%rsp, %rbp
+1000003e4:     	leaq	0x114(%rip), %rax       ## 0x1000004ff
+1000003eb:     	movq	%rax, 0xc0e(%rip)       ## 0x100001000 <_sink>
+1000003f2:     	popq	%rbp
+1000003f3:     	retq
+1000003f4:     	nopw	%cs:(%rax,%rax)
+
+0000000100000400 <_shared_second>:
+100000400:     	pushq	%rbp
+100000401:     	movq	%rsp, %rbp
+100000404:     	leaq	0xf4(%rip), %rax        ## 0x1000004ff
+10000040b:     	movq	%rax, 0xbee(%rip)       ## 0x100001000 <_sink>
+100000412:     	popq	%rbp
+100000413:     	retq
+100000414:     	nopw	%cs:(%rax,%rax)
+
+0000000100000420 <_lookup>:
+100000420:     	pushq	%rbp
+100000421:     	movq	%rsp, %rbp
+100000424:     	xorl	%eax, %eax
+100000426:     	cmpl	$0x6, %edi
+100000429:     	ja	0x100000438 <_lookup+0x18>
+10000042b:     	movl	%edi, %eax
+10000042d:     	leaq	0xe0(%rip), %rcx        ## 0x100000514
+100000434:     	movzbl	(%rax,%rcx), %eax
+100000438:     	popq	%rbp
+100000439:     	retq
+10000043a:     	nopw	(%rax,%rax)
+
+0000000100000440 <_jumps>:
+100000440:     	pushq	%rbp
+100000441:     	movq	%rsp, %rbp
+100000444:     	cmpl	$0x6, %edi
+100000447:     	ja	0x100000469 <_jumps+0x29>
+100000449:     	movl	%edi, %eax
+10000044b:     	leaq	0x52(%rip), %rcx        ## 0x1000004a4 <_jumps+0x64>
+100000452:     	movslq	(%rcx,%rax,4), %rax
+100000456:     	addq	%rcx, %rax
+100000459:     	jmpq	*%rax
+10000045b:     	leaq	0xac(%rip), %rax        ## 0x10000050e
+100000462:     	movq	%rax, 0xb97(%rip)       ## 0x100001000 <_sink>
+100000469:     	popq	%rbp
+10000046a:     	retq
+10000046b:     	popq	%rbp
+10000046c:     	jmp	0x1000003e0 <_shared_first>
+100000471:     	popq	%rbp
+100000472:     	jmp	0x1000003c0 <_greet>
+100000477:     	movl	$0x7, 0xb87(%rip)       ## 0x100001008 <_isink>
+100000481:     	popq	%rbp
+100000482:     	retq
+100000483:     	movl	$0x2, 0xb7b(%rip)       ## 0x100001008 <_isink>
+10000048d:     	popq	%rbp
+10000048e:     	retq
+10000048f:     	movl	$0x9, 0xb6f(%rip)       ## 0x100001008 <_isink>
+100000499:     	popq	%rbp
+10000049a:     	retq
+10000049b:     	popq	%rbp
+10000049c:     	jmp	0x100000400 <_shared_second>
+1000004a1:     	nopl	(%rax)
+1000004a4:     	movb	$-0x1, %bh
+1000004a6:     	<unknown>
+1000004a8:     	<unknown>
+1000004aa:     	<unknown>
+1000004ac:     	int	$0xff
+1000004ae:     	<unknown>
+1000004b0:     	sarl	%cl, %edi
+1000004b2:     	<unknown>
+1000004b4:     	<unknown>
+1000004b6:     	<unknown>
+1000004b8:     	jmp	0x1000004b9 <_jumps+0x79>
+1000004ba:     	<unknown>
+1000004bc:     	idivl	%edi
+1000004be:     	<unknown>
+
+00000001000004c0 <__start>:
+1000004c0:     	pushq	%rbp
+1000004c1:     	movq	%rsp, %rbp
+1000004c4:     	callq	0x1000003c0 <_greet>
+1000004c9:     	callq	0x1000003e0 <_shared_first>
+1000004ce:     	callq	0x100000400 <_shared_second>
+1000004d3:     	movl	0xb2f(%rip), %edi       ## 0x100001008 <_isink>
+1000004d9:     	callq	0x100000420 <_lookup>
+1000004de:     	movl	%eax, 0xb24(%rip)       ## 0x100001008 <_isink>
+1000004e4:     	movl	0xb1e(%rip), %edi       ## 0x100001008 <_isink>
+1000004ea:     	callq	0x100000440 <_jumps>
+1000004ef:     	nop
+1000004f0:     	jmp	0x1000004f0 <__start+0x30>

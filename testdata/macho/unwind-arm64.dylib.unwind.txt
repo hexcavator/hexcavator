@@ -1,0 +1,29 @@
+unwind-arm64.dylib:
+0000000000000380
+0000000000000388
+00000000000003ac
+00000000000003d4
+Contents of __unwind_info section:
+  Version:                                   0x1
+  Common encodings array section offset:     0x1c
+  Number of common encodings in array:       0x4
+  Personality function array section offset: 0x2c
+  Number of personality functions in array:  0x0
+  Index array section offset:                0x2c
+  Number of indices in array:                0x2
+  Common encodings: (count = 4)
+    encoding[0]: 0x04000001
+    encoding[1]: 0x02201010
+    encoding[2]: 0x02001000
+    encoding[3]: 0x02000000
+  Personality functions: (count = 0)
+  Top level indices: (count = 2)
+    [0]: function offset=0x00000380, 2nd level page offset=0x00000044, LSDA offset=0x00000044
+    [1]: function offset=0x00000410, 2nd level page offset=0x00000000, LSDA offset=0x00000044
+  LSDA descriptors:
+  Second level indices:
+    Second level index[0]: offset in section=0x00000044, base function offset=0x00000380
+      [0]: function offset=0x00000380, encoding[3]=0x02000000
+      [1]: function offset=0x00000388, encoding[2]=0x02001000
+      [2]: function offset=0x000003ac, encoding[1]=0x02201010
+      [3]: function offset=0x000003d4, encoding[0]=0x04000001

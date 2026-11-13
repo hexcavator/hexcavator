@@ -1,0 +1,69 @@
+
+File: unwind-x86_64-linux-gnu.o
+Format: elf64-x86-64
+Arch: x86_64
+AddressSize: 64bit
+LoadName: <Not found>
+Relocations [
+  Section (3) .rela.text {
+    0x7 R_X86_64_PC32 .bss 0xFFC
+    0x19 R_X86_64_PC32 message 0xFFFFFFFFFFFFFFFC
+    0x83 R_X86_64_PC32 counter 0xFFFFFFFFFFFFFFFC
+    0x88 R_X86_64_PLT32 compute 0xFFFFFFFFFFFFFFFC
+    0x8E R_X86_64_PC32 buffer 0xFFFFFFFFFFFFFFFC
+    0x93 R_X86_64_PLT32 optional_hook 0xFFFFFFFFFFFFFFFC
+    0x9B R_X86_64_TPOFF32 per_thread 0x0
+    0xA1 R_X86_64_PC32 .bss 0xFFC
+  }
+  Section (11) .rela.debug_info {
+    0x8 R_X86_64_32 .debug_abbrev 0x0
+    0x11 R_X86_64_32 .debug_str_offsets 0x8
+    0x15 R_X86_64_32 .debug_line 0x0
+    0x1F R_X86_64_32 .debug_addr 0x8
+    0x23 R_X86_64_32 .debug_loclists 0xC
+    0xB7 R_X86_64_DTPOFF64 per_thread 0x0
+  }
+  Section (13) .rela.debug_str_offsets {
+    0x8 R_X86_64_32 .debug_str 0x0
+    0xC R_X86_64_32 .debug_str 0x1
+    0x10 R_X86_64_32 .debug_str 0xB
+    0x14 R_X86_64_32 .debug_str 0xD
+    0x18 R_X86_64_32 .debug_str 0x14
+    0x1C R_X86_64_32 .debug_str 0x18
+    0x20 R_X86_64_32 .debug_str 0x1A
+    0x24 R_X86_64_32 .debug_str 0x22
+    0x28 R_X86_64_32 .debug_str 0x2D
+    0x2C R_X86_64_32 .debug_str 0x3A
+    0x30 R_X86_64_32 .debug_str 0x41
+    0x34 R_X86_64_32 .debug_str 0x46
+    0x38 R_X86_64_32 .debug_str 0x5A
+    0x3C R_X86_64_32 .debug_str 0x62
+    0x40 R_X86_64_32 .debug_str 0x6A
+    0x44 R_X86_64_32 .debug_str 0x78
+    0x48 R_X86_64_32 .debug_str 0x7F
+    0x4C R_X86_64_32 .debug_str 0x81
+    0x50 R_X86_64_32 .debug_str 0x87
+  }
+  Section (16) .rela.debug_addr {
+    0x8 R_X86_64_64 .text 0x0
+    0x10 R_X86_64_64 .text 0x32
+    0x18 R_X86_64_64 .text 0x70
+    0x20 R_X86_64_64 .text 0x80
+    0x28 R_X86_64_64 .text 0x8C
+    0x30 R_X86_64_64 .text 0x97
+    0x38 R_X86_64_64 counter 0x0
+    0x40 R_X86_64_64 .bss 0x1000
+    0x48 R_X86_64_64 buffer 0x0
+    0x50 R_X86_64_64 .rodata.str1.16 0x0
+  }
+  Section (19) .rela.eh_frame {
+    0x20 R_X86_64_PC32 .text 0x0
+    0x34 R_X86_64_PC32 .text 0x70
+    0x48 R_X86_64_PC32 .text 0x80
+  }
+  Section (21) .rela.debug_line {
+    0x22 R_X86_64_32 .debug_line_str 0x0
+    0x2E R_X86_64_32 .debug_line_str 0x2
+    0x4B R_X86_64_64 .text 0x0
+  }
+]

@@ -1,0 +1,216 @@
+/* The data view (on top of disasm-view.css: the header, toolbar, and
+   buttons). */
+
+#body {
+  display: flex;
+  gap: 0;
+}
+
+#body.mode-both .pane {
+  flex: 1;
+  min-width: 0;
+}
+
+#body.mode-both .pane.typed {
+  border-right: 1px solid var(--border);
+}
+
+.pane {
+  flex: 1;
+  overflow: auto;
+  padding: 6px 14px 20px;
+}
+
+.tablebar {
+  display: flex;
+  gap: 14px;
+  padding: 4px 0 6px;
+}
+
+table.vtree {
+  border-collapse: collapse;
+  width: 100%;
+  font-family: var(--mono);
+  font-size: 12.5px;
+}
+
+table.vtree th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--muted);
+  padding: 2px 8px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  font-family: var(--vscode-font-family, system-ui, sans-serif);
+}
+
+table.vtree td {
+  padding: 1px 8px;
+  white-space: nowrap;
+  vertical-align: top;
+}
+
+table.vtree th.n,
+table.vtree td.n {
+  text-align: right;
+}
+
+table.vtree tbody tr:hover,
+table.vtree tbody tr.hot {
+  background: var(--hover);
+}
+
+table.vtree tbody tr.selected {
+  background: var(--selected);
+}
+
+table.vtree td.vval {
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.twisty {
+  display: inline-block;
+  width: 14px;
+  color: var(--muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.twisty.leaf {
+  cursor: default;
+}
+
+tr.k-padding .label,
+tr.k-padding .val,
+tr.k-elided .label {
+  color: var(--muted);
+  font-style: italic;
+}
+
+tr.k-base > td .label,
+tr.k-vfptr > td .label,
+tr.k-vbptr > td .label {
+  color: var(--flow);
+}
+
+.val.k-integer,
+.val.k-float,
+.val.k-bool,
+.val.k-enum {
+  color: var(--num);
+}
+
+.val.k-char,
+.val.k-array {
+  color: #ce9178;
+}
+
+.val.k-pointer,
+.val.k-vfptr,
+.val.k-vbptr {
+  color: var(--reg);
+}
+
+a.target {
+  color: var(--link);
+}
+
+/* The bytes, as a debugger shows memory. */
+.hex {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.5;
+  white-space: pre;
+}
+
+.hrow {
+  display: flex;
+  gap: 16px;
+}
+
+.hrow .addr {
+  color: var(--muted);
+  user-select: none;
+}
+
+.cells {
+  display: inline-flex;
+  gap: 6px;
+  flex-shrink: 0;
+  /* 32 hex digits a line, the gaps between units, and the gap at 8. */
+  min-width: calc(32ch + 98px);
+}
+
+.cells.u2 {
+  min-width: calc(32ch + 50px);
+}
+
+.cells.u4 {
+  min-width: calc(32ch + 26px);
+}
+
+.cells.u8 {
+  min-width: calc(32ch + 14px);
+}
+
+.hrow .addr,
+.hrow .ascii {
+  flex-shrink: 0;
+}
+
+.cells .b {
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+.cells .b.gap {
+  margin-left: 8px;
+}
+
+.cells .b.ptr {
+  color: var(--reg);
+  text-decoration: underline dotted;
+  cursor: pointer;
+}
+
+.cells .b.sel {
+  background: var(--selected);
+}
+
+.cells .b.hot,
+.cells .b:hover {
+  background: var(--hover);
+  outline: 1px solid var(--focus);
+}
+
+.ascii {
+  color: var(--muted);
+}
+
+.ptrs {
+  margin-top: 16px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+}
+
+.ptrs h3 {
+  font-family: var(--vscode-font-family, system-ui, sans-serif);
+  font-size: 1em;
+  color: var(--muted);
+  margin: 0 0 4px;
+}
+
+.num {
+  color: var(--num);
+}
+
+#byteinfo {
+  font-family: var(--mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 50%;
+}

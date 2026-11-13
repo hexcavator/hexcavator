@@ -1,0 +1,15 @@
+[package]
+name = "hexcavator-mz"
+description = "MS-DOS (MZ) executable headers, and dispatch to PE/NE/LE/LX new headers"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+hexcavator-core.workspace = true
+
+[lints]
+workspace = true

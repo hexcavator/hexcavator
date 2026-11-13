@@ -1,0 +1,607 @@
+# VEX-encoded instructions: AVX, AVX2, FMA, F16C, BMI1/2, VAES, VPCLMULQDQ,
+# GFNI, AVX-VNNI, and the AVX-512 opmask instructions.
+#
+# V/H/W/U/L = vector register from ModRM.reg / VEX.vvvv / ModRM.rm (or
+# memory) / ModRM.rm register / imm8[7:4]. Widths: x = the vector length,
+# h/q4/e8 = 1/2, 1/4, 1/8 of it, dq/qq = 128/256 bits. B = VEX.vvvv gpr.
+# K* = opmask registers. VS<w>:<m> = VSIB memory with a <w> index register.
+# A VEX instruction without a vvvv operand requires vvvv = 1111b.
+
+VEX.0F 10 NP /r : vmovups Vx,Wx
+VEX.0F 10 66 /r : vmovupd Vx,Wx
+VEX.0F 10 F3 reg : vmovss Vdq,Hdq,Udq
+VEX.0F 10 F3 mem : vmovss Vdq,Md
+VEX.0F 10 F2 reg : vmovsd Vdq,Hdq,Udq
+VEX.0F 10 F2 mem : vmovsd Vdq,Mq
+VEX.0F 11 NP /r : vmovups Wx,Vx
+VEX.0F 11 66 /r : vmovupd Wx,Vx
+VEX.0F 11 F3 reg : vmovss Udq,Hdq,Vdq
+VEX.0F 11 F3 mem : vmovss Md,Vdq
+VEX.0F 11 F2 reg : vmovsd Udq,Hdq,Vdq
+VEX.0F 11 F2 mem : vmovsd Mq,Vdq
+VEX.0F 12 NP mem L0 : vmovlps Vdq,Hdq,Mq
+VEX.0F 12 NP reg L0 : vmovhlps Vdq,Hdq,Udq
+VEX.0F 12 66 mem L0 : vmovlpd Vdq,Hdq,Mq
+VEX.0F 12 F3 /r : vmovsldup Vx,Wx
+VEX.0F 12 F2 /r L0 : vmovddup Vdq,Wdq:mm
+VEX.0F 12 F2 /r L1 : vmovddup Vqq,Wqq
+VEX.0F 13 NP mem L0 : vmovlps Mq,Vdq
+VEX.0F 13 66 mem L0 : vmovlpd Mq,Vdq
+VEX.0F 14 NP /r : vunpcklps Vx,Hx,Wx
+VEX.0F 14 66 /r : vunpcklpd Vx,Hx,Wx
+VEX.0F 15 NP /r : vunpckhps Vx,Hx,Wx
+VEX.0F 15 66 /r : vunpckhpd Vx,Hx,Wx
+VEX.0F 16 NP mem L0 : vmovhps Vdq,Hdq,Mq
+VEX.0F 16 NP reg L0 : vmovlhps Vdq,Hdq,Udq
+VEX.0F 16 66 mem L0 : vmovhpd Vdq,Hdq,Mq
+VEX.0F 16 F3 /r : vmovshdup Vx,Wx
+VEX.0F 17 NP mem L0 : vmovhps Mq,Vdq
+VEX.0F 17 66 mem L0 : vmovhpd Mq,Vdq
+VEX.0F 28 NP /r : vmovaps Vx,Wx
+VEX.0F 28 66 /r : vmovapd Vx,Wx
+VEX.0F 29 NP /r : vmovaps Wx,Vx
+VEX.0F 29 66 /r : vmovapd Wx,Vx
+VEX.0F 2A F3 /r : vcvtsi2ss Vdq,Hdq,Ey
+VEX.0F 2A F2 /r : vcvtsi2sd Vdq,Hdq,Ey
+VEX.0F 2B NP mem : vmovntps Mx,Vx
+VEX.0F 2B 66 mem : vmovntpd Mx,Vx
+VEX.0F 2C F3 /r : vcvttss2si Gy,Wdq:d
+VEX.0F 2C F2 /r : vcvttsd2si Gy,Wdq:mm
+VEX.0F 2D F3 /r : vcvtss2si Gy,Wdq:d
+VEX.0F 2D F2 /r : vcvtsd2si Gy,Wdq:mm
+VEX.0F 2E NP /r : vucomiss Vdq,Wdq:d
+VEX.0F 2E 66 /r : vucomisd Vdq,Wdq:mm
+VEX.0F 2F NP /r : vcomiss Vdq,Wdq:d
+VEX.0F 2F 66 /r : vcomisd Vdq,Wdq:mm
+VEX.0F 50 NP reg : vmovmskps Gd,Ux
+VEX.0F 50 66 reg : vmovmskpd Gd,Ux
+VEX.0F 51 NP /r : vsqrtps Vx,Wx
+VEX.0F 51 66 /r : vsqrtpd Vx,Wx
+VEX.0F 51 F3 /r : vsqrtss Vdq,Hdq,Wdq:d
+VEX.0F 51 F2 /r : vsqrtsd Vdq,Hdq,Wdq:mm
+VEX.0F 52 NP /r : vrsqrtps Vx,Wx
+VEX.0F 52 F3 /r : vrsqrtss Vdq,Hdq,Wdq:d
+VEX.0F 53 NP /r : vrcpps Vx,Wx
+VEX.0F 53 F3 /r : vrcpss Vdq,Hdq,Wdq:d
+VEX.0F 54 NP /r : vandps Vx,Hx,Wx
+VEX.0F 54 66 /r : vandpd Vx,Hx,Wx
+VEX.0F 55 NP /r : vandnps Vx,Hx,Wx
+VEX.0F 55 66 /r : vandnpd Vx,Hx,Wx
+VEX.0F 56 NP /r : vorps Vx,Hx,Wx
+VEX.0F 56 66 /r : vorpd Vx,Hx,Wx
+VEX.0F 57 NP /r : vxorps Vx,Hx,Wx
+VEX.0F 57 66 /r : vxorpd Vx,Hx,Wx
+VEX.0F 58 NP /r : vaddps Vx,Hx,Wx
+VEX.0F 58 66 /r : vaddpd Vx,Hx,Wx
+VEX.0F 58 F3 /r : vaddss Vdq,Hdq,Wdq:d
+VEX.0F 58 F2 /r : vaddsd Vdq,Hdq,Wdq:mm
+VEX.0F 59 NP /r : vmulps Vx,Hx,Wx
+VEX.0F 59 66 /r : vmulpd Vx,Hx,Wx
+VEX.0F 59 F3 /r : vmulss Vdq,Hdq,Wdq:d
+VEX.0F 59 F2 /r : vmulsd Vdq,Hdq,Wdq:mm
+VEX.0F 5A NP /r : vcvtps2pd Vx,Wh
+VEX.0F 5A 66 /r : vcvtpd2ps Vdq,Wx
+VEX.0F 5A F3 /r : vcvtss2sd Vdq,Hdq,Wdq:d
+VEX.0F 5A F2 /r : vcvtsd2ss Vdq,Hdq,Wdq:mm
+VEX.0F 5B NP /r : vcvtdq2ps Vx,Wx
+VEX.0F 5B 66 /r : vcvtps2dq Vx,Wx
+VEX.0F 5B F3 /r : vcvttps2dq Vx,Wx
+VEX.0F 5C NP /r : vsubps Vx,Hx,Wx
+VEX.0F 5C 66 /r : vsubpd Vx,Hx,Wx
+VEX.0F 5C F3 /r : vsubss Vdq,Hdq,Wdq:d
+VEX.0F 5C F2 /r : vsubsd Vdq,Hdq,Wdq:mm
+VEX.0F 5D NP /r : vminps Vx,Hx,Wx
+VEX.0F 5D 66 /r : vminpd Vx,Hx,Wx
+VEX.0F 5D F3 /r : vminss Vdq,Hdq,Wdq:d
+VEX.0F 5D F2 /r : vminsd Vdq,Hdq,Wdq:mm
+VEX.0F 5E NP /r : vdivps Vx,Hx,Wx
+VEX.0F 5E 66 /r : vdivpd Vx,Hx,Wx
+VEX.0F 5E F3 /r : vdivss Vdq,Hdq,Wdq:d
+VEX.0F 5E F2 /r : vdivsd Vdq,Hdq,Wdq:mm
+VEX.0F 5F NP /r : vmaxps Vx,Hx,Wx
+VEX.0F 5F 66 /r : vmaxpd Vx,Hx,Wx
+VEX.0F 5F F3 /r : vmaxss Vdq,Hdq,Wdq:d
+VEX.0F 5F F2 /r : vmaxsd Vdq,Hdq,Wdq:mm
+VEX.0F 60 66 /r : vpunpcklbw Vx,Hx,Wx
+VEX.0F 61 66 /r : vpunpcklwd Vx,Hx,Wx
+VEX.0F 62 66 /r : vpunpckldq Vx,Hx,Wx
+VEX.0F 63 66 /r : vpacksswb Vx,Hx,Wx
+VEX.0F 64 66 /r : vpcmpgtb Vx,Hx,Wx
+VEX.0F 65 66 /r : vpcmpgtw Vx,Hx,Wx
+VEX.0F 66 66 /r : vpcmpgtd Vx,Hx,Wx
+VEX.0F 67 66 /r : vpackuswb Vx,Hx,Wx
+VEX.0F 68 66 /r : vpunpckhbw Vx,Hx,Wx
+VEX.0F 69 66 /r : vpunpckhwd Vx,Hx,Wx
+VEX.0F 6A 66 /r : vpunpckhdq Vx,Hx,Wx
+VEX.0F 6B 66 /r : vpackssdw Vx,Hx,Wx
+VEX.0F 6C 66 /r : vpunpcklqdq Vx,Hx,Wx
+VEX.0F 6D 66 /r : vpunpckhqdq Vx,Hx,Wx
+VEX.0F 6E 66 /r L0 W0 : vmovd Vdq,Ed
+VEX.0F 6E 66 /r L0 W1 : vmovq Vdq,Eq
+VEX.0F 6F 66 /r : vmovdqa Vx,Wx
+VEX.0F 6F F3 /r : vmovdqu Vx,Wx
+VEX.0F 70 66 /r : vpshufd Vx,Wx,Ib
+VEX.0F 70 F3 /r : vpshufhw Vx,Wx,Ib
+VEX.0F 70 F2 /r : vpshuflw Vx,Wx,Ib
+VEX.0F 71 66 /2 reg : vpsrlw Hx,Ux,Ib
+VEX.0F 71 66 /4 reg : vpsraw Hx,Ux,Ib
+VEX.0F 71 66 /6 reg : vpsllw Hx,Ux,Ib
+VEX.0F 72 66 /2 reg : vpsrld Hx,Ux,Ib
+VEX.0F 72 66 /4 reg : vpsrad Hx,Ux,Ib
+VEX.0F 72 66 /6 reg : vpslld Hx,Ux,Ib
+VEX.0F 73 66 /2 reg : vpsrlq Hx,Ux,Ib
+VEX.0F 73 66 /3 reg : vpsrldq Hx,Ux,Ib
+VEX.0F 73 66 /6 reg : vpsllq Hx,Ux,Ib
+VEX.0F 73 66 /7 reg : vpslldq Hx,Ux,Ib
+VEX.0F 74 66 /r : vpcmpeqb Vx,Hx,Wx
+VEX.0F 75 66 /r : vpcmpeqw Vx,Hx,Wx
+VEX.0F 76 66 /r : vpcmpeqd Vx,Hx,Wx
+VEX.0F 77 NP L0 : vzeroupper
+VEX.0F 77 NP L1 : vzeroall
+VEX.0F 7C 66 /r : vhaddpd Vx,Hx,Wx
+VEX.0F 7C F2 /r : vhaddps Vx,Hx,Wx
+VEX.0F 7D 66 /r : vhsubpd Vx,Hx,Wx
+VEX.0F 7D F2 /r : vhsubps Vx,Hx,Wx
+VEX.0F 7E 66 /r L0 W0 : vmovd Ed,Vdq
+VEX.0F 7E 66 /r L0 W1 : vmovq Eq,Vdq
+VEX.0F 7E F3 /r L0 : vmovq Vdq,Wdq:mm
+VEX.0F 7F 66 /r : vmovdqa Wx,Vx
+VEX.0F 7F F3 /r : vmovdqu Wx,Vx
+VEX.0F AE NP /2 mem L0 : vldmxcsr Md
+VEX.0F AE NP /3 mem L0 : vstmxcsr Md
+VEX.0F C2 NP /r : vcmpps Vx,Hx,Wx,Ib ; cmp
+VEX.0F C2 66 /r : vcmppd Vx,Hx,Wx,Ib ; cmp
+VEX.0F C2 F3 /r : vcmpss Vdq,Hdq,Wdq:d,Ib ; cmp
+VEX.0F C2 F2 /r : vcmpsd Vdq,Hdq,Wdq:mm,Ib ; cmp
+VEX.0F C4 66 /r L0 : vpinsrw Vdq,Hdq,Ed:w,Ib
+VEX.0F C5 66 reg L0 : vpextrw Gy,Udq,Ib
+VEX.0F C6 NP /r : vshufps Vx,Hx,Wx,Ib
+VEX.0F C6 66 /r : vshufpd Vx,Hx,Wx,Ib
+VEX.0F D0 66 /r : vaddsubpd Vx,Hx,Wx
+VEX.0F D0 F2 /r : vaddsubps Vx,Hx,Wx
+VEX.0F D1 66 /r : vpsrlw Vx,Hx,Wdq
+VEX.0F D2 66 /r : vpsrld Vx,Hx,Wdq
+VEX.0F D3 66 /r : vpsrlq Vx,Hx,Wdq
+VEX.0F D4 66 /r : vpaddq Vx,Hx,Wx
+VEX.0F D5 66 /r : vpmullw Vx,Hx,Wx
+VEX.0F D6 66 /r L0 : vmovq Wdq:mm,Vdq
+VEX.0F D7 66 reg : vpmovmskb Gy,Ux
+VEX.0F D8 66 /r : vpsubusb Vx,Hx,Wx
+VEX.0F D9 66 /r : vpsubusw Vx,Hx,Wx
+VEX.0F DA 66 /r : vpminub Vx,Hx,Wx
+VEX.0F DB 66 /r : vpand Vx,Hx,Wx
+VEX.0F DC 66 /r : vpaddusb Vx,Hx,Wx
+VEX.0F DD 66 /r : vpaddusw Vx,Hx,Wx
+VEX.0F DE 66 /r : vpmaxub Vx,Hx,Wx
+VEX.0F DF 66 /r : vpandn Vx,Hx,Wx
+VEX.0F E0 66 /r : vpavgb Vx,Hx,Wx
+VEX.0F E1 66 /r : vpsraw Vx,Hx,Wdq
+VEX.0F E2 66 /r : vpsrad Vx,Hx,Wdq
+VEX.0F E3 66 /r : vpavgw Vx,Hx,Wx
+VEX.0F E4 66 /r : vpmulhuw Vx,Hx,Wx
+VEX.0F E5 66 /r : vpmulhw Vx,Hx,Wx
+VEX.0F E6 66 /r : vcvttpd2dq Vdq,Wx
+VEX.0F E6 F3 /r : vcvtdq2pd Vx,Wh
+VEX.0F E6 F2 /r : vcvtpd2dq Vdq,Wx
+VEX.0F E7 66 mem : vmovntdq Mx,Vx
+VEX.0F E8 66 /r : vpsubsb Vx,Hx,Wx
+VEX.0F E9 66 /r : vpsubsw Vx,Hx,Wx
+VEX.0F EA 66 /r : vpminsw Vx,Hx,Wx
+VEX.0F EB 66 /r : vpor Vx,Hx,Wx
+VEX.0F EC 66 /r : vpaddsb Vx,Hx,Wx
+VEX.0F ED 66 /r : vpaddsw Vx,Hx,Wx
+VEX.0F EE 66 /r : vpmaxsw Vx,Hx,Wx
+VEX.0F EF 66 /r : vpxor Vx,Hx,Wx
+VEX.0F F0 F2 mem : vlddqu Vx,Mx
+VEX.0F F1 66 /r : vpsllw Vx,Hx,Wdq
+VEX.0F F2 66 /r : vpslld Vx,Hx,Wdq
+VEX.0F F3 66 /r : vpsllq Vx,Hx,Wdq
+VEX.0F F4 66 /r : vpmuludq Vx,Hx,Wx
+VEX.0F F5 66 /r : vpmaddwd Vx,Hx,Wx
+VEX.0F F6 66 /r : vpsadbw Vx,Hx,Wx
+VEX.0F F7 66 reg L0 : vmaskmovdqu Vdq,Udq
+VEX.0F F8 66 /r : vpsubb Vx,Hx,Wx
+VEX.0F F9 66 /r : vpsubw Vx,Hx,Wx
+VEX.0F FA 66 /r : vpsubd Vx,Hx,Wx
+VEX.0F FB 66 /r : vpsubq Vx,Hx,Wx
+VEX.0F FC 66 /r : vpaddb Vx,Hx,Wx
+VEX.0F FD 66 /r : vpaddw Vx,Hx,Wx
+VEX.0F FE 66 /r : vpaddd Vx,Hx,Wx
+
+# Opmask instructions (AVX-512 F/BW/DQ), VEX-encoded.
+VEX.0F 41 NP reg L1 W0 : kandw KG,KH,KE
+VEX.0F 41 NP reg L1 W1 : kandq KG,KH,KE
+VEX.0F 41 66 reg L1 W0 : kandb KG,KH,KE
+VEX.0F 41 66 reg L1 W1 : kandd KG,KH,KE
+VEX.0F 42 NP reg L1 W0 : kandnw KG,KH,KE
+VEX.0F 42 NP reg L1 W1 : kandnq KG,KH,KE
+VEX.0F 42 66 reg L1 W0 : kandnb KG,KH,KE
+VEX.0F 42 66 reg L1 W1 : kandnd KG,KH,KE
+VEX.0F 44 NP reg L0 W0 : knotw KG,KE
+VEX.0F 44 NP reg L0 W1 : knotq KG,KE
+VEX.0F 44 66 reg L0 W0 : knotb KG,KE
+VEX.0F 44 66 reg L0 W1 : knotd KG,KE
+VEX.0F 45 NP reg L1 W0 : korw KG,KH,KE
+VEX.0F 45 NP reg L1 W1 : korq KG,KH,KE
+VEX.0F 45 66 reg L1 W0 : korb KG,KH,KE
+VEX.0F 45 66 reg L1 W1 : kord KG,KH,KE
+VEX.0F 46 NP reg L1 W0 : kxnorw KG,KH,KE
+VEX.0F 46 NP reg L1 W1 : kxnorq KG,KH,KE
+VEX.0F 46 66 reg L1 W0 : kxnorb KG,KH,KE
+VEX.0F 46 66 reg L1 W1 : kxnord KG,KH,KE
+VEX.0F 47 NP reg L1 W0 : kxorw KG,KH,KE
+VEX.0F 47 NP reg L1 W1 : kxorq KG,KH,KE
+VEX.0F 47 66 reg L1 W0 : kxorb KG,KH,KE
+VEX.0F 47 66 reg L1 W1 : kxord KG,KH,KE
+VEX.0F 4A NP reg L1 W0 : kaddw KG,KH,KE
+VEX.0F 4A NP reg L1 W1 : kaddq KG,KH,KE
+VEX.0F 4A 66 reg L1 W0 : kaddb KG,KH,KE
+VEX.0F 4A 66 reg L1 W1 : kaddd KG,KH,KE
+VEX.0F 4B 66 reg L1 W0 : kunpckbw KG,KH,KE
+VEX.0F 4B NP reg L1 W0 : kunpckwd KG,KH,KE
+VEX.0F 4B NP reg L1 W1 : kunpckdq KG,KH,KE
+VEX.0F 90 NP /r L0 W0 : kmovw KG,KW:w
+VEX.0F 90 NP /r L0 W1 : kmovq KG,KW:q
+VEX.0F 90 66 /r L0 W0 : kmovb KG,KW:b
+VEX.0F 90 66 /r L0 W1 : kmovd KG,KW:d
+VEX.0F 91 NP mem L0 W0 : kmovw Mw,KG
+VEX.0F 91 NP mem L0 W1 : kmovq Mq,KG
+VEX.0F 91 66 mem L0 W0 : kmovb Mb,KG
+VEX.0F 91 66 mem L0 W1 : kmovd Md,KG
+VEX.0F 92 NP reg L0 W0 : kmovw KG,Rd
+VEX.0F 92 66 reg L0 W0 : kmovb KG,Rd
+VEX.0F 92 F2 reg L0 W0 : kmovd KG,Rd
+VEX.0F 92 F2 reg L0 W1 : kmovq KG,Rq
+VEX.0F 93 NP reg L0 W0 : kmovw Gd,KE
+VEX.0F 93 66 reg L0 W0 : kmovb Gd,KE
+VEX.0F 93 F2 reg L0 W0 : kmovd Gd,KE
+VEX.0F 93 F2 reg L0 W1 : kmovq Gq,KE
+VEX.0F 98 NP reg L0 W0 : kortestw KG,KE
+VEX.0F 98 NP reg L0 W1 : kortestq KG,KE
+VEX.0F 98 66 reg L0 W0 : kortestb KG,KE
+VEX.0F 98 66 reg L0 W1 : kortestd KG,KE
+VEX.0F 99 NP reg L0 W0 : ktestw KG,KE
+VEX.0F 99 NP reg L0 W1 : ktestq KG,KE
+VEX.0F 99 66 reg L0 W0 : ktestb KG,KE
+VEX.0F 99 66 reg L0 W1 : ktestd KG,KE
+VEX.0F3A 30 66 reg L0 W0 : kshiftrb KG,KE,Ib
+VEX.0F3A 30 66 reg L0 W1 : kshiftrw KG,KE,Ib
+VEX.0F3A 31 66 reg L0 W0 : kshiftrd KG,KE,Ib
+VEX.0F3A 31 66 reg L0 W1 : kshiftrq KG,KE,Ib
+VEX.0F3A 32 66 reg L0 W0 : kshiftlb KG,KE,Ib
+VEX.0F3A 32 66 reg L0 W1 : kshiftlw KG,KE,Ib
+VEX.0F3A 33 66 reg L0 W0 : kshiftld KG,KE,Ib
+VEX.0F3A 33 66 reg L0 W1 : kshiftlq KG,KE,Ib
+
+# VEX 0F 38.
+VEX.0F38 00 66 /r : vpshufb Vx,Hx,Wx
+VEX.0F38 01 66 /r : vphaddw Vx,Hx,Wx
+VEX.0F38 02 66 /r : vphaddd Vx,Hx,Wx
+VEX.0F38 03 66 /r : vphaddsw Vx,Hx,Wx
+VEX.0F38 04 66 /r : vpmaddubsw Vx,Hx,Wx
+VEX.0F38 05 66 /r : vphsubw Vx,Hx,Wx
+VEX.0F38 06 66 /r : vphsubd Vx,Hx,Wx
+VEX.0F38 07 66 /r : vphsubsw Vx,Hx,Wx
+VEX.0F38 08 66 /r : vpsignb Vx,Hx,Wx
+VEX.0F38 09 66 /r : vpsignw Vx,Hx,Wx
+VEX.0F38 0A 66 /r : vpsignd Vx,Hx,Wx
+VEX.0F38 0B 66 /r : vpmulhrsw Vx,Hx,Wx
+VEX.0F38 0C 66 /r : vpermilps Vx,Hx,Wx
+VEX.0F38 0D 66 /r : vpermilpd Vx,Hx,Wx
+VEX.0F38 0E 66 /r : vtestps Vx,Wx
+VEX.0F38 0F 66 /r : vtestpd Vx,Wx
+VEX.0F38 13 66 /r : vcvtph2ps Vx,Wh
+VEX.0F38 16 66 /r L1 : vpermps Vqq,Hqq,Wqq
+VEX.0F38 17 66 /r : vptest Vx,Wx
+VEX.0F38 18 66 /r : vbroadcastss Vx,Wdq:d
+VEX.0F38 19 66 /r L1 : vbroadcastsd Vqq,Wdq:mm
+VEX.0F38 1A 66 mem L1 : vbroadcastf128 Vqq,Mo
+VEX.0F38 1C 66 /r : vpabsb Vx,Wx
+VEX.0F38 1D 66 /r : vpabsw Vx,Wx
+VEX.0F38 1E 66 /r : vpabsd Vx,Wx
+VEX.0F38 20 66 /r : vpmovsxbw Vx,Wh
+VEX.0F38 21 66 /r : vpmovsxbd Vx,Wq4
+VEX.0F38 22 66 /r : vpmovsxbq Vx,We8
+VEX.0F38 23 66 /r : vpmovsxwd Vx,Wh
+VEX.0F38 24 66 /r : vpmovsxwq Vx,Wq4
+VEX.0F38 25 66 /r : vpmovsxdq Vx,Wh
+VEX.0F38 28 66 /r : vpmuldq Vx,Hx,Wx
+VEX.0F38 29 66 /r : vpcmpeqq Vx,Hx,Wx
+VEX.0F38 2A 66 mem : vmovntdqa Vx,Mx
+VEX.0F38 2B 66 /r : vpackusdw Vx,Hx,Wx
+VEX.0F38 2C 66 mem : vmaskmovps Vx,Hx,Mx
+VEX.0F38 2D 66 mem : vmaskmovpd Vx,Hx,Mx
+VEX.0F38 2E 66 mem : vmaskmovps Mx,Hx,Vx
+VEX.0F38 2F 66 mem : vmaskmovpd Mx,Hx,Vx
+VEX.0F38 30 66 /r : vpmovzxbw Vx,Wh
+VEX.0F38 31 66 /r : vpmovzxbd Vx,Wq4
+VEX.0F38 32 66 /r : vpmovzxbq Vx,We8
+VEX.0F38 33 66 /r : vpmovzxwd Vx,Wh
+VEX.0F38 34 66 /r : vpmovzxwq Vx,Wq4
+VEX.0F38 35 66 /r : vpmovzxdq Vx,Wh
+VEX.0F38 36 66 /r L1 : vpermd Vqq,Hqq,Wqq
+VEX.0F38 37 66 /r : vpcmpgtq Vx,Hx,Wx
+VEX.0F38 38 66 /r : vpminsb Vx,Hx,Wx
+VEX.0F38 39 66 /r : vpminsd Vx,Hx,Wx
+VEX.0F38 3A 66 /r : vpminuw Vx,Hx,Wx
+VEX.0F38 3B 66 /r : vpminud Vx,Hx,Wx
+VEX.0F38 3C 66 /r : vpmaxsb Vx,Hx,Wx
+VEX.0F38 3D 66 /r : vpmaxsd Vx,Hx,Wx
+VEX.0F38 3E 66 /r : vpmaxuw Vx,Hx,Wx
+VEX.0F38 3F 66 /r : vpmaxud Vx,Hx,Wx
+VEX.0F38 40 66 /r : vpmulld Vx,Hx,Wx
+VEX.0F38 41 66 /r L0 : vphminposuw Vdq,Wdq
+VEX.0F38 45 66 /r W0 : vpsrlvd Vx,Hx,Wx
+VEX.0F38 45 66 /r W1 : vpsrlvq Vx,Hx,Wx
+VEX.0F38 46 66 /r : vpsravd Vx,Hx,Wx
+VEX.0F38 47 66 /r W0 : vpsllvd Vx,Hx,Wx
+VEX.0F38 47 66 /r W1 : vpsllvq Vx,Hx,Wx
+VEX.0F38 50 66 /r W0 : vpdpbusd Vx,Hx,Wx ; vexpfx
+VEX.0F38 51 66 /r W0 : vpdpbusds Vx,Hx,Wx ; vexpfx
+VEX.0F38 52 66 /r W0 : vpdpwssd Vx,Hx,Wx ; vexpfx
+VEX.0F38 53 66 /r W0 : vpdpwssds Vx,Hx,Wx ; vexpfx
+VEX.0F38 58 66 /r : vpbroadcastd Vx,Wdq:d
+VEX.0F38 59 66 /r : vpbroadcastq Vx,Wdq:mm
+VEX.0F38 5A 66 mem L1 : vbroadcasti128 Vqq,Mo
+VEX.0F38 78 66 /r : vpbroadcastb Vx,Wdq:b
+VEX.0F38 79 66 /r : vpbroadcastw Vx,Wdq:w
+VEX.0F38 8C 66 mem W0 : vpmaskmovd Vx,Hx,Mx
+VEX.0F38 8C 66 mem W1 : vpmaskmovq Vx,Hx,Mx
+VEX.0F38 8E 66 mem W0 : vpmaskmovd Mx,Hx,Vx
+VEX.0F38 8E 66 mem W1 : vpmaskmovq Mx,Hx,Vx
+VEX.0F38 90 66 mem W0 : vpgatherdd Vx,VSx:d,Hx
+VEX.0F38 90 66 mem W1 : vpgatherdq Vx,VSh:q,Hx
+VEX.0F38 91 66 mem W0 : vpgatherqd Vdq,VSx:d,Hdq
+VEX.0F38 91 66 mem W1 : vpgatherqq Vx,VSx:q,Hx
+VEX.0F38 92 66 mem W0 : vgatherdps Vx,VSx:d,Hx
+VEX.0F38 92 66 mem W1 : vgatherdpd Vx,VSh:q,Hx
+VEX.0F38 93 66 mem W0 : vgatherqps Vdq,VSx:d,Hdq
+VEX.0F38 93 66 mem W1 : vgatherqpd Vx,VSx:q,Hx
+VEX.0F38 96 66 /r W0 : vfmaddsub132ps Vx,Hx,Wx
+VEX.0F38 96 66 /r W1 : vfmaddsub132pd Vx,Hx,Wx
+VEX.0F38 97 66 /r W0 : vfmsubadd132ps Vx,Hx,Wx
+VEX.0F38 97 66 /r W1 : vfmsubadd132pd Vx,Hx,Wx
+VEX.0F38 98 66 /r W0 : vfmadd132ps Vx,Hx,Wx
+VEX.0F38 98 66 /r W1 : vfmadd132pd Vx,Hx,Wx
+VEX.0F38 99 66 /r W0 : vfmadd132ss Vdq,Hdq,Wdq:d
+VEX.0F38 99 66 /r W1 : vfmadd132sd Vdq,Hdq,Wdq:mm
+VEX.0F38 9A 66 /r W0 : vfmsub132ps Vx,Hx,Wx
+VEX.0F38 9A 66 /r W1 : vfmsub132pd Vx,Hx,Wx
+VEX.0F38 9B 66 /r W0 : vfmsub132ss Vdq,Hdq,Wdq:d
+VEX.0F38 9B 66 /r W1 : vfmsub132sd Vdq,Hdq,Wdq:mm
+VEX.0F38 9C 66 /r W0 : vfnmadd132ps Vx,Hx,Wx
+VEX.0F38 9C 66 /r W1 : vfnmadd132pd Vx,Hx,Wx
+VEX.0F38 9D 66 /r W0 : vfnmadd132ss Vdq,Hdq,Wdq:d
+VEX.0F38 9D 66 /r W1 : vfnmadd132sd Vdq,Hdq,Wdq:mm
+VEX.0F38 9E 66 /r W0 : vfnmsub132ps Vx,Hx,Wx
+VEX.0F38 9E 66 /r W1 : vfnmsub132pd Vx,Hx,Wx
+VEX.0F38 9F 66 /r W0 : vfnmsub132ss Vdq,Hdq,Wdq:d
+VEX.0F38 9F 66 /r W1 : vfnmsub132sd Vdq,Hdq,Wdq:mm
+VEX.0F38 A6 66 /r W0 : vfmaddsub213ps Vx,Hx,Wx
+VEX.0F38 A6 66 /r W1 : vfmaddsub213pd Vx,Hx,Wx
+VEX.0F38 A7 66 /r W0 : vfmsubadd213ps Vx,Hx,Wx
+VEX.0F38 A7 66 /r W1 : vfmsubadd213pd Vx,Hx,Wx
+VEX.0F38 A8 66 /r W0 : vfmadd213ps Vx,Hx,Wx
+VEX.0F38 A8 66 /r W1 : vfmadd213pd Vx,Hx,Wx
+VEX.0F38 A9 66 /r W0 : vfmadd213ss Vdq,Hdq,Wdq:d
+VEX.0F38 A9 66 /r W1 : vfmadd213sd Vdq,Hdq,Wdq:mm
+VEX.0F38 AA 66 /r W0 : vfmsub213ps Vx,Hx,Wx
+VEX.0F38 AA 66 /r W1 : vfmsub213pd Vx,Hx,Wx
+VEX.0F38 AB 66 /r W0 : vfmsub213ss Vdq,Hdq,Wdq:d
+VEX.0F38 AB 66 /r W1 : vfmsub213sd Vdq,Hdq,Wdq:mm
+VEX.0F38 AC 66 /r W0 : vfnmadd213ps Vx,Hx,Wx
+VEX.0F38 AC 66 /r W1 : vfnmadd213pd Vx,Hx,Wx
+VEX.0F38 AD 66 /r W0 : vfnmadd213ss Vdq,Hdq,Wdq:d
+VEX.0F38 AD 66 /r W1 : vfnmadd213sd Vdq,Hdq,Wdq:mm
+VEX.0F38 AE 66 /r W0 : vfnmsub213ps Vx,Hx,Wx
+VEX.0F38 AE 66 /r W1 : vfnmsub213pd Vx,Hx,Wx
+VEX.0F38 AF 66 /r W0 : vfnmsub213ss Vdq,Hdq,Wdq:d
+VEX.0F38 AF 66 /r W1 : vfnmsub213sd Vdq,Hdq,Wdq:mm
+VEX.0F38 B6 66 /r W0 : vfmaddsub231ps Vx,Hx,Wx
+VEX.0F38 B6 66 /r W1 : vfmaddsub231pd Vx,Hx,Wx
+VEX.0F38 B7 66 /r W0 : vfmsubadd231ps Vx,Hx,Wx
+VEX.0F38 B7 66 /r W1 : vfmsubadd231pd Vx,Hx,Wx
+VEX.0F38 B8 66 /r W0 : vfmadd231ps Vx,Hx,Wx
+VEX.0F38 B8 66 /r W1 : vfmadd231pd Vx,Hx,Wx
+VEX.0F38 B9 66 /r W0 : vfmadd231ss Vdq,Hdq,Wdq:d
+VEX.0F38 B9 66 /r W1 : vfmadd231sd Vdq,Hdq,Wdq:mm
+VEX.0F38 BA 66 /r W0 : vfmsub231ps Vx,Hx,Wx
+VEX.0F38 BA 66 /r W1 : vfmsub231pd Vx,Hx,Wx
+VEX.0F38 BB 66 /r W0 : vfmsub231ss Vdq,Hdq,Wdq:d
+VEX.0F38 BB 66 /r W1 : vfmsub231sd Vdq,Hdq,Wdq:mm
+VEX.0F38 BC 66 /r W0 : vfnmadd231ps Vx,Hx,Wx
+VEX.0F38 BC 66 /r W1 : vfnmadd231pd Vx,Hx,Wx
+VEX.0F38 BD 66 /r W0 : vfnmadd231ss Vdq,Hdq,Wdq:d
+VEX.0F38 BD 66 /r W1 : vfnmadd231sd Vdq,Hdq,Wdq:mm
+VEX.0F38 BE 66 /r W0 : vfnmsub231ps Vx,Hx,Wx
+VEX.0F38 BE 66 /r W1 : vfnmsub231pd Vx,Hx,Wx
+VEX.0F38 BF 66 /r W0 : vfnmsub231ss Vdq,Hdq,Wdq:d
+VEX.0F38 BF 66 /r W1 : vfnmsub231sd Vdq,Hdq,Wdq:mm
+VEX.0F38 CF 66 /r W0 : vgf2p8mulb Vx,Hx,Wx
+VEX.0F38 DB 66 /r L0 : vaesimc Vdq,Wdq
+VEX.0F38 DC 66 /r : vaesenc Vx,Hx,Wx
+VEX.0F38 DD 66 /r : vaesenclast Vx,Hx,Wx
+VEX.0F38 DE 66 /r : vaesdec Vx,Hx,Wx
+VEX.0F38 DF 66 /r : vaesdeclast Vx,Hx,Wx
+VEX.0F38 F2 NP /r L0 : andn Gy,By,Ey
+VEX.0F38 F3 NP /1 L0 : blsr By,Ey
+VEX.0F38 F3 NP /2 L0 : blsmsk By,Ey
+VEX.0F38 F3 NP /3 L0 : blsi By,Ey
+VEX.0F38 F5 NP /r L0 : bzhi Gy,Ey,By
+VEX.0F38 F5 F3 /r L0 : pext Gy,By,Ey
+VEX.0F38 F5 F2 /r L0 : pdep Gy,By,Ey
+VEX.0F38 F6 F2 /r L0 : mulx Gy,By,Ey
+VEX.0F38 F7 NP /r L0 : bextr Gy,Ey,By
+VEX.0F38 F7 66 /r L0 : shlx Gy,Ey,By
+VEX.0F38 F7 F3 /r L0 : sarx Gy,Ey,By
+VEX.0F38 F7 F2 /r L0 : shrx Gy,Ey,By
+
+# VEX 0F 3A.
+VEX.0F3A 00 66 /r L1 W1 : vpermq Vqq,Wqq,Ib
+VEX.0F3A 01 66 /r L1 W1 : vpermpd Vqq,Wqq,Ib
+VEX.0F3A 02 66 /r : vpblendd Vx,Hx,Wx,Ib
+VEX.0F3A 04 66 /r : vpermilps Vx,Wx,Ib
+VEX.0F3A 05 66 /r : vpermilpd Vx,Wx,Ib
+VEX.0F3A 06 66 /r L1 : vperm2f128 Vqq,Hqq,Wqq,Ib
+VEX.0F3A 08 66 /r : vroundps Vx,Wx,Ib
+VEX.0F3A 09 66 /r : vroundpd Vx,Wx,Ib
+VEX.0F3A 0A 66 /r : vroundss Vdq,Hdq,Wdq:d,Ib
+VEX.0F3A 0B 66 /r : vroundsd Vdq,Hdq,Wdq:mm,Ib
+VEX.0F3A 0C 66 /r : vblendps Vx,Hx,Wx,Ib
+VEX.0F3A 0D 66 /r : vblendpd Vx,Hx,Wx,Ib
+VEX.0F3A 0E 66 /r : vpblendw Vx,Hx,Wx,Ib
+VEX.0F3A 0F 66 /r : vpalignr Vx,Hx,Wx,Ib
+VEX.0F3A 14 66 /r L0 : vpextrb Ey:b,Vdq,Ib
+VEX.0F3A 15 66 /r L0 : vpextrw Ey:w,Vdq,Ib
+VEX.0F3A 16 66 /r L0 W0 : vpextrd Ed,Vdq,Ib
+VEX.0F3A 16 66 /r L0 W1 : vpextrq Eq,Vdq,Ib
+VEX.0F3A 17 66 /r L0 : vextractps Ey,Vdq,Ib
+VEX.0F3A 18 66 /r L1 : vinsertf128 Vqq,Hqq,Wdq,Ib
+VEX.0F3A 19 66 /r L1 : vextractf128 Wdq,Vqq,Ib
+VEX.0F3A 1D 66 /r : vcvtps2ph Wh,Vx,Ib
+VEX.0F3A 20 66 /r L0 : vpinsrb Vdq,Hdq,Ed:b,Ib
+VEX.0F3A 21 66 /r L0 : vinsertps Vdq,Hdq,Wdq:d,Ib
+VEX.0F3A 22 66 /r L0 W0 : vpinsrd Vdq,Hdq,Ed,Ib
+VEX.0F3A 22 66 /r L0 W1 : vpinsrq Vdq,Hdq,Eq,Ib
+VEX.0F3A 38 66 /r L1 : vinserti128 Vqq,Hqq,Wdq,Ib
+VEX.0F3A 39 66 /r L1 : vextracti128 Wdq,Vqq,Ib
+VEX.0F3A 40 66 /r : vdpps Vx,Hx,Wx,Ib
+VEX.0F3A 41 66 /r L0 : vdppd Vdq,Hdq,Wdq,Ib
+VEX.0F3A 42 66 /r : vmpsadbw Vx,Hx,Wx,Ib
+VEX.0F3A 44 66 /r : vpclmulqdq Vx,Hx,Wx,Ib
+VEX.0F3A 46 66 /r L1 : vperm2i128 Vqq,Hqq,Wqq,Ib
+VEX.0F3A 4A 66 /r : vblendvps Vx,Hx,Wx,Lx
+VEX.0F3A 4B 66 /r : vblendvpd Vx,Hx,Wx,Lx
+VEX.0F3A 4C 66 /r : vpblendvb Vx,Hx,Wx,Lx
+VEX.0F3A 60 66 /r L0 : vpcmpestrm Vdq,Wdq,Ib
+VEX.0F3A 61 66 /r L0 : vpcmpestri Vdq,Wdq,Ib
+VEX.0F3A 62 66 /r L0 : vpcmpistrm Vdq,Wdq,Ib
+VEX.0F3A 63 66 /r L0 : vpcmpistri Vdq,Wdq,Ib
+VEX.0F3A CE 66 /r W1 : vgf2p8affineqb Vx,Hx,Wx,Ib
+VEX.0F3A CF 66 /r W1 : vgf2p8affineinvqb Vx,Hx,Wx,Ib
+VEX.0F3A DF 66 /r L0 : vaeskeygenassist Vdq,Wdq,Ib
+VEX.0F3A F0 F2 /r L0 : rorx Gy,Ey,Ib
+
+# AMD FMA4 (VEX.W selects which source is in imm8[7:4]).
+VEX.0F3A 5C 66 /r W0 : vfmaddsubps Vx,Hx,Wx,Lx
+VEX.0F3A 5C 66 /r W1 : vfmaddsubps Vx,Hx,Lx,Wx
+VEX.0F3A 5D 66 /r W0 : vfmaddsubpd Vx,Hx,Wx,Lx
+VEX.0F3A 5D 66 /r W1 : vfmaddsubpd Vx,Hx,Lx,Wx
+VEX.0F3A 5E 66 /r W0 : vfmsubaddps Vx,Hx,Wx,Lx
+VEX.0F3A 5E 66 /r W1 : vfmsubaddps Vx,Hx,Lx,Wx
+VEX.0F3A 5F 66 /r W0 : vfmsubaddpd Vx,Hx,Wx,Lx
+VEX.0F3A 5F 66 /r W1 : vfmsubaddpd Vx,Hx,Lx,Wx
+VEX.0F3A 68 66 /r W0 : vfmaddps Vx,Hx,Wx,Lx
+VEX.0F3A 68 66 /r W1 : vfmaddps Vx,Hx,Lx,Wx
+VEX.0F3A 69 66 /r W0 : vfmaddpd Vx,Hx,Wx,Lx
+VEX.0F3A 69 66 /r W1 : vfmaddpd Vx,Hx,Lx,Wx
+VEX.0F3A 6A 66 /r W0 : vfmaddss Vdq,Hdq,Wdq:d,Ldq
+VEX.0F3A 6A 66 /r W1 : vfmaddss Vdq,Hdq,Ldq,Wdq:d
+VEX.0F3A 6B 66 /r W0 : vfmaddsd Vdq,Hdq,Wdq:q,Ldq
+VEX.0F3A 6B 66 /r W1 : vfmaddsd Vdq,Hdq,Ldq,Wdq:q
+VEX.0F3A 6C 66 /r W0 : vfmsubps Vx,Hx,Wx,Lx
+VEX.0F3A 6C 66 /r W1 : vfmsubps Vx,Hx,Lx,Wx
+VEX.0F3A 6D 66 /r W0 : vfmsubpd Vx,Hx,Wx,Lx
+VEX.0F3A 6D 66 /r W1 : vfmsubpd Vx,Hx,Lx,Wx
+VEX.0F3A 6E 66 /r W0 : vfmsubss Vdq,Hdq,Wdq:d,Ldq
+VEX.0F3A 6E 66 /r W1 : vfmsubss Vdq,Hdq,Ldq,Wdq:d
+VEX.0F3A 6F 66 /r W0 : vfmsubsd Vdq,Hdq,Wdq:q,Ldq
+VEX.0F3A 6F 66 /r W1 : vfmsubsd Vdq,Hdq,Ldq,Wdq:q
+VEX.0F3A 78 66 /r W0 : vfnmaddps Vx,Hx,Wx,Lx
+VEX.0F3A 78 66 /r W1 : vfnmaddps Vx,Hx,Lx,Wx
+VEX.0F3A 79 66 /r W0 : vfnmaddpd Vx,Hx,Wx,Lx
+VEX.0F3A 79 66 /r W1 : vfnmaddpd Vx,Hx,Lx,Wx
+VEX.0F3A 7A 66 /r W0 : vfnmaddss Vdq,Hdq,Wdq:d,Ldq
+VEX.0F3A 7A 66 /r W1 : vfnmaddss Vdq,Hdq,Ldq,Wdq:d
+VEX.0F3A 7B 66 /r W0 : vfnmaddsd Vdq,Hdq,Wdq:q,Ldq
+VEX.0F3A 7B 66 /r W1 : vfnmaddsd Vdq,Hdq,Ldq,Wdq:q
+VEX.0F3A 7C 66 /r W0 : vfnmsubps Vx,Hx,Wx,Lx
+VEX.0F3A 7C 66 /r W1 : vfnmsubps Vx,Hx,Lx,Wx
+VEX.0F3A 7D 66 /r W0 : vfnmsubpd Vx,Hx,Wx,Lx
+VEX.0F3A 7D 66 /r W1 : vfnmsubpd Vx,Hx,Lx,Wx
+VEX.0F3A 7E 66 /r W0 : vfnmsubss Vdq,Hdq,Wdq:d,Ldq
+VEX.0F3A 7E 66 /r W1 : vfnmsubss Vdq,Hdq,Ldq,Wdq:d
+VEX.0F3A 7F 66 /r W0 : vfnmsubsd Vdq,Hdq,Wdq:q,Ldq
+VEX.0F3A 7F 66 /r W1 : vfnmsubsd Vdq,Hdq,Ldq,Wdq:q
+VEX.0F3A 48 66 /r W0 : vpermil2ps Vx,Hx,Wx,Lx,Im2z
+VEX.0F3A 48 66 /r W1 : vpermil2ps Vx,Hx,Lx,Wx,Im2z
+VEX.0F3A 49 66 /r W0 : vpermil2pd Vx,Hx,Wx,Lx,Im2z
+VEX.0F3A 49 66 /r W1 : vpermil2pd Vx,Hx,Lx,Wx,Im2z
+
+# AVX-IFMA, AVX-VNNI-INT8/INT16, SM3, SM4, SHA512. Those with EVEX
+# counterparts of the same name are shown with a "vex" prefix.
+VEX.0F38 B4 66 /r W1 : vpmadd52luq Vx,Hx,Wx ; vexpfx
+VEX.0F38 B5 66 /r W1 : vpmadd52huq Vx,Hx,Wx ; vexpfx
+VEX.0F38 50 NP /r W0 : vpdpbuud Vx,Hx,Wx
+VEX.0F38 50 F3 /r W0 : vpdpbsud Vx,Hx,Wx
+VEX.0F38 50 F2 /r W0 : vpdpbssd Vx,Hx,Wx
+VEX.0F38 51 NP /r W0 : vpdpbuuds Vx,Hx,Wx
+VEX.0F38 51 F3 /r W0 : vpdpbsuds Vx,Hx,Wx
+VEX.0F38 51 F2 /r W0 : vpdpbssds Vx,Hx,Wx
+VEX.0F38 D2 NP /r W0 : vpdpwuud Vx,Hx,Wx
+VEX.0F38 D2 66 /r W0 : vpdpwusd Vx,Hx,Wx
+VEX.0F38 D2 F3 /r W0 : vpdpwsud Vx,Hx,Wx
+VEX.0F38 D3 NP /r W0 : vpdpwuuds Vx,Hx,Wx
+VEX.0F38 D3 66 /r W0 : vpdpwusds Vx,Hx,Wx
+VEX.0F38 D3 F3 /r W0 : vpdpwsuds Vx,Hx,Wx
+VEX.0F38 DA NP /r L0 W0 : vsm3msg1 Vdq,Hdq,Wdq
+VEX.0F38 DA 66 /r L0 W0 : vsm3msg2 Vdq,Hdq,Wdq
+VEX.0F3A DE 66 /r L0 W0 : vsm3rnds2 Vdq,Hdq,Wdq,Ib
+VEX.0F38 DA F3 /r W0 : vsm4key4 Vx,Hx,Wx
+VEX.0F38 DA F2 /r W0 : vsm4rnds4 Vx,Hx,Wx
+VEX.0F38 CB F2 reg L1 W0 : vsha512rnds2 Vqq,Hqq,Udq
+VEX.0F38 CC F2 reg L1 W0 : vsha512msg1 Vqq,Udq
+VEX.0F38 CD F2 reg L1 W0 : vsha512msg2 Vqq,Uqq
+
+# AVX-NE-CONVERT.
+VEX.0F38 72 F3 /r W0 : vcvtneps2bf16 Vh,Wx ; vexpfx
+VEX.0F38 B0 NP mem W0 : vcvtneoph2ps Vx,Mx
+VEX.0F38 B0 66 mem W0 : vcvtneeph2ps Vx,Mx
+VEX.0F38 B0 F3 mem W0 : vcvtneebf162ps Vx,Mx
+VEX.0F38 B0 F2 mem W0 : vcvtneobf162ps Vx,Mx
+VEX.0F38 B1 66 mem W0 : vbcstnesh2ps Vx,Mw
+VEX.0F38 B1 F3 mem W0 : vbcstnebf162ps Vx,Mw
+
+# CMPccXADD.
+VEX.0F38 E0 66 mem L0 : cmpoxadd My,Gy,By
+VEX.0F38 E1 66 mem L0 : cmpnoxadd My,Gy,By
+VEX.0F38 E2 66 mem L0 : cmpbxadd My,Gy,By
+VEX.0F38 E3 66 mem L0 : cmpnbxadd My,Gy,By
+VEX.0F38 E4 66 mem L0 : cmpzxadd My,Gy,By
+VEX.0F38 E5 66 mem L0 : cmpnzxadd My,Gy,By
+VEX.0F38 E6 66 mem L0 : cmpbexadd My,Gy,By
+VEX.0F38 E7 66 mem L0 : cmpnbexadd My,Gy,By
+VEX.0F38 E8 66 mem L0 : cmpsxadd My,Gy,By
+VEX.0F38 E9 66 mem L0 : cmpnsxadd My,Gy,By
+VEX.0F38 EA 66 mem L0 : cmppxadd My,Gy,By
+VEX.0F38 EB 66 mem L0 : cmpnpxadd My,Gy,By
+VEX.0F38 EC 66 mem L0 : cmplxadd My,Gy,By
+VEX.0F38 ED 66 mem L0 : cmpnlxadd My,Gy,By
+VEX.0F38 EE 66 mem L0 : cmplexadd My,Gy,By
+VEX.0F38 EF 66 mem L0 : cmpnlexadd My,Gy,By
+
+# AMX. Tile memory operands use SIB addressing ("tile ptr").
+VEX.0F38 49 NP /0 mem L0 W0 : ldtilecfg Mzw
+VEX.0F38 49 66 /0 mem L0 W0 : sttilecfg Mzw
+VEX.0F38 49 NP !C0 L0 W0 : tilerelease
+VEX.0F38 49 F2 reg L0 W0 : tilezero TG
+VEX.0F38 4B F2 mem L0 W0 : tileloadd TG,Mtile
+VEX.0F38 4B 66 mem L0 W0 : tileloaddt1 TG,Mtile
+VEX.0F38 4B F3 mem L0 W0 : tilestored Mtile,TG
+VEX.0F38 4A F2 mem L0 W0 : tileloaddrs TG,Mtile
+VEX.0F38 4A 66 mem L0 W0 : tileloaddrst1 TG,Mtile
+VEX.0F38 5C F3 reg L0 W0 : tdpbf16ps TG,TE,TH
+VEX.0F38 5C F2 reg L0 W0 : tdpfp16ps TG,TE,TH
+VEX.0F38 5E F2 reg L0 W0 : tdpbssd TG,TE,TH
+VEX.0F38 5E F3 reg L0 W0 : tdpbsud TG,TE,TH
+VEX.0F38 5E 66 reg L0 W0 : tdpbusd TG,TE,TH
+VEX.0F38 5E NP reg L0 W0 : tdpbuud TG,TE,TH
+VEX.0F38 6C 66 reg L0 W0 : tcmmimfp16ps TG,TE,TH
+VEX.0F38 6C NP reg L0 W0 : tcmmrlfp16ps TG,TE,TH
+VEX.0F38 48 66 reg L0 W0 : tmmultf32ps TG,TE,TH
+
+# AMX-FP8 (VEX map 5).
+VEX.M5 FD NP reg L0 W0 : tdpbf8ps TG,TE,TH
+VEX.M5 FD F2 reg L0 W0 : tdpbhf8ps TG,TE,TH
+VEX.M5 FD F3 reg L0 W0 : tdphbf8ps TG,TE,TH
+VEX.M5 FD 66 reg L0 W0 : tdphf8ps TG,TE,TH

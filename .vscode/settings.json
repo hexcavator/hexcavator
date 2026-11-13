@@ -1,0 +1,6 @@
+{
+    // rust-analyzer checks in its own directory (target/rust-analyzer), so
+    // that it never holds the build directory's lock while cargo builds or
+    // tests wait for it.
+    "rust-analyzer.cargo.targetDir": true
+}

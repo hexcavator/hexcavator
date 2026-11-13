@@ -1,0 +1,5 @@
+_used_helper forced load of lib.a(used.o)
+_shared_table from main.o
+  __start from main.o
+_used_helper from lib.a(used.o)
+  __start from main.o

@@ -1,0 +1,3 @@
+# Swift project test/Demangle/Inputs/manglings-with-clang-types.txt, with swift-demangle's default output (the test file's expectations, which swift-demangle matches).
+$s3tmp1fyySiyXzC9_ZTSPFmvEF ---> tmp.f(@convention(c, mangledCType: "_ZTSPFmvE") () -> Swift.Int) -> ()
+$s3tmp1hyyySbXzB24_ZTSU13block_pointerFvaEF ---> tmp.h(@convention(block, mangledCType: "_ZTSU13block_pointerFvaE") (Swift.Bool) -> ()) -> ()

@@ -1,0 +1,53 @@
+[package]
+name = "hexcavator-fuzz"
+description = "Hexcavator's fuzzer: every parser and command, on mutated inputs, for crashes, hangs, and blowups"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+publish = false
+
+# (No unit tests: their build of the crate would be wasted. The hexcavator
+# tests check that a target marked so has none.)
+[lib]
+test = false
+
+[[bin]]
+name = "hexcavator-fuzz"
+path = "src/main.rs"
+test = false
+
+[dependencies]
+hexcavator = { path = "../hexcavator" }
+hexcavator-arm64.workspace = true
+hexcavator-arm32.workspace = true
+hexcavator-wasm.workspace = true
+hexcavator-code.workspace = true
+hexcavator-debuginfo.workspace = true
+hexcavator-image.workspace = true
+hexcavator-demangle.workspace = true
+hexcavator-etl.workspace = true
+hexcavator-etw.workspace = true
+hexcavator-trace.workspace = true
+hexcavator-trace-analysis.workspace = true
+hexcavator-linkerlog.workspace = true
+hexcavator-linkmap.workspace = true
+hexcavator-macho.workspace = true
+hexcavator-mz.workspace = true
+hexcavator-ne.workspace = true
+hexcavator-lx.workspace = true
+hexcavator-pdb.workspace = true
+hexcavator-query.workspace = true
+hexcavator-signature.workspace = true
+hexcavator-size.workspace = true
+hexcavator-x86.workspace = true
+
+[features]
+# Coverage-guided fuzzing: build with RUSTFLAGS="-C instrument-coverage"
+# too (see README.md); the child reads LLVM's profiling counters.
+coverage = []
+
+[lints]
+workspace = true

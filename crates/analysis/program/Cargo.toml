@@ -1,0 +1,25 @@
+[package]
+name = "hexcavator-program"
+description = "Loading a program once: an image, its debug information, its model and symbols, for every analysis and front end"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+hexcavator-codeview.workspace = true
+hexcavator-mmap.workspace = true
+hexcavator-image.workspace = true
+hexcavator-macho.workspace = true
+hexcavator-archive.workspace = true
+hexcavator-debuginfo.workspace = true
+hexcavator-size.workspace = true
+hexcavator-core.workspace = true
+hexcavator-pdb.workspace = true
+hexcavator-pe.workspace = true
+rustc-hash.workspace = true
+
+[lints]
+workspace = true

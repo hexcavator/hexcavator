@@ -1,0 +1,6 @@
+# Put here by the release workflow when it packages the VSIX.
+/bin/
+/LICENSE
+/NOTICE
+/THIRD_PARTY_NOTICES.txt
+*.vsix

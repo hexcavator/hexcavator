@@ -1,0 +1,25 @@
+unwind-x86_64.dylib:
+00000000000003c0
+00000000000003d0
+00000000000003f0
+0000000000000420
+Contents of __unwind_info section:
+  Version:                                   0x1
+  Common encodings array section offset:     0x1c
+  Number of common encodings in array:       0x2
+  Personality function array section offset: 0x24
+  Number of personality functions in array:  0x0
+  Index array section offset:                0x24
+  Number of indices in array:                0x2
+  Common encodings: (count = 2)
+    encoding[0]: 0x01020021
+    encoding[1]: 0x01000000
+  Personality functions: (count = 0)
+  Top level indices: (count = 2)
+    [0]: function offset=0x000003c0, 2nd level page offset=0x0000003c, LSDA offset=0x0000003c
+    [1]: function offset=0x00000454, 2nd level page offset=0x00000000, LSDA offset=0x0000003c
+  LSDA descriptors:
+  Second level indices:
+    Second level index[0]: offset in section=0x0000003c, base function offset=0x000003c0
+      [0]: function offset=0x000003c0, encoding[1]=0x01000000
+      [1]: function offset=0x00000420, encoding[0]=0x01020021

@@ -1,0 +1,41 @@
+[package]
+name = "hexcavator-size"
+description = "Size attribution for executables: which sections, groups, libraries, and compilands account for every byte"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+hexcavator-core.workspace = true
+hexcavator-archive.workspace = true
+hexcavator-linkmap.workspace = true
+hexcavator-image.workspace = true
+hexcavator-debuginfo.workspace = true
+hexcavator-pe.workspace = true
+hexcavator-elf.workspace = true
+hexcavator-dwarf.workspace = true
+hexcavator-macho.workspace = true
+hexcavator-wasm.workspace = true
+hexcavator-wasm-isa.workspace = true
+hexcavator-demangle.workspace = true
+hexcavator-x86.workspace = true
+hexcavator-arm64.workspace = true
+hexcavator-xref.workspace = true
+hexcavator-code.workspace = true
+hexcavator-arm32.workspace = true
+hexcavator-fingerprint.workspace = true
+hexcavator-query.workspace = true
+regex.workspace = true
+miniz_oxide.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+rustc-hash.workspace = true
+
+[lints]
+workspace = true
+
+[dev-dependencies]
+hexcavator-mmap.workspace = true

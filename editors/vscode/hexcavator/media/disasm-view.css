@@ -1,0 +1,528 @@
+/* The disassembly view. Colors come from the editor's theme (--vscode-*),
+   with fallbacks for a plain page (the tests). */
+
+:root {
+  --fg: var(--vscode-foreground, #ccc);
+  --muted: var(--vscode-descriptionForeground, #999);
+  --bg: var(--vscode-editor-background, #1e1e1e);
+  --panel: var(--vscode-sideBar-background, #252526);
+  --border: var(--vscode-panel-border, #333);
+  --link: var(--vscode-textLink-foreground, #3794ff);
+  --focus: var(--vscode-focusBorder, #007fd4);
+  --button: var(--vscode-button-secondaryBackground, #3a3d41);
+  --button-fg: var(--vscode-button-secondaryForeground, #fff);
+  --button-hover: var(--vscode-button-secondaryHoverBackground, #45494e);
+  --hover: var(--vscode-list-hoverBackground, #2a2d2e);
+  --selected: var(--vscode-list-activeSelectionBackground, #04395e);
+  --mono: var(--vscode-editor-font-family, Consolas, "Courier New", monospace);
+  --mono-size: var(--vscode-editor-font-size, 13px);
+  --mn: var(--vscode-symbolIcon-keywordForeground, #c586c0);
+  --reg: var(--vscode-symbolIcon-variableForeground, #9cdcfe);
+  --num: var(--vscode-debugTokenExpression-number, #b5cea8);
+  --flow: #dcdcaa;
+  --taken: #46b45d;
+  --not-taken: #e5534b;
+  --jump: #3794ff;
+  --next: #8b8b8b;
+  --block-bg: var(--vscode-editorWidget-background, #252526);
+  --block-border: var(--vscode-editorWidget-border, #454545);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--vscode-font-family, system-ui, sans-serif);
+  font-size: var(--vscode-font-size, 13px);
+  color: var(--fg);
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+a {
+  color: var(--link);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* ---------------------------------------------------------------- header */
+
+#header {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding: 10px 14px 4px;
+  flex-wrap: wrap;
+}
+
+#header .title {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  min-width: 0;
+  flex: 1;
+}
+
+#header .name {
+  font-weight: 600;
+  font-size: 1.15em;
+  font-family: var(--mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#header .path {
+  color: var(--muted);
+}
+
+#header .actions {
+  display: flex;
+  gap: 6px;
+}
+
+button.icon,
+.segmented button {
+  font: inherit;
+  color: var(--button-fg);
+  background: var(--button);
+  border: none;
+  border-radius: 3px;
+  padding: 2px 9px;
+  cursor: pointer;
+}
+
+button.icon:hover,
+.segmented button:hover {
+  background: var(--button-hover);
+}
+
+.segmented {
+  display: inline-flex;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.segmented button {
+  border-radius: 0;
+}
+
+.segmented button.on {
+  background: var(--vscode-button-background, #0e639c);
+  color: var(--vscode-button-foreground, #fff);
+}
+
+.segmented button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+#toolbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 4px 14px 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+#toolbar .spacer {
+  flex: 1;
+}
+
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.zoom {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.glegend .sw {
+  display: inline-block;
+  width: 14px;
+  height: 3px;
+  margin: 0 4px 3px 8px;
+  vertical-align: middle;
+}
+
+.sw.taken {
+  background: var(--taken);
+}
+
+.sw.not-taken {
+  background: var(--not-taken);
+}
+
+.sw.jump {
+  background: var(--jump);
+}
+
+.sw.next {
+  background: var(--next);
+}
+
+/* ------------------------------------------------------------------ code */
+
+#body {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+}
+
+#body.mode-graph {
+  overflow: hidden;
+}
+
+.code {
+  font-family: var(--mono);
+  font-size: var(--mono-size);
+  line-height: 1.45;
+  padding: 8px 14px 24px;
+  white-space: pre;
+}
+
+.ln {
+  display: flex;
+  gap: 14px;
+  padding: 0 4px;
+  border-radius: 2px;
+}
+
+.ln:hover {
+  background: var(--hover);
+}
+
+.addr {
+  color: var(--muted);
+  min-width: 10ch;
+  text-align: right;
+  user-select: none;
+}
+
+.bytes {
+  color: var(--muted);
+  opacity: 0.8;
+  min-width: 22ch;
+}
+
+.lab {
+  min-width: 5ch;
+  color: var(--flow);
+  font-weight: 600;
+}
+
+.mn {
+  color: var(--mn);
+}
+
+.mn.flow-call {
+  color: var(--flow);
+}
+
+.mn.flow-jump,
+.mn.flow-branch {
+  color: var(--jump);
+}
+
+.mn.flow-return,
+.mn.flow-stop {
+  color: var(--not-taken);
+}
+
+.reg {
+  color: var(--reg);
+}
+
+.num {
+  color: var(--num);
+}
+
+a.lbl {
+  color: var(--flow);
+  font-weight: 600;
+}
+
+a.callee {
+  color: var(--link);
+}
+
+.note {
+  padding: 14px;
+  color: var(--muted);
+}
+
+.note.error {
+  color: var(--vscode-errorForeground, #f48771);
+}
+
+/* Blocks: each its own panel, its label above its first instruction, and
+   where control goes after it below. */
+.code.blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+section.block {
+  border-left: 3px solid var(--block-border);
+  padding: 2px 0 2px 8px;
+  border-radius: 2px;
+}
+
+section.block:first-child {
+  border-left-color: var(--jump);
+}
+
+.bhead {
+  display: flex;
+  gap: 16px;
+  align-items: baseline;
+  margin-bottom: 2px;
+}
+
+.bname {
+  color: var(--flow);
+  font-weight: 600;
+}
+
+.bfoot {
+  color: var(--muted);
+  margin-top: 2px;
+  font-size: 0.92em;
+}
+
+/* Source: a heading row per source line, its text beside it. */
+.src {
+  display: flex;
+  gap: 14px;
+  margin-top: 8px;
+  padding: 1px 4px;
+  background: var(--block-bg);
+  border-left: 3px solid var(--link);
+  font-family: var(--mono);
+}
+
+.src .where {
+  min-width: 24ch;
+  color: var(--link);
+}
+
+.src .stext {
+  color: var(--fg);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.code.source .ln {
+  padding-left: 20px;
+}
+
+.flash {
+  animation: flash 1.2s ease-out;
+}
+
+@keyframes flash {
+  0% {
+    background: var(--selected);
+  }
+  100% {
+    background: transparent;
+  }
+}
+
+/* ----------------------------------------------------------------- graph */
+
+.gwrap {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  cursor: grab;
+}
+
+.gwrap.dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.gcanvas {
+  position: relative;
+}
+
+.gedges {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+
+path.edge {
+  fill: none;
+  stroke-width: 1.6;
+  opacity: 0.85;
+}
+
+path.edge.taken {
+  stroke: var(--taken);
+}
+
+path.edge.not-taken {
+  stroke: var(--not-taken);
+}
+
+path.edge.jump {
+  stroke: var(--jump);
+}
+
+path.edge.next {
+  stroke: var(--next);
+}
+
+path.edge.back {
+  stroke-dasharray: 5 3;
+}
+
+path.edge.hot {
+  stroke-width: 3;
+  opacity: 1;
+}
+
+path.head.taken {
+  fill: var(--taken);
+}
+
+path.head.not-taken {
+  fill: var(--not-taken);
+}
+
+path.head.jump {
+  fill: var(--jump);
+}
+
+path.head.next {
+  fill: var(--next);
+}
+
+.gnode {
+  position: absolute;
+  background: var(--block-bg);
+  border: 1px solid var(--block-border);
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 17px;
+  padding: 4px 8px 6px;
+  white-space: pre;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  cursor: default;
+}
+
+.gnode.entry {
+  border-color: var(--jump);
+}
+
+.gnode.exit {
+  border-bottom: 2px solid var(--not-taken);
+}
+
+.gnode:hover {
+  border-color: var(--focus);
+}
+
+.ghead {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  border-bottom: 1px solid var(--block-border);
+  margin-bottom: 3px;
+  padding-bottom: 1px;
+}
+
+.gline .bytes {
+  margin-right: 10px;
+}
+
+.gprobe {
+  position: absolute;
+  visibility: hidden;
+  font-family: var(--mono);
+  font-size: 12px;
+  white-space: pre;
+}
+
+pre.code.text {
+  margin: 0;
+}
+
+/* A register's uses: lit while one is pointed at, pinned by a click. */
+.reg {
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+.reg.lit {
+  background: var(--vscode-editor-wordHighlightBackground, rgba(87, 87, 87, 0.72));
+}
+
+.reg.pinned {
+  background: var(--vscode-editor-wordHighlightStrongBackground, rgba(0, 73, 114, 0.72));
+  outline: 1px solid var(--vscode-editor-wordHighlightStrongBorder, var(--focus));
+}
+
+/* Variables: a note beside each instruction (as windbg shows them), and
+   the list of them with their places. */
+.vars {
+  color: var(--vscode-editorCodeLens-foreground, #999);
+  font-style: italic;
+  margin-left: 18px;
+  white-space: nowrap;
+}
+
+.gline .vars {
+  margin-left: 12px;
+}
+
+details.varlist {
+  margin: 8px 14px 0;
+  font-family: var(--mono);
+  font-size: var(--mono-size);
+}
+
+details.varlist summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-family: var(--vscode-font-family, system-ui, sans-serif);
+}
+
+details.varlist table {
+  border-collapse: collapse;
+  margin: 4px 0 4px 14px;
+}
+
+details.varlist td {
+  padding: 1px 12px 1px 0;
+  vertical-align: top;
+}
+
+.reg-like {
+  color: var(--reg);
+}

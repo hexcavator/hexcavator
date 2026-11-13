@@ -1,0 +1,150 @@
+x86_64-debug:	file format elf64-x86-64
+
+.debug_frame contents:
+
+00000000 00000014 ffffffff CIE
+  Format:                DWARF32
+  Version:               4
+  Augmentation:          ""
+  Address size:          8
+  Segment desc size:     0
+  Code alignment factor: 1
+  Data alignment factor: -8
+  Return address column: 16
+
+  DW_CFA_def_cfa: RSP +8
+  DW_CFA_offset: RIP -8
+  DW_CFA_nop:
+  DW_CFA_nop:
+  DW_CFA_nop:
+  DW_CFA_nop:
+
+  CFA=RSP+8: RIP=[CFA-8]
+
+00000018 00000024 00000000 FDE cie=00000000 pc=00201120...00201189
+  Format:       DWARF32
+  DW_CFA_advance_loc: 1 to 0x201121
+  DW_CFA_def_cfa_offset: +16
+  DW_CFA_offset: RBX -16
+  DW_CFA_advance_loc1: 103 to 0x201188
+  DW_CFA_def_cfa_offset: +8
+  DW_CFA_nop:
+  DW_CFA_nop:
+  DW_CFA_nop:
+  DW_CFA_nop:
+  DW_CFA_nop:
+  DW_CFA_nop:
+  DW_CFA_nop:
+
+  0x201120: CFA=RSP+8: RIP=[CFA-8]
+  0x201121: CFA=RSP+16: RBX=[CFA-16], RIP=[CFA-8]
+  0x201188: CFA=RSP+8: RBX=[CFA-16], RIP=[CFA-8]
+
+00000040 00000014 00000000 FDE cie=00000000 pc=0020118c...00201190
+  Format:       DWARF32
+
+  0x20118c: CFA=RSP+8: RIP=[CFA-8]
+
+00000058 00000024 00000000 FDE cie=00000000 pc=00201190...002011b8
+  Format:       DWARF32
+  DW_CFA_advance_loc: 1 to 0x201191
+  DW_CFA_def_cfa_offset: +16
+  DW_CFA_offset: RBP -16
+  DW_CFA_advance_loc: 3 to 0x201194
+  DW_CFA_def_cfa_register: RBP
+  DW_CFA_advance_loc: 35 to 0x2011b7
+  DW_CFA_def_cfa: RSP +8
+  DW_CFA_nop:
+  DW_CFA_nop:
+  DW_CFA_nop:
+  DW_CFA_nop:
+
+  0x201190: CFA=RSP+8: RIP=[CFA-8]
+  0x201191: CFA=RSP+16: RBP=[CFA-16], RIP=[CFA-8]
+  0x201194: CFA=RBP+16: RBP=[CFA-16], RIP=[CFA-8]
+  0x2011b7: CFA=RSP+8: RBP=[CFA-16], RIP=[CFA-8]
+
+00000080 00000014 00000000 FDE cie=00000000 pc=002011c0...002011e9
+  Format:       DWARF32
+
+  0x2011c0: CFA=RSP+8: RIP=[CFA-8]
+
+00000098 00000014 00000000 FDE cie=00000000 pc=002011f0...002011f5
+  Format:       DWARF32
+
+  0x2011f0: CFA=RSP+8: RIP=[CFA-8]
+
+000000b0 0000002c 00000000 FDE cie=00000000 pc=00201200...00201236
+  Format:       DWARF32
+  DW_CFA_advance_loc: 2 to 0x201202
+  DW_CFA_def_cfa_offset: +16
+  DW_CFA_advance_loc: 1 to 0x201203
+  DW_CFA_def_cfa_offset: +24
+  DW_CFA_advance_loc: 1 to 0x201204
+  DW_CFA_def_cfa_offset: +32
+  DW_CFA_offset: RBX -24
+  DW_CFA_offset: R14 -16
+  DW_CFA_advance_loc: 46 to 0x201232
+  DW_CFA_def_cfa_offset: +24
+  DW_CFA_advance_loc: 1 to 0x201233
+  DW_CFA_def_cfa_offset: +16
+  DW_CFA_advance_loc: 2 to 0x201235
+  DW_CFA_def_cfa_offset: +8
+  DW_CFA_nop:
+  DW_CFA_nop:
+
+  0x201200: CFA=RSP+8: RIP=[CFA-8]
+  0x201202: CFA=RSP+16: RIP=[CFA-8]
+  0x201203: CFA=RSP+24: RIP=[CFA-8]
+  0x201204: CFA=RSP+32: RBX=[CFA-24], R14=[CFA-16], RIP=[CFA-8]
+  0x201232: CFA=RSP+24: RBX=[CFA-24], R14=[CFA-16], RIP=[CFA-8]
+  0x201233: CFA=RSP+16: RBX=[CFA-24], R14=[CFA-16], RIP=[CFA-8]
+  0x201235: CFA=RSP+8: RBX=[CFA-24], R14=[CFA-16], RIP=[CFA-8]
+
+000000e0 00000024 00000000 FDE cie=00000000 pc=00201240...0020125f
+  Format:       DWARF32
+  DW_CFA_advance_loc: 1 to 0x201241
+  DW_CFA_def_cfa_offset: +16
+  DW_CFA_advance_loc: 4 to 0x201245
+  DW_CFA_def_cfa_offset: +32
+  DW_CFA_offset: RBX -16
+  DW_CFA_advance_loc: 24 to 0x20125d
+  DW_CFA_def_cfa_offset: +16
+  DW_CFA_advance_loc: 1 to 0x20125e
+  DW_CFA_def_cfa_offset: +8
+  DW_CFA_nop:
+  DW_CFA_nop:
+
+  0x201240: CFA=RSP+8: RIP=[CFA-8]
+  0x201241: CFA=RSP+16: RIP=[CFA-8]
+  0x201245: CFA=RSP+32: RBX=[CFA-16], RIP=[CFA-8]
+  0x20125d: CFA=RSP+16: RBX=[CFA-16], RIP=[CFA-8]
+  0x20125e: CFA=RSP+8: RBX=[CFA-16], RIP=[CFA-8]
+
+00000108 0000001c 00000000 FDE cie=00000000 pc=00201260...00201280
+  Format:       DWARF32
+  DW_CFA_advance_loc: 7 to 0x201267
+  DW_CFA_def_cfa_offset: +69888
+  DW_CFA_advance_loc: 24 to 0x20127f
+  DW_CFA_def_cfa_offset: +8
+
+  0x201260: CFA=RSP+8: RIP=[CFA-8]
+  0x201267: CFA=RSP+69888: RIP=[CFA-8]
+  0x20127f: CFA=RSP+8: RIP=[CFA-8]
+
+00000128 0000001c 00000000 FDE cie=00000000 pc=00201280...002012c0
+  Format:       DWARF32
+  DW_CFA_advance_loc: 4 to 0x201284
+  DW_CFA_def_cfa_offset: +80
+  DW_CFA_advance_loc: 59 to 0x2012bf
+  DW_CFA_def_cfa_offset: +8
+  DW_CFA_nop:
+  DW_CFA_nop:
+
+  0x201280: CFA=RSP+8: RIP=[CFA-8]
+  0x201284: CFA=RSP+80: RIP=[CFA-8]
+  0x2012bf: CFA=RSP+8: RIP=[CFA-8]
+
+
+.eh_frame contents:
+

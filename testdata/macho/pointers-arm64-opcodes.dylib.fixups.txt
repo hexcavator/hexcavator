@@ -1,0 +1,23 @@
+pointers-arm64-opcodes.dylib:
+
+Rebase table:
+segment  section            address     type
+__DATA   __data             0x00004000  pointer
+__DATA   __data             0x00004008  pointer
+__DATA   __data             0x00004010  pointer
+__DATA   __data             0x00004018  pointer
+__DATA   __data             0x00004028  pointer
+__DATA   __data             0x00004030  pointer
+__DATA   __data             0x00004038  pointer
+__DATA   __data             0x00004040  pointer
+__DATA   __data             0x000062A8  pointer
+
+Bind table:
+segment  section            address    type       addend dylib            symbol
+__DATA   __data             0x000062B0 pointer         0 flat-namespace   _imported
+
+Lazy bind table:
+segment  section            address     dylib            symbol
+
+Weak bind table:
+segment  section            address     type       addend   symbol

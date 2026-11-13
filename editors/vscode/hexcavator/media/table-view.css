@@ -1,0 +1,135 @@
+/* The table view (on top of disasm-view.css: the header, toolbar, and
+   buttons). */
+
+#body {
+  padding: 8px 14px 24px;
+}
+
+#toolbar input {
+  font: inherit;
+  color: var(--vscode-input-foreground, #ccc);
+  background: var(--vscode-input-background, #3c3c3c);
+  border: 1px solid var(--vscode-input-border, transparent);
+  border-radius: 3px;
+  padding: 3px 6px;
+}
+
+#toolbar #filter {
+  width: 16em;
+}
+
+.query {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+  min-width: 20em;
+}
+
+.query input {
+  flex: 1;
+  font-family: var(--mono) !important;
+}
+
+code.cmd {
+  font-family: var(--mono);
+  font-size: 0.9em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 45%;
+  margin-left: auto;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.chip {
+  background: var(--block-bg);
+  border: 1px solid var(--block-border);
+  border-radius: 10px;
+  padding: 1px 9px;
+  white-space: nowrap;
+}
+
+.chip b {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.tsection {
+  margin-bottom: 18px;
+}
+
+.tablebar {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  position: sticky;
+  top: -8px;
+  background: var(--bg);
+  padding: 4px 0;
+}
+
+.tablebar h2 {
+  font-size: 1.05em;
+  margin: 0;
+}
+
+.tablebar .spacer {
+  flex: 1;
+}
+
+table.rows {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+table.rows th,
+table.rows td {
+  text-align: left;
+  padding: 3px 8px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+table.rows th {
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+
+table.rows th.sorted {
+  color: var(--fg);
+}
+
+table.rows th.n,
+table.rows td.n {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+table.rows tbody tr:hover {
+  background: var(--hover);
+}
+
+table.rows td {
+  word-break: break-word;
+}
+
+a.sym {
+  font-family: var(--mono);
+  font-size: 0.95em;
+}
+
+td.hex {
+  font-family: var(--mono);
+  font-size: 0.95em;
+  white-space: nowrap;
+}

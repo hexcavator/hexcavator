@@ -1,0 +1,8 @@
+0000000000000000 T use_points(int)
+0000000000000000 W geometry::Point<int>::Point(int, int)
+0000000000000000 W geometry::Point<long>::Point(long, long)
+0000000000000000 W geometry::Point<int> geometry::operator+<int>(geometry::Point<int> const&, geometry::Point<int> const&)
+0000000000000000 W geometry::Point<int>::dot(geometry::Point<int> const&) const
+0000000000000000 W geometry::Point<long>::dot(geometry::Point<long> const&) const
+000000000000009c t use_points(int)::$_0::operator()(int) const
+0000000000000000 D table

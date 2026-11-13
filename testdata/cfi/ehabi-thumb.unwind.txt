@@ -1,0 +1,108 @@
+
+File: ehabi-thumb
+Format: elf32-littlearm
+Arch: arm
+AddressSize: 32bit
+LoadName: <Not found>
+UnwindInformation {
+  UnwindIndexTable {
+    SectionIndex: 1
+    SectionName: .ARM.exidx
+    SectionOffset: 0xD4
+    Entries [
+      Entry {
+        FunctionAddress: 0x20164
+        Model: Compact (Inline)
+        PersonalityIndex: 0
+        Opcodes [
+          0x02      ; vsp = vsp + 12
+          0xAA      ; pop {r4, r5, r6, lr}
+          0xB0      ; finish
+        ]
+      }
+      Entry {
+        FunctionAddress: 0x201B8
+        Model: Compact (Inline)
+        PersonalityIndex: 0
+        Opcodes [
+          0xB0      ; finish
+          0xB0      ; finish
+          0xB0      ; finish
+        ]
+      }
+      Entry {
+        FunctionAddress: 0x201BC
+        ExceptionHandlingTable: .ARM.extab
+        TableEntryAddress: 0x10124
+        Model: Compact
+        PersonalityIndex: 1
+        Opcodes [
+          0x97      ; vsp = r7
+          0x41      ; vsp = vsp - 8
+          0x84 0x0D ; pop {r4, r6, r7, lr}
+          0xB0      ; finish
+          0xB0      ; finish
+        ]
+      }
+      Entry {
+        FunctionAddress: 0x201D8
+        Model: Compact (Inline)
+        PersonalityIndex: 0
+        Opcodes [
+          0xB0      ; finish
+          0xB0      ; finish
+          0xB0      ; finish
+        ]
+      }
+      Entry {
+        FunctionAddress: 0x201FA
+        Model: Compact (Inline)
+        PersonalityIndex: 0
+        Opcodes [
+          0xB0      ; finish
+          0xB0      ; finish
+          0xB0      ; finish
+        ]
+      }
+      Entry {
+        FunctionAddress: 0x20200
+        Model: Compact (Inline)
+        PersonalityIndex: 0
+        Opcodes [
+          0x84 0x0B ; pop {r4, r5, r7, lr}
+          0xB0      ; finish
+        ]
+      }
+      Entry {
+        FunctionAddress: 0x2021C
+        ExceptionHandlingTable: .ARM.extab
+        TableEntryAddress: 0x10130
+        Model: Generic
+        PersonalityRoutineAddress: 0x10134
+      }
+      Entry {
+        FunctionAddress: 0x20240
+        ExceptionHandlingTable: .ARM.extab
+        TableEntryAddress: 0x10144
+        Model: Compact
+        PersonalityIndex: 1
+        Opcodes [
+          0xB2 0xDB 0x87 0x01 ; vsp = vsp + 70000
+          0xA1      ; pop {r4, r5}
+          0xB0      ; finish
+        ]
+      }
+      Entry {
+        FunctionAddress: 0x2025E
+        ExceptionHandlingTable: .ARM.extab
+        TableEntryAddress: 0x10150
+        Model: Generic
+        PersonalityRoutineAddress: 0x10154
+      }
+      Entry {
+        FunctionAddress: 0x202A4
+        Model: CantUnwind
+      }
+    ]
+  }
+}

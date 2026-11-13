@@ -1,0 +1,400 @@
+## __guard_check_icall_fptr @0x3078
+pointer "" "void*" @0x0+4 = "0x10001f90" -> 0x10001f90
+## __guard_check_icall_fptr @0x3078
+pointer "" "void * volatile" @0x0+4 = "0x10001f90" -> 0x10001f90
+## __xc_a @0x307c
+array "" "void () *[1]" @0x0+4
+  pointer "[0]" "void () *" @0x0+4 = "nullptr"
+## __xc_a @0x307c
+array "" "void () *[0]" @0x0+0
+## __xc_z @0x3080
+array "" "void () *[1]" @0x0+4
+  pointer "[0]" "void () *" @0x0+4 = "nullptr"
+## __xc_z @0x3080
+array "" "void () *[0]" @0x0+0
+## __xi_a @0x3084
+array "" "int () *[1]" @0x0+4
+  pointer "[0]" "int () *" @0x0+4 = "nullptr"
+## __xi_a @0x3084
+array "" "int () *[0]" @0x0+0
+## __xi_z @0x3088
+array "" "int () *[1]" @0x0+4
+  pointer "[0]" "int () *" @0x0+4 = "nullptr"
+## __xi_z @0x3088
+array "" "int () *[0]" @0x0+0
+## __xp_a @0x308c
+array "" "void () *[1]" @0x0+4
+  pointer "[0]" "void () *" @0x0+4 = "nullptr"
+## __xp_z @0x3090
+array "" "void () *[1]" @0x0+4
+  pointer "[0]" "void () *" @0x0+4 = "nullptr"
+## __xt_a @0x3094
+array "" "void () *[1]" @0x0+4
+  pointer "[0]" "void () *" @0x0+4 = "nullptr"
+## __xt_z @0x3098
+array "" "void () *[1]" @0x0+4
+  pointer "[0]" "void () *" @0x0+4 = "nullptr"
+## _pDefaultRawDllMain @0x30a0
+pointer "" "int (HINSTANCE__ *, unsigned long, void*) * const" @0x0+4 = "nullptr"
+## _pRawDllMain @0x30a0
+pointer "" "int (HINSTANCE__ *, unsigned long, void*) * const" @0x0+4 = "nullptr"
+## GS_ExceptionPointers @0x30a4
+struct "" "_EXCEPTION_POINTERS" @0x0+8
+  pointer "ExceptionRecord" "_EXCEPTION_RECORD *" @0x0+4 = "0x10004030" -> 0x10004030
+  pointer "ContextRecord" "_CONTEXT *" @0x4+4 = "0x10004080" -> 0x10004080
+## __pfnDliNotifyHook2 @0x3110
+pointer "" "int () * (unsigned int, DelayLoadInfo *) * const" @0x0+4 = "nullptr"
+## __pfnDliFailureHook2 @0x3114
+pointer "" "int () * (unsigned int, DelayLoadInfo *) * const" @0x0+4 = "nullptr"
+## _load_config_used @0x3118
+struct "" "_IMAGE_LOAD_CONFIG_DIRECTORY32" @0x0+184
+  integer "Size" "unsigned long" @0x0+4 = "188"
+  integer "TimeDateStamp" "unsigned long" @0x4+4 = "0"
+  integer "MajorVersion" "unsigned short" @0x8+2 = "0"
+  integer "MinorVersion" "unsigned short" @0xa+2 = "0"
+  integer "GlobalFlagsClear" "unsigned long" @0xc+4 = "0"
+  integer "GlobalFlagsSet" "unsigned long" @0x10+4 = "0"
+  integer "CriticalSectionDefaultTimeout" "unsigned long" @0x14+4 = "0"
+  integer "DeCommitFreeBlockThreshold" "unsigned long" @0x18+4 = "0"
+  integer "DeCommitTotalFreeThreshold" "unsigned long" @0x1c+4 = "0"
+  integer "LockPrefixTable" "unsigned long" @0x20+4 = "0"
+  integer "MaximumAllocationSize" "unsigned long" @0x24+4 = "0"
+  integer "VirtualMemoryThreshold" "unsigned long" @0x28+4 = "0"
+  integer "ProcessHeapFlags" "unsigned long" @0x2c+4 = "0"
+  integer "ProcessAffinityMask" "unsigned long" @0x30+4 = "0"
+  integer "CSDVersion" "unsigned short" @0x34+2 = "0"
+  integer "DependentLoadFlags" "unsigned short" @0x36+2 = "0"
+  integer "EditList" "unsigned long" @0x38+4 = "0"
+  integer "SecurityCookie" "unsigned long" @0x3c+4 = "268451844"
+  integer "SEHandlerTable" "unsigned long" @0x40+4 = "268448320"
+  integer "SEHandlerCount" "unsigned long" @0x44+4 = "1"
+  integer "GuardCFCheckFunctionPointer" "unsigned long" @0x48+4 = "268447864"
+  integer "GuardCFDispatchFunctionPointer" "unsigned long" @0x4c+4 = "0"
+  integer "GuardCFFunctionTable" "unsigned long" @0x50+4 = "0"
+  integer "GuardCFFunctionCount" "unsigned long" @0x54+4 = "0"
+  integer "GuardFlags" "unsigned long" @0x58+4 = "256"
+  struct "CodeIntegrity" "_IMAGE_LOAD_CONFIG_CODE_INTEGRITY" @0x5c+12
+    integer "Flags" "unsigned short" @0x5c+2 = "0"
+    integer "Catalog" "unsigned short" @0x5e+2 = "0"
+    integer "CatalogOffset" "unsigned long" @0x60+4 = "0"
+    integer "Reserved" "unsigned long" @0x64+4 = "0"
+  integer "GuardAddressTakenIatEntryTable" "unsigned long" @0x68+4 = "0"
+  integer "GuardAddressTakenIatEntryCount" "unsigned long" @0x6c+4 = "0"
+  integer "GuardLongJumpTargetTable" "unsigned long" @0x70+4 = "0"
+  integer "GuardLongJumpTargetCount" "unsigned long" @0x74+4 = "0"
+  integer "DynamicValueRelocTable" "unsigned long" @0x78+4 = "0"
+  integer "CHPEMetadataPointer" "unsigned long" @0x7c+4 = "0"
+  integer "GuardRFFailureRoutine" "unsigned long" @0x80+4 = "0"
+  integer "GuardRFFailureRoutineFunctionPointer" "unsigned long" @0x84+4 = "0"
+  integer "DynamicValueRelocTableOffset" "unsigned long" @0x88+4 = "0"
+  integer "DynamicValueRelocTableSection" "unsigned short" @0x8c+2 = "0"
+  integer "Reserved2" "unsigned short" @0x8e+2 = "0"
+  integer "GuardRFVerifyStackPointerFunctionPointer" "unsigned long" @0x90+4 = "0"
+  integer "HotPatchTableOffset" "unsigned long" @0x94+4 = "0"
+  integer "Reserved3" "unsigned long" @0x98+4 = "0"
+  integer "EnclaveConfigurationPointer" "unsigned long" @0x9c+4 = "0"
+  integer "VolatileMetadataPointer" "unsigned long" @0xa0+4 = "268448324"
+  integer "GuardEHContinuationTable" "unsigned long" @0xa4+4 = "0"
+  integer "GuardEHContinuationCount" "unsigned long" @0xa8+4 = "0"
+  integer "GuardXFGCheckFunctionPointer" "unsigned long" @0xac+4 = "0"
+  integer "GuardXFGDispatchFunctionPointer" "unsigned long" @0xb0+4 = "0"
+  integer "GuardXFGTableDispatchFunctionPointer" "unsigned long" @0xb4+4 = "0"
+## _load_config_used @0x3118
+struct "" "_RS5_IMAGE_LOAD_CONFIG_DIRECTORY32" @0x0+188
+  integer "Size" "unsigned long" @0x0+4 = "188"
+  integer "TimeDateStamp" "unsigned long" @0x4+4 = "0"
+  integer "MajorVersion" "unsigned short" @0x8+2 = "0"
+  integer "MinorVersion" "unsigned short" @0xa+2 = "0"
+  integer "GlobalFlagsClear" "unsigned long" @0xc+4 = "0"
+  integer "GlobalFlagsSet" "unsigned long" @0x10+4 = "0"
+  integer "CriticalSectionDefaultTimeout" "unsigned long" @0x14+4 = "0"
+  integer "DeCommitFreeBlockThreshold" "unsigned long" @0x18+4 = "0"
+  integer "DeCommitTotalFreeThreshold" "unsigned long" @0x1c+4 = "0"
+  integer "LockPrefixTable" "unsigned long" @0x20+4 = "0"
+  integer "MaximumAllocationSize" "unsigned long" @0x24+4 = "0"
+  integer "VirtualMemoryThreshold" "unsigned long" @0x28+4 = "0"
+  integer "ProcessHeapFlags" "unsigned long" @0x2c+4 = "0"
+  integer "ProcessAffinityMask" "unsigned long" @0x30+4 = "0"
+  integer "CSDVersion" "unsigned short" @0x34+2 = "0"
+  integer "DependentLoadFlags" "unsigned short" @0x36+2 = "0"
+  integer "EditList" "unsigned long" @0x38+4 = "0"
+  integer "SecurityCookie" "unsigned long" @0x3c+4 = "268451844"
+  integer "SEHandlerTable" "unsigned long" @0x40+4 = "268448320"
+  integer "SEHandlerCount" "unsigned long" @0x44+4 = "1"
+  integer "GuardCFCheckFunctionPointer" "unsigned long" @0x48+4 = "268447864"
+  integer "GuardCFDispatchFunctionPointer" "unsigned long" @0x4c+4 = "0"
+  integer "GuardCFFunctionTable" "unsigned long" @0x50+4 = "0"
+  integer "GuardCFFunctionCount" "unsigned long" @0x54+4 = "0"
+  integer "GuardFlags" "unsigned long" @0x58+4 = "256"
+  struct "CodeIntegrity" "_IMAGE_LOAD_CONFIG_CODE_INTEGRITY" @0x5c+12
+    integer "Flags" "unsigned short" @0x5c+2 = "0"
+    integer "Catalog" "unsigned short" @0x5e+2 = "0"
+    integer "CatalogOffset" "unsigned long" @0x60+4 = "0"
+    integer "Reserved" "unsigned long" @0x64+4 = "0"
+  integer "GuardAddressTakenIatEntryTable" "unsigned long" @0x68+4 = "0"
+  integer "GuardAddressTakenIatEntryCount" "unsigned long" @0x6c+4 = "0"
+  integer "GuardLongJumpTargetTable" "unsigned long" @0x70+4 = "0"
+  integer "GuardLongJumpTargetCount" "unsigned long" @0x74+4 = "0"
+  integer "DynamicValueRelocTable" "unsigned long" @0x78+4 = "0"
+  integer "CHPEMetadataPointer" "unsigned long" @0x7c+4 = "0"
+  integer "GuardRFFailureRoutine" "unsigned long" @0x80+4 = "0"
+  integer "GuardRFFailureRoutineFunctionPointer" "unsigned long" @0x84+4 = "0"
+  integer "DynamicValueRelocTableOffset" "unsigned long" @0x88+4 = "0"
+  integer "DynamicValueRelocTableSection" "unsigned short" @0x8c+2 = "0"
+  integer "Reserved2" "unsigned short" @0x8e+2 = "0"
+  integer "GuardRFVerifyStackPointerFunctionPointer" "unsigned long" @0x90+4 = "0"
+  integer "HotPatchTableOffset" "unsigned long" @0x94+4 = "0"
+  integer "Reserved3" "unsigned long" @0x98+4 = "0"
+  integer "EnclaveConfigurationPointer" "unsigned long" @0x9c+4 = "0"
+  integer "VolatileMetadataPointer" "unsigned long" @0xa0+4 = "268448324"
+  integer "GuardEHContinuationTable" "unsigned long" @0xa4+4 = "0"
+  integer "GuardEHContinuationCount" "unsigned long" @0xa8+4 = "0"
+  integer "GuardXFGCheckFunctionPointer" "unsigned long" @0xac+4 = "0"
+  integer "GuardXFGDispatchFunctionPointer" "unsigned long" @0xb0+4 = "0"
+  integer "GuardXFGTableDispatchFunctionPointer" "unsigned long" @0xb4+4 = "0"
+  integer "CastGuardOsDeterminedFailureMode" "unsigned long" @0xb8+4 = "268452752"
+## __safe_se_handler_table @0x3240
+array "" "void*[0]" @0x0+0
+## __volatile_metadata @0x3244
+pointer "" "void*" @0x0+4 = "0x18" -> 0x18
+## __rtc_iaa @0x35a0
+array "" "void () * const[1]" @0x0+4
+  pointer "[0]" "void () * const" @0x0+4 = "nullptr"
+## __rtc_izz @0x35a4
+array "" "void () * const[1]" @0x0+4
+  pointer "[0]" "void () * const" @0x0+4 = "nullptr"
+## __rtc_taa @0x35a8
+array "" "void () * const[1]" @0x0+4
+  pointer "[0]" "void () * const" @0x0+4 = "nullptr"
+## __rtc_tzz @0x35ac
+array "" "void () * const[1]" @0x0+4
+  pointer "[0]" "void () * const" @0x0+4 = "nullptr"
+## __security_cookie_complement @0x4000
+integer "" "unsigned int" @0x0+4 = "1153374641"
+## __security_cookie @0x4004
+integer "" "unsigned int" @0x0+4 = "3141592654"
+## __scrt_native_dllmain_reason @0x4008
+integer "" "unsigned int" @0x0+4 = "4294967295"
+## __isa_enabled @0x400c
+integer "" "int" @0x0+4 = "1"
+## __scrt_ucrt_dll_is_in_use @0x4010
+integer "" "int" @0x0+4 = "1"
+## __scrt_ucrt_dll_is_in_use @0x4010
+integer "" "const int" @0x0+4 = "1"
+## __proc_attached @0x4028
+integer "" "int" @0x0+4 = "0"
+## GS_ExceptionRecord @0x4030
+struct "" "_EXCEPTION_RECORD" @0x0+80
+  integer "ExceptionCode" "unsigned long" @0x0+4 = "0"
+  integer "ExceptionFlags" "unsigned long" @0x4+4 = "0"
+  pointer "ExceptionRecord" "_EXCEPTION_RECORD *" @0x8+4 = "nullptr"
+  pointer "ExceptionAddress" "void*" @0xc+4 = "nullptr"
+  integer "NumberParameters" "unsigned long" @0x10+4 = "0"
+  array "ExceptionInformation" "unsigned long[15]" @0x14+60
+    integer "[0]" "unsigned long" @0x14+4 = "0"
+    integer "[1]" "unsigned long" @0x18+4 = "0"
+    integer "[2]" "unsigned long" @0x1c+4 = "0"
+    integer "[3]" "unsigned long" @0x20+4 = "0"
+    integer "[4]" "unsigned long" @0x24+4 = "0"
+    integer "[5]" "unsigned long" @0x28+4 = "0"
+    integer "[6]" "unsigned long" @0x2c+4 = "0"
+    integer "[7]" "unsigned long" @0x30+4 = "0"
+    integer "[8]" "unsigned long" @0x34+4 = "0"
+    integer "[9]" "unsigned long" @0x38+4 = "0"
+    integer "[10]" "unsigned long" @0x3c+4 = "0"
+    integer "[11]" "unsigned long" @0x40+4 = "0"
+    integer "[12]" "unsigned long" @0x44+4 = "0"
+    integer "[13]" "unsigned long" @0x48+4 = "0"
+    integer "[14]" "unsigned long" @0x4c+4 = "0"
+## GS_ContextRecord @0x4080
+struct "" "_CONTEXT" @0x0+716
+  integer "ContextFlags" "unsigned long" @0x0+4 = "0"
+  integer "Dr0" "unsigned long" @0x4+4 = "0"
+  integer "Dr1" "unsigned long" @0x8+4 = "0"
+  integer "Dr2" "unsigned long" @0xc+4 = "0"
+  integer "Dr3" "unsigned long" @0x10+4 = "0"
+  integer "Dr6" "unsigned long" @0x14+4 = "0"
+  integer "Dr7" "unsigned long" @0x18+4 = "0"
+  struct "FloatSave" "_FLOATING_SAVE_AREA" @0x1c+112
+    integer "ControlWord" "unsigned long" @0x1c+4 = "0"
+    integer "StatusWord" "unsigned long" @0x20+4 = "0"
+    integer "TagWord" "unsigned long" @0x24+4 = "0"
+    integer "ErrorOffset" "unsigned long" @0x28+4 = "0"
+    integer "ErrorSelector" "unsigned long" @0x2c+4 = "0"
+    integer "DataOffset" "unsigned long" @0x30+4 = "0"
+    integer "DataSelector" "unsigned long" @0x34+4 = "0"
+    array "RegisterArea" "unsigned char[80]" @0x38+80 = "\"\"" (+64 elided)
+      integer "[0]" "unsigned char" @0x38+1 = "0"
+      integer "[1]" "unsigned char" @0x39+1 = "0"
+      integer "[2]" "unsigned char" @0x3a+1 = "0"
+      integer "[3]" "unsigned char" @0x3b+1 = "0"
+      integer "[4]" "unsigned char" @0x3c+1 = "0"
+      integer "[5]" "unsigned char" @0x3d+1 = "0"
+      integer "[6]" "unsigned char" @0x3e+1 = "0"
+      integer "[7]" "unsigned char" @0x3f+1 = "0"
+      integer "[8]" "unsigned char" @0x40+1 = "0"
+      integer "[9]" "unsigned char" @0x41+1 = "0"
+      integer "[10]" "unsigned char" @0x42+1 = "0"
+      integer "[11]" "unsigned char" @0x43+1 = "0"
+      integer "[12]" "unsigned char" @0x44+1 = "0"
+      integer "[13]" "unsigned char" @0x45+1 = "0"
+      integer "[14]" "unsigned char" @0x46+1 = "0"
+      integer "[15]" "unsigned char" @0x47+1 = "0"
+    integer "Spare0" "unsigned long" @0x88+4 = "0"
+  integer "SegGs" "unsigned long" @0x8c+4 = "0"
+  integer "SegFs" "unsigned long" @0x90+4 = "0"
+  integer "SegEs" "unsigned long" @0x94+4 = "0"
+  integer "SegDs" "unsigned long" @0x98+4 = "0"
+  integer "Edi" "unsigned long" @0x9c+4 = "0"
+  integer "Esi" "unsigned long" @0xa0+4 = "0"
+  integer "Ebx" "unsigned long" @0xa4+4 = "0"
+  integer "Edx" "unsigned long" @0xa8+4 = "0"
+  integer "Ecx" "unsigned long" @0xac+4 = "0"
+  integer "Eax" "unsigned long" @0xb0+4 = "0"
+  integer "Ebp" "unsigned long" @0xb4+4 = "0"
+  integer "Eip" "unsigned long" @0xb8+4 = "0"
+  integer "SegCs" "unsigned long" @0xbc+4 = "0"
+  integer "EFlags" "unsigned long" @0xc0+4 = "0"
+  integer "Esp" "unsigned long" @0xc4+4 = "0"
+  integer "SegSs" "unsigned long" @0xc8+4 = "0"
+  array "ExtendedRegisters" "unsigned char[512]" @0xcc+512 = "\"\"" (+496 elided)
+    integer "[0]" "unsigned char" @0xcc+1 = "0"
+    integer "[1]" "unsigned char" @0xcd+1 = "0"
+    integer "[2]" "unsigned char" @0xce+1 = "0"
+    integer "[3]" "unsigned char" @0xcf+1 = "0"
+    integer "[4]" "unsigned char" @0xd0+1 = "0"
+    integer "[5]" "unsigned char" @0xd1+1 = "0"
+    integer "[6]" "unsigned char" @0xd2+1 = "0"
+    integer "[7]" "unsigned char" @0xd3+1 = "0"
+    integer "[8]" "unsigned char" @0xd4+1 = "0"
+    integer "[9]" "unsigned char" @0xd5+1 = "0"
+    integer "[10]" "unsigned char" @0xd6+1 = "0"
+    integer "[11]" "unsigned char" @0xd7+1 = "0"
+    integer "[12]" "unsigned char" @0xd8+1 = "0"
+    integer "[13]" "unsigned char" @0xd9+1 = "0"
+    integer "[14]" "unsigned char" @0xda+1 = "0"
+    integer "[15]" "unsigned char" @0xdb+1 = "0"
+## __type_info_root_node @0x4350
+struct "" "__type_info_node" @0x0+8
+  union "_Header" "_SLIST_HEADER" @0x0+8
+    integer "Alignment" "unsigned __int64" @0x0+8 = "0"
+    struct "Next" "_SINGLE_LIST_ENTRY" @0x0+4
+      pointer "Next" "_SINGLE_LIST_ENTRY *" @0x0+4 = "nullptr"
+    integer "Depth" "unsigned short" @0x4+2 = "0"
+    integer "CpuId" "unsigned short" @0x6+2 = "0"
+## _OptionsStorage @0x4358
+integer "" "unsigned __int64" @0x0+8 = "0"
+## _OptionsStorage @0x4360
+integer "" "unsigned __int64" @0x0+8 = "0"
+## __scrt_current_native_startup_state @0x4368
+enum "" "__scrt_native_startup_state" @0x0+4 = "uninitialized (0)"
+## __scrt_native_startup_lock @0x436c
+pointer "" "void*" @0x0+4 = "nullptr"
+## is_initialized_as_dll @0x4370
+bool "" "bool" @0x0+1 = "false"
+## module_local_atexit_table_initialized @0x4371
+bool "" "bool" @0x0+1 = "false"
+## module_local_atexit_table @0x4374
+struct "" "_onexit_table_t" @0x0+12
+  pointer "_first" "void () * *" @0x0+4 = "nullptr"
+  pointer "_last" "void () * *" @0x4+4 = "nullptr"
+  pointer "_end" "void () * *" @0x8+4 = "nullptr"
+## module_local_at_quick_exit_table @0x4380
+struct "" "_onexit_table_t" @0x0+12
+  pointer "_first" "void () * *" @0x0+4 = "nullptr"
+  pointer "_last" "void () * *" @0x4+4 = "nullptr"
+  pointer "_end" "void () * *" @0x8+4 = "nullptr"
+## __scrt_debugger_hook_flag @0x438c
+integer "" "int" @0x0+4 = "0"
+## __castguard_check_failure_os_handled_fptr @0x4390
+pointer "" "volatile void (void*) *" @0x0+4 = "nullptr"
+## __castguard_check_failure_os_handled_fptr @0x4390
+pointer "" "void (void*) * volatile" @0x0+4 = "nullptr"
+## __isa_available @0x4394
+integer "" "int" @0x0+4 = "0"
+## __favor @0x4398
+integer "" "int" @0x0+4 = "0"
+## DloadKernel32 @0x43a0
+pointer "" "HINSTANCE__ *" @0x0+4 = "nullptr"
+## DloadAcquireSRWLockExclusive @0x43a4
+pointer "" "void (unsigned long*) *" @0x0+4 = "nullptr"
+## DloadReleaseSRWLockExclusive @0x43a8
+pointer "" "void (unsigned long*) *" @0x0+4 = "nullptr"
+## DloadSrwLock @0x43ac
+integer "" "unsigned long" @0x0+4 = "0"
+## DloadSectionLockCount @0x43b0
+integer "" "unsigned long" @0x0+4 = "0"
+## DloadSectionOldProtection @0x43b4
+integer "" "unsigned long" @0x0+4 = "0"
+## DloadSectionCommitPermanent @0x43b8
+integer "" "unsigned long" @0x0+4 = "0"
+## __@@_PchSym_@00@UivklhUhravyvmxsRtrgsfyRkirhgrmvUhixUgvhgkvkilqvxghUkvkzihviOgvhghOwoocIGUhixUgvhgkvhUhgwzucOlyq@4B2008FD98C1DD4 @0x43bc
+integer "" "int" @0x0+4 = "0"
+## __DebuggerCurrentSteppingThreadId @0x43c0
+integer "" "unsigned long" @0x0+4 = "0"
+## __dyn_tls_init_callback @0x43c4
+pointer "" "void (void*, unsigned long, void*) * const" @0x0+4 = "nullptr"
+## _B2D2BA86_ctype@h @0x5000
+integer "" "unsigned char" @0x0+1 = "1"
+## _79C7FC57_basetsd@h @0x5001
+integer "" "unsigned char" @0x0+1 = "1"
+## _1FEB9909_corecrt_memcpy_s@h @0x5002
+integer "" "unsigned char" @0x0+1 = "1"
+## _A751F051_corecrt_memory@h @0x5003
+integer "" "unsigned char" @0x0+1 = "1"
+## _9200769A_corecrt_wstring@h @0x5004
+integer "" "unsigned char" @0x0+1 = "1"
+## _32E5F013_string@h @0x5005
+integer "" "unsigned char" @0x0+1 = "1"
+## _D545DD43_guiddef@h @0x5006
+integer "" "unsigned char" @0x0+1 = "1"
+## _D5DDFBF3_winnt@h @0x5007
+integer "" "unsigned char" @0x0+1 = "1"
+## _439612F0_processthreadsapi@h @0x5008
+integer "" "unsigned char" @0x0+1 = "1"
+## _5733279A_memoryapi@h @0x5009
+integer "" "unsigned char" @0x0+1 = "1"
+## _D4435474_winerror@h @0x500a
+integer "" "unsigned char" @0x0+1 = "1"
+## _B3ED30D4_winbase@h @0x500b
+integer "" "unsigned char" @0x0+1 = "1"
+## _DB057BA3_winuser@h @0x500c
+integer "" "unsigned char" @0x0+1 = "1"
+## _A118E6DC_stralign@h @0x500d
+integer "" "unsigned char" @0x0+1 = "1"
+## _39258608_dllmain@cpp @0x500e
+integer "" "unsigned char" @0x0+1 = "1"
+## _7DD4B90B_stdafx@h @0x500f
+integer "" "unsigned char" @0x0+1 = "1"
+## _2D7E5170_PEParser@Tests@Dllx86@pch @0x5010
+integer "" "unsigned char" @0x0+1 = "1"
+## _2D7E5170_PEParser@Tests@Dllx86@pch @0x5011
+integer "" "unsigned char" @0x0+1 = "1"
+## _B2D2BA86_ctype@h @0x5012
+integer "" "unsigned char" @0x0+1 = "1"
+## _79C7FC57_basetsd@h @0x5013
+integer "" "unsigned char" @0x0+1 = "1"
+## _1FEB9909_corecrt_memcpy_s@h @0x5014
+integer "" "unsigned char" @0x0+1 = "1"
+## _A751F051_corecrt_memory@h @0x5015
+integer "" "unsigned char" @0x0+1 = "1"
+## _9200769A_corecrt_wstring@h @0x5016
+integer "" "unsigned char" @0x0+1 = "1"
+## _32E5F013_string@h @0x5017
+integer "" "unsigned char" @0x0+1 = "1"
+## _D545DD43_guiddef@h @0x5018
+integer "" "unsigned char" @0x0+1 = "1"
+## _D5DDFBF3_winnt@h @0x5019
+integer "" "unsigned char" @0x0+1 = "1"
+## _439612F0_processthreadsapi@h @0x501a
+integer "" "unsigned char" @0x0+1 = "1"
+## _5733279A_memoryapi@h @0x501b
+integer "" "unsigned char" @0x0+1 = "1"
+## _D4435474_winerror@h @0x501c
+integer "" "unsigned char" @0x0+1 = "1"
+## _B3ED30D4_winbase@h @0x501d
+integer "" "unsigned char" @0x0+1 = "1"
+## _DB057BA3_winuser@h @0x501e
+integer "" "unsigned char" @0x0+1 = "1"
+## _A118E6DC_stralign@h @0x501f
+integer "" "unsigned char" @0x0+1 = "1"

@@ -1,0 +1,752 @@
+
+Starting pass 1
+Processed /DEFAULTLIB:MSVCRT
+Processed /DEFAULTLIB:OLDNAMES
+
+Searching libraries
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\MSVCRT.lib:
+      Found "const type_info::`vftable'" (??_7type_info@@6B@)
+        Referenced in main.obj
+        Referenced in dead.obj
+        Loaded MSVCRT.lib(std_type_info_static.obj)
+      Found "void * __cdecl operator new(unsigned __int64)" (??2@YAPEAX_K@Z)
+        Referenced in main.obj
+        Loaded MSVCRT.lib(new_scalar.obj)
+      Found "void __cdecl operator delete(void *,unsigned __int64)" (??3@YAXPEAX_K@Z)
+        Referenced in main.obj
+        Referenced in dead.obj
+        Referenced in MSVCRT.lib(std_type_info_static.obj)
+        Loaded MSVCRT.lib(delete_scalar_size.obj)
+      Found atexit
+        Referenced in main.obj
+        Loaded MSVCRT.lib(utility.obj)
+      Found _fltused
+        Referenced in main.obj
+        Referenced in dead.obj
+        Loaded MSVCRT.lib(fltused.obj)
+      Found mainCRTStartup
+        Loaded MSVCRT.lib(exe_main.obj)
+      Found "void __cdecl __scrt_throw_std_bad_alloc(void)" (?__scrt_throw_std_bad_alloc@@YAXXZ)
+        Referenced in MSVCRT.lib(new_scalar.obj)
+        Loaded MSVCRT.lib(throw_bad_alloc.obj)
+      Found "void __cdecl operator delete(void *)" (??3@YAXPEAX@Z)
+        Referenced in MSVCRT.lib(delete_scalar_size.obj)
+        Loaded MSVCRT.lib(delete_scalar.obj)
+      Found __isa_available_init
+        Referenced in MSVCRT.lib(utility.obj)
+        Loaded MSVCRT.lib(cpu_disp.obj)
+      Found _get_startup_argv_mode
+        Referenced in MSVCRT.lib(utility.obj)
+        Referenced in MSVCRT.lib(exe_main.obj)
+        Loaded MSVCRT.lib(argv_mode.obj)
+      Found __scrt_is_ucrt_dll_in_use
+        Referenced in MSVCRT.lib(utility.obj)
+        Loaded MSVCRT.lib(ucrt_detection.obj)
+      Found __scrt_fastfail
+        Referenced in MSVCRT.lib(utility.obj)
+        Referenced in MSVCRT.lib(exe_main.obj)
+        Loaded MSVCRT.lib(utility_desktop.obj)
+      Found __guard_dispatch_icall_fptr
+        Referenced in MSVCRT.lib(utility.obj)
+        Referenced in MSVCRT.lib(exe_main.obj)
+        Loaded MSVCRT.lib(guard_support.obj)
+      Found __security_init_cookie
+        Referenced in MSVCRT.lib(exe_main.obj)
+        Loaded MSVCRT.lib(gs_support.obj)
+      Found _matherr
+        Referenced in MSVCRT.lib(exe_main.obj)
+        Loaded MSVCRT.lib(matherr.obj)
+      Found _get_startup_commit_mode
+        Referenced in MSVCRT.lib(exe_main.obj)
+        Loaded MSVCRT.lib(commit_mode.obj)
+      Found _get_startup_file_mode
+        Referenced in MSVCRT.lib(exe_main.obj)
+        Loaded MSVCRT.lib(file_mode.obj)
+      Found _get_startup_new_mode
+        Referenced in MSVCRT.lib(exe_main.obj)
+        Loaded MSVCRT.lib(new_mode.obj)
+      Found _get_startup_thread_locale_mode
+        Referenced in MSVCRT.lib(exe_main.obj)
+        Loaded MSVCRT.lib(thread_locale.obj)
+      Found "void __cdecl __scrt_initialize_type_info(void)" (?__scrt_initialize_type_info@@YAXXZ)
+        Referenced in MSVCRT.lib(exe_main.obj)
+        Loaded MSVCRT.lib(tncleanup.obj)
+      Found _should_initialize_environment
+        Referenced in MSVCRT.lib(exe_main.obj)
+        Loaded MSVCRT.lib(env_mode.obj)
+      Found _initialize_invalid_parameter_handler
+        Referenced in MSVCRT.lib(exe_main.obj)
+        Loaded MSVCRT.lib(invalid_parameter_handler.obj)
+      Found _initialize_denormal_control
+        Referenced in MSVCRT.lib(exe_main.obj)
+        Loaded MSVCRT.lib(denormal_control.obj)
+      Found __scrt_initialize_default_local_stdio_options
+        Referenced in MSVCRT.lib(exe_main.obj)
+        Loaded MSVCRT.lib(default_local_stdio_options.obj)
+      Found __scrt_is_user_matherr_present
+        Referenced in MSVCRT.lib(exe_main.obj)
+        Loaded MSVCRT.lib(matherr_detection.obj)
+      Found __scrt_get_dyn_tls_init_callback
+        Referenced in MSVCRT.lib(exe_main.obj)
+        Loaded MSVCRT.lib(dyn_tls_init.obj)
+      Found __scrt_get_dyn_tls_dtor_callback
+        Referenced in MSVCRT.lib(exe_main.obj)
+        Loaded MSVCRT.lib(dyn_tls_dtor.obj)
+      Found _RTC_Initialize
+        Referenced in MSVCRT.lib(exe_main.obj)
+        Loaded MSVCRT.lib(initsect.obj)
+      Found __xi_a
+        Referenced in MSVCRT.lib(exe_main.obj)
+        Loaded MSVCRT.lib(initializers.obj)
+Processed /DEFAULTLIB:kernel32.lib
+ Processed /DISALLOWLIB:msvcrtd.lib
+ Processed /DISALLOWLIB:libcmt.lib
+ Processed /DISALLOWLIB:libcmtd.lib
+Processed /DEFAULTLIB:vcruntime.lib
+ Processed /DISALLOWLIB:vcruntimed.lib
+ Processed /DISALLOWLIB:libvcruntime.lib
+ Processed /DISALLOWLIB:libvcruntimed.lib
+Processed /DEFAULTLIB:ucrt.lib
+ Processed /DISALLOWLIB:ucrtd.lib
+ Processed /DISALLOWLIB:libucrt.lib
+ Processed /DISALLOWLIB:libucrtd.lib
+      Found _guard_dispatch_icall_nop
+        Referenced in MSVCRT.lib(guard_support.obj)
+        Loaded MSVCRT.lib(guard_dispatch.obj)
+      Found _guard_xfg_dispatch_icall_nop
+        Referenced in MSVCRT.lib(guard_support.obj)
+        Loaded MSVCRT.lib(guard_xfg_dispatch.obj)
+      Found __security_cookie
+        Referenced in MSVCRT.lib(gs_support.obj)
+        Loaded MSVCRT.lib(gs_cookie.obj)
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\OLDNAMES.lib:
+    Searching C:\Program Files (x86)\Windows Kits\10\\lib\10.0.26100.0\\um\x64\kernel32.lib:
+      Found __imp_SetUnhandledExceptionFilter
+        Referenced in MSVCRT.lib(utility_desktop.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_GetStartupInfoW
+        Referenced in MSVCRT.lib(utility_desktop.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_GetModuleHandleW
+        Referenced in MSVCRT.lib(utility_desktop.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_QueryPerformanceCounter
+        Referenced in MSVCRT.lib(gs_support.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_GetCurrentProcessId
+        Referenced in MSVCRT.lib(gs_support.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_GetCurrentThreadId
+        Referenced in MSVCRT.lib(gs_support.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_GetSystemTimeAsFileTime
+        Referenced in MSVCRT.lib(gs_support.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_InitializeSListHead
+        Referenced in MSVCRT.lib(tncleanup.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __IMPORT_DESCRIPTOR_KERNEL32
+        Referenced in kernel32.lib(KERNEL32.dll)
+        Referenced in kernel32.lib(KERNEL32.dll)
+        Referenced in kernel32.lib(KERNEL32.dll)
+        Referenced in kernel32.lib(KERNEL32.dll)
+        Referenced in kernel32.lib(KERNEL32.dll)
+        Referenced in kernel32.lib(KERNEL32.dll)
+        Referenced in kernel32.lib(KERNEL32.dll)
+        Referenced in kernel32.lib(KERNEL32.dll)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __NULL_IMPORT_DESCRIPTOR
+        Referenced in kernel32.lib(KERNEL32.dll)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found KERNEL32_NULL_THUNK_DATA
+        Referenced in kernel32.lib(KERNEL32.dll)
+        Loaded kernel32.lib(KERNEL32.dll)
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\vcruntime.lib:
+      Found _purecall
+        Referenced in main.obj
+        Referenced in dead.obj
+        Loaded vcruntime.lib(VCRUNTIME140.dll)
+      Found __C_specific_handler
+        Referenced in MSVCRT.lib(utility.obj)
+        Referenced in MSVCRT.lib(exe_main.obj)
+        Loaded vcruntime.lib(VCRUNTIME140.dll)
+      Found __std_exception_copy
+        Referenced in MSVCRT.lib(throw_bad_alloc.obj)
+        Loaded vcruntime.lib(VCRUNTIME140.dll)
+      Found __std_exception_destroy
+        Referenced in MSVCRT.lib(throw_bad_alloc.obj)
+        Loaded vcruntime.lib(VCRUNTIME140.dll)
+      Found _CxxThrowException
+        Referenced in MSVCRT.lib(throw_bad_alloc.obj)
+        Loaded vcruntime.lib(VCRUNTIME140.dll)
+      Found __current_exception
+        Referenced in MSVCRT.lib(utility_desktop.obj)
+        Loaded vcruntime.lib(VCRUNTIME140.dll)
+      Found __current_exception_context
+        Referenced in MSVCRT.lib(utility_desktop.obj)
+        Loaded vcruntime.lib(VCRUNTIME140.dll)
+      Found __std_type_info_destroy_list
+        Referenced in MSVCRT.lib(tncleanup.obj)
+        Loaded vcruntime.lib(VCRUNTIME140.dll)
+      Found __IMPORT_DESCRIPTOR_VCRUNTIME140
+        Referenced in vcruntime.lib(VCRUNTIME140.dll)
+        Referenced in vcruntime.lib(VCRUNTIME140.dll)
+        Referenced in vcruntime.lib(VCRUNTIME140.dll)
+        Referenced in vcruntime.lib(VCRUNTIME140.dll)
+        Referenced in vcruntime.lib(VCRUNTIME140.dll)
+        Referenced in vcruntime.lib(VCRUNTIME140.dll)
+        Referenced in vcruntime.lib(VCRUNTIME140.dll)
+        Referenced in vcruntime.lib(VCRUNTIME140.dll)
+        Loaded vcruntime.lib(VCRUNTIME140.dll)
+      Found VCRUNTIME140_NULL_THUNK_DATA
+        Referenced in vcruntime.lib(VCRUNTIME140.dll)
+        Loaded vcruntime.lib(VCRUNTIME140.dll)
+    Searching C:\Program Files (x86)\Windows Kits\10\lib\10.0.26100.0\ucrt\x64\ucrt.lib:
+      Found __imp___acrt_iob_func
+        Referenced in main.obj
+        Loaded ucrt.lib(api-ms-win-crt-stdio-l1-1-0.dll)
+      Found __imp_puts
+        Referenced in main.obj
+        Loaded ucrt.lib(api-ms-win-crt-stdio-l1-1-0.dll)
+      Found __imp___stdio_common_vfprintf
+        Referenced in main.obj
+        Loaded ucrt.lib(api-ms-win-crt-stdio-l1-1-0.dll)
+      Found _callnewh
+        Referenced in MSVCRT.lib(new_scalar.obj)
+        Loaded ucrt.lib(api-ms-win-crt-heap-l1-1-0.dll)
+      Found malloc
+        Referenced in MSVCRT.lib(new_scalar.obj)
+        Loaded ucrt.lib(api-ms-win-crt-heap-l1-1-0.dll)
+      Found _seh_filter_dll
+        Referenced in MSVCRT.lib(utility.obj)
+        Loaded ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+      Found _configure_narrow_argv
+        Referenced in MSVCRT.lib(utility.obj)
+        Referenced in MSVCRT.lib(exe_main.obj)
+        Loaded ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+      Found _initialize_narrow_environment
+        Referenced in MSVCRT.lib(utility.obj)
+        Referenced in MSVCRT.lib(exe_main.obj)
+        Loaded ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+      Found _initialize_onexit_table
+        Referenced in MSVCRT.lib(utility.obj)
+        Loaded ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+      Found _register_onexit_function
+        Referenced in MSVCRT.lib(utility.obj)
+        Loaded ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+      Found _execute_onexit_table
+        Referenced in MSVCRT.lib(utility.obj)
+        Loaded ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+      Found _crt_atexit
+        Referenced in MSVCRT.lib(utility.obj)
+        Loaded ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+      Found _crt_at_quick_exit
+        Referenced in MSVCRT.lib(utility.obj)
+        Loaded ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+      Found _cexit
+        Referenced in MSVCRT.lib(utility.obj)
+        Referenced in MSVCRT.lib(exe_main.obj)
+        Loaded ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+      Found _seh_filter_exe
+        Referenced in MSVCRT.lib(exe_main.obj)
+        Loaded ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+      Found _set_app_type
+        Referenced in MSVCRT.lib(exe_main.obj)
+        Loaded ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+      Found __setusermatherr
+        Referenced in MSVCRT.lib(exe_main.obj)
+        Loaded ucrt.lib(api-ms-win-crt-math-l1-1-0.dll)
+      Found _get_initial_narrow_environment
+        Referenced in MSVCRT.lib(exe_main.obj)
+        Loaded ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+      Found _initterm
+        Referenced in MSVCRT.lib(exe_main.obj)
+        Loaded ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+      Found _initterm_e
+        Referenced in MSVCRT.lib(exe_main.obj)
+        Loaded ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+      Found exit
+        Referenced in MSVCRT.lib(exe_main.obj)
+        Loaded ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+      Found _exit
+        Referenced in MSVCRT.lib(exe_main.obj)
+        Loaded ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+      Found _set_fmode
+        Referenced in MSVCRT.lib(exe_main.obj)
+        Loaded ucrt.lib(api-ms-win-crt-stdio-l1-1-0.dll)
+      Found __p___argc
+        Referenced in MSVCRT.lib(exe_main.obj)
+        Loaded ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+      Found __p___argv
+        Referenced in MSVCRT.lib(exe_main.obj)
+        Loaded ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+      Found _c_exit
+        Referenced in MSVCRT.lib(exe_main.obj)
+        Loaded ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+      Found _register_thread_local_exe_atexit_callback
+        Referenced in MSVCRT.lib(exe_main.obj)
+        Loaded ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+      Found _configthreadlocale
+        Referenced in MSVCRT.lib(exe_main.obj)
+        Loaded ucrt.lib(api-ms-win-crt-locale-l1-1-0.dll)
+      Found _set_new_mode
+        Referenced in MSVCRT.lib(exe_main.obj)
+        Loaded ucrt.lib(api-ms-win-crt-heap-l1-1-0.dll)
+      Found __p__commode
+        Referenced in MSVCRT.lib(exe_main.obj)
+        Loaded ucrt.lib(api-ms-win-crt-stdio-l1-1-0.dll)
+      Found free
+        Referenced in MSVCRT.lib(delete_scalar.obj)
+        Loaded ucrt.lib(api-ms-win-crt-heap-l1-1-0.dll)
+      Found terminate
+        Referenced in MSVCRT.lib(utility_desktop.obj)
+        Loaded ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+      Found __IMPORT_DESCRIPTOR_api-ms-win-crt-stdio-l1-1-0
+        Referenced in ucrt.lib(api-ms-win-crt-stdio-l1-1-0.dll)
+        Referenced in ucrt.lib(api-ms-win-crt-stdio-l1-1-0.dll)
+        Referenced in ucrt.lib(api-ms-win-crt-stdio-l1-1-0.dll)
+        Referenced in ucrt.lib(api-ms-win-crt-stdio-l1-1-0.dll)
+        Referenced in ucrt.lib(api-ms-win-crt-stdio-l1-1-0.dll)
+        Loaded ucrt.lib(api-ms-win-crt-stdio-l1-1-0.dll)
+      Found __IMPORT_DESCRIPTOR_api-ms-win-crt-heap-l1-1-0
+        Referenced in ucrt.lib(api-ms-win-crt-heap-l1-1-0.dll)
+        Referenced in ucrt.lib(api-ms-win-crt-heap-l1-1-0.dll)
+        Referenced in ucrt.lib(api-ms-win-crt-heap-l1-1-0.dll)
+        Referenced in ucrt.lib(api-ms-win-crt-heap-l1-1-0.dll)
+        Loaded ucrt.lib(api-ms-win-crt-heap-l1-1-0.dll)
+      Found __IMPORT_DESCRIPTOR_api-ms-win-crt-runtime-l1-1-0
+        Referenced in ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+        Referenced in ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+        Referenced in ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+        Referenced in ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+        Referenced in ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+        Referenced in ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+        Referenced in ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+        Referenced in ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+        Referenced in ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+        Referenced in ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+        Referenced in ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+        Referenced in ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+        Referenced in ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+        Referenced in ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+        Referenced in ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+        Referenced in ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+        Referenced in ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+        Referenced in ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+        Referenced in ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+        Referenced in ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+        Referenced in ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+        Loaded ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+      Found __IMPORT_DESCRIPTOR_api-ms-win-crt-math-l1-1-0
+        Referenced in ucrt.lib(api-ms-win-crt-math-l1-1-0.dll)
+        Loaded ucrt.lib(api-ms-win-crt-math-l1-1-0.dll)
+      Found __IMPORT_DESCRIPTOR_api-ms-win-crt-locale-l1-1-0
+        Referenced in ucrt.lib(api-ms-win-crt-locale-l1-1-0.dll)
+        Loaded ucrt.lib(api-ms-win-crt-locale-l1-1-0.dll)
+      Found api-ms-win-crt-stdio-l1-1-0_NULL_THUNK_DATA
+        Referenced in ucrt.lib(api-ms-win-crt-stdio-l1-1-0.dll)
+        Loaded ucrt.lib(api-ms-win-crt-stdio-l1-1-0.dll)
+      Found api-ms-win-crt-heap-l1-1-0_NULL_THUNK_DATA
+        Referenced in ucrt.lib(api-ms-win-crt-heap-l1-1-0.dll)
+        Loaded ucrt.lib(api-ms-win-crt-heap-l1-1-0.dll)
+      Found api-ms-win-crt-runtime-l1-1-0_NULL_THUNK_DATA
+        Referenced in ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+        Loaded ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+      Found api-ms-win-crt-math-l1-1-0_NULL_THUNK_DATA
+        Referenced in ucrt.lib(api-ms-win-crt-math-l1-1-0.dll)
+        Loaded ucrt.lib(api-ms-win-crt-math-l1-1-0.dll)
+      Found api-ms-win-crt-locale-l1-1-0_NULL_THUNK_DATA
+        Referenced in ucrt.lib(api-ms-win-crt-locale-l1-1-0.dll)
+        Loaded ucrt.lib(api-ms-win-crt-locale-l1-1-0.dll)
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\MSVCRT.lib:
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\OLDNAMES.lib:
+    Searching C:\Program Files (x86)\Windows Kits\10\\lib\10.0.26100.0\\um\x64\kernel32.lib:
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\vcruntime.lib:
+
+Finished searching libraries
+
+Generating .exp file
+   Creating library xref-x64.lib and object xref-x64.exp
+
+Finished generating .exp file
+
+Searching libraries
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\MSVCRT.lib:
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\OLDNAMES.lib:
+    Searching C:\Program Files (x86)\Windows Kits\10\\lib\10.0.26100.0\\um\x64\kernel32.lib:
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\vcruntime.lib:
+    Searching C:\Program Files (x86)\Windows Kits\10\lib\10.0.26100.0\ucrt\x64\ucrt.lib:
+
+Finished searching libraries
+
+Searching libraries
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\MSVCRT.lib:
+      Found __scrt_stub_for_acrt_initialize
+        Loaded MSVCRT.lib(ucrt_stubs.obj)
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\OLDNAMES.lib:
+    Searching C:\Program Files (x86)\Windows Kits\10\\lib\10.0.26100.0\\um\x64\kernel32.lib:
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\vcruntime.lib:
+    Searching C:\Program Files (x86)\Windows Kits\10\lib\10.0.26100.0\ucrt\x64\ucrt.lib:
+
+Finished searching libraries
+
+Searching libraries
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\MSVCRT.lib:
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\OLDNAMES.lib:
+    Searching C:\Program Files (x86)\Windows Kits\10\\lib\10.0.26100.0\\um\x64\kernel32.lib:
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\vcruntime.lib:
+    Searching C:\Program Files (x86)\Windows Kits\10\lib\10.0.26100.0\ucrt\x64\ucrt.lib:
+
+Finished searching libraries
+
+Searching libraries
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\MSVCRT.lib:
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\OLDNAMES.lib:
+    Searching C:\Program Files (x86)\Windows Kits\10\\lib\10.0.26100.0\\um\x64\kernel32.lib:
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\vcruntime.lib:
+    Searching C:\Program Files (x86)\Windows Kits\10\lib\10.0.26100.0\ucrt\x64\ucrt.lib:
+
+Finished searching libraries
+
+Finished pass 1
+
+
+Searching libraries
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\MSVCRT.lib:
+      Found _load_config_used
+        Loaded MSVCRT.lib(loadcfg.obj)
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\OLDNAMES.lib:
+    Searching C:\Program Files (x86)\Windows Kits\10\\lib\10.0.26100.0\\um\x64\kernel32.lib:
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\vcruntime.lib:
+      Found __guard_memcpy_fptr
+        Referenced in MSVCRT.lib(loadcfg.obj)
+        Loaded vcruntime.lib(softmemtag.obj)
+      Found memcpy
+        Referenced in vcruntime.lib(softmemtag.obj)
+        Loaded vcruntime.lib(VCRUNTIME140.dll)
+
+Finished searching libraries
+
+
+Unused libraries:
+  C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\OLDNAMES.lib
+
+    Discarded __CastGuardVftablesStart from MSVCRT.lib(guard_support.obj)
+    Discarded __CastGuardVftablesEnd from MSVCRT.lib(guard_support.obj)
+    Discarded $unwind$_vfprintf_l from main.obj
+    Discarded $unwind$_onexit from MSVCRT.lib(utility.obj)
+    Discarded $unwind$__scrt_dllmain_exception_filter from MSVCRT.lib(utility.obj)
+    Discarded $unwind$__scrt_dllmain_before_initialize_c from MSVCRT.lib(utility.obj)
+    Discarded $unwind$__scrt_dllmain_after_initialize_c from MSVCRT.lib(utility.obj)
+    Discarded $unwind$__scrt_dllmain_uninitialize_c from MSVCRT.lib(utility.obj)
+    Discarded $unwind$__scrt_dllmain_uninitialize_critical from MSVCRT.lib(utility.obj)
+    Discarded $unwind$__scrt_dllmain_crt_thread_attach from MSVCRT.lib(utility.obj)
+    Discarded $unwind$__scrt_dllmain_crt_thread_detach from MSVCRT.lib(utility.obj)
+    Discarded $unwind$?configure_argv@__scrt_narrow_argv_policy@@SAHXZ from MSVCRT.lib(utility.obj)
+    Discarded $unwind$?set_fmode@__scrt_file_policy@@SAXXZ from MSVCRT.lib(exe_main.obj)
+    Discarded $unwind$?set_commode@__scrt_file_policy@@SAXXZ from MSVCRT.lib(exe_main.obj)
+    Discarded $unwind$?invoke_main@@YAHXZ from MSVCRT.lib(exe_main.obj)
+    Discarded $unwind$?__scrt_common_main@@YAHXZ from MSVCRT.lib(exe_main.obj)
+    Discarded $unwind$__scrt_get_show_window_mode from MSVCRT.lib(utility_desktop.obj)
+    Discarded $unwind$__get_entropy from MSVCRT.lib(gs_support.obj)
+    Discarded __castguard_check_failure_user_handled_fptr from MSVCRT.lib(guard_support.obj)
+    Discarded $pdata$_vfprintf_l from main.obj
+    Discarded $pdata$_onexit from MSVCRT.lib(utility.obj)
+    Discarded $pdata$__scrt_dllmain_exception_filter from MSVCRT.lib(utility.obj)
+    Discarded $pdata$__scrt_dllmain_before_initialize_c from MSVCRT.lib(utility.obj)
+    Discarded $pdata$__scrt_dllmain_after_initialize_c from MSVCRT.lib(utility.obj)
+    Discarded $pdata$__scrt_dllmain_uninitialize_c from MSVCRT.lib(utility.obj)
+    Discarded $pdata$__scrt_dllmain_uninitialize_critical from MSVCRT.lib(utility.obj)
+    Discarded $pdata$__scrt_dllmain_crt_thread_attach from MSVCRT.lib(utility.obj)
+    Discarded $pdata$__scrt_dllmain_crt_thread_detach from MSVCRT.lib(utility.obj)
+    Discarded $pdata$?configure_argv@__scrt_narrow_argv_policy@@SAHXZ from MSVCRT.lib(utility.obj)
+    Discarded $pdata$?set_fmode@__scrt_file_policy@@SAXXZ from MSVCRT.lib(exe_main.obj)
+    Discarded $pdata$?set_commode@__scrt_file_policy@@SAXXZ from MSVCRT.lib(exe_main.obj)
+    Discarded $pdata$?invoke_main@@YAHXZ from MSVCRT.lib(exe_main.obj)
+    Discarded $pdata$?__scrt_common_main@@YAHXZ from MSVCRT.lib(exe_main.obj)
+    Discarded $pdata$__scrt_get_show_window_mode from MSVCRT.lib(utility_desktop.obj)
+    Discarded $pdata$__get_entropy from MSVCRT.lib(gs_support.obj)
+    Discarded '.idata$4' from kernel32.lib(KERNEL32.dll)
+    Discarded '.idata$4' from vcruntime.lib(VCRUNTIME140.dll)
+    Discarded '.idata$4' from ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+    Discarded '.idata$4' from ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+    Discarded '.idata$4' from ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+    Discarded __imp_GetStartupInfoW from kernel32.lib(KERNEL32.dll)
+    Discarded __imp___std_type_info_destroy_list from vcruntime.lib(VCRUNTIME140.dll)
+    Discarded __imp__crt_at_quick_exit from ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+    Discarded __imp__execute_onexit_table from ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+    Discarded __imp__seh_filter_dll from ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+    Discarded '.idata$6' from kernel32.lib(KERNEL32.dll)
+    Discarded '.idata$6' from vcruntime.lib(VCRUNTIME140.dll)
+    Discarded '.idata$6' from ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+    Discarded '.idata$6' from ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+    Discarded '.idata$6' from ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+    Discarded "public: __cdecl Shape::Shape(void)" (??0Shape@@QEAA@XZ) from main.obj
+    Discarded "public: virtual __cdecl Circle::~Circle(void)" (??1Circle@@UEAA@XZ) from main.obj
+    Discarded _vfprintf_l from main.obj
+    Discarded "public: virtual __cdecl Ghost::~Ghost(void)" (??1Ghost@@UEAA@XZ) from dead.obj
+    Discarded "public: virtual __cdecl type_info::~type_info(void)" (??1type_info@@UEAA@XZ) from MSVCRT.lib(std_type_info_static.obj)
+    Discarded "public: static int __cdecl __scrt_narrow_argv_policy::configure_argv(void)" (?configure_argv@__scrt_narrow_argv_policy@@SAHXZ) from MSVCRT.lib(utility.obj)
+    Discarded "struct _IMAGE_SECTION_HEADER * __cdecl find_pe_section(unsigned char * const,unsigned __int64)" (?find_pe_section@@YAPEAU_IMAGE_SECTION_HEADER@@QEAE_K@Z) from MSVCRT.lib(utility.obj)
+    Discarded "public: static int __cdecl __scrt_narrow_environment_policy::initialize_environment(void)" (?initialize_environment@__scrt_narrow_environment_policy@@SAHXZ) from MSVCRT.lib(utility.obj)
+    Discarded "bool __cdecl is_potentially_valid_image_base(void * const)" (?is_potentially_valid_image_base@@YA_NQEAX@Z) from MSVCRT.lib(utility.obj)
+    Discarded NtCurrentTeb from MSVCRT.lib(utility.obj)
+    Discarded __scrt_dllmain_after_initialize_c from MSVCRT.lib(utility.obj)
+    Discarded __scrt_dllmain_before_initialize_c from MSVCRT.lib(utility.obj)
+    Discarded __scrt_dllmain_crt_thread_attach from MSVCRT.lib(utility.obj)
+    Discarded __scrt_dllmain_crt_thread_detach from MSVCRT.lib(utility.obj)
+    Discarded __scrt_dllmain_exception_filter from MSVCRT.lib(utility.obj)
+    Discarded __scrt_dllmain_uninitialize_c from MSVCRT.lib(utility.obj)
+    Discarded __scrt_dllmain_uninitialize_critical from MSVCRT.lib(utility.obj)
+    Discarded _onexit from MSVCRT.lib(utility.obj)
+    Discarded at_quick_exit from MSVCRT.lib(utility.obj)
+    Discarded "int __cdecl __scrt_common_main(void)" (?__scrt_common_main@@YAHXZ) from MSVCRT.lib(exe_main.obj)
+    Discarded "int __cdecl invoke_main(void)" (?invoke_main@@YAHXZ) from MSVCRT.lib(exe_main.obj)
+    Discarded "public: static void __cdecl __scrt_main_policy::set_app_type(void)" (?set_app_type@__scrt_main_policy@@SAXXZ) from MSVCRT.lib(exe_main.obj)
+    Discarded "public: static void __cdecl __scrt_file_policy::set_commode(void)" (?set_commode@__scrt_file_policy@@SAXXZ) from MSVCRT.lib(exe_main.obj)
+    Discarded "public: static void __cdecl __scrt_file_policy::set_fmode(void)" (?set_fmode@__scrt_file_policy@@SAXXZ) from MSVCRT.lib(exe_main.obj)
+    Discarded "private: __cdecl std::bad_alloc::bad_alloc(char const * const)" (??0bad_alloc@std@@AEAA@QEBD@Z) from MSVCRT.lib(throw_bad_alloc.obj)
+    Discarded "public: __cdecl std::exception::exception(char const * const,int)" (??0exception@std@@QEAA@QEBDH@Z) from MSVCRT.lib(throw_bad_alloc.obj)
+    Discarded "public: virtual __cdecl std::exception::~exception(void)" (??1exception@std@@UEAA@XZ) from MSVCRT.lib(throw_bad_alloc.obj)
+    Discarded __crt_debugger_hook from MSVCRT.lib(utility_desktop.obj)
+    Discarded __scrt_get_show_window_mode from MSVCRT.lib(utility_desktop.obj)
+    Discarded ReadNoFence64 from MSVCRT.lib(guard_support.obj)
+    Discarded ReadPointerNoFence from MSVCRT.lib(guard_support.obj)
+    Discarded __castguard_check_failure_debugbreak from MSVCRT.lib(guard_support.obj)
+    Discarded __castguard_check_failure_fastfail from MSVCRT.lib(guard_support.obj)
+    Discarded __castguard_check_failure_nop from MSVCRT.lib(guard_support.obj)
+    Discarded __castguard_check_failure_os_handled from MSVCRT.lib(guard_support.obj)
+    Discarded __castguard_check_failure_os_handled_wrapper from MSVCRT.lib(guard_support.obj)
+    Discarded __castguard_check_failure_user_handled from MSVCRT.lib(guard_support.obj)
+    Discarded __castguard_check_failure_user_handled_wrapper from MSVCRT.lib(guard_support.obj)
+    Discarded __castguard_compat_check from MSVCRT.lib(guard_support.obj)
+    Discarded __castguard_set_user_handler from MSVCRT.lib(guard_support.obj)
+    Discarded __castguard_slow_path_check_debugbreak from MSVCRT.lib(guard_support.obj)
+    Discarded __castguard_slow_path_check_fastfail from MSVCRT.lib(guard_support.obj)
+    Discarded __castguard_slow_path_check_nop from MSVCRT.lib(guard_support.obj)
+    Discarded __castguard_slow_path_check_os_handled from MSVCRT.lib(guard_support.obj)
+    Discarded __castguard_slow_path_check_user_handled from MSVCRT.lib(guard_support.obj)
+    Discarded __castguard_slow_path_compat_check from MSVCRT.lib(guard_support.obj)
+    Discarded _guard_icall_checks_enforced from MSVCRT.lib(guard_support.obj)
+    Discarded _guard_rf_checks_enforced from MSVCRT.lib(guard_support.obj)
+    Discarded __get_entropy from MSVCRT.lib(gs_support.obj)
+    Discarded "void __cdecl __scrt_uninitialize_type_info(void)" (?__scrt_uninitialize_type_info@@YAXXZ) from MSVCRT.lib(tncleanup.obj)
+    Discarded SetUnhandledExceptionFilter from kernel32.lib(KERNEL32.dll)
+    Discarded GetStartupInfoW from kernel32.lib(KERNEL32.dll)
+    Discarded GetModuleHandleW from kernel32.lib(KERNEL32.dll)
+    Discarded QueryPerformanceCounter from kernel32.lib(KERNEL32.dll)
+    Discarded GetCurrentProcessId from kernel32.lib(KERNEL32.dll)
+    Discarded GetCurrentThreadId from kernel32.lib(KERNEL32.dll)
+    Discarded GetSystemTimeAsFileTime from kernel32.lib(KERNEL32.dll)
+    Discarded InitializeSListHead from kernel32.lib(KERNEL32.dll)
+    Discarded __std_type_info_destroy_list from vcruntime.lib(VCRUNTIME140.dll)
+    Discarded __acrt_iob_func from ucrt.lib(api-ms-win-crt-stdio-l1-1-0.dll)
+    Discarded puts from ucrt.lib(api-ms-win-crt-stdio-l1-1-0.dll)
+    Discarded __stdio_common_vfprintf from ucrt.lib(api-ms-win-crt-stdio-l1-1-0.dll)
+    Discarded _seh_filter_dll from ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+    Discarded _execute_onexit_table from ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+    Discarded _crt_at_quick_exit from ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+    Discarded __scrt_stub_for_acrt_thread_attach from MSVCRT.lib(ucrt_stubs.obj)
+    Discarded __scrt_stub_for_acrt_thread_detach from MSVCRT.lib(ucrt_stubs.obj)
+    Discarded __scrt_stub_for_acrt_uninitialize_critical from MSVCRT.lib(ucrt_stubs.obj)
+    Discarded __scrt_stub_for_is_c_termination_complete from MSVCRT.lib(ucrt_stubs.obj)
+
+    Selected symbol:
+        __scrt_initialize_winrt from MSVCRT.lib(utility_desktop.obj)
+    Replaced symbol(s):
+        _get_startup_new_mode from MSVCRT.lib(new_mode.obj)
+        _get_startup_thread_locale_mode from MSVCRT.lib(thread_locale.obj)
+        _matherr from MSVCRT.lib(matherr.obj)
+        __scrt_stub_for_initialize_mta from MSVCRT.lib(utility_desktop.obj)
+        _get_startup_commit_mode from MSVCRT.lib(commit_mode.obj)
+
+    Selected symbol:
+        _should_initialize_environment from MSVCRT.lib(env_mode.obj)
+    Replaced symbol(s):
+        __scrt_stub_for_acrt_uninitialize from MSVCRT.lib(ucrt_stubs.obj)
+        __scrt_stub_for_acrt_initialize from MSVCRT.lib(ucrt_stubs.obj)
+
+    Selected symbol:
+        _guard_check_icall_nop from MSVCRT.lib(guard_support.obj)
+    Replaced symbol(s):
+        _initialize_denormal_control from MSVCRT.lib(denormal_control.obj)
+        _initialize_invalid_parameter_handler from MSVCRT.lib(invalid_parameter_handler.obj)
+
+    Selected symbol:
+        "public: virtual __cdecl std::bad_alloc::~bad_alloc(void)" (??1bad_alloc@std@@UEAA@XZ) from MSVCRT.lib(throw_bad_alloc.obj)
+    Replaced symbol(s):
+        "public: virtual __cdecl std::bad_array_new_length::~bad_array_new_length(void)" (??1bad_array_new_length@std@@UEAA@XZ) from MSVCRT.lib(throw_bad_alloc.obj)
+
+    Selected symbol:
+        "public: virtual void * __cdecl std::bad_alloc::`scalar deleting destructor'(unsigned int)" (??_Gbad_alloc@std@@UEAAPEAXI@Z) from MSVCRT.lib(throw_bad_alloc.obj)
+    Replaced symbol(s):
+        "public: virtual void * __cdecl std::bad_array_new_length::`scalar deleting destructor'(unsigned int)" (??_Gbad_array_new_length@std@@UEAAPEAXI@Z) from MSVCRT.lib(throw_bad_alloc.obj)
+        "public: virtual void * __cdecl std::exception::`scalar deleting destructor'(unsigned int)" (??_Gexception@std@@UEAAPEAXI@Z) from MSVCRT.lib(throw_bad_alloc.obj)
+
+    Selected symbol:
+        "public: virtual void * __cdecl Shape::`scalar deleting destructor'(unsigned int)" (??_GShape@@UEAAPEAXI@Z) from main.obj
+    Replaced symbol(s):
+        "public: virtual void * __cdecl Ghost::`scalar deleting destructor'(unsigned int)" (??_GGhost@@UEAAPEAXI@Z) from dead.obj
+
+    Selected symbol:
+        $unwind$??_GShape@@UEAAPEAXI@Z from main.obj
+    Replaced symbol(s):
+        $unwind$??_GGhost@@UEAAPEAXI@Z from dead.obj
+        $unwind$_RTC_Initialize from MSVCRT.lib(initsect.obj)
+        $unwind$__scrt_unhandled_exception_filter from MSVCRT.lib(utility_desktop.obj)
+        $unwind$?outer@@YAHH@Z from main.obj
+        $unwind$??_Gexception@std@@UEAAPEAXI@Z from MSVCRT.lib(throw_bad_alloc.obj)
+        $unwind$??_GCircle@@UEAAPEAXI@Z from main.obj
+        $unwind$??_GSquare@@UEAAPEAXI@Z from main.obj
+        $unwind$_RTC_Terminate from MSVCRT.lib(initsect.obj)
+        $unwind$??_Gbad_array_new_length@std@@UEAAPEAXI@Z from MSVCRT.lib(throw_bad_alloc.obj)
+        $unwind$??_Gbad_alloc@std@@UEAAPEAXI@Z from MSVCRT.lib(throw_bad_alloc.obj)
+
+    Selected symbol:
+        $unwind$??__Eunit_circle@@YAXXZ from main.obj
+    Replaced symbol(s):
+        $unwind$__scrt_initialize_default_local_stdio_options from MSVCRT.lib(default_local_stdio_options.obj)
+        $unwind$mainCRTStartup from MSVCRT.lib(exe_main.obj)
+        $unwind$?post_pgo_initialization@@YAHXZ from MSVCRT.lib(exe_main.obj)
+        $unwind$?pre_cpp_initialization@@YAXXZ from MSVCRT.lib(exe_main.obj)
+        $unwind$__scrt_is_managed_app from MSVCRT.lib(utility_desktop.obj)
+        $unwind$__scrt_initialize_crt from MSVCRT.lib(utility.obj)
+        $unwind$__scrt_acquire_startup_lock from MSVCRT.lib(utility.obj)
+
+    Selected symbol:
+        $unwind$??1Square@@UEAA@XZ from main.obj
+    Replaced symbol(s):
+        $unwind$??_Gtype_info@@UEAAPEAXI@Z from MSVCRT.lib(std_type_info_static.obj)
+        $unwind$__scrt_initialize_onexit_tables from MSVCRT.lib(utility.obj)
+        $unwind$__scrt_uninitialize_crt from MSVCRT.lib(utility.obj)
+        $unwind$??0bad_array_new_length@std@@QEAA@AEBV01@@Z from MSVCRT.lib(throw_bad_alloc.obj)
+        $unwind$??0exception@std@@QEAA@AEBV01@@Z from MSVCRT.lib(throw_bad_alloc.obj)
+        $unwind$?make_shape@@YAPEAUShape@@H@Z from main.obj
+        $unwind$??0bad_alloc@std@@QEAA@AEBV01@@Z from MSVCRT.lib(throw_bad_alloc.obj)
+        $unwind$??2@YAPEAX_K@Z from MSVCRT.lib(new_scalar.obj)
+        $unwind$?pre_c_initialization@@YAHXZ from MSVCRT.lib(exe_main.obj)
+        $unwind$__scrt_release_startup_lock from MSVCRT.lib(utility.obj)
+        $unwind$atexit from MSVCRT.lib(utility.obj)
+
+    Selected symbol:
+        $unwind$?__scrt_throw_std_bad_alloc@@YAXXZ from MSVCRT.lib(throw_bad_alloc.obj)
+    Replaced symbol(s):
+        $unwind$?__scrt_throw_std_bad_array_new_length@@YAXXZ from MSVCRT.lib(throw_bad_alloc.obj)
+
+    Selected symbol:
+        $pdata$??_GShape@@UEAAPEAXI@Z from main.obj
+    Replaced symbol(s):
+        $pdata$??_GGhost@@UEAAPEAXI@Z from dead.obj
+
+    Selected symbol:
+        $pdata$??_Gexception@std@@UEAAPEAXI@Z from MSVCRT.lib(throw_bad_alloc.obj)
+    Replaced symbol(s):
+        $pdata$??_Gbad_array_new_length@std@@UEAAPEAXI@Z from MSVCRT.lib(throw_bad_alloc.obj)
+        $pdata$??_Gbad_alloc@std@@UEAAPEAXI@Z from MSVCRT.lib(throw_bad_alloc.obj)
+
+    ICF total savings: 538 bytes
+
+Starting pass 2
+     xref-x64.exp
+     dead.obj
+     main.obj
+     MSVCRT.lib(argv_mode.obj)
+     MSVCRT.lib(commit_mode.obj)
+     MSVCRT.lib(default_local_stdio_options.obj)
+     MSVCRT.lib(denormal_control.obj)
+     MSVCRT.lib(env_mode.obj)
+     MSVCRT.lib(file_mode.obj)
+     MSVCRT.lib(fltused.obj)
+     MSVCRT.lib(invalid_parameter_handler.obj)
+     MSVCRT.lib(matherr.obj)
+     MSVCRT.lib(new_mode.obj)
+     MSVCRT.lib(thread_locale.obj)
+     MSVCRT.lib(std_type_info_static.obj)
+     MSVCRT.lib(tncleanup.obj)
+     MSVCRT.lib(delete_scalar.obj)
+     MSVCRT.lib(delete_scalar_size.obj)
+     MSVCRT.lib(new_scalar.obj)
+     MSVCRT.lib(throw_bad_alloc.obj)
+     MSVCRT.lib(exe_main.obj)
+     MSVCRT.lib(initializers.obj)
+     MSVCRT.lib(utility.obj)
+     MSVCRT.lib(ucrt_stubs.obj)
+     MSVCRT.lib(gs_cookie.obj)
+     MSVCRT.lib(gs_support.obj)
+     MSVCRT.lib(guard_support.obj)
+     MSVCRT.lib(loadcfg.obj)
+     MSVCRT.lib(dyn_tls_dtor.obj)
+     MSVCRT.lib(dyn_tls_init.obj)
+     MSVCRT.lib(matherr_detection.obj)
+     MSVCRT.lib(ucrt_detection.obj)
+     MSVCRT.lib(cpu_disp.obj)
+     MSVCRT.lib(utility_desktop.obj)
+     MSVCRT.lib(initsect.obj)
+     MSVCRT.lib(guard_dispatch.obj)
+     MSVCRT.lib(guard_xfg_dispatch.obj)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     vcruntime.lib(VCRUNTIME140.dll)
+     vcruntime.lib(VCRUNTIME140.dll)
+     vcruntime.lib(VCRUNTIME140.dll)
+     vcruntime.lib(VCRUNTIME140.dll)
+     vcruntime.lib(VCRUNTIME140.dll)
+     vcruntime.lib(VCRUNTIME140.dll)
+     vcruntime.lib(VCRUNTIME140.dll)
+     vcruntime.lib(VCRUNTIME140.dll)
+     vcruntime.lib(VCRUNTIME140.dll)
+     vcruntime.lib(VCRUNTIME140.dll)
+     vcruntime.lib(VCRUNTIME140.dll)
+     vcruntime.lib(softmemtag.obj)
+     ucrt.lib(api-ms-win-crt-stdio-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-stdio-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-stdio-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-stdio-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-stdio-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-stdio-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-stdio-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-runtime-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-math-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-math-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-math-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-locale-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-locale-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-locale-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-heap-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-heap-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-heap-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-heap-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-heap-l1-1-0.dll)
+     ucrt.lib(api-ms-win-crt-heap-l1-1-0.dll)
+Finished pass 2

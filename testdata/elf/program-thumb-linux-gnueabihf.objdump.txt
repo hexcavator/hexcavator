@@ -1,0 +1,63 @@
+
+program-thumb-linux-gnueabihf:	file format elf32-littlearm
+
+Disassembly of section .text:
+
+000201c8 <compute>:
+   201c8:      	cmp	r0, #1
+   201ca:      	itt	lt
+   201cc:      	movlt	r0, #0
+   201ce:      	bxlt	lr
+   201d0:      	push	{r4, r5, r7, lr}
+   201d2:      	ldr	r1, [pc, #56]           @ 0x2020c <compute+0x44>
+   201d4:      	add	r1, pc
+   201d6:      	ldr	r2, [pc, #56]           @ 0x20210 <compute+0x48>
+   201d8:      	add	r2, pc
+   201da:      	ldr	r1, [r1]
+   201dc:      	movs	r3, #0
+   201de:      	movw	r12, #34953
+   201e2:      	movt	r12, #34952
+   201e6:      	mov.w	lr, #0
+   201ea:      	umull	r4, r5, r3, r12
+   201ee:      	lsrs	r4, r5, #3
+   201f0:      	sub.w	r4, r4, r4, lsl #4
+   201f4:      	ldrb	r4, [r2, r4]
+   201f6:      	add	r4, lr
+   201f8:      	add.w	lr, r1, r4
+   201fc:      	adds	r1, #3
+   201fe:      	adds	r2, #1
+   20200:      	adds	r3, #1
+   20202:      	subs	r0, #1
+   20204:      	bne	0x201ea <compute+0x22>  @ imm = #-30
+   20206:      	adds	r0, r4, r1
+   20208:      	subs	r0, #3
+   2020a:      	pop	{r4, r5, r7, pc}
+   2020c: 80 10 02 00  	.word	0x00021080
+   20210: dc ff fe ff  	.word	0xfffeffdc
+
+00020214 <optional_hook>:
+   20214:      	movs	r0, #0
+   20216:      	bx	lr
+
+00020218 <_start>:
+   20218:      	ldr	r0, [pc, #40]           @ 0x20244 <_start+0x2c>
+   2021a:      	add	r0, pc
+   2021c:      	ldr	r0, [r0]
+   2021e:      	bl	0x201c8 <compute>       @ imm = #-90
+   20222:      	ldr	r1, [pc, #36]           @ 0x20248 <_start+0x30>
+   20224:      	add	r1, pc
+   20226:      	strb	r0, [r1]
+   20228:      	bl	0x20214 <optional_hook> @ imm = #-24
+   2022c:      	ldr	r1, [pc, #16]           @ 0x20240 <_start+0x28>
+   2022e:      	ldr	r2, [pc, #28]           @ 0x2024c <_start+0x34>
+   20230:      	add	r2, pc
+   20232:      	mrc	p15, #0, r3, c13, c0, #3
+   20236:      	ldr	r1, [r3, r1]
+   20238:      	add	r0, r1
+   2023a:      	str	r0, [r2]
+   2023c:      	b	0x2023c <_start+0x24>   @ imm = #-4
+   2023e:      	nop
+   20240: 08 00 00 00  	.word	0x00000008
+   20244: 36 00 02 00  	.word	0x00020036
+   20248: 30 00 02 00  	.word	0x00020030
+   2024c: 24 10 02 00  	.word	0x00021024

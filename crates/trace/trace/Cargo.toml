@@ -1,0 +1,21 @@
+[package]
+name = "hexcavator-trace"
+description = "A platform-neutral model of performance traces, and importers that build it"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+hexcavator-core.workspace = true
+hexcavator-etl.workspace = true
+hexcavator-etw.workspace = true
+rustc-hash.workspace = true
+
+[dev-dependencies]
+hexcavator-mmap.workspace = true
+
+[lints]
+workspace = true

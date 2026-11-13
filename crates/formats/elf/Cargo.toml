@@ -1,0 +1,15 @@
+[package]
+name = "hexcavator-elf"
+description = "ELF files (executables, shared objects, relocatable objects; 32- and 64-bit, either byte order): headers, segments, sections, symbols, notes"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license = "Apache-2.0 AND Apache-2.0 WITH LLVM-exception"
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+hexcavator-core.workspace = true
+
+[lints]
+workspace = true

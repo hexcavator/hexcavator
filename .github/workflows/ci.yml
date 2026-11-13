@@ -1,0 +1,90 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: -D warnings
+
+jobs:
+  test:
+    name: test (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - windows-latest      # x64
+          - windows-11-arm      # arm64
+          - ubuntu-latest       # x64; one Unix host is enough for now
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - run: rustup toolchain install stable --profile minimal --component clippy,rustfmt
+      - run: cargo fmt --all --check
+      - run: cargo clippy --all-targets
+      # (Every test binary at once: see apps/xtask.)
+      - run: cargo xtask test
+
+  # Every supported host is little-endian, so run the tests on a big-endian
+  # target under QEMU to catch accidental native-endian reads.
+  big-endian:
+    runs-on: ubuntu-latest
+    env:
+      CARGO_TARGET_S390X_UNKNOWN_LINUX_GNU_LINKER: s390x-linux-gnu-gcc
+      CARGO_TARGET_S390X_UNKNOWN_LINUX_GNU_RUNNER: qemu-s390x -L /usr/s390x-linux-gnu
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - run: sudo apt-get update && sudo apt-get install -y gcc-s390x-linux-gnu libc6-dev-s390x-cross qemu-user
+      - run: rustup target add s390x-unknown-linux-gnu
+      - run: cargo test --target s390x-unknown-linux-gnu
+
+  # Hosts without memory mapping (WebAssembly) read files into memory
+  # instead; check that everything still builds for one.
+  wasm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - run: rustup toolchain install stable --profile minimal --component clippy
+      - run: rustup target add wasm32-wasip1
+      - run: cargo clippy --workspace --target wasm32-wasip1
+
+  # The fuzzer: its self-test (each kind of failure caught), then two
+  # minutes over every target (blind; the nightly run is guided).
+  fuzz-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - run: cargo build --release -p hexcavator-fuzz
+      - run: target/release/hexcavator-fuzz selftest
+      - run: target/release/hexcavator-fuzz run all -seconds 120 -batch 500
+      - if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: fuzz-findings
+          path: fuzz-findings/
+
+  # The VS Code extension: its helpers' tests (with hexc for the sidebar's
+  # tree), and, on Windows, the views rendered in headless Edge.
+  vscode:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+      - run: cargo build --release -p hexcavator
+      - shell: bash
+        working-directory: editors/vscode/hexcavator
+        run: |
+          exe=$PWD/../../../target/release/hexc
+          if [ -f "$exe.exe" ]; then exe=$exe.exe; fi
+          for t in test/*.test.js; do node "$t" "$exe" || exit 1; done
+      - if: runner.os == 'Windows'
+        run: python editors/vscode/hexcavator/test/harness.py target/release/hexc.exe testdata/xref/xref-x64.exe testdata/xref/xref-x64-renamed.exe

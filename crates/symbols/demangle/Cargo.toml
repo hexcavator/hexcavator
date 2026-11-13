@@ -1,0 +1,16 @@
+[package]
+name = "hexcavator-demangle"
+description = "Symbol demanglers: Microsoft C++, Itanium C++, Rust, and Swift"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license = "Apache-2.0 AND Apache-2.0 WITH LLVM-exception AND Apache-2.0 WITH Swift-exception"
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+hexcavator-core.workspace = true
+bumpalo.workspace = true
+
+[lints]
+workspace = true

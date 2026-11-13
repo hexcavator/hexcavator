@@ -1,0 +1,22 @@
+[package]
+name = "hexcavator-image"
+description = "A format-independent view of executables and objects (PE/COFF, ELF, Mach-O, WebAssembly): sections, architecture, debug identity"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+hexcavator-core.workspace = true
+hexcavator-pe.workspace = true
+hexcavator-elf.workspace = true
+hexcavator-macho.workspace = true
+hexcavator-wasm.workspace = true
+
+[dev-dependencies]
+hexcavator-macho.workspace = true
+
+[lints]
+workspace = true

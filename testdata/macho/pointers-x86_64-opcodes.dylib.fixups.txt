@@ -1,0 +1,23 @@
+pointers-x86_64-opcodes.dylib:
+
+Rebase table:
+segment  section            address     type
+__DATA   __data             0x00001000  pointer
+__DATA   __data             0x00001008  pointer
+__DATA   __data             0x00001010  pointer
+__DATA   __data             0x00001018  pointer
+__DATA   __data             0x00001028  pointer
+__DATA   __data             0x00001030  pointer
+__DATA   __data             0x00001040  pointer
+__DATA   __data             0x00001048  pointer
+__DATA   __data             0x000032B0  pointer
+
+Bind table:
+segment  section            address    type       addend dylib            symbol
+__DATA   __data             0x000032B8 pointer         0 flat-namespace   _imported
+
+Lazy bind table:
+segment  section            address     dylib            symbol
+
+Weak bind table:
+segment  section            address     type       addend   symbol

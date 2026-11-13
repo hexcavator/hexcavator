@@ -1,0 +1,571 @@
+
+File: program-x86_64-linux-gnu
+Format: elf64-x86-64
+Arch: x86_64
+AddressSize: 64bit
+LoadName: <Not found>
+ElfHeader {
+  Ident {
+    Magic: (7F 45 4C 46)
+    Class: 64-bit (0x2)
+    DataEncoding: LittleEndian (0x1)
+    FileVersion: 1
+    OS/ABI: SystemV (0x0)
+    ABIVersion: 0
+    Unused: (00 00 00 00 00 00 00)
+  }
+  Type: Executable (0x2)
+  Machine: EM_X86_64 (0x3E)
+  Version: 1
+  Entry: 0x2012F0
+  ProgramHeaderOffset: 0x40
+  SectionHeaderOffset: 0xAA0
+  Flags [ (0x0)
+  ]
+  HeaderSize: 64
+  ProgramHeaderEntrySize: 56
+  ProgramHeaderCount: 9
+  SectionHeaderEntrySize: 64
+  SectionHeaderCount: 21
+  StringTableSectionIndex: 19
+}
+Sections [
+  Section {
+    Index: 0
+    Name:  (0)
+    Type: SHT_NULL (0x0)
+    Flags [ (0x0)
+    ]
+    Address: 0x0
+    Offset: 0x0
+    Size: 0
+    Link: 0
+    Info: 0
+    AddressAlignment: 0
+    EntrySize: 0
+  }
+  Section {
+    Index: 1
+    Name: .note.gnu.build-id (1)
+    Type: SHT_NOTE (0x7)
+    Flags [ (0x2)
+      SHF_ALLOC (0x2)
+    ]
+    Address: 0x200238
+    Offset: 0x238
+    Size: 36
+    Link: 0
+    Info: 0
+    AddressAlignment: 4
+    EntrySize: 0
+  }
+  Section {
+    Index: 2
+    Name: .rodata (20)
+    Type: SHT_PROGBITS (0x1)
+    Flags [ (0x32)
+      SHF_ALLOC (0x2)
+      SHF_MERGE (0x10)
+      SHF_STRINGS (0x20)
+    ]
+    Address: 0x200260
+    Offset: 0x260
+    Size: 16
+    Link: 0
+    Info: 0
+    AddressAlignment: 16
+    EntrySize: 1
+  }
+  Section {
+    Index: 3
+    Name: .text (28)
+    Type: SHT_PROGBITS (0x1)
+    Flags [ (0x6)
+      SHF_ALLOC (0x2)
+      SHF_EXECINSTR (0x4)
+    ]
+    Address: 0x201270
+    Offset: 0x270
+    Size: 178
+    Link: 0
+    Info: 0
+    AddressAlignment: 16
+    EntrySize: 0
+  }
+  Section {
+    Index: 4
+    Name: .tdata (34)
+    Type: SHT_PROGBITS (0x1)
+    Flags [ (0x403)
+      SHF_ALLOC (0x2)
+      SHF_TLS (0x400)
+      SHF_WRITE (0x1)
+    ]
+    Address: 0x202324
+    Offset: 0x324
+    Size: 4
+    Link: 0
+    Info: 0
+    AddressAlignment: 4
+    EntrySize: 0
+  }
+  Section {
+    Index: 5
+    Name: .relro_padding (41)
+    Type: SHT_NOBITS (0x8)
+    Flags [ (0x3)
+      SHF_ALLOC (0x2)
+      SHF_WRITE (0x1)
+    ]
+    Address: 0x202328
+    Offset: 0x328
+    Size: 3288
+    Link: 0
+    Info: 0
+    AddressAlignment: 1
+    EntrySize: 0
+  }
+  Section {
+    Index: 6
+    Name: .data (56)
+    Type: SHT_PROGBITS (0x1)
+    Flags [ (0x3)
+      SHF_ALLOC (0x2)
+      SHF_WRITE (0x1)
+    ]
+    Address: 0x203328
+    Offset: 0x328
+    Size: 4
+    Link: 0
+    Info: 0
+    AddressAlignment: 4
+    EntrySize: 0
+  }
+  Section {
+    Index: 7
+    Name: .bss (62)
+    Type: SHT_NOBITS (0x8)
+    Flags [ (0x3)
+      SHF_ALLOC (0x2)
+      SHF_WRITE (0x1)
+    ]
+    Address: 0x203330
+    Offset: 0x32C
+    Size: 4100
+    Link: 0
+    Info: 0
+    AddressAlignment: 16
+    EntrySize: 0
+  }
+  Section {
+    Index: 8
+    Name: .debug_loclists (67)
+    Type: SHT_PROGBITS (0x1)
+    Flags [ (0x0)
+    ]
+    Address: 0x0
+    Offset: 0x32C
+    Size: 71
+    Link: 0
+    Info: 0
+    AddressAlignment: 1
+    EntrySize: 0
+  }
+  Section {
+    Index: 9
+    Name: .debug_abbrev (83)
+    Type: SHT_PROGBITS (0x1)
+    Flags [ (0x0)
+    ]
+    Address: 0x0
+    Offset: 0x373
+    Size: 297
+    Link: 0
+    Info: 0
+    AddressAlignment: 1
+    EntrySize: 0
+  }
+  Section {
+    Index: 10
+    Name: .debug_info (97)
+    Type: SHT_PROGBITS (0x1)
+    Flags [ (0x0)
+    ]
+    Address: 0x0
+    Offset: 0x49C
+    Size: 264
+    Link: 0
+    Info: 0
+    AddressAlignment: 1
+    EntrySize: 0
+  }
+  Section {
+    Index: 11
+    Name: .debug_str_offsets (109)
+    Type: SHT_PROGBITS (0x1)
+    Flags [ (0x0)
+    ]
+    Address: 0x0
+    Offset: 0x5A4
+    Size: 84
+    Link: 0
+    Info: 0
+    AddressAlignment: 1
+    EntrySize: 0
+  }
+  Section {
+    Index: 12
+    Name: .debug_str (128)
+    Type: SHT_PROGBITS (0x1)
+    Flags [ (0x30)
+      SHF_MERGE (0x10)
+      SHF_STRINGS (0x20)
+    ]
+    Address: 0x0
+    Offset: 0x5F8
+    Size: 137
+    Link: 0
+    Info: 0
+    AddressAlignment: 1
+    EntrySize: 1
+  }
+  Section {
+    Index: 13
+    Name: .debug_addr (139)
+    Type: SHT_PROGBITS (0x1)
+    Flags [ (0x0)
+    ]
+    Address: 0x0
+    Offset: 0x681
+    Size: 88
+    Link: 0
+    Info: 0
+    AddressAlignment: 1
+    EntrySize: 0
+  }
+  Section {
+    Index: 14
+    Name: .debug_frame (151)
+    Type: SHT_PROGBITS (0x1)
+    Flags [ (0x0)
+    ]
+    Address: 0x0
+    Offset: 0x6E0
+    Size: 104
+    Link: 0
+    Info: 0
+    AddressAlignment: 8
+    EntrySize: 0
+  }
+  Section {
+    Index: 15
+    Name: .debug_line (164)
+    Type: SHT_PROGBITS (0x1)
+    Flags [ (0x0)
+    ]
+    Address: 0x0
+    Offset: 0x748
+    Size: 175
+    Link: 0
+    Info: 0
+    AddressAlignment: 1
+    EntrySize: 0
+  }
+  Section {
+    Index: 16
+    Name: .debug_line_str (176)
+    Type: SHT_PROGBITS (0x1)
+    Flags [ (0x30)
+      SHF_MERGE (0x10)
+      SHF_STRINGS (0x20)
+    ]
+    Address: 0x0
+    Offset: 0x7F7
+    Size: 12
+    Link: 0
+    Info: 0
+    AddressAlignment: 1
+    EntrySize: 1
+  }
+  Section {
+    Index: 17
+    Name: .comment (192)
+    Type: SHT_PROGBITS (0x1)
+    Flags [ (0x30)
+      SHF_MERGE (0x10)
+      SHF_STRINGS (0x20)
+    ]
+    Address: 0x0
+    Offset: 0x803
+    Size: 103
+    Link: 0
+    Info: 0
+    AddressAlignment: 1
+    EntrySize: 1
+  }
+  Section {
+    Index: 18
+    Name: .symtab (201)
+    Type: SHT_SYMTAB (0x2)
+    Flags [ (0x0)
+    ]
+    Address: 0x0
+    Offset: 0x870
+    Size: 240
+    Link: 20
+    Info: 4
+    AddressAlignment: 8
+    EntrySize: 24
+  }
+  Section {
+    Index: 19
+    Name: .shstrtab (209)
+    Type: SHT_STRTAB (0x3)
+    Flags [ (0x0)
+    ]
+    Address: 0x0
+    Offset: 0x960
+    Size: 227
+    Link: 0
+    Info: 0
+    AddressAlignment: 1
+    EntrySize: 0
+  }
+  Section {
+    Index: 20
+    Name: .strtab (219)
+    Type: SHT_STRTAB (0x3)
+    Flags [ (0x0)
+    ]
+    Address: 0x0
+    Offset: 0xA43
+    Size: 87
+    Link: 0
+    Info: 0
+    AddressAlignment: 1
+    EntrySize: 0
+  }
+]
+ProgramHeaders [
+  ProgramHeader {
+    Type: PT_PHDR (0x6)
+    Offset: 0x40
+    VirtualAddress: 0x200040
+    PhysicalAddress: 0x200040
+    FileSize: 504
+    MemSize: 504
+    Flags [ (0x4)
+      PF_R (0x4)
+    ]
+    Alignment: 8
+  }
+  ProgramHeader {
+    Type: PT_LOAD (0x1)
+    Offset: 0x0
+    VirtualAddress: 0x200000
+    PhysicalAddress: 0x200000
+    FileSize: 624
+    MemSize: 624
+    Flags [ (0x4)
+      PF_R (0x4)
+    ]
+    Alignment: 4096
+  }
+  ProgramHeader {
+    Type: PT_LOAD (0x1)
+    Offset: 0x270
+    VirtualAddress: 0x201270
+    PhysicalAddress: 0x201270
+    FileSize: 178
+    MemSize: 178
+    Flags [ (0x5)
+      PF_R (0x4)
+      PF_X (0x1)
+    ]
+    Alignment: 4096
+  }
+  ProgramHeader {
+    Type: PT_LOAD (0x1)
+    Offset: 0x324
+    VirtualAddress: 0x202324
+    PhysicalAddress: 0x202324
+    FileSize: 4
+    MemSize: 3292
+    Flags [ (0x6)
+      PF_R (0x4)
+      PF_W (0x2)
+    ]
+    Alignment: 4096
+  }
+  ProgramHeader {
+    Type: PT_LOAD (0x1)
+    Offset: 0x328
+    VirtualAddress: 0x203328
+    PhysicalAddress: 0x203328
+    FileSize: 4
+    MemSize: 4108
+    Flags [ (0x6)
+      PF_R (0x4)
+      PF_W (0x2)
+    ]
+    Alignment: 4096
+  }
+  ProgramHeader {
+    Type: PT_TLS (0x7)
+    Offset: 0x324
+    VirtualAddress: 0x202324
+    PhysicalAddress: 0x202324
+    FileSize: 4
+    MemSize: 4
+    Flags [ (0x4)
+      PF_R (0x4)
+    ]
+    Alignment: 4
+  }
+  ProgramHeader {
+    Type: PT_GNU_RELRO (0x6474E552)
+    Offset: 0x324
+    VirtualAddress: 0x202324
+    PhysicalAddress: 0x202324
+    FileSize: 4
+    MemSize: 3292
+    Flags [ (0x4)
+      PF_R (0x4)
+    ]
+    Alignment: 1
+  }
+  ProgramHeader {
+    Type: PT_GNU_STACK (0x6474E551)
+    Offset: 0x0
+    VirtualAddress: 0x0
+    PhysicalAddress: 0x0
+    FileSize: 0
+    MemSize: 0
+    Flags [ (0x6)
+      PF_R (0x4)
+      PF_W (0x2)
+    ]
+    Alignment: 0
+  }
+  ProgramHeader {
+    Type: PT_NOTE (0x4)
+    Offset: 0x238
+    VirtualAddress: 0x200238
+    PhysicalAddress: 0x200238
+    FileSize: 36
+    MemSize: 36
+    Flags [ (0x4)
+      PF_R (0x4)
+    ]
+    Alignment: 4
+  }
+]
+Symbols [
+  Symbol {
+    Name:  (0)
+    Value: 0x0
+    Size: 0
+    Binding: Local (0x0)
+    Type: None (0x0)
+    Other: 0
+    Section: Undefined (0x0)
+  }
+  Symbol {
+    Name: program.c (1)
+    Value: 0x0
+    Size: 0
+    Binding: Local (0x0)
+    Type: File (0x4)
+    Other: 0
+    Section: Absolute (0xFFF1)
+  }
+  Symbol {
+    Name: hidden_state (11)
+    Value: 0x204330
+    Size: 4
+    Binding: Local (0x0)
+    Type: Object (0x1)
+    Other: 0
+    Section: .bss (0x7)
+  }
+  Symbol {
+    Name: message (24)
+    Value: 0x200260
+    Size: 16
+    Binding: Local (0x0)
+    Type: Object (0x1)
+    Other: 0
+    Section: .rodata (0x2)
+  }
+  Symbol {
+    Name: compute (32)
+    Value: 0x201270
+    Size: 112
+    Binding: Global (0x1)
+    Type: Function (0x2)
+    Other: 0
+    Section: .text (0x3)
+  }
+  Symbol {
+    Name: optional_hook (40)
+    Value: 0x2012E0
+    Size: 3
+    Binding: Weak (0x2)
+    Type: Function (0x2)
+    Other: 0
+    Section: .text (0x3)
+  }
+  Symbol {
+    Name: _start (54)
+    Value: 0x2012F0
+    Size: 50
+    Binding: Global (0x1)
+    Type: Function (0x2)
+    Other: 0
+    Section: .text (0x3)
+  }
+  Symbol {
+    Name: counter (61)
+    Value: 0x203328
+    Size: 4
+    Binding: Global (0x1)
+    Type: Object (0x1)
+    Other: 0
+    Section: .data (0x6)
+  }
+  Symbol {
+    Name: buffer (69)
+    Value: 0x203330
+    Size: 4096
+    Binding: Global (0x1)
+    Type: Object (0x1)
+    Other: 0
+    Section: .bss (0x7)
+  }
+  Symbol {
+    Name: per_thread (76)
+    Value: 0x0
+    Size: 4
+    Binding: Global (0x1)
+    Type: TLS (0x6)
+    Other: 0
+    Section: .tdata (0x4)
+  }
+]
+DynamicSymbols [
+]
+NoteSections [
+  NoteSection {
+    Name: .note.gnu.build-id
+    Offset: 0x238
+    Size: 0x24
+    Notes [
+      {
+        Owner: GNU
+        Data size: 0x14
+        Type: NT_GNU_BUILD_ID (unique build ID bitstring)
+        Build ID: 49f69012a5a766f929078f726353875d1adf31e4
+      }
+    ]
+  }
+]

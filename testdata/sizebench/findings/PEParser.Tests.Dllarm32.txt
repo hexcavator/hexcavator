@@ -1,0 +1,2 @@
+WASTEFUL DllArm_BaseClass wasted=8 perslot=8 | unoverridden:ASecondVirtualFunction()
+WASTEFUL std::exception wasted=28 perslot=28 | unoverridden:what() const

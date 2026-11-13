@@ -1,0 +1,19 @@
+
+File: relr-android.so
+Format: elf64-littleaarch64
+Arch: aarch64
+AddressSize: 64bit
+LoadName: <Not found>
+Relocations [
+  Section (7) .rela.dyn {
+    0x304C0 R_AARCH64_RELATIVE - 0x30740
+    0x304C8 R_AARCH64_RELATIVE - 0x30744
+    0x304D0 R_AARCH64_RELATIVE - 0x30748
+    0x304D8 R_AARCH64_RELATIVE - 0x30740
+    0x304E8 R_AARCH64_RELATIVE - 0x30744
+    0x304F0 R_AARCH64_RELATIVE - 0x30748
+    0x304F8 R_AARCH64_RELATIVE - 0x10408
+    0x30500 R_AARCH64_RELATIVE - 0x10408
+    0x30738 R_AARCH64_RELATIVE - 0x30748
+  }
+]

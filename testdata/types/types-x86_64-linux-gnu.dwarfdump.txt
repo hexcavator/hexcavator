@@ -1,0 +1,1066 @@
+R:\tools\types\..\..\testdata\types\types-x86_64-linux-gnu:	file format elf64-x86-64
+
+.debug_info contents:
+0x00000000: Compile Unit: length = 0x0000052b, format = DWARF32, version = 0x0005, unit_type = DW_UT_compile, abbr_offset = 0x0000, addr_size = 0x08 (next unit at 0x0000052f)
+
+0x0000000c: DW_TAG_compile_unit
+              DW_AT_producer	("")
+              DW_AT_language	(DW_LANG_C_plus_plus_14)
+              DW_AT_name	("types.cpp")
+              DW_AT_str_offsets_base	(0x00000008)
+              DW_AT_stmt_list	(0x00000000)
+              DW_AT_comp_dir	(".")
+              DW_AT_APPLE_optimized	(true)
+              DW_AT_low_pc	(0x0000000000000000)
+              DW_AT_ranges	(indexed (0x0) rangelist = 0x00000010
+                 [0x0000000000201260, 0x00000000002013b7)
+                 [0x00000000002013c0, 0x00000000002013d7)
+                 [0x00000000002013d8, 0x00000000002013d9)
+                 [0x00000000002013e0, 0x00000000002013f7))
+              DW_AT_addr_base	(0x00000008)
+              DW_AT_rnglists_base	(0x0000000c)
+              DW_AT_loclists_base	(0x0000000c)
+
+0x0000002f:   DW_TAG_subprogram
+                DW_AT_low_pc	(0x0000000000201260)
+                DW_AT_high_pc	(0x00000000002012b3)
+                DW_AT_frame_base	(DW_OP_reg7 RSP)
+                DW_AT_call_all_calls	(true)
+                DW_AT_linkage_name	("_Z3useP6PaddedP4BitsP7DerivedP9WithEmptyP7DiamondP6EitherP5Grows")
+                DW_AT_name	("use")
+                DW_AT_decl_file	(".\types.cpp")
+                DW_AT_decl_line	(80)
+                DW_AT_type	(0x000000d1 "int")
+                DW_AT_external	(true)
+                DW_AT_APPLE_optimized	(true)
+
+0x0000003f:     DW_TAG_formal_parameter
+                  DW_AT_location	(indexed (0x0) loclist = 0x00000024: 
+                     [0x0000000000201260, 0x0000000000201288): DW_OP_reg5 RDI
+                     [0x0000000000201288, 0x00000000002012b3): DW_OP_entry_value(DW_OP_reg5 RDI), DW_OP_stack_value)
+                  DW_AT_name	("p")
+                  DW_AT_decl_file	(".\types.cpp")
+                  DW_AT_decl_line	(80)
+                  DW_AT_type	(0x0000050a "Padded *")
+
+0x00000048:     DW_TAG_formal_parameter
+                  DW_AT_location	(indexed (0x1) loclist = 0x00000034: 
+                     [0x0000000000201260, 0x0000000000201292): DW_OP_reg4 RSI
+                     [0x0000000000201292, 0x00000000002012b3): DW_OP_entry_value(DW_OP_reg4 RSI), DW_OP_stack_value)
+                  DW_AT_name	("b")
+                  DW_AT_decl_file	(".\types.cpp")
+                  DW_AT_decl_line	(80)
+                  DW_AT_type	(0x0000050f "Bits *")
+
+0x00000051:     DW_TAG_formal_parameter
+                  DW_AT_location	(indexed (0x2) loclist = 0x00000044: 
+                     [0x0000000000201260, 0x000000000020129b): DW_OP_reg1 RDX
+                     [0x000000000020129b, 0x00000000002012b3): DW_OP_entry_value(DW_OP_reg1 RDX), DW_OP_stack_value)
+                  DW_AT_name	("d")
+                  DW_AT_decl_file	(".\types.cpp")
+                  DW_AT_decl_line	(80)
+                  DW_AT_type	(0x00000149 "Derived *")
+
+0x0000005a:     DW_TAG_formal_parameter
+                  DW_AT_location	(indexed (0x3) loclist = 0x00000054: 
+                     [0x0000000000201260, 0x00000000002012aa): DW_OP_reg2 RCX
+                     [0x00000000002012aa, 0x00000000002012b3): DW_OP_entry_value(DW_OP_reg2 RCX), DW_OP_stack_value)
+                  DW_AT_name	("w")
+                  DW_AT_decl_file	(".\types.cpp")
+                  DW_AT_decl_line	(80)
+                  DW_AT_type	(0x0000018b "WithEmpty *")
+
+0x00000063:     DW_TAG_formal_parameter
+                  DW_AT_location	(DW_OP_reg8 R8)
+                  DW_AT_name	("m")
+                  DW_AT_decl_file	(".\types.cpp")
+                  DW_AT_decl_line	(80)
+                  DW_AT_type	(0x000001f1 "Diamond *")
+
+0x0000006d:     DW_TAG_formal_parameter
+                  DW_AT_location	(DW_OP_reg9 R9)
+                  DW_AT_name	("e")
+                  DW_AT_decl_file	(".\types.cpp")
+                  DW_AT_decl_line	(80)
+                  DW_AT_type	(0x00000514 "Either *")
+
+0x00000077:     DW_TAG_formal_parameter
+                  DW_AT_location	(DW_OP_fbreg +24)
+                  DW_AT_name	("g")
+                  DW_AT_decl_file	(".\types.cpp")
+                  DW_AT_decl_line	(80)
+                  DW_AT_type	(0x00000519 "Grows *")
+
+0x00000082:     NULL
+
+0x00000083:   DW_TAG_structure_type
+                DW_AT_containing_type	(0x00000083 "Base")
+                DW_AT_calling_convention	(DW_CC_pass_by_reference)
+                DW_AT_name	("Base")
+                DW_AT_byte_size	(0x10)
+                DW_AT_decl_file	(".\types.cpp")
+                DW_AT_decl_line	(38)
+
+0x0000008d:     DW_TAG_member
+                  DW_AT_name	("_vptr$Base")
+                  DW_AT_type	(0x000000c1 "int (**)()")
+                  DW_AT_data_member_location	(0x00)
+                  DW_AT_artificial	(true)
+
+0x00000094:     DW_TAG_member
+                  DW_AT_name	("x")
+                  DW_AT_type	(0x000000d1 "int")
+                  DW_AT_decl_file	(".\types.cpp")
+                  DW_AT_decl_line	(40)
+                  DW_AT_data_member_location	(0x08)
+
+0x0000009d:     DW_TAG_subprogram
+                  DW_AT_linkage_name	("_ZN4BaseD4Ev")
+                  DW_AT_name	("~Base")
+                  DW_AT_decl_file	(".\types.cpp")
+                  DW_AT_decl_line	(39)
+                  DW_AT_virtuality	(DW_VIRTUALITY_virtual)
+                  DW_AT_vtable_elem_location	(DW_OP_constu 0x0)
+                  DW_AT_declaration	(true)
+                  DW_AT_external	(true)
+                  DW_AT_APPLE_optimized	(true)
+                  DW_AT_containing_type	(0x00000083 "Base")
+
+0x000000aa:       DW_TAG_formal_parameter
+                    DW_AT_type	(0x000000d5 "Base *")
+                    DW_AT_artificial	(true)
+
+0x000000af:       NULL
+
+0x000000b0:     DW_TAG_subprogram
+                  DW_AT_linkage_name	("_ZN4BaseC4Ev")
+                  DW_AT_name	("Base")
+                  DW_AT_declaration	(true)
+                  DW_AT_artificial	(true)
+                  DW_AT_external	(true)
+                  DW_AT_APPLE_optimized	(true)
+
+0x000000b3:       DW_TAG_formal_parameter
+                    DW_AT_type	(0x000000d5 "Base *")
+                    DW_AT_artificial	(true)
+
+0x000000b8:       NULL
+
+0x000000b9:     DW_TAG_variable
+                  DW_AT_name	("__clang_vtable")
+                  DW_AT_type	(0x0000036b "void *")
+                  DW_AT_external	(true)
+                  DW_AT_declaration	(true)
+                  DW_AT_artificial	(true)
+                  DW_AT_accessibility	(DW_ACCESS_private)
+
+0x000000c0:     NULL
+
+0x000000c1:   DW_TAG_pointer_type
+                DW_AT_type	(0x000000c6 "int (*)()")
+
+0x000000c6:   DW_TAG_pointer_type
+                DW_AT_type	(0x000000cc "int ()")
+                DW_AT_name	("__vtbl_ptr_type")
+
+0x000000cc:   DW_TAG_subroutine_type
+                DW_AT_type	(0x000000d1 "int")
+
+0x000000d1:   DW_TAG_base_type
+                DW_AT_name	("int")
+                DW_AT_encoding	(DW_ATE_signed)
+                DW_AT_byte_size	(0x04)
+
+0x000000d5:   DW_TAG_pointer_type
+                DW_AT_type	(0x00000083 "Base")
+
+0x000000da:   DW_TAG_subprogram
+                DW_AT_decl_file	(".\types.cpp")
+                DW_AT_decl_line	(38)
+                DW_AT_linkage_name	("_ZN4BaseC2Ev")
+                DW_AT_specification	(0x000000b0 "_ZN4BaseC4Ev")
+                DW_AT_inline	(DW_INL_inlined)
+                DW_AT_object_pointer	(0x000000e6)
+
+0x000000e6:     DW_TAG_formal_parameter
+                  DW_AT_name	("this")
+                  DW_AT_type	(0x000000ed "Base *")
+                  DW_AT_artificial	(true)
+
+0x000000ec:     NULL
+
+0x000000ed:   DW_TAG_pointer_type
+                DW_AT_type	(0x00000083 "Base")
+
+0x000000f2:   DW_TAG_structure_type
+                DW_AT_containing_type	(0x00000083 "Base")
+                DW_AT_calling_convention	(DW_CC_pass_by_reference)
+                DW_AT_name	("Derived")
+                DW_AT_byte_size	(0x10)
+                DW_AT_decl_file	(".\types.cpp")
+                DW_AT_decl_line	(43)
+
+0x000000fc:     DW_TAG_inheritance
+                  DW_AT_type	(0x00000083 "Base")
+                  DW_AT_data_member_location	(0x00)
+
+0x00000102:     DW_TAG_member
+                  DW_AT_name	("y")
+                  DW_AT_type	(0x0000012d "char")
+                  DW_AT_decl_file	(".\types.cpp")
+                  DW_AT_decl_line	(44)
+                  DW_AT_data_member_location	(0x0c)
+
+0x0000010b:     DW_TAG_subprogram
+                  DW_AT_linkage_name	("_ZN7DerivedC4Ev")
+                  DW_AT_name	("Derived")
+                  DW_AT_declaration	(true)
+                  DW_AT_artificial	(true)
+                  DW_AT_external	(true)
+                  DW_AT_APPLE_optimized	(true)
+
+0x0000010e:       DW_TAG_formal_parameter
+                    DW_AT_type	(0x00000131 "Derived *")
+                    DW_AT_artificial	(true)
+
+0x00000113:       NULL
+
+0x00000114:     DW_TAG_subprogram
+                  DW_AT_linkage_name	("_ZN7DerivedD4Ev")
+                  DW_AT_name	("~Derived")
+                  DW_AT_virtuality	(DW_VIRTUALITY_virtual)
+                  DW_AT_vtable_elem_location	(DW_OP_constu 0x0)
+                  DW_AT_declaration	(true)
+                  DW_AT_artificial	(true)
+                  DW_AT_external	(true)
+                  DW_AT_APPLE_optimized	(true)
+                  DW_AT_containing_type	(0x000000f2 "Derived")
+
+0x0000011f:       DW_TAG_formal_parameter
+                    DW_AT_type	(0x00000131 "Derived *")
+                    DW_AT_artificial	(true)
+
+0x00000124:       NULL
+
+0x00000125:     DW_TAG_variable
+                  DW_AT_name	("__clang_vtable")
+                  DW_AT_type	(0x0000036b "void *")
+                  DW_AT_external	(true)
+                  DW_AT_declaration	(true)
+                  DW_AT_artificial	(true)
+                  DW_AT_accessibility	(DW_ACCESS_private)
+
+0x0000012c:     NULL
+
+0x0000012d:   DW_TAG_base_type
+                DW_AT_name	("char")
+                DW_AT_encoding	(DW_ATE_signed_char)
+                DW_AT_byte_size	(0x01)
+
+0x00000131:   DW_TAG_pointer_type
+                DW_AT_type	(0x000000f2 "Derived")
+
+0x00000136:   DW_TAG_subprogram
+                DW_AT_decl_file	(".\types.cpp")
+                DW_AT_decl_line	(43)
+                DW_AT_linkage_name	("_ZN7DerivedC2Ev")
+                DW_AT_specification	(0x0000010b "_ZN7DerivedC4Ev")
+                DW_AT_inline	(DW_INL_inlined)
+                DW_AT_object_pointer	(0x00000142)
+
+0x00000142:     DW_TAG_formal_parameter
+                  DW_AT_name	("this")
+                  DW_AT_type	(0x00000149 "Derived *")
+                  DW_AT_artificial	(true)
+
+0x00000148:     NULL
+
+0x00000149:   DW_TAG_pointer_type
+                DW_AT_type	(0x000000f2 "Derived")
+
+0x0000014e:   DW_TAG_structure_type
+                DW_AT_calling_convention	(DW_CC_pass_by_value)
+                DW_AT_name	("WithEmpty")
+                DW_AT_byte_size	(0x04)
+                DW_AT_decl_file	(".\types.cpp")
+                DW_AT_decl_line	(49)
+
+0x00000154:     DW_TAG_inheritance
+                  DW_AT_type	(0x0000016d "Empty")
+                  DW_AT_data_member_location	(0x00)
+
+0x0000015a:     DW_TAG_member
+                  DW_AT_name	("z")
+                  DW_AT_type	(0x000000d1 "int")
+                  DW_AT_decl_file	(".\types.cpp")
+                  DW_AT_decl_line	(50)
+                  DW_AT_data_member_location	(0x00)
+
+0x00000163:     DW_TAG_subprogram
+                  DW_AT_linkage_name	("_ZN9WithEmptyC4Ev")
+                  DW_AT_name	("WithEmpty")
+                  DW_AT_declaration	(true)
+                  DW_AT_artificial	(true)
+                  DW_AT_external	(true)
+                  DW_AT_APPLE_optimized	(true)
+
+0x00000166:       DW_TAG_formal_parameter
+                    DW_AT_type	(0x00000173 "WithEmpty *")
+                    DW_AT_artificial	(true)
+
+0x0000016b:       NULL
+
+0x0000016c:     NULL
+
+0x0000016d:   DW_TAG_structure_type
+                DW_AT_calling_convention	(DW_CC_pass_by_value)
+                DW_AT_name	("Empty")
+                DW_AT_byte_size	(0x01)
+                DW_AT_decl_file	(".\types.cpp")
+                DW_AT_decl_line	(47)
+
+0x00000173:   DW_TAG_pointer_type
+                DW_AT_type	(0x0000014e "WithEmpty")
+
+0x00000178:   DW_TAG_subprogram
+                DW_AT_decl_file	(".\types.cpp")
+                DW_AT_decl_line	(49)
+                DW_AT_linkage_name	("_ZN9WithEmptyC2Ev")
+                DW_AT_specification	(0x00000163 "_ZN9WithEmptyC4Ev")
+                DW_AT_inline	(DW_INL_inlined)
+                DW_AT_object_pointer	(0x00000184)
+
+0x00000184:     DW_TAG_formal_parameter
+                  DW_AT_name	("this")
+                  DW_AT_type	(0x0000018b "WithEmpty *")
+                  DW_AT_artificial	(true)
+
+0x0000018a:     NULL
+
+0x0000018b:   DW_TAG_pointer_type
+                DW_AT_type	(0x0000014e "WithEmpty")
+
+0x00000190:   DW_TAG_structure_type
+                DW_AT_containing_type	(0x00000190 "Diamond")
+                DW_AT_calling_convention	(DW_CC_pass_by_reference)
+                DW_AT_name	("Diamond")
+                DW_AT_byte_size	(0x10)
+                DW_AT_decl_file	(".\types.cpp")
+                DW_AT_decl_line	(57)
+
+0x0000019a:     DW_TAG_inheritance
+                  DW_AT_type	(0x000001c9 "VBase")
+                  DW_AT_data_member_location	(DW_OP_dup, DW_OP_deref, DW_OP_constu 0x18, DW_OP_minus, DW_OP_deref, DW_OP_plus)
+                  DW_AT_virtuality	(DW_VIRTUALITY_virtual)
+
+0x000001a8:     DW_TAG_member
+                  DW_AT_name	("_vptr$Diamond")
+                  DW_AT_type	(0x000000c1 "int (**)()")
+                  DW_AT_data_member_location	(0x00)
+                  DW_AT_artificial	(true)
+
+0x000001af:     DW_TAG_member
+                  DW_AT_name	("d")
+                  DW_AT_type	(0x000000d1 "int")
+                  DW_AT_decl_file	(".\types.cpp")
+                  DW_AT_decl_line	(58)
+                  DW_AT_data_member_location	(0x08)
+
+0x000001b8:     DW_TAG_subprogram
+                  DW_AT_linkage_name	("_ZN7DiamondC4Ev")
+                  DW_AT_name	("Diamond")
+                  DW_AT_declaration	(true)
+                  DW_AT_artificial	(true)
+                  DW_AT_external	(true)
+                  DW_AT_APPLE_optimized	(true)
+
+0x000001bb:       DW_TAG_formal_parameter
+                    DW_AT_type	(0x000001d9 "Diamond *")
+                    DW_AT_artificial	(true)
+
+0x000001c0:       NULL
+
+0x000001c1:     DW_TAG_variable
+                  DW_AT_name	("__clang_vtable")
+                  DW_AT_type	(0x0000036b "void *")
+                  DW_AT_external	(true)
+                  DW_AT_declaration	(true)
+                  DW_AT_artificial	(true)
+                  DW_AT_accessibility	(DW_ACCESS_private)
+
+0x000001c8:     NULL
+
+0x000001c9:   DW_TAG_structure_type
+                DW_AT_calling_convention	(DW_CC_pass_by_value)
+                DW_AT_name	("VBase")
+                DW_AT_byte_size	(0x04)
+                DW_AT_decl_file	(".\types.cpp")
+                DW_AT_decl_line	(53)
+
+0x000001cf:     DW_TAG_member
+                  DW_AT_name	("v")
+                  DW_AT_type	(0x000000d1 "int")
+                  DW_AT_decl_file	(".\types.cpp")
+                  DW_AT_decl_line	(54)
+                  DW_AT_data_member_location	(0x00)
+
+0x000001d8:     NULL
+
+0x000001d9:   DW_TAG_pointer_type
+                DW_AT_type	(0x00000190 "Diamond")
+
+0x000001de:   DW_TAG_subprogram
+                DW_AT_decl_file	(".\types.cpp")
+                DW_AT_decl_line	(57)
+                DW_AT_linkage_name	("_ZN7DiamondC1Ev")
+                DW_AT_specification	(0x000001b8 "_ZN7DiamondC4Ev")
+                DW_AT_inline	(DW_INL_inlined)
+                DW_AT_object_pointer	(0x000001ea)
+
+0x000001ea:     DW_TAG_formal_parameter
+                  DW_AT_name	("this")
+                  DW_AT_type	(0x000001f1 "Diamond *")
+                  DW_AT_artificial	(true)
+
+0x000001f0:     NULL
+
+0x000001f1:   DW_TAG_pointer_type
+                DW_AT_type	(0x00000190 "Diamond")
+
+0x000001f6:   DW_TAG_subprogram
+                DW_AT_low_pc	(0x00000000002012c0)
+                DW_AT_high_pc	(0x00000000002013b7)
+                DW_AT_frame_base	(DW_OP_reg7 RSP)
+                DW_AT_call_all_calls	(true)
+                DW_AT_name	("main")
+                DW_AT_decl_file	(".\types.cpp")
+                DW_AT_decl_line	(106)
+                DW_AT_type	(0x000000d1 "int")
+                DW_AT_external	(true)
+                DW_AT_APPLE_optimized	(true)
+
+0x00000205:     DW_TAG_variable
+                  DW_AT_location	(DW_OP_fbreg +48)
+                  DW_AT_name	("p")
+                  DW_AT_decl_file	(".\types.cpp")
+                  DW_AT_decl_line	(109)
+                  DW_AT_type	(0x0000041f "Padded")
+
+0x00000210:     DW_TAG_variable
+                  DW_AT_location	(DW_OP_fbreg +40)
+                  DW_AT_name	("b")
+                  DW_AT_decl_file	(".\types.cpp")
+                  DW_AT_decl_line	(110)
+                  DW_AT_type	(0x00000441 "Bits")
+
+0x0000021b:     DW_TAG_variable
+                  DW_AT_location	(DW_OP_fbreg +24)
+                  DW_AT_name	("d")
+                  DW_AT_decl_file	(".\types.cpp")
+                  DW_AT_decl_line	(111)
+                  DW_AT_type	(0x000000f2 "Derived")
+
+0x00000226:     DW_TAG_variable
+                  DW_AT_location	(DW_OP_fbreg +12)
+                  DW_AT_name	("w")
+                  DW_AT_decl_file	(".\types.cpp")
+                  DW_AT_decl_line	(112)
+                  DW_AT_type	(0x0000014e "WithEmpty")
+
+0x00000231:     DW_TAG_variable
+                  DW_AT_location	(DW_OP_fbreg +64)
+                  DW_AT_name	("m")
+                  DW_AT_decl_file	(".\types.cpp")
+                  DW_AT_decl_line	(113)
+                  DW_AT_type	(0x00000190 "Diamond")
+
+0x0000023d:     DW_TAG_variable
+                  DW_AT_location	(DW_OP_fbreg +16)
+                  DW_AT_name	("e")
+                  DW_AT_decl_file	(".\types.cpp")
+                  DW_AT_decl_line	(114)
+                  DW_AT_type	(0x0000049c "Either")
+
+0x00000248:     DW_TAG_variable
+                  DW_AT_location	(DW_OP_fbreg +8)
+                  DW_AT_name	("g")
+                  DW_AT_decl_file	(".\types.cpp")
+                  DW_AT_decl_line	(115)
+                  DW_AT_type	(0x0000051e "Grows")
+
+0x00000253:     DW_TAG_inlined_subroutine
+                  DW_AT_abstract_origin	(0x00000136 "_ZN7DerivedC2Ev")
+                  DW_AT_low_pc	(0x000000000020131b)
+                  DW_AT_high_pc	(0x0000000000201334)
+                  DW_AT_call_file	(".\types.cpp")
+                  DW_AT_call_line	(111)
+                  DW_AT_call_column	(13)
+
+0x00000260:       DW_TAG_formal_parameter
+                    DW_AT_location	(DW_OP_fbreg +24, DW_OP_stack_value)
+                    DW_AT_abstract_origin	(0x00000142 "this")
+
+0x00000269:       DW_TAG_inlined_subroutine
+                    DW_AT_abstract_origin	(0x000000da "_ZN4BaseC2Ev")
+                    DW_AT_low_pc	(0x000000000020131b)
+                    DW_AT_high_pc	(0x0000000000201323)
+                    DW_AT_call_file	(".\types.cpp")
+                    DW_AT_call_line	(43)
+                    DW_AT_call_column	(8)
+
+0x00000276:         DW_TAG_formal_parameter
+                      DW_AT_location	(DW_OP_fbreg +24, DW_OP_stack_value)
+                      DW_AT_abstract_origin	(0x000000e6 "this")
+
+0x0000027f:         NULL
+
+0x00000280:       NULL
+
+0x00000281:     DW_TAG_inlined_subroutine
+                  DW_AT_abstract_origin	(0x00000178 "_ZN9WithEmptyC2Ev")
+                  DW_AT_low_pc	(0x0000000000201334)
+                  DW_AT_high_pc	(0x000000000020133c)
+                  DW_AT_call_file	(".\types.cpp")
+                  DW_AT_call_line	(112)
+                  DW_AT_call_column	(15)
+
+0x0000028e:       DW_TAG_formal_parameter
+                    DW_AT_location	(DW_OP_fbreg +12, DW_OP_stack_value)
+                    DW_AT_abstract_origin	(0x00000184 "this")
+
+0x00000297:       NULL
+
+0x00000298:     DW_TAG_inlined_subroutine
+                  DW_AT_abstract_origin	(0x000001de "_ZN7DiamondC1Ev")
+                  DW_AT_low_pc	(0x000000000020133c)
+                  DW_AT_high_pc	(0x0000000000201357)
+                  DW_AT_call_file	(".\types.cpp")
+                  DW_AT_call_line	(113)
+                  DW_AT_call_column	(13)
+
+0x000002a5:       DW_TAG_formal_parameter
+                    DW_AT_location	(DW_OP_fbreg +64, DW_OP_stack_value)
+                    DW_AT_abstract_origin	(0x000001ea "this")
+
+0x000002af:       NULL
+
+0x000002b0:     DW_TAG_call_site
+                  DW_AT_call_origin	(0x000002f6 "printf")
+                  DW_AT_call_return_pc	(0x0000000000201301)
+
+0x000002b6:     DW_TAG_call_site
+                  DW_AT_call_origin	(0x0000002f "_Z3useP6PaddedP4BitsP7DerivedP9WithEmptyP7DiamondP6EitherP5Grows")
+                  DW_AT_call_return_pc	(0x0000000000201397)
+
+0x000002bc:       DW_TAG_call_site_parameter
+                    DW_AT_location	(DW_OP_reg1 RDX)
+                    DW_AT_call_value	(DW_OP_breg3 RBX+0)
+
+0x000002c2:       DW_TAG_call_site_parameter
+                    DW_AT_location	(DW_OP_reg9 R9)
+                    DW_AT_call_value	(DW_OP_fbreg +16)
+
+0x000002c8:       DW_TAG_call_site_parameter
+                    DW_AT_location	(DW_OP_reg8 R8)
+                    DW_AT_call_value	(DW_OP_fbreg +64)
+
+0x000002cf:       DW_TAG_call_site_parameter
+                    DW_AT_location	(DW_OP_reg2 RCX)
+                    DW_AT_call_value	(DW_OP_fbreg +12)
+
+0x000002d5:       DW_TAG_call_site_parameter
+                    DW_AT_location	(DW_OP_reg4 RSI)
+                    DW_AT_call_value	(DW_OP_fbreg +40)
+
+0x000002db:       DW_TAG_call_site_parameter
+                    DW_AT_location	(DW_OP_reg5 RDI)
+                    DW_AT_call_value	(DW_OP_fbreg +48)
+
+0x000002e1:       NULL
+
+0x000002e2:     DW_TAG_call_site
+                  DW_AT_call_origin	(0x000002f6 "printf")
+                  DW_AT_call_return_pc	(0x00000000002013a7)
+
+0x000002e8:     DW_TAG_call_site
+                  DW_AT_call_origin	(0x0000030f "_ZN4BaseD2Ev")
+                  DW_AT_call_return_pc	(0x00000000002013af)
+
+0x000002ee:       DW_TAG_call_site_parameter
+                    DW_AT_location	(DW_OP_reg5 RDI)
+                    DW_AT_call_value	(DW_OP_breg3 RBX+0)
+
+0x000002f4:       NULL
+
+0x000002f5:     NULL
+
+0x000002f6:   DW_TAG_subprogram
+                DW_AT_name	("printf")
+                DW_AT_decl_file	(".\include\stdio.h")
+                DW_AT_decl_line	(1)
+                DW_AT_type	(0x000000d1 "int")
+                DW_AT_declaration	(true)
+                DW_AT_external	(true)
+                DW_AT_APPLE_optimized	(true)
+
+0x000002fe:     DW_TAG_formal_parameter
+                  DW_AT_type	(0x00000305 "const char *")
+
+0x00000303:     DW_TAG_unspecified_parameters
+
+0x00000304:     NULL
+
+0x00000305:   DW_TAG_pointer_type
+                DW_AT_type	(0x0000030a "const char")
+
+0x0000030a:   DW_TAG_const_type
+                DW_AT_type	(0x0000012d "char")
+
+0x0000030f:   DW_TAG_subprogram
+                DW_AT_low_pc	(0x00000000002013d8)
+                DW_AT_high_pc	(0x00000000002013d9)
+                DW_AT_frame_base	(DW_OP_reg7 RSP)
+                DW_AT_object_pointer	(0x00000320)
+                DW_AT_call_all_calls	(true)
+                DW_AT_linkage_name	("_ZN4BaseD2Ev")
+                DW_AT_specification	(0x0000009d "_ZN4BaseD4Ev")
+
+0x00000320:     DW_TAG_formal_parameter
+                  DW_AT_location	(DW_OP_reg5 RDI)
+                  DW_AT_name	("this")
+                  DW_AT_type	(0x000000ed "Base *")
+                  DW_AT_artificial	(true)
+
+0x00000328:     NULL
+
+0x00000329:   DW_TAG_subprogram
+                DW_AT_low_pc	(0x00000000002013c0)
+                DW_AT_high_pc	(0x00000000002013d7)
+                DW_AT_frame_base	(DW_OP_reg7 RSP)
+                DW_AT_object_pointer	(0x0000033c)
+                DW_AT_call_all_calls	(true)
+                DW_AT_decl_file	(".\types.cpp")
+                DW_AT_decl_line	(43)
+                DW_AT_linkage_name	("_ZN7DerivedD0Ev")
+                DW_AT_specification	(0x00000114 "_ZN7DerivedD4Ev")
+
+0x0000033c:     DW_TAG_formal_parameter
+                  DW_AT_location	(indexed (0x4) loclist = 0x00000064: 
+                     [0x00000000002013c0, 0x00000000002013c9): DW_OP_reg5 RDI
+                     [0x00000000002013c9, 0x00000000002013d2): DW_OP_reg3 RBX
+                     [0x00000000002013d2, 0x00000000002013d7): DW_OP_reg5 RDI)
+                  DW_AT_name	("this")
+                  DW_AT_type	(0x00000149 "Derived *")
+                  DW_AT_artificial	(true)
+
+0x00000343:     DW_TAG_call_site
+                  DW_AT_call_origin	(0x0000030f "_ZN4BaseD2Ev")
+                  DW_AT_call_return_pc	(0x00000000002013c9)
+
+0x00000349:       DW_TAG_call_site_parameter
+                    DW_AT_location	(DW_OP_reg5 RDI)
+                    DW_AT_call_value	(DW_OP_breg3 RBX+0)
+
+0x0000034f:       NULL
+
+0x00000350:     DW_TAG_call_site
+                  DW_AT_call_origin	(0x0000035d "_ZdlPvm")
+                  DW_AT_call_tail_call	(true)
+                  DW_AT_call_pc	(0x00000000002013d2)
+
+0x00000356:       DW_TAG_call_site_parameter
+                    DW_AT_location	(DW_OP_reg4 RSI)
+                    DW_AT_call_value	(DW_OP_lit16)
+
+0x0000035b:       NULL
+
+0x0000035c:     NULL
+
+0x0000035d:   DW_TAG_subprogram
+                DW_AT_linkage_name	("_ZdlPvm")
+                DW_AT_name	("operator delete")
+                DW_AT_declaration	(true)
+                DW_AT_artificial	(true)
+                DW_AT_external	(true)
+                DW_AT_APPLE_optimized	(true)
+
+0x00000360:     DW_TAG_formal_parameter
+                  DW_AT_type	(0x0000036b "void *")
+
+0x00000365:     DW_TAG_formal_parameter
+                  DW_AT_type	(0x0000036c "unsigned long")
+
+0x0000036a:     NULL
+
+0x0000036b:   DW_TAG_pointer_type
+
+0x0000036c:   DW_TAG_base_type
+                DW_AT_name	("unsigned long")
+                DW_AT_encoding	(DW_ATE_unsigned)
+                DW_AT_byte_size	(0x08)
+
+0x00000370:   DW_TAG_subprogram
+                DW_AT_low_pc	(0x00000000002013e0)
+                DW_AT_high_pc	(0x00000000002013f7)
+                DW_AT_frame_base	(DW_OP_reg7 RSP)
+                DW_AT_object_pointer	(0x00000381)
+                DW_AT_call_all_calls	(true)
+                DW_AT_linkage_name	("_ZN4BaseD0Ev")
+                DW_AT_specification	(0x0000009d "_ZN4BaseD4Ev")
+
+0x00000381:     DW_TAG_formal_parameter
+                  DW_AT_location	(indexed (0x5) loclist = 0x00000076: 
+                     [0x00000000002013e0, 0x00000000002013e9): DW_OP_reg5 RDI
+                     [0x00000000002013e9, 0x00000000002013f2): DW_OP_reg3 RBX
+                     [0x00000000002013f2, 0x00000000002013f7): DW_OP_reg5 RDI)
+                  DW_AT_name	("this")
+                  DW_AT_type	(0x000000ed "Base *")
+                  DW_AT_artificial	(true)
+
+0x00000388:     DW_TAG_call_site
+                  DW_AT_call_origin	(0x0000030f "_ZN4BaseD2Ev")
+                  DW_AT_call_return_pc	(0x00000000002013e9)
+
+0x0000038e:       DW_TAG_call_site_parameter
+                    DW_AT_location	(DW_OP_reg5 RDI)
+                    DW_AT_call_value	(DW_OP_breg3 RBX+0)
+
+0x00000394:       NULL
+
+0x00000395:     DW_TAG_call_site
+                  DW_AT_call_origin	(0x0000035d "_ZdlPvm")
+                  DW_AT_call_tail_call	(true)
+                  DW_AT_call_pc	(0x00000000002013f2)
+
+0x0000039b:       DW_TAG_call_site_parameter
+                    DW_AT_location	(DW_OP_reg4 RSI)
+                    DW_AT_call_value	(DW_OP_lit16)
+
+0x000003a0:       NULL
+
+0x000003a1:     NULL
+
+0x000003a2:   DW_TAG_variable
+                DW_AT_type	(0x000003ac "const char[6]")
+                DW_AT_decl_file	(".\types.cpp")
+                DW_AT_decl_line	(96)
+                DW_AT_location	(DW_OP_addrx 0x10)
+
+0x000003ac:   DW_TAG_array_type
+                DW_AT_type	(0x0000030a "const char")
+
+0x000003b1:     DW_TAG_subrange_type
+                  DW_AT_type	(0x000003b8 "__ARRAY_SIZE_TYPE__")
+                  DW_AT_count	(0x06)
+
+0x000003b7:     NULL
+
+0x000003b8:   DW_TAG_base_type
+                DW_AT_name	("__ARRAY_SIZE_TYPE__")
+                DW_AT_byte_size	(0x08)
+                DW_AT_encoding	(DW_ATE_unsigned)
+
+0x000003bc:   DW_TAG_variable
+                DW_AT_name	("g_sample")
+                DW_AT_type	(0x000003c7 "Sample")
+                DW_AT_external	(true)
+                DW_AT_decl_file	(".\types.cpp")
+                DW_AT_decl_line	(103)
+                DW_AT_location	(DW_OP_addrx 0x11)
+
+0x000003c7:   DW_TAG_structure_type
+                DW_AT_calling_convention	(DW_CC_pass_by_value)
+                DW_AT_name	("Sample")
+                DW_AT_byte_size	(0x48)
+                DW_AT_decl_file	(".\types.cpp")
+                DW_AT_decl_line	(91)
+
+0x000003cd:     DW_TAG_member
+                  DW_AT_name	("padded")
+                  DW_AT_type	(0x0000041f "Padded")
+                  DW_AT_decl_file	(".\types.cpp")
+                  DW_AT_decl_line	(92)
+                  DW_AT_data_member_location	(0x00)
+
+0x000003d6:     DW_TAG_member
+                  DW_AT_name	("bits")
+                  DW_AT_type	(0x00000441 "Bits")
+                  DW_AT_decl_file	(".\types.cpp")
+                  DW_AT_decl_line	(93)
+                  DW_AT_data_member_location	(0x0c)
+
+0x000003df:     DW_TAG_member
+                  DW_AT_name	("color")
+                  DW_AT_type	(0x00000469 "Color")
+                  DW_AT_decl_file	(".\types.cpp")
+                  DW_AT_decl_line	(94)
+                  DW_AT_data_member_location	(0x14)
+
+0x000003e8:     DW_TAG_member
+                  DW_AT_name	("ratio")
+                  DW_AT_type	(0x0000047c "double")
+                  DW_AT_decl_file	(".\types.cpp")
+                  DW_AT_decl_line	(95)
+                  DW_AT_data_member_location	(0x18)
+
+0x000003f1:     DW_TAG_member
+                  DW_AT_name	("text")
+                  DW_AT_type	(0x00000305 "const char *")
+                  DW_AT_decl_file	(".\types.cpp")
+                  DW_AT_decl_line	(96)
+                  DW_AT_data_member_location	(0x20)
+
+0x000003fa:     DW_TAG_member
+                  DW_AT_name	("name")
+                  DW_AT_type	(0x00000480 "char[8]")
+                  DW_AT_decl_file	(".\types.cpp")
+                  DW_AT_decl_line	(97)
+                  DW_AT_data_member_location	(0x28)
+
+0x00000403:     DW_TAG_member
+                  DW_AT_name	("numbers")
+                  DW_AT_type	(0x0000048c "int[3]")
+                  DW_AT_decl_file	(".\types.cpp")
+                  DW_AT_decl_line	(98)
+                  DW_AT_data_member_location	(0x30)
+
+0x0000040c:     DW_TAG_member
+                  DW_AT_name	("flag")
+                  DW_AT_type	(0x00000498 "bool")
+                  DW_AT_decl_file	(".\types.cpp")
+                  DW_AT_decl_line	(99)
+                  DW_AT_data_member_location	(0x3c)
+
+0x00000415:     DW_TAG_member
+                  DW_AT_name	("either")
+                  DW_AT_type	(0x0000049c "Either")
+                  DW_AT_decl_file	(".\types.cpp")
+                  DW_AT_decl_line	(100)
+                  DW_AT_data_member_location	(0x40)
+
+0x0000041e:     NULL
+
+0x0000041f:   DW_TAG_structure_type
+                DW_AT_calling_convention	(DW_CC_pass_by_value)
+                DW_AT_name	("Padded")
+                DW_AT_byte_size	(0x0c)
+                DW_AT_decl_file	(".\types.cpp")
+                DW_AT_decl_line	(19)
+
+0x00000425:     DW_TAG_member
+                  DW_AT_name	("a")
+                  DW_AT_type	(0x0000012d "char")
+                  DW_AT_decl_file	(".\types.cpp")
+                  DW_AT_decl_line	(20)
+                  DW_AT_data_member_location	(0x00)
+
+0x0000042e:     DW_TAG_member
+                  DW_AT_name	("b")
+                  DW_AT_type	(0x000000d1 "int")
+                  DW_AT_decl_file	(".\types.cpp")
+                  DW_AT_decl_line	(21)
+                  DW_AT_data_member_location	(0x04)
+
+0x00000437:     DW_TAG_member
+                  DW_AT_name	("c")
+                  DW_AT_type	(0x0000012d "char")
+                  DW_AT_decl_file	(".\types.cpp")
+                  DW_AT_decl_line	(22)
+                  DW_AT_data_member_location	(0x08)
+
+0x00000440:     NULL
+
+0x00000441:   DW_TAG_structure_type
+                DW_AT_calling_convention	(DW_CC_pass_by_value)
+                DW_AT_name	("Bits")
+                DW_AT_byte_size	(0x08)
+                DW_AT_decl_file	(".\types.cpp")
+                DW_AT_decl_line	(32)
+
+0x00000447:     DW_TAG_member
+                  DW_AT_name	("a")
+                  DW_AT_type	(0x00000465 "unsigned int")
+                  DW_AT_decl_file	(".\types.cpp")
+                  DW_AT_decl_line	(33)
+                  DW_AT_bit_size	(0x03)
+                  DW_AT_data_bit_offset	(0x00)
+
+0x00000451:     DW_TAG_member
+                  DW_AT_name	("b")
+                  DW_AT_type	(0x00000465 "unsigned int")
+                  DW_AT_decl_file	(".\types.cpp")
+                  DW_AT_decl_line	(34)
+                  DW_AT_bit_size	(0x05)
+                  DW_AT_data_bit_offset	(0x03)
+
+0x0000045b:     DW_TAG_member
+                  DW_AT_name	("c")
+                  DW_AT_type	(0x000000d1 "int")
+                  DW_AT_decl_file	(".\types.cpp")
+                  DW_AT_decl_line	(35)
+                  DW_AT_data_member_location	(0x04)
+
+0x00000464:     NULL
+
+0x00000465:   DW_TAG_base_type
+                DW_AT_name	("unsigned int")
+                DW_AT_encoding	(DW_ATE_unsigned)
+                DW_AT_byte_size	(0x04)
+
+0x00000469:   DW_TAG_enumeration_type
+                DW_AT_type	(0x00000465 "unsigned int")
+                DW_AT_name	("Color")
+                DW_AT_byte_size	(0x04)
+                DW_AT_decl_file	(".\types.cpp")
+                DW_AT_decl_line	(89)
+
+0x00000472:     DW_TAG_enumerator
+                  DW_AT_name	("Red")
+                  DW_AT_const_value	(1)
+
+0x00000475:     DW_TAG_enumerator
+                  DW_AT_name	("Green")
+                  DW_AT_const_value	(2)
+
+0x00000478:     DW_TAG_enumerator
+                  DW_AT_name	("Blue")
+                  DW_AT_const_value	(4)
+
+0x0000047b:     NULL
+
+0x0000047c:   DW_TAG_base_type
+                DW_AT_name	("double")
+                DW_AT_encoding	(DW_ATE_float)
+                DW_AT_byte_size	(0x08)
+
+0x00000480:   DW_TAG_array_type
+                DW_AT_type	(0x0000012d "char")
+
+0x00000485:     DW_TAG_subrange_type
+                  DW_AT_type	(0x000003b8 "__ARRAY_SIZE_TYPE__")
+                  DW_AT_count	(0x08)
+
+0x0000048b:     NULL
+
+0x0000048c:   DW_TAG_array_type
+                DW_AT_type	(0x000000d1 "int")
+
+0x00000491:     DW_TAG_subrange_type
+                  DW_AT_type	(0x000003b8 "__ARRAY_SIZE_TYPE__")
+                  DW_AT_count	(0x03)
+
+0x00000497:     NULL
+
+0x00000498:   DW_TAG_base_type
+                DW_AT_name	("bool")
+                DW_AT_encoding	(DW_ATE_boolean)
+                DW_AT_byte_size	(0x01)
+
+0x0000049c:   DW_TAG_union_type
+                DW_AT_calling_convention	(DW_CC_pass_by_value)
+                DW_AT_name	("Either")
+                DW_AT_byte_size	(0x08)
+                DW_AT_decl_file	(".\types.cpp")
+                DW_AT_decl_line	(61)
+
+0x000004a2:     DW_TAG_member
+                  DW_AT_name	("c")
+                  DW_AT_type	(0x0000012d "char")
+                  DW_AT_decl_file	(".\types.cpp")
+                  DW_AT_decl_line	(62)
+                  DW_AT_data_member_location	(0x00)
+
+0x000004ab:     DW_TAG_member
+                  DW_AT_name	("d")
+                  DW_AT_type	(0x0000047c "double")
+                  DW_AT_decl_file	(".\types.cpp")
+                  DW_AT_decl_line	(63)
+                  DW_AT_data_member_location	(0x00)
+
+0x000004b4:     NULL
+
+0x000004b5:   DW_TAG_variable
+                DW_AT_name	("g_derived")
+                DW_AT_type	(0x000000f2 "Derived")
+                DW_AT_external	(true)
+                DW_AT_decl_file	(".\types.cpp")
+                DW_AT_decl_line	(104)
+                DW_AT_location	(DW_OP_addrx 0x12)
+
+0x000004c0:   DW_TAG_variable
+                DW_AT_type	(0x000004ca "const char[10]")
+                DW_AT_decl_file	(".\types.cpp")
+                DW_AT_decl_line	(108)
+                DW_AT_location	(DW_OP_addrx 0x13)
+
+0x000004ca:   DW_TAG_array_type
+                DW_AT_type	(0x0000030a "const char")
+
+0x000004cf:     DW_TAG_subrange_type
+                  DW_AT_type	(0x000003b8 "__ARRAY_SIZE_TYPE__")
+                  DW_AT_count	(0x0a)
+
+0x000004d5:     NULL
+
+0x000004d6:   DW_TAG_variable
+                DW_AT_type	(0x000004e0 "const char[4]")
+                DW_AT_decl_file	(".\types.cpp")
+                DW_AT_decl_line	(116)
+                DW_AT_location	(DW_OP_addrx 0x14)
+
+0x000004e0:   DW_TAG_array_type
+                DW_AT_type	(0x0000030a "const char")
+
+0x000004e5:     DW_TAG_subrange_type
+                  DW_AT_type	(0x000003b8 "__ARRAY_SIZE_TYPE__")
+                  DW_AT_count	(0x04)
+
+0x000004eb:     NULL
+
+0x000004ec:   DW_TAG_variable
+                DW_AT_specification	(0x00000125 "__clang_vtable")
+                DW_AT_alignment	(8)
+                DW_AT_location	(DW_OP_addrx 0x15)
+                DW_AT_linkage_name	("_ZTV7Derived")
+
+0x000004f6:   DW_TAG_variable
+                DW_AT_specification	(0x000000b9 "__clang_vtable")
+                DW_AT_alignment	(8)
+                DW_AT_location	(DW_OP_addrx 0x16)
+                DW_AT_linkage_name	("_ZTV4Base")
+
+0x00000500:   DW_TAG_variable
+                DW_AT_specification	(0x000001c1 "__clang_vtable")
+                DW_AT_alignment	(8)
+                DW_AT_location	(DW_OP_addrx 0x17)
+                DW_AT_linkage_name	("_ZTV7Diamond")
+
+0x0000050a:   DW_TAG_pointer_type
+                DW_AT_type	(0x0000041f "Padded")
+
+0x0000050f:   DW_TAG_pointer_type
+                DW_AT_type	(0x00000441 "Bits")
+
+0x00000514:   DW_TAG_pointer_type
+                DW_AT_type	(0x0000049c "Either")
+
+0x00000519:   DW_TAG_pointer_type
+                DW_AT_type	(0x0000051e "Grows")
+
+0x0000051e:   DW_TAG_structure_type
+                DW_AT_calling_convention	(DW_CC_pass_by_value)
+                DW_AT_name	("Grows")
+                DW_AT_byte_size	(0x04)
+                DW_AT_decl_file	(".\types.cpp")
+                DW_AT_decl_line	(66)
+
+0x00000524:     DW_TAG_member
+                  DW_AT_name	("first")
+                  DW_AT_type	(0x000000d1 "int")
+                  DW_AT_decl_file	(".\types.cpp")
+                  DW_AT_decl_line	(67)
+                  DW_AT_data_member_location	(0x00)
+
+0x0000052d:     NULL
+
+0x0000052e:   NULL

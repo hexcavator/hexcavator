@@ -1,1 +1,45 @@
+# Build output
 /target
+**/*.rs.bk
+
+# cargo-fuzz output (fuzz targets themselves are tracked)
+**/fuzz/target/
+**/fuzz/corpus/
+**/fuzz/artifacts/
+**/fuzz/coverage/
+
+# Profiling and coverage
+*.profraw
+*.profdata
+perf.data*
+flamegraph.svg
+lcov.info
+
+# Editors and IDEs
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+.idea/
+.vs/
+*.swp
+*~
+
+# OS clutter
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Python bytecode from the tools and the extension harness
+__pycache__/
+fuzz-findings/
+fuzz-corpus/
+
+# Event traces: may hold PII (paths, command lines); never commit them
+*.etl
+!/testdata/etl/*.etl
+*.etl.NGENPDB/
+*.hxtrace
+!/testdata/etl/*.hxtrace
+tools/etwdump/*.exe

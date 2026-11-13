@@ -1,0 +1,74 @@
+
+File: unwind-aarch64_be-linux-gnu.o
+Format: elf64-bigaarch64
+Arch: aarch64_be
+AddressSize: 64bit
+LoadName: <Not found>
+Relocations [
+  Section (3) .rela.text {
+    0x8 R_AARCH64_ADR_PREL_PG_HI21 .bss 0x1000
+    0x14 R_AARCH64_LDST32_ABS_LO12_NC .bss 0x1000
+    0x1C R_AARCH64_ADR_PREL_PG_HI21 .rodata.str1.1 0x0
+    0x20 R_AARCH64_ADD_ABS_LO12_NC .rodata.str1.1 0x0
+    0x80 R_AARCH64_ADR_PREL_PG_HI21 counter 0x0
+    0x84 R_AARCH64_LDST32_ABS_LO12_NC counter 0x0
+    0x88 R_AARCH64_CALL26 compute 0x0
+    0x8C R_AARCH64_ADR_PREL_PG_HI21 buffer 0x0
+    0x90 R_AARCH64_LDST8_ABS_LO12_NC buffer 0x0
+    0x94 R_AARCH64_CALL26 optional_hook 0x0
+    0x9C R_AARCH64_ADR_PREL_PG_HI21 .bss 0x1000
+    0xA0 R_AARCH64_TLSLE_ADD_TPREL_HI12 per_thread 0x0
+    0xA4 R_AARCH64_TLSLE_ADD_TPREL_LO12_NC per_thread 0x0
+    0xB0 R_AARCH64_LDST32_ABS_LO12_NC .bss 0x1000
+  }
+  Section (11) .rela.debug_info {
+    0x8 R_AARCH64_ABS32 .debug_abbrev 0x0
+    0x11 R_AARCH64_ABS32 .debug_str_offsets 0x8
+    0x15 R_AARCH64_ABS32 .debug_line 0x0
+    0x1F R_AARCH64_ABS32 .debug_addr 0x8
+    0x23 R_AARCH64_ABS32 .debug_rnglists 0xC
+    0x27 R_AARCH64_ABS32 .debug_loclists 0xC
+  }
+  Section (14) .rela.debug_str_offsets {
+    0x8 R_AARCH64_ABS32 .debug_str 0x0
+    0xC R_AARCH64_ABS32 .debug_str 0x1
+    0x10 R_AARCH64_ABS32 .debug_str 0xB
+    0x14 R_AARCH64_ABS32 .debug_str 0xD
+    0x18 R_AARCH64_ABS32 .debug_str 0x14
+    0x1C R_AARCH64_ABS32 .debug_str 0x18
+    0x20 R_AARCH64_ABS32 .debug_str 0x1A
+    0x24 R_AARCH64_ABS32 .debug_str 0x22
+    0x28 R_AARCH64_ABS32 .debug_str 0x2D
+    0x2C R_AARCH64_ABS32 .debug_str 0x3A
+    0x30 R_AARCH64_ABS32 .debug_str 0x41
+    0x34 R_AARCH64_ABS32 .debug_str 0x46
+    0x38 R_AARCH64_ABS32 .debug_str 0x5A
+    0x3C R_AARCH64_ABS32 .debug_str 0x62
+    0x40 R_AARCH64_ABS32 .debug_str 0x6A
+    0x44 R_AARCH64_ABS32 .debug_str 0x78
+    0x48 R_AARCH64_ABS32 .debug_str 0x7F
+    0x4C R_AARCH64_ABS32 .debug_str 0x81
+    0x50 R_AARCH64_ABS32 .debug_str 0x87
+  }
+  Section (17) .rela.debug_addr {
+    0x8 R_AARCH64_ABS64 .text 0x0
+    0x10 R_AARCH64_ABS64 .text 0x70
+    0x18 R_AARCH64_ABS64 .text 0x78
+    0x20 R_AARCH64_ABS64 .text 0x8C
+    0x28 R_AARCH64_ABS64 .text 0x98
+    0x30 R_AARCH64_ABS64 counter 0x0
+    0x38 R_AARCH64_ABS64 .bss 0x1000
+    0x40 R_AARCH64_ABS64 buffer 0x0
+    0x48 R_AARCH64_ABS64 .rodata.str1.1 0x0
+  }
+  Section (20) .rela.eh_frame {
+    0x1C R_AARCH64_PREL32 .text 0x0
+    0x30 R_AARCH64_PREL32 .text 0x70
+    0x44 R_AARCH64_PREL32 .text 0x78
+  }
+  Section (22) .rela.debug_line {
+    0x22 R_AARCH64_ABS32 .debug_line_str 0x0
+    0x2E R_AARCH64_ABS32 .debug_line_str 0x2
+    0x4B R_AARCH64_ABS64 .text 0x0
+  }
+]

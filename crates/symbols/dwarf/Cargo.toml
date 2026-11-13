@@ -1,0 +1,18 @@
+[package]
+name = "hexcavator-dwarf"
+description = "DWARF debug information (versions 2 to 5): units, abbreviations, DIEs and attributes, strings, addresses, range and location lists, aranges"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license = "Apache-2.0 AND Apache-2.0 WITH LLVM-exception"
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+hexcavator-core.workspace = true
+
+[lints]
+workspace = true
+
+[dev-dependencies]
+hexcavator-elf.workspace = true

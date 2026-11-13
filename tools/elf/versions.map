@@ -1,0 +1,2 @@
+VERS_1 { global: table; handlers; local: *; };
+VERS_2 { global: far; } VERS_1;

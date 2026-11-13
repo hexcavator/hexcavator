@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A small stack tag file in WPA's format, for tests and fuzz seeds. -->
+<Tag Name="">
+  <Tag Name="Windows">
+    <Tag Name="Page Fault">
+      <Entrypoint Module="ntoskrnl.exe" Method="MmAccessFault"/>
+    </Tag>
+    <Entrypoint Module="ntoskrnl.exe" Method="Ki*"/>
+  </Tag>
+  <Tag Name="Heap">
+    <Entrypoint Module="ntdll.dll" Method="Rtl*Heap*"/>
+  </Tag>
+  <Tag Name="Graphics &amp; Display"><Entrypoint Module="d3d1?.dll"/></Tag>
+</Tag>

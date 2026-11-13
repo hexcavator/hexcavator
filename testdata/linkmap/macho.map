@@ -1,0 +1,21 @@
+# Path: program-macho
+# Arch: arm64
+# Object files:
+[  0] linker synthesized
+[  1] main.o
+[  2] lib.a(used.o)
+# Sections:
+# Address	Size    	Segment	Section
+0x100000328	0x00000038	__TEXT	__text
+0x100004000	0x00000040	__DATA	__data
+# Symbols:
+# Address	Size    	File  Name
+0x100000328	0x0000002C	[  1] __start
+0x100000354	0x0000000C	[  2] _used_helper
+0x100004000	0x00000040	[  1] _shared_table
+# Dead Stripped Symbols:
+#        	Size    	File  Name
+<<dead>>	0x00000000	[  1] ltmp0
+<<dead>>	0x00000034	[  1] _compute
+<<dead>>	0x00000008	[  1] _unused_here
+<<dead>>	0x00000008	[  2] _dead_in_used

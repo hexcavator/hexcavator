@@ -1,0 +1,8 @@
+# The workflows' actions are pinned to exact commits; once a week,
+# Dependabot proposes newer releases as pull requests.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

@@ -1,0 +1,89 @@
+
+refs-aarch64-linux-gnu:	file format elf64-littleaarch64
+
+Disassembly of section .text:
+
+0000000000210184 <greet>:
+  210184:      	adrp	x8, 0x220000 <_start+0xfd8c>
+  210188:      	nop
+  21018c:      	adr	x9, 0x200158
+  210190:      	str	x9, [x8, #0x2a8]
+  210194:      	ret
+
+0000000000210198 <shared_first>:
+  210198:      	adrp	x8, 0x220000 <_start+0xfd8c>
+  21019c:      	adrp	x9, 0x200000
+  2101a0:      	add	x9, x9, #0x165
+  2101a4:      	str	x9, [x8, #0x2a8]
+  2101a8:      	ret
+
+00000000002101ac <shared_second>:
+  2101ac:      	adrp	x8, 0x220000 <_start+0xfd8c>
+  2101b0:      	adrp	x9, 0x200000
+  2101b4:      	add	x9, x9, #0x165
+  2101b8:      	str	x9, [x8, #0x2a8]
+  2101bc:      	ret
+
+00000000002101c0 <lookup>:
+  2101c0:      	cmp	w0, #0x6
+  2101c4:      	b.hi	0x2101d8 <lookup+0x18>
+  2101c8:      	nop
+  2101cc:      	adr	x8, 0x20017c
+  2101d0:      	ldrb	w0, [x8, w0, uxtw]
+  2101d4:      	ret
+  2101d8:      	mov	w0, wzr
+  2101dc:      	ret
+
+00000000002101e0 <jumps>:
+  2101e0:      	cmp	w0, #0x2
+  2101e4:      	b.le	0x210204 <jumps+0x24>
+  2101e8:      	cmp	w0, #0x4
+  2101ec:      	b.gt	0x21021c <jumps+0x3c>
+  2101f0:      	cmp	w0, #0x3
+  2101f4:      	b.eq	0x210244 <jumps+0x64>
+  2101f8:      	cmp	w0, #0x4
+  2101fc:      	b.ne	0x210240 <jumps+0x60>
+  210200:      	b	0x210198 <shared_first>
+  210204:      	cbz	w0, 0x210230 <jumps+0x50>
+  210208:      	cmp	w0, #0x1
+  21020c:      	b.eq	0x210264 <jumps+0x84>
+  210210:      	cmp	w0, #0x2
+  210214:      	b.ne	0x210240 <jumps+0x60>
+  210218:      	b	0x210184 <greet>
+  21021c:      	cmp	w0, #0x5
+  210220:      	b.eq	0x210254 <jumps+0x74>
+  210224:      	cmp	w0, #0x6
+  210228:      	b.ne	0x210240 <jumps+0x60>
+  21022c:      	b	0x2101ac <shared_second>
+  210230:      	adrp	x8, 0x220000 <_start+0xfd8c>
+  210234:      	adrp	x9, 0x200000
+  210238:      	add	x9, x9, #0x174
+  21023c:      	str	x9, [x8, #0x2a8]
+  210240:      	ret
+  210244:      	adrp	x8, 0x220000 <_start+0xfd8c>
+  210248:      	mov	w9, #0x7                // =7
+  21024c:      	str	w9, [x8, #0x2b0]
+  210250:      	ret
+  210254:      	adrp	x8, 0x220000 <_start+0xfd8c>
+  210258:      	mov	w9, #0x9                // =9
+  21025c:      	str	w9, [x8, #0x2b0]
+  210260:      	ret
+  210264:      	adrp	x8, 0x220000 <_start+0xfd8c>
+  210268:      	mov	w9, #0x2                // =2
+  21026c:      	str	w9, [x8, #0x2b0]
+  210270:      	ret
+
+0000000000210274 <_start>:
+  210274:      	stp	x29, x30, [sp, #-0x20]!
+  210278:      	str	x19, [sp, #0x10]
+  21027c:      	mov	x29, sp
+  210280:      	bl	0x210184 <greet>
+  210284:      	bl	0x210198 <shared_first>
+  210288:      	bl	0x2101ac <shared_second>
+  21028c:      	adrp	x19, 0x220000 <_start+0xfd8c>
+  210290:      	ldr	w0, [x19, #0x2b0]
+  210294:      	bl	0x2101c0 <lookup>
+  210298:      	str	w0, [x19, #0x2b0]
+  21029c:      	ldr	w0, [x19, #0x2b0]
+  2102a0:      	bl	0x2101e0 <jumps>
+  2102a4:      	b	0x2102a4 <_start+0x30>

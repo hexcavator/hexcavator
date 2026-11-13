@@ -1,0 +1,264 @@
+## _guard_dispatch_icall_nop @0x1e20
+integer "" "const unsigned char" @0x0+1 = "255"
+## _guard_xfg_dispatch_icall_nop @0x1e40
+integer "" "const unsigned char" @0x0+1 = "255"
+## __guard_check_icall_fptr @0x2160
+pointer "" "void * volatile" @0x0+8 = "0x140001b60" -> 0x140001b60
+## __guard_xfg_check_icall_fptr @0x2168
+pointer "" "void*" @0x0+8 = "0x140001b60" -> 0x140001b60
+## __guard_xfg_check_icall_fptr @0x2168
+pointer "" "void * volatile" @0x0+8 = "0x140001b60" -> 0x140001b60
+## __guard_dispatch_icall_fptr @0x2170
+pointer "" "void * volatile" @0x0+8 = "0x140001e20" -> 0x140001e20
+## __guard_xfg_dispatch_icall_fptr @0x2178
+pointer "" "void*" @0x0+8 = "0x140001e40" -> 0x140001e40
+## __guard_xfg_dispatch_icall_fptr @0x2178
+pointer "" "void * volatile" @0x0+8 = "0x140001e40" -> 0x140001e40
+## __guard_xfg_table_dispatch_icall_fptr @0x2180
+pointer "" "void*" @0x0+8 = "0x140001e40" -> 0x140001e40
+## __guard_xfg_table_dispatch_icall_fptr @0x2180
+pointer "" "void * volatile" @0x0+8 = "0x140001e40" -> 0x140001e40
+## __castguard_check_failure_os_handled_fptr @0x2188
+pointer "" "void (void*) * volatile" @0x0+8 = "nullptr"
+## __guard_memcpy_fptr @0x2190
+pointer "" "void* (void*, void*, unsigned __int64) * volatile" @0x0+8 = "0x140001e02" -> 0x140001e02
+## __guard_memcpy_fptr @0x2190
+pointer "" "void* (void*, const void *, unsigned __int64) * volatile" @0x0+8 = "0x140001e02" -> 0x140001e02
+## __xc_a @0x2198
+array "" "void () *[0]" @0x0+0
+## __xc_a @0x2198
+array "" "void () *[1]" @0x0+8
+  pointer "[0]" "void () *" @0x0+8 = "nullptr"
+## pre_cpp_initializer @0x21a0
+pointer "" "void () *" @0x0+8 = "0x1400015c0" -> 0x1400015c0
+## g_derived$initializer$ @0x21a8
+pointer "" "void () *" @0x0+8 = "0x140001000" -> 0x140001000
+## __xc_z @0x21b0
+array "" "void () *[0]" @0x0+0
+## __xc_z @0x21b0
+array "" "void () *[1]" @0x0+8
+  pointer "[0]" "void () *" @0x0+8 = "nullptr"
+## __xi_a @0x21b8
+array "" "int () *[0]" @0x0+0
+## __xi_a @0x21b8
+array "" "int () *[1]" @0x0+8
+  pointer "[0]" "int () *" @0x0+8 = "nullptr"
+## pre_c_initializer @0x21c0
+pointer "" "int () *" @0x0+8 = "0x1400014f0" -> 0x1400014f0
+## post_pgo_initializer @0x21c8
+pointer "" "int () *" @0x0+8 = "0x1400015b0" -> 0x1400015b0
+## __xi_z @0x21d0
+array "" "int () *[0]" @0x0+0
+## __xi_z @0x21d0
+array "" "int () *[1]" @0x0+8
+  pointer "[0]" "int () *" @0x0+8 = "nullptr"
+## __xp_a @0x21d8
+array "" "void () *[1]" @0x0+8
+  pointer "[0]" "void () *" @0x0+8 = "nullptr"
+## __xp_z @0x21e0
+array "" "void () *[1]" @0x0+8
+  pointer "[0]" "void () *" @0x0+8 = "nullptr"
+## __xt_a @0x21e8
+array "" "void () *[1]" @0x0+8
+  pointer "[0]" "void () *" @0x0+8 = "nullptr"
+## __xt_z @0x21f0
+array "" "void () *[1]" @0x0+8
+  pointer "[0]" "void () *" @0x0+8 = "nullptr"
+## Derived::`vftable' @0x2208
+array "" "void () * const[2]" @0x0+16
+  pointer "[0]" "void () * const" @0x0+8 = "0x140001010" -> 0x140001010
+  pointer "[1]" "void () * const" @0x8+8 = "0x140002550" -> 0x140002550
+## Base::`vftable' @0x2218
+array "" "void () * const[2]" @0x0+16
+  pointer "[0]" "void () * const" @0x0+8 = "0x140001050" -> 0x140001050
+  pointer "[1]" "void () * const" @0x8+8 = "0x1000000000" -> 0x1000000000
+## type_info::`vftable' @0x2248
+array "" "void () * const[2]" @0x0+16
+  pointer "[0]" "void () * const" @0x0+8 = "0x140001240" -> 0x140001240
+  pointer "[1]" "void () * const" @0x8+8 = "0xffffffffffffffff" -> 0xffffffffffffffff
+## _load_config_used @0x2260
+struct "" "_RS5_IMAGE_LOAD_CONFIG_DIRECTORY64" @0x0+320
+  integer "Size" "unsigned long" @0x0+4 = "320"
+  integer "TimeDateStamp" "unsigned long" @0x4+4 = "0"
+  integer "MajorVersion" "unsigned short" @0x8+2 = "0"
+  integer "MinorVersion" "unsigned short" @0xa+2 = "0"
+  integer "GlobalFlagsClear" "unsigned long" @0xc+4 = "0"
+  integer "GlobalFlagsSet" "unsigned long" @0x10+4 = "0"
+  integer "CriticalSectionDefaultTimeout" "unsigned long" @0x14+4 = "0"
+  integer "DeCommitFreeBlockThreshold" "unsigned __int64" @0x18+8 = "0"
+  integer "DeCommitTotalFreeThreshold" "unsigned __int64" @0x20+8 = "0"
+  integer "LockPrefixTable" "unsigned __int64" @0x28+8 = "0"
+  integer "MaximumAllocationSize" "unsigned __int64" @0x30+8 = "0"
+  integer "VirtualMemoryThreshold" "unsigned __int64" @0x38+8 = "0"
+  integer "ProcessAffinityMask" "unsigned __int64" @0x40+8 = "0"
+  integer "ProcessHeapFlags" "unsigned long" @0x48+4 = "0"
+  integer "CSDVersion" "unsigned short" @0x4c+2 = "0"
+  integer "DependentLoadFlags" "unsigned short" @0x4e+2 = "0"
+  integer "EditList" "unsigned __int64" @0x50+8 = "0"
+  integer "SecurityCookie" "unsigned __int64" @0x58+8 = "5368725696"
+  integer "SEHandlerTable" "unsigned __int64" @0x60+8 = "0"
+  integer "SEHandlerCount" "unsigned __int64" @0x68+8 = "0"
+  integer "GuardCFCheckFunctionPointer" "unsigned __int64" @0x70+8 = "5368717664"
+  integer "GuardCFDispatchFunctionPointer" "unsigned __int64" @0x78+8 = "5368717680"
+  integer "GuardCFFunctionTable" "unsigned __int64" @0x80+8 = "0"
+  integer "GuardCFFunctionCount" "unsigned __int64" @0x88+8 = "0"
+  integer "GuardFlags" "unsigned long" @0x90+4 = "256"
+  struct "CodeIntegrity" "_IMAGE_LOAD_CONFIG_CODE_INTEGRITY" @0x94+12
+    integer "Flags" "unsigned short" @0x94+2 = "0"
+    integer "Catalog" "unsigned short" @0x96+2 = "0"
+    integer "CatalogOffset" "unsigned long" @0x98+4 = "0"
+    integer "Reserved" "unsigned long" @0x9c+4 = "0"
+  integer "GuardAddressTakenIatEntryTable" "unsigned __int64" @0xa0+8 = "0"
+  integer "GuardAddressTakenIatEntryCount" "unsigned __int64" @0xa8+8 = "0"
+  integer "GuardLongJumpTargetTable" "unsigned __int64" @0xb0+8 = "0"
+  integer "GuardLongJumpTargetCount" "unsigned __int64" @0xb8+8 = "0"
+  integer "DynamicValueRelocTable" "unsigned __int64" @0xc0+8 = "0"
+  integer "CHPEMetadataPointer" "unsigned __int64" @0xc8+8 = "0"
+  integer "GuardRFFailureRoutine" "unsigned __int64" @0xd0+8 = "0"
+  integer "GuardRFFailureRoutineFunctionPointer" "unsigned __int64" @0xd8+8 = "0"
+  integer "DynamicValueRelocTableOffset" "unsigned long" @0xe0+4 = "0"
+  integer "DynamicValueRelocTableSection" "unsigned short" @0xe4+2 = "0"
+  integer "Reserved2" "unsigned short" @0xe6+2 = "0"
+  integer "GuardRFVerifyStackPointerFunctionPointer" "unsigned __int64" @0xe8+8 = "0"
+  integer "HotPatchTableOffset" "unsigned long" @0xf0+4 = "0"
+  integer "Reserved3" "unsigned long" @0xf4+4 = "0"
+  integer "EnclaveConfigurationPointer" "unsigned __int64" @0xf8+8 = "0"
+  integer "VolatileMetadataPointer" "unsigned __int64" @0x100+8 = "5368718828"
+  integer "GuardEHContinuationTable" "unsigned __int64" @0x108+8 = "0"
+  integer "GuardEHContinuationCount" "unsigned __int64" @0x110+8 = "0"
+  integer "GuardXFGCheckFunctionPointer" "unsigned __int64" @0x118+8 = "5368717672"
+  integer "GuardXFGDispatchFunctionPointer" "unsigned __int64" @0x120+8 = "5368717688"
+  integer "GuardXFGTableDispatchFunctionPointer" "unsigned __int64" @0x128+8 = "5368717696"
+  integer "CastGuardOsDeterminedFailureMode" "unsigned __int64" @0x130+8 = "5368717704"
+  integer "GuardMemcpyFunctionPointer" "unsigned __int64" @0x138+8 = "5368717712"
+## __volatile_metadata @0x25ec
+pointer "" "void*" @0x0+8 = "0x8003800300000018" -> 0x8003800300000018
+## __rtc_iaa @0x2970
+array "" "void () * const[1]" @0x0+8
+  pointer "[0]" "void () * const" @0x0+8 = "nullptr"
+## __rtc_izz @0x2978
+array "" "void () * const[1]" @0x0+8
+  pointer "[0]" "void () * const" @0x0+8 = "nullptr"
+## __rtc_taa @0x2980
+array "" "void () * const[1]" @0x0+8
+  pointer "[0]" "void () * const" @0x0+8 = "nullptr"
+## __rtc_tzz @0x2988
+array "" "void () * const[1]" @0x0+8
+  pointer "[0]" "void () * const" @0x0+8 = "nullptr"
+## $xdatasym @0x2a80
+integer "" "unsigned char" @0x0+1 = "1"
+## $xdatasym @0x2a88
+integer "" "unsigned char" @0x0+1 = "1"
+## g_sample @0x4000
+struct "" "Sample" @0x0+72
+  struct "padded" "Padded" @0x0+12
+    char "a" "char" @0x0+1 = "97 'a'"
+    padding "" "" @0x1+3 = "00 00 00"
+    integer "b" "int" @0x4+4 = "42"
+    char "c" "char" @0x8+1 = "99 'c'"
+    padding "" "" @0x9+3 = "00 00 00"
+  struct "bits" "Bits" @0xc+8
+    integer "a" "unsigned int" @0xc+4 bits 0:3 = "5"
+    integer "b" "unsigned int" @0xc+4 bits 3:5 = "17"
+    integer "c" "int" @0x10+4 = "-3"
+  enum "color" "Color" @0x14+4 = "Green (2)"
+  float "ratio" "double" @0x18+8 = "1.5"
+  pointer "text" "const char *" @0x20+8 = "0x140002228" -> 0x140002228
+  array "name" "char[8]" @0x28+8 = "\"abc\""
+    char "[0]" "char" @0x28+1 = "97 'a'"
+    char "[1]" "char" @0x29+1 = "98 'b'"
+    char "[2]" "char" @0x2a+1 = "99 'c'"
+    char "[3]" "char" @0x2b+1 = "0 '\\0'"
+    char "[4]" "char" @0x2c+1 = "0 '\\0'"
+    char "[5]" "char" @0x2d+1 = "0 '\\0'"
+    char "[6]" "char" @0x2e+1 = "0 '\\0'"
+    char "[7]" "char" @0x2f+1 = "0 '\\0'"
+  array "numbers" "int[3]" @0x30+12
+    integer "[0]" "int" @0x30+4 = "1"
+    integer "[1]" "int" @0x34+4 = "-2"
+    integer "[2]" "int" @0x38+4 = "3"
+  bool "flag" "bool" @0x3c+1 = "true"
+  padding "" "" @0x3d+3 = "00 00 00"
+  union "either" "Either" @0x40+8
+    char "c" "char" @0x40+1 = "101 'e'"
+    float "d" "double" @0x40+8 = "5e-322"
+## g_derived @0x4048
+struct "" "Derived" @0x0+24
+  base "Base" "Base" @0x0+16
+    vfptr "vfptr" "" @0x0+8 = "0x140002208" -> 0x140002208
+    integer "x" "int" @0x8+4 = "1"
+    padding "" "" @0xc+4 = "00 00 00 00"
+  char "y" "char" @0x10+1 = "2"
+  padding "" "" @0x11+7 = "00 00 00 00 00 00 00"
+## __scrt_native_dllmain_reason @0x4060
+integer "" "unsigned int" @0x0+4 = "4294967295"
+## _fltused @0x4064
+integer "" "int" @0x0+4 = "39029"
+## __isa_available @0x4068
+integer "" "int" @0x0+4 = "1"
+## __isa_enabled @0x406c
+integer "" "int" @0x0+4 = "2"
+## __memset_fast_string_threshold @0x4070
+integer "" "__int64" @0x0+8 = "524288"
+## __memset_nt_threshold @0x4078
+integer "" "__int64" @0x0+8 = "33554432"
+## __isa_inverted @0x4080
+integer "" "unsigned __int64" @0x0+8 = "18446744073709551615"
+## __scrt_default_matherr @0x4088
+integer "" "int" @0x0+4 = "1"
+## __scrt_default_matherr @0x4088
+integer "" "const int" @0x0+4 = "1"
+## __security_cookie @0x40c0
+integer "" "unsigned __int64" @0x0+8 = "47936899621426"
+## __security_cookie @0x40c0
+union "" "<unnamed-tag>" @0x0+64
+  integer "value" "unsigned __int64" @0x0+8 = "47936899621426"
+  padding "" "" @0x8+56 = "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
+## __security_cookie_complement @0x4100
+integer "" "unsigned __int64" @0x0+8 = "18446696136809930189"
+## __scrt_ucrt_dll_is_in_use @0x4108
+integer "" "int" @0x0+4 = "1"
+## __scrt_ucrt_dll_is_in_use @0x4108
+integer "" "const int" @0x0+4 = "1"
+## _OptionsStorage @0x4170
+integer "" "unsigned __int64" @0x0+8 = "0"
+## __scrt_current_native_startup_state @0x4178
+enum "" "__scrt_native_startup_state" @0x0+4 = "uninitialized (0)"
+## __scrt_native_startup_lock @0x4180
+pointer "" "void*" @0x0+8 = "nullptr"
+## is_initialized_as_dll @0x4188
+bool "" "bool" @0x0+1 = "false"
+## module_local_atexit_table_initialized @0x4189
+bool "" "bool" @0x0+1 = "false"
+## module_local_atexit_table @0x4190
+struct "" "_onexit_table_t" @0x0+24
+  pointer "_first" "void () * *" @0x0+8 = "nullptr"
+  pointer "_last" "void () * *" @0x8+8 = "nullptr"
+  pointer "_end" "void () * *" @0x10+8 = "nullptr"
+## module_local_at_quick_exit_table @0x41a8
+struct "" "_onexit_table_t" @0x0+24
+  pointer "_first" "void () * *" @0x0+8 = "nullptr"
+  pointer "_last" "void () * *" @0x8+8 = "nullptr"
+  pointer "_end" "void () * *" @0x10+8 = "nullptr"
+## __favor @0x41c0
+integer "" "int" @0x0+4 = "0"
+## __avx10_version @0x41c4
+integer "" "unsigned int" @0x0+4 = "0"
+## __scrt_debugger_hook_flag @0x41c8
+integer "" "int" @0x0+4 = "0"
+## __type_info_root_node @0x41d0
+struct "" "__type_info_node" @0x0+16
+  union "_Header" "_SLIST_HEADER" @0x0+16
+    integer "Alignment" "unsigned __int64" @0x0+8 = "0"
+    struct "HeaderX64" "_SLIST_HEADER::<unnamed-type-HeaderX64>" @0x0+16
+      integer "Depth" "unsigned __int64" @0x0+8 bits 0:16 = "0"
+      integer "Sequence" "unsigned __int64" @0x0+8 bits 16:48 = "0"
+      integer "Reserved" "unsigned __int64" @0x8+8 bits 0:4 = "0"
+      integer "NextEntry" "unsigned __int64" @0x8+8 bits 4:60 = "0"
+    integer "Region" "unsigned __int64" @0x8+8 = "0"
+## _OptionsStorage @0x41e0
+integer "" "unsigned __int64" @0x0+8 = "0"
+## __dyn_tls_dtor_callback @0x41e8
+pointer "" "void (void*, unsigned long, void*) * const" @0x0+8 = "nullptr"
+## __dyn_tls_init_callback @0x41f0
+pointer "" "void (void*, unsigned long, void*) * const" @0x0+8 = "nullptr"

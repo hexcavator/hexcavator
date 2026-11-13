@@ -1,0 +1,67 @@
+
+refs-x86_64-linux-gnu:	file format elf64-x86-64
+
+Disassembly of section .text:
+
+00000000002011a0 <greet>:
+  2011a0:      	leaq	-0x102c(%rip), %rax     # 0x20017b
+  2011a7:      	movq	%rax, 0x10da(%rip)      # 0x202288 <sink>
+  2011ae:      	retq
+  2011af:      	nop
+
+00000000002011b0 <shared_first>:
+  2011b0:      	leaq	-0x102f(%rip), %rax     # 0x200188
+  2011b7:      	movq	%rax, 0x10ca(%rip)      # 0x202288 <sink>
+  2011be:      	retq
+  2011bf:      	nop
+
+00000000002011c0 <shared_second>:
+  2011c0:      	leaq	-0x103f(%rip), %rax     # 0x200188
+  2011c7:      	movq	%rax, 0x10ba(%rip)      # 0x202288 <sink>
+  2011ce:      	retq
+  2011cf:      	nop
+
+00000000002011d0 <lookup>:
+  2011d0:      	xorl	%eax, %eax
+  2011d2:      	cmpl	$0x6, %edi
+  2011d5:      	ja	0x2011e4 <lookup+0x14>
+  2011d7:      	movl	%edi, %eax
+  2011d9:      	leaq	-0x106c(%rip), %rcx     # 0x200174
+  2011e0:      	movzbl	(%rax,%rcx), %eax
+  2011e4:      	retq
+  2011e5:      	nopw	%cs:(%rax,%rax)
+
+00000000002011f0 <jumps>:
+  2011f0:      	cmpl	$0x6, %edi
+  2011f3:      	ja	0x201215 <jumps+0x25>
+  2011f5:      	movl	%edi, %eax
+  2011f7:      	leaq	-0x10a6(%rip), %rcx     # 0x200158
+  2011fe:      	movslq	(%rcx,%rax,4), %rax
+  201202:      	addq	%rcx, %rax
+  201205:      	jmpq	*%rax
+  201207:      	leaq	-0x1077(%rip), %rax     # 0x200197
+  20120e:      	movq	%rax, 0x1073(%rip)      # 0x202288 <sink>
+  201215:      	retq
+  201216:      	jmp	0x2011b0 <shared_first>
+  20121b:      	jmp	0x2011a0 <greet>
+  201220:      	movl	$0x7, 0x1066(%rip)      # 0x202290 <isink>
+  20122a:      	retq
+  20122b:      	movl	$0x2, 0x105b(%rip)      # 0x202290 <isink>
+  201235:      	retq
+  201236:      	movl	$0x9, 0x1050(%rip)      # 0x202290 <isink>
+  201240:      	retq
+  201241:      	jmp	0x2011c0 <shared_second>
+  201246:      	nopw	%cs:(%rax,%rax)
+
+0000000000201250 <_start>:
+  201250:      	pushq	%rax
+  201251:      	callq	0x2011a0 <greet>
+  201256:      	callq	0x2011b0 <shared_first>
+  20125b:      	callq	0x2011c0 <shared_second>
+  201260:      	movl	0x102a(%rip), %edi      # 0x202290 <isink>
+  201266:      	callq	0x2011d0 <lookup>
+  20126b:      	movl	%eax, 0x101f(%rip)      # 0x202290 <isink>
+  201271:      	movl	0x1019(%rip), %edi      # 0x202290 <isink>
+  201277:      	callq	0x2011f0 <jumps>
+  20127c:      	nopl	(%rax)
+  201280:      	jmp	0x201280 <_start+0x30>

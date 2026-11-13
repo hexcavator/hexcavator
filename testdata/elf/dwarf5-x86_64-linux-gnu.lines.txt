@@ -1,0 +1,119 @@
+dwarf5-x86_64-linux-gnu:	file format elf64-x86-64
+
+.debug_line contents:
+debug_line[0x00000000]
+Line table prologue:
+    total_length: 0x000000d1
+          format: DWARF32
+         version: 5
+    address_size: 8
+ seg_select_size: 0
+ prologue_length: 0x00000037
+ min_inst_length: 1
+max_ops_per_inst: 1
+ default_is_stmt: 1
+       line_base: -5
+      line_range: 14
+     opcode_base: 13
+standard_opcode_lengths[DW_LNS_copy] = 0
+standard_opcode_lengths[DW_LNS_advance_pc] = 1
+standard_opcode_lengths[DW_LNS_advance_line] = 1
+standard_opcode_lengths[DW_LNS_set_file] = 1
+standard_opcode_lengths[DW_LNS_set_column] = 1
+standard_opcode_lengths[DW_LNS_negate_stmt] = 0
+standard_opcode_lengths[DW_LNS_set_basic_block] = 0
+standard_opcode_lengths[DW_LNS_const_add_pc] = 0
+standard_opcode_lengths[DW_LNS_fixed_advance_pc] = 1
+standard_opcode_lengths[DW_LNS_set_prologue_end] = 0
+standard_opcode_lengths[DW_LNS_set_epilogue_begin] = 0
+standard_opcode_lengths[DW_LNS_set_isa] = 1
+include_directories[  0] = "."
+file_names[  0]:
+           name: "program.c"
+      dir_index: 0
+   md5_checksum: c2082fa49f091a04c0e7279ad34f6d6a
+
+Address            Line   Column File   ISA Discriminator OpIndex Flags
+------------------ ------ ------ ------ --- ------------- ------- -------------
+0x0000000000201210     15     23      0   0             0       0  is_stmt prologue_end
+0x0000000000201212     15      5      0   0             0       0  is_stmt
+0x0000000000201214      0      5      0   0             0       0 
+0x000000000020121b     15      5      0   0             0       0  is_stmt
+0x0000000000201239      0      5      0   0             0       0 
+0x0000000000201242     11     37      0   0             0       0 
+0x0000000000201256     15     54      0   0             0       0  is_stmt
+0x000000000020125b     15     29      0   0             0       0 
+0x0000000000201261     15     23      0   0             0       0  is_stmt
+0x0000000000201271     15      5      0   0             0       0  is_stmt
+0x0000000000201273     16      5      0   0             0       0  is_stmt
+0x000000000020127b      0      5      0   0             0       0 
+0x000000000020127d     16      5      0   0             0       0  is_stmt
+0x0000000000201280     16      5      0   0             0       0  is_stmt end_sequence
+0x0000000000201280     19     49      0   0             0       0  is_stmt prologue_end
+0x0000000000201283     19     49      0   0             0       0  is_stmt end_sequence
+0x0000000000201290     21      0      0   0             0       0  is_stmt
+0x0000000000201291     22     31      0   0             0       0  is_stmt prologue_end
+0x0000000000201297     22     23      0   0             0       0 
+0x000000000020129c     22     15      0   0             0       0  is_stmt
+0x00000000002012a2     23     20      0   0             0       0  is_stmt
+0x00000000002012a7     23     36      0   0             0       0  is_stmt
+0x00000000002012af     23     18      0   0             0       0 
+0x00000000002012b5      0     18      0   0             0       0 
+0x00000000002012c0     24      5      0   0             0       0  is_stmt
+0x00000000002012c2     24      5      0   0             0       0  is_stmt end_sequence
+
+debug_line[0x000000d5]
+Line table prologue:
+    total_length: 0x000000a4
+          format: DWARF32
+         version: 5
+    address_size: 8
+ seg_select_size: 0
+ prologue_length: 0x00000037
+ min_inst_length: 1
+max_ops_per_inst: 1
+ default_is_stmt: 1
+       line_base: -5
+      line_range: 14
+     opcode_base: 13
+standard_opcode_lengths[DW_LNS_copy] = 0
+standard_opcode_lengths[DW_LNS_advance_pc] = 1
+standard_opcode_lengths[DW_LNS_advance_line] = 1
+standard_opcode_lengths[DW_LNS_set_file] = 1
+standard_opcode_lengths[DW_LNS_set_column] = 1
+standard_opcode_lengths[DW_LNS_negate_stmt] = 0
+standard_opcode_lengths[DW_LNS_set_basic_block] = 0
+standard_opcode_lengths[DW_LNS_const_add_pc] = 0
+standard_opcode_lengths[DW_LNS_fixed_advance_pc] = 1
+standard_opcode_lengths[DW_LNS_set_prologue_end] = 0
+standard_opcode_lengths[DW_LNS_set_epilogue_begin] = 0
+standard_opcode_lengths[DW_LNS_set_isa] = 1
+include_directories[  0] = "."
+file_names[  0]:
+           name: "second.c"
+      dir_index: 0
+   md5_checksum: 012191a6f1fdb7b5e5b2b6a55a94019f
+
+Address            Line   Column File   ISA Discriminator OpIndex Flags
+------------------ ------ ------ ------ --- ------------- ------- -------------
+0x00000000002012d0      9     27      0   0             0       0  is_stmt prologue_end
+0x00000000002012d2      9      5      0   0             0       0  is_stmt
+0x00000000002012d4      9     10      0   0             0       0 
+0x00000000002012df      9      5      0   0             0       0 
+0x00000000002012ee      0      5      0   0             0       0 
+0x00000000002012f0      9     45      0   0             0       0  is_stmt
+0x00000000002012f3      9     27      0   0             0       0  is_stmt
+0x00000000002012fa      9      5      0   0             0       0  is_stmt
+0x00000000002012fc     10      5      0   0             0       0  is_stmt
+0x00000000002012fd      0      5      0   0             0       0 
+0x00000000002012ff     10      5      0   0             0       0  is_stmt
+0x0000000000201300     10      5      0   0             0       0  is_stmt end_sequence
+0x0000000000201300     13      0      0   0             0       0  is_stmt
+0x000000000020130b      0      0      0   0             0       0 
+0x0000000000201310      9     45      0   0             0       0  is_stmt prologue_end
+0x0000000000201313      9     27      0   0             0       0  is_stmt
+0x000000000020131b      9      5      0   0             0       0  is_stmt
+0x000000000020131d     14     37      0   0             0       0  is_stmt
+0x0000000000201320     14      5      0   0             0       0 
+0x0000000000201321     14      5      0   0             0       0  end_sequence
+

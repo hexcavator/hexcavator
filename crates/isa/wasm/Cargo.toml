@@ -1,0 +1,15 @@
+[package]
+name = "hexcavator-wasm-isa"
+description = "The WebAssembly instruction set: a decoder for function bodies (through GC, threads and relaxed SIMD), with text output"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+hexcavator-core.workspace = true
+
+[lints]
+workspace = true

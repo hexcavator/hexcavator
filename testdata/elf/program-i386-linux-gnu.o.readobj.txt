@@ -1,0 +1,612 @@
+
+File: program-i386-linux-gnu.o
+Format: elf32-i386
+Arch: i386
+AddressSize: 32bit
+LoadName: <Not found>
+ElfHeader {
+  Ident {
+    Magic: (7F 45 4C 46)
+    Class: 32-bit (0x1)
+    DataEncoding: LittleEndian (0x1)
+    FileVersion: 1
+    OS/ABI: SystemV (0x0)
+    ABIVersion: 0
+    Unused: (00 00 00 00 00 00 00)
+  }
+  Type: Relocatable (0x1)
+  Machine: EM_386 (0x3)
+  Version: 1
+  Entry: 0x0
+  ProgramHeaderOffset: 0x0
+  SectionHeaderOffset: 0xA58
+  Flags [ (0x0)
+  ]
+  HeaderSize: 52
+  ProgramHeaderEntrySize: 0
+  ProgramHeaderCount: 0
+  SectionHeaderEntrySize: 40
+  SectionHeaderCount: 25
+  StringTableSectionIndex: 1
+}
+Sections [
+  Section {
+    Index: 0
+    Name:  (0)
+    Type: SHT_NULL (0x0)
+    Flags [ (0x0)
+    ]
+    Address: 0x0
+    Offset: 0x0
+    Size: 0
+    Link: 0
+    Info: 0
+    AddressAlignment: 0
+    EntrySize: 0
+  }
+  Section {
+    Index: 1
+    Name: .strtab (277)
+    Type: SHT_STRTAB (0x3)
+    Flags [ (0x0)
+    ]
+    Address: 0x0
+    Offset: 0x900
+    Size: 343
+    Link: 0
+    Info: 0
+    AddressAlignment: 1
+    EntrySize: 0
+  }
+  Section {
+    Index: 2
+    Name: .text (19)
+    Type: SHT_PROGBITS (0x1)
+    Flags [ (0x6)
+      SHF_ALLOC (0x2)
+      SHF_EXECINSTR (0x4)
+    ]
+    Address: 0x0
+    Offset: 0x40
+    Size: 210
+    Link: 0
+    Info: 0
+    AddressAlignment: 16
+    EntrySize: 0
+  }
+  Section {
+    Index: 3
+    Name: .rel.text (15)
+    Type: SHT_REL (0x9)
+    Flags [ (0x40)
+      SHF_INFO_LINK (0x40)
+    ]
+    Address: 0x0
+    Offset: 0x748
+    Size: 80
+    Link: 24
+    Info: 2
+    AddressAlignment: 4
+    EntrySize: 8
+  }
+  Section {
+    Index: 4
+    Name: .data (300)
+    Type: SHT_PROGBITS (0x1)
+    Flags [ (0x3)
+      SHF_ALLOC (0x2)
+      SHF_WRITE (0x1)
+    ]
+    Address: 0x0
+    Offset: 0x114
+    Size: 4
+    Link: 0
+    Info: 0
+    AddressAlignment: 4
+    EntrySize: 0
+  }
+  Section {
+    Index: 5
+    Name: .tdata (293)
+    Type: SHT_PROGBITS (0x1)
+    Flags [ (0x403)
+      SHF_ALLOC (0x2)
+      SHF_TLS (0x400)
+      SHF_WRITE (0x1)
+    ]
+    Address: 0x0
+    Offset: 0x118
+    Size: 4
+    Link: 0
+    Info: 0
+    AddressAlignment: 4
+    EntrySize: 0
+  }
+  Section {
+    Index: 6
+    Name: .rodata.str1.1 (328)
+    Type: SHT_PROGBITS (0x1)
+    Flags [ (0x32)
+      SHF_ALLOC (0x2)
+      SHF_MERGE (0x10)
+      SHF_STRINGS (0x20)
+    ]
+    Address: 0x0
+    Offset: 0x11C
+    Size: 16
+    Link: 0
+    Info: 0
+    AddressAlignment: 1
+    EntrySize: 1
+  }
+  Section {
+    Index: 7
+    Name: .bss (71)
+    Type: SHT_NOBITS (0x8)
+    Flags [ (0x3)
+      SHF_ALLOC (0x2)
+      SHF_WRITE (0x1)
+    ]
+    Address: 0x0
+    Offset: 0x12C
+    Size: 4100
+    Link: 0
+    Info: 0
+    AddressAlignment: 4
+    EntrySize: 0
+  }
+  Section {
+    Index: 8
+    Name: .debug_loclists (32)
+    Type: SHT_PROGBITS (0x1)
+    Flags [ (0x0)
+    ]
+    Address: 0x0
+    Offset: 0x12C
+    Size: 54
+    Link: 0
+    Info: 0
+    AddressAlignment: 1
+    EntrySize: 0
+  }
+  Section {
+    Index: 9
+    Name: .debug_abbrev (1)
+    Type: SHT_PROGBITS (0x1)
+    Flags [ (0x0)
+    ]
+    Address: 0x0
+    Offset: 0x162
+    Size: 297
+    Link: 0
+    Info: 0
+    AddressAlignment: 1
+    EntrySize: 0
+  }
+  Section {
+    Index: 10
+    Name: .debug_info (138)
+    Type: SHT_PROGBITS (0x1)
+    Flags [ (0x0)
+    ]
+    Address: 0x0
+    Offset: 0x28B
+    Size: 268
+    Link: 0
+    Info: 0
+    AddressAlignment: 1
+    EntrySize: 0
+  }
+  Section {
+    Index: 11
+    Name: .rel.debug_info (134)
+    Type: SHT_REL (0x9)
+    Flags [ (0x40)
+      SHF_INFO_LINK (0x40)
+    ]
+    Address: 0x0
+    Offset: 0x798
+    Size: 48
+    Link: 24
+    Info: 10
+    AddressAlignment: 4
+    EntrySize: 8
+  }
+  Section {
+    Index: 12
+    Name: .debug_str_offsets (52)
+    Type: SHT_PROGBITS (0x1)
+    Flags [ (0x0)
+    ]
+    Address: 0x0
+    Offset: 0x397
+    Size: 84
+    Link: 0
+    Info: 0
+    AddressAlignment: 1
+    EntrySize: 0
+  }
+  Section {
+    Index: 13
+    Name: .rel.debug_str_offsets (48)
+    Type: SHT_REL (0x9)
+    Flags [ (0x40)
+      SHF_INFO_LINK (0x40)
+    ]
+    Address: 0x0
+    Offset: 0x7C8
+    Size: 152
+    Link: 24
+    Info: 12
+    AddressAlignment: 4
+    EntrySize: 8
+  }
+  Section {
+    Index: 14
+    Name: .debug_str (76)
+    Type: SHT_PROGBITS (0x1)
+    Flags [ (0x30)
+      SHF_MERGE (0x10)
+      SHF_STRINGS (0x20)
+    ]
+    Address: 0x0
+    Offset: 0x3EB
+    Size: 137
+    Link: 0
+    Info: 0
+    AddressAlignment: 1
+    EntrySize: 1
+  }
+  Section {
+    Index: 15
+    Name: .debug_addr (122)
+    Type: SHT_PROGBITS (0x1)
+    Flags [ (0x0)
+    ]
+    Address: 0x0
+    Offset: 0x474
+    Size: 52
+    Link: 0
+    Info: 0
+    AddressAlignment: 1
+    EntrySize: 0
+  }
+  Section {
+    Index: 16
+    Name: .rel.debug_addr (118)
+    Type: SHT_REL (0x9)
+    Flags [ (0x40)
+      SHF_INFO_LINK (0x40)
+    ]
+    Address: 0x0
+    Offset: 0x860
+    Size: 88
+    Link: 24
+    Info: 15
+    AddressAlignment: 4
+    EntrySize: 8
+  }
+  Section {
+    Index: 17
+    Name: .note.GNU-stack (164)
+    Type: SHT_PROGBITS (0x1)
+    Flags [ (0x0)
+    ]
+    Address: 0x0
+    Offset: 0x4A8
+    Size: 0
+    Link: 0
+    Info: 0
+    AddressAlignment: 1
+    EntrySize: 0
+  }
+  Section {
+    Index: 18
+    Name: .debug_frame (235)
+    Type: SHT_PROGBITS (0x1)
+    Flags [ (0x0)
+    ]
+    Address: 0x0
+    Offset: 0x4A8
+    Size: 132
+    Link: 0
+    Info: 0
+    AddressAlignment: 4
+    EntrySize: 0
+  }
+  Section {
+    Index: 19
+    Name: .rel.debug_frame (231)
+    Type: SHT_REL (0x9)
+    Flags [ (0x40)
+      SHF_INFO_LINK (0x40)
+    ]
+    Address: 0x0
+    Offset: 0x8B8
+    Size: 48
+    Link: 24
+    Info: 18
+    AddressAlignment: 4
+    EntrySize: 8
+  }
+  Section {
+    Index: 20
+    Name: .debug_line (219)
+    Type: SHT_PROGBITS (0x1)
+    Flags [ (0x0)
+    ]
+    Address: 0x0
+    Offset: 0x52C
+    Size: 176
+    Link: 0
+    Info: 0
+    AddressAlignment: 1
+    EntrySize: 0
+  }
+  Section {
+    Index: 21
+    Name: .rel.debug_line (215)
+    Type: SHT_REL (0x9)
+    Flags [ (0x40)
+      SHF_INFO_LINK (0x40)
+    ]
+    Address: 0x0
+    Offset: 0x8E8
+    Size: 24
+    Link: 24
+    Info: 20
+    AddressAlignment: 4
+    EntrySize: 8
+  }
+  Section {
+    Index: 22
+    Name: .debug_line_str (87)
+    Type: SHT_PROGBITS (0x1)
+    Flags [ (0x30)
+      SHF_MERGE (0x10)
+      SHF_STRINGS (0x20)
+    ]
+    Address: 0x0
+    Offset: 0x5DC
+    Size: 12
+    Link: 0
+    Info: 0
+    AddressAlignment: 1
+    EntrySize: 1
+  }
+  Section {
+    Index: 23
+    Name: .llvm_addrsig (180)
+    Type: SHT_LLVM_ADDRSIG (0x6FFF4C03)
+    Flags [ (0x80000000)
+      SHF_EXCLUDE (0x80000000)
+    ]
+    Address: 0x0
+    Offset: 0x900
+    Size: 0
+    Link: 24
+    Info: 0
+    AddressAlignment: 1
+    EntrySize: 0
+  }
+  Section {
+    Index: 24
+    Name: .symtab (285)
+    Type: SHT_SYMTAB (0x2)
+    Flags [ (0x0)
+    ]
+    Address: 0x0
+    Offset: 0x5E8
+    Size: 352
+    Link: 1
+    Info: 15
+    AddressAlignment: 4
+    EntrySize: 16
+  }
+]
+ProgramHeaders [
+]
+Symbols [
+  Symbol {
+    Name:  (0)
+    Value: 0x0
+    Size: 0
+    Binding: Local (0x0)
+    Type: None (0x0)
+    Other: 0
+    Section: Undefined (0x0)
+  }
+  Symbol {
+    Name: program.c (267)
+    Value: 0x0
+    Size: 0
+    Binding: Local (0x0)
+    Type: File (0x4)
+    Other: 0
+    Section: Absolute (0xFFF1)
+  }
+  Symbol {
+    Name: .text (0)
+    Value: 0x0
+    Size: 0
+    Binding: Local (0x0)
+    Type: Section (0x3)
+    Other: 0
+    Section: .text (0x2)
+  }
+  Symbol {
+    Name: hidden_state (202)
+    Value: 0x1000
+    Size: 4
+    Binding: Local (0x0)
+    Type: Object (0x1)
+    Other: 0
+    Section: .bss (0x7)
+  }
+  Symbol {
+    Name: message (248)
+    Value: 0x0
+    Size: 16
+    Binding: Local (0x0)
+    Type: Object (0x1)
+    Other: 0
+    Section: .rodata.str1.1 (0x6)
+  }
+  Symbol {
+    Name: .rodata.str1.1 (0)
+    Value: 0x0
+    Size: 0
+    Binding: Local (0x0)
+    Type: Section (0x3)
+    Other: 0
+    Section: .rodata.str1.1 (0x6)
+  }
+  Symbol {
+    Name: .bss (0)
+    Value: 0x0
+    Size: 0
+    Binding: Local (0x0)
+    Type: Section (0x3)
+    Other: 0
+    Section: .bss (0x7)
+  }
+  Symbol {
+    Name: .debug_loclists (0)
+    Value: 0x0
+    Size: 0
+    Binding: Local (0x0)
+    Type: Section (0x3)
+    Other: 0
+    Section: .debug_loclists (0x8)
+  }
+  Symbol {
+    Name: .debug_abbrev (0)
+    Value: 0x0
+    Size: 0
+    Binding: Local (0x0)
+    Type: Section (0x3)
+    Other: 0
+    Section: .debug_abbrev (0x9)
+  }
+  Symbol {
+    Name: .debug_str_offsets (0)
+    Value: 0x0
+    Size: 0
+    Binding: Local (0x0)
+    Type: Section (0x3)
+    Other: 0
+    Section: .debug_str_offsets (0xC)
+  }
+  Symbol {
+    Name: .debug_str (0)
+    Value: 0x0
+    Size: 0
+    Binding: Local (0x0)
+    Type: Section (0x3)
+    Other: 0
+    Section: .debug_str (0xE)
+  }
+  Symbol {
+    Name: .debug_addr (0)
+    Value: 0x0
+    Size: 0
+    Binding: Local (0x0)
+    Type: Section (0x3)
+    Other: 0
+    Section: .debug_addr (0xF)
+  }
+  Symbol {
+    Name: .debug_frame (0)
+    Value: 0x0
+    Size: 0
+    Binding: Local (0x0)
+    Type: Section (0x3)
+    Other: 0
+    Section: .debug_frame (0x12)
+  }
+  Symbol {
+    Name: .debug_line (0)
+    Value: 0x0
+    Size: 0
+    Binding: Local (0x0)
+    Type: Section (0x3)
+    Other: 0
+    Section: .debug_line (0x14)
+  }
+  Symbol {
+    Name: .debug_line_str (0)
+    Value: 0x0
+    Size: 0
+    Binding: Local (0x0)
+    Type: Section (0x3)
+    Other: 0
+    Section: .debug_line_str (0x16)
+  }
+  Symbol {
+    Name: compute (194)
+    Value: 0x0
+    Size: 136
+    Binding: Global (0x1)
+    Type: Function (0x2)
+    Other: 0
+    Section: .text (0x2)
+  }
+  Symbol {
+    Name: _GLOBAL_OFFSET_TABLE_ (306)
+    Value: 0x0
+    Size: 0
+    Binding: Global (0x1)
+    Type: None (0x0)
+    Other: 0
+    Section: Undefined (0x0)
+  }
+  Symbol {
+    Name: optional_hook (150)
+    Value: 0x88
+    Size: 3
+    Binding: Weak (0x2)
+    Type: Function (0x2)
+    Other: 0
+    Section: .text (0x2)
+  }
+  Symbol {
+    Name: _start (25)
+    Value: 0x90
+    Size: 66
+    Binding: Global (0x1)
+    Type: Function (0x2)
+    Other: 0
+    Section: .text (0x2)
+  }
+  Symbol {
+    Name: counter (103)
+    Value: 0x0
+    Size: 4
+    Binding: Global (0x1)
+    Type: Object (0x1)
+    Other: 0
+    Section: .data (0x4)
+  }
+  Symbol {
+    Name: buffer (111)
+    Value: 0x0
+    Size: 4096
+    Binding: Global (0x1)
+    Type: Object (0x1)
+    Other: 0
+    Section: .bss (0x7)
+  }
+  Symbol {
+    Name: per_thread (256)
+    Value: 0x0
+    Size: 4
+    Binding: Global (0x1)
+    Type: TLS (0x6)
+    Other: 0
+    Section: .tdata (0x5)
+  }
+]
+DynamicSymbols [
+]
+NoteSections [
+]

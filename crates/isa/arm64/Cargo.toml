@@ -1,0 +1,17 @@
+[package]
+name = "hexcavator-arm64"
+description = "AArch64 (ARM64) instruction decoder and formatter"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license = "Apache-2.0 AND BSD-3-Clause AND Apache-2.0 WITH LLVM-exception"
+authors.workspace = true
+repository.workspace = true
+
+# (No unit tests: their build of the crate would be wasted. The hexcavator
+# tests check that a target marked so has none.)
+[lib]
+test = false
+
+[lints]
+workspace = true

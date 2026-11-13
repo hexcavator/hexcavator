@@ -1,0 +1,372 @@
+dwarf4-x86_64-linux-gnu:	file format elf64-x86-64
+
+.debug_info contents:
+0x00000000: Compile Unit: length = 0x0000018e, format = DWARF32, version = 0x0004, abbr_offset = 0x0000, addr_size = 0x08 (next unit at 0x00000192)
+
+0x0000000b: DW_TAG_compile_unit
+              DW_AT_producer	("")
+              DW_AT_language	(DW_LANG_C11)
+              DW_AT_name	("program.c")
+              DW_AT_stmt_list	(0x00000000)
+              DW_AT_comp_dir	(".")
+              DW_AT_APPLE_optimized	(true)
+              DW_AT_low_pc	(0x0000000000000000)
+              DW_AT_ranges	(0x00000000
+                 [0x0000000000201210, 0x0000000000201280)
+                 [0x0000000000201280, 0x0000000000201283)
+                 [0x0000000000201290, 0x00000000002012c2))
+
+0x0000002a:   DW_TAG_subprogram
+                DW_AT_name	("helper")
+                DW_AT_decl_file	(".\program.c")
+                DW_AT_decl_line	(11)
+                DW_AT_prototyped	(true)
+                DW_AT_type	(0x00000042 "int")
+                DW_AT_APPLE_optimized	(true)
+                DW_AT_inline	(DW_INL_inlined)
+
+0x00000036:     DW_TAG_formal_parameter
+                  DW_AT_name	("x")
+                  DW_AT_decl_file	(".\program.c")
+                  DW_AT_decl_line	(11)
+                  DW_AT_type	(0x00000042 "int")
+
+0x00000041:     NULL
+
+0x00000042:   DW_TAG_base_type
+                DW_AT_name	("int")
+                DW_AT_encoding	(DW_ATE_signed)
+                DW_AT_byte_size	(0x04)
+
+0x00000049:   DW_TAG_subprogram
+                DW_AT_low_pc	(0x0000000000201210)
+                DW_AT_high_pc	(0x0000000000201280)
+                DW_AT_frame_base	(DW_OP_reg7 RSP)
+                DW_AT_GNU_all_call_sites	(true)
+                DW_AT_name	("compute")
+                DW_AT_decl_file	(".\program.c")
+                DW_AT_decl_line	(13)
+                DW_AT_prototyped	(true)
+                DW_AT_type	(0x00000042 "int")
+                DW_AT_external	(true)
+                DW_AT_APPLE_optimized	(true)
+
+0x00000062:     DW_TAG_formal_parameter
+                  DW_AT_location	(0x00000000: 
+                     [0x0000000000201210, 0x0000000000201239): DW_OP_reg5 RDI
+                     [0x0000000000201239, 0x000000000020127b): DW_OP_GNU_entry_value(DW_OP_reg5 RDI), DW_OP_stack_value
+                     [0x000000000020127b, 0x0000000000201280): DW_OP_reg5 RDI)
+                  DW_AT_name	("n")
+                  DW_AT_decl_file	(".\program.c")
+                  DW_AT_decl_line	(13)
+                  DW_AT_type	(0x00000042 "int")
+
+0x00000071:     DW_TAG_variable
+                  DW_AT_location	(0x0000005c: 
+                     [0x0000000000201210, 0x0000000000201239): DW_OP_consts +0, DW_OP_stack_value
+                     [0x0000000000201256, 0x000000000020125b): DW_OP_reg4 RSI
+                     [0x000000000020127b, 0x0000000000201280): DW_OP_consts +0, DW_OP_stack_value)
+                  DW_AT_name	("total")
+                  DW_AT_decl_file	(".\program.c")
+                  DW_AT_decl_line	(14)
+                  DW_AT_type	(0x00000042 "int")
+
+0x00000080:     DW_TAG_lexical_block
+                  DW_AT_low_pc	(0x0000000000201210)
+                  DW_AT_high_pc	(0x0000000000201273)
+
+0x0000008d:       DW_TAG_variable
+                    DW_AT_location	(0x000000b9: 
+                       [0x0000000000201210, 0x0000000000201239): DW_OP_consts +0, DW_OP_stack_value)
+                    DW_AT_name	("i")
+                    DW_AT_decl_file	(".\program.c")
+                    DW_AT_decl_line	(15)
+                    DW_AT_type	(0x00000042 "int")
+
+0x0000009c:       DW_TAG_inlined_subroutine
+                    DW_AT_abstract_origin	(0x0000002a "helper")
+                    DW_AT_low_pc	(0x0000000000201242)
+                    DW_AT_high_pc	(0x0000000000201256)
+                    DW_AT_call_file	(".\program.c")
+                    DW_AT_call_line	(15)
+                    DW_AT_call_column	(42)
+
+0x000000b0:       NULL
+
+0x000000b1:     NULL
+
+0x000000b2:   DW_TAG_subprogram
+                DW_AT_low_pc	(0x0000000000201280)
+                DW_AT_high_pc	(0x0000000000201283)
+                DW_AT_frame_base	(DW_OP_reg7 RSP)
+                DW_AT_GNU_all_call_sites	(true)
+                DW_AT_name	("optional_hook")
+                DW_AT_decl_file	(".\program.c")
+                DW_AT_decl_line	(19)
+                DW_AT_prototyped	(true)
+                DW_AT_type	(0x00000042 "int")
+                DW_AT_external	(true)
+                DW_AT_APPLE_optimized	(true)
+
+0x000000cb:   DW_TAG_subprogram
+                DW_AT_low_pc	(0x0000000000201290)
+                DW_AT_high_pc	(0x00000000002012c2)
+                DW_AT_frame_base	(DW_OP_reg7 RSP)
+                DW_AT_GNU_all_call_sites	(true)
+                DW_AT_name	("_start")
+                DW_AT_decl_file	(".\program.c")
+                DW_AT_decl_line	(21)
+                DW_AT_prototyped	(true)
+                DW_AT_external	(true)
+                DW_AT_APPLE_optimized	(true)
+
+0x000000e0:     DW_TAG_GNU_call_site
+                  DW_AT_abstract_origin	(0x00000049 "compute")
+                  DW_AT_low_pc	(0x000000000020129c)
+
+0x000000ed:     DW_TAG_GNU_call_site
+                  DW_AT_abstract_origin	(0x000000b2 "optional_hook")
+                  DW_AT_low_pc	(0x00000000002012a7)
+
+0x000000fa:     NULL
+
+0x000000fb:   DW_TAG_variable
+                DW_AT_name	("counter")
+                DW_AT_type	(0x00000042 "int")
+                DW_AT_external	(true)
+                DW_AT_decl_file	(".\program.c")
+                DW_AT_decl_line	(6)
+                DW_AT_location	(DW_OP_addr 0x203330)
+
+0x00000110:   DW_TAG_variable
+                DW_AT_name	("per_thread")
+                DW_AT_type	(0x00000042 "int")
+                DW_AT_external	(true)
+                DW_AT_decl_file	(".\program.c")
+                DW_AT_decl_line	(9)
+                DW_AT_location	(DW_OP_const8u 0x0, DW_OP_GNU_push_tls_address)
+
+0x00000126:   DW_TAG_variable
+                DW_AT_name	("hidden_state")
+                DW_AT_type	(0x00000042 "int")
+                DW_AT_decl_file	(".\program.c")
+                DW_AT_decl_line	(7)
+                DW_AT_location	(DW_OP_addr 0x2043c0)
+
+0x0000013b:   DW_TAG_variable
+                DW_AT_name	("buffer")
+                DW_AT_type	(0x00000150 "char[4096]")
+                DW_AT_external	(true)
+                DW_AT_decl_file	(".\program.c")
+                DW_AT_decl_line	(8)
+                DW_AT_location	(DW_OP_addr 0x2033c0)
+
+0x00000150:   DW_TAG_array_type
+                DW_AT_type	(0x0000015d "char")
+
+0x00000155:     DW_TAG_subrange_type
+                  DW_AT_type	(0x00000164 "__ARRAY_SIZE_TYPE__")
+                  DW_AT_count	(0x1000)
+
+0x0000015c:     NULL
+
+0x0000015d:   DW_TAG_base_type
+                DW_AT_name	("char")
+                DW_AT_encoding	(DW_ATE_signed_char)
+                DW_AT_byte_size	(0x01)
+
+0x00000164:   DW_TAG_base_type
+                DW_AT_name	("__ARRAY_SIZE_TYPE__")
+                DW_AT_byte_size	(0x08)
+                DW_AT_encoding	(DW_ATE_unsigned)
+
+0x0000016b:   DW_TAG_variable
+                DW_AT_name	("message")
+                DW_AT_type	(0x00000180 "const char[16]")
+                DW_AT_decl_file	(".\program.c")
+                DW_AT_decl_line	(5)
+                DW_AT_location	(DW_OP_addr 0x200200)
+
+0x00000180:   DW_TAG_array_type
+                DW_AT_type	(0x0000018c "const char")
+
+0x00000185:     DW_TAG_subrange_type
+                  DW_AT_type	(0x00000164 "__ARRAY_SIZE_TYPE__")
+                  DW_AT_count	(0x10)
+
+0x0000018b:     NULL
+
+0x0000018c:   DW_TAG_const_type
+                DW_AT_type	(0x0000015d "char")
+
+0x00000191:   NULL
+0x00000192: Compile Unit: length = 0x0000011c, format = DWARF32, version = 0x0004, abbr_offset = 0x0126, addr_size = 0x08 (next unit at 0x000002b2)
+
+0x0000019d: DW_TAG_compile_unit
+              DW_AT_producer	("")
+              DW_AT_language	(DW_LANG_C11)
+              DW_AT_name	("second.c")
+              DW_AT_stmt_list	(0x000000b7)
+              DW_AT_comp_dir	(".")
+              DW_AT_APPLE_optimized	(true)
+              DW_AT_low_pc	(0x0000000000000000)
+              DW_AT_ranges	(0x00000040
+                 [0x00000000002012d0, 0x0000000000201300)
+                 [0x0000000000201300, 0x0000000000201321))
+
+0x000001bc:   DW_TAG_subprogram
+                DW_AT_low_pc	(0x00000000002012d0)
+                DW_AT_high_pc	(0x0000000000201300)
+                DW_AT_frame_base	(DW_OP_reg7 RSP)
+                DW_AT_GNU_all_call_sites	(true)
+                DW_AT_abstract_origin	(0x000001fb "second_sum")
+
+0x000001cf:     DW_TAG_formal_parameter
+                  DW_AT_location	(DW_OP_reg5 RDI)
+                  DW_AT_abstract_origin	(0x00000207 "n")
+
+0x000001d6:     DW_TAG_variable
+                  DW_AT_location	(0x00000156: 
+                     [0x00000000002012d0, 0x00000000002012ee): DW_OP_consts +0, DW_OP_stack_value
+                     [0x00000000002012ee, 0x00000000002012fd): DW_OP_reg0 RAX
+                     [0x00000000002012fd, 0x0000000000201300): DW_OP_consts +0, DW_OP_stack_value)
+                  DW_AT_abstract_origin	(0x00000212 "s")
+
+0x000001df:     DW_TAG_lexical_block
+                  DW_AT_low_pc	(0x00000000002012d0)
+                  DW_AT_high_pc	(0x00000000002012fc)
+                  DW_AT_abstract_origin	(0x0000021d)
+
+0x000001f0:       DW_TAG_variable
+                    DW_AT_location	(0x000000ee: 
+                       [0x00000000002012d0, 0x00000000002012ee): DW_OP_consts +0, DW_OP_stack_value
+                       [0x00000000002012ee, 0x00000000002012f3): DW_OP_breg4 RSI+0, DW_OP_consts +4, DW_OP_div, DW_OP_stack_value
+                       [0x00000000002012f3, 0x00000000002012f7): DW_OP_breg4 RSI+0, DW_OP_consts +4, DW_OP_div, DW_OP_consts +1, DW_OP_plus, DW_OP_stack_value)
+                    DW_AT_abstract_origin	(0x0000021e "i")
+
+0x000001f9:       NULL
+
+0x000001fa:     NULL
+
+0x000001fb:   DW_TAG_subprogram
+                DW_AT_name	("second_sum")
+                DW_AT_decl_file	(".\second.c")
+                DW_AT_decl_line	(7)
+                DW_AT_prototyped	(true)
+                DW_AT_type	(0x0000022b "int")
+                DW_AT_external	(true)
+                DW_AT_APPLE_optimized	(true)
+                DW_AT_inline	(DW_INL_inlined)
+
+0x00000207:     DW_TAG_formal_parameter
+                  DW_AT_name	("n")
+                  DW_AT_decl_file	(".\second.c")
+                  DW_AT_decl_line	(7)
+                  DW_AT_type	(0x0000022b "int")
+
+0x00000212:     DW_TAG_variable
+                  DW_AT_name	("s")
+                  DW_AT_decl_file	(".\second.c")
+                  DW_AT_decl_line	(8)
+                  DW_AT_type	(0x0000022b "int")
+
+0x0000021d:     DW_TAG_lexical_block
+
+0x0000021e:       DW_TAG_variable
+                    DW_AT_name	("i")
+                    DW_AT_decl_file	(".\second.c")
+                    DW_AT_decl_line	(9)
+                    DW_AT_type	(0x0000022b "int")
+
+0x00000229:       NULL
+
+0x0000022a:     NULL
+
+0x0000022b:   DW_TAG_base_type
+                DW_AT_name	("int")
+                DW_AT_encoding	(DW_ATE_signed)
+                DW_AT_byte_size	(0x04)
+
+0x00000232:   DW_TAG_subprogram
+                DW_AT_low_pc	(0x0000000000201300)
+                DW_AT_high_pc	(0x0000000000201321)
+                DW_AT_frame_base	(DW_OP_reg7 RSP)
+                DW_AT_GNU_all_call_sites	(true)
+                DW_AT_name	("second_len")
+                DW_AT_decl_file	(".\second.c")
+                DW_AT_decl_line	(13)
+                DW_AT_prototyped	(true)
+                DW_AT_type	(0x0000022b "int")
+                DW_AT_external	(true)
+                DW_AT_APPLE_optimized	(true)
+
+0x0000024b:     DW_TAG_inlined_subroutine
+                  DW_AT_abstract_origin	(0x000001fb "second_sum")
+                  DW_AT_low_pc	(0x0000000000201310)
+                  DW_AT_high_pc	(0x000000000020131d)
+                  DW_AT_call_file	(".\second.c")
+                  DW_AT_call_line	(14)
+                  DW_AT_call_column	(39)
+
+0x0000025f:       DW_TAG_formal_parameter
+                    DW_AT_const_value	(3)
+                    DW_AT_abstract_origin	(0x00000207 "n")
+
+0x00000265:       DW_TAG_variable
+                    DW_AT_location	(DW_OP_reg0 RAX)
+                    DW_AT_abstract_origin	(0x00000212 "s")
+
+0x0000026c:       DW_TAG_lexical_block
+                    DW_AT_low_pc	(0x0000000000201310)
+                    DW_AT_high_pc	(0x000000000020131d)
+                    DW_AT_abstract_origin	(0x0000021d)
+
+0x0000027d:         DW_TAG_variable
+                      DW_AT_location	(0x000001b3: 
+                         [0x0000000000201310, 0x0000000000201313): DW_OP_breg1 RDX+0, DW_OP_consts +4, DW_OP_div, DW_OP_stack_value
+                         [0x0000000000201313, 0x0000000000201317): DW_OP_breg1 RDX+0, DW_OP_consts +4, DW_OP_div, DW_OP_consts +1, DW_OP_plus, DW_OP_stack_value)
+                      DW_AT_abstract_origin	(0x0000021e "i")
+
+0x00000286:         NULL
+
+0x00000287:       NULL
+
+0x00000288:     NULL
+
+0x00000289:   DW_TAG_variable
+                DW_AT_name	("second_table")
+                DW_AT_type	(0x0000029e "int[32]")
+                DW_AT_external	(true)
+                DW_AT_decl_file	(".\second.c")
+                DW_AT_decl_line	(4)
+                DW_AT_location	(DW_OP_addr 0x203340)
+
+0x0000029e:   DW_TAG_array_type
+                DW_AT_type	(0x0000022b "int")
+
+0x000002a3:     DW_TAG_subrange_type
+                  DW_AT_type	(0x000002aa "__ARRAY_SIZE_TYPE__")
+                  DW_AT_count	(0x20)
+
+0x000002a9:     NULL
+
+0x000002aa:   DW_TAG_base_type
+                DW_AT_name	("__ARRAY_SIZE_TYPE__")
+                DW_AT_byte_size	(0x08)
+                DW_AT_encoding	(DW_ATE_unsigned)
+
+0x000002b1:   NULL
+
+.debug_aranges contents:
+Address Range Header: length = 0x0000008c, format = DWARF32, version = 0x0002, cu_offset = 0x00000000, addr_size = 0x08, seg_size = 0x00
+[0x0000000000201210, 0x0000000000201280)
+[0x0000000000201280, 0x0000000000201283)
+[0x0000000000201290, 0x00000000002012c2)
+[0x0000000000203330, 0x0000000000203334)
+[0x00000000002043c0, 0x00000000002043c4)
+[0x00000000002033c0, 0x00000000002043c0)
+[0x0000000000200200, 0x0000000000200210)
+Address Range Header: length = 0x0000004c, format = DWARF32, version = 0x0002, cu_offset = 0x00000192, addr_size = 0x08, seg_size = 0x00
+[0x00000000002012d0, 0x0000000000201300)
+[0x0000000000201300, 0x0000000000201321)
+[0x0000000000203340, 0x00000000002033c0)

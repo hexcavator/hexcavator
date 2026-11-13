@@ -1,0 +1,1235 @@
+/* The size view. Colors come from the editor's theme (--vscode-*), with
+   fallbacks for a plain page (the tests). */
+
+:root {
+  --fg: var(--vscode-foreground, #ccc);
+  --muted: var(--vscode-descriptionForeground, #999);
+  --bg: var(--vscode-editor-background, #1e1e1e);
+  --panel: var(--vscode-sideBar-background, #252526);
+  --border: var(--vscode-panel-border, #333);
+  --link: var(--vscode-textLink-foreground, #3794ff);
+  --focus: var(--vscode-focusBorder, #007fd4);
+  --button: var(--vscode-button-secondaryBackground, #3a3d41);
+  --button-fg: var(--vscode-button-secondaryForeground, #fff);
+  --button-hover: var(--vscode-button-secondaryHoverBackground, #45494e);
+  --input: var(--vscode-input-background, #3c3c3c);
+  --input-fg: var(--vscode-input-foreground, #ccc);
+  --input-border: var(--vscode-input-border, transparent);
+  --hover: var(--vscode-list-hoverBackground, #2a2d2e);
+  --selected: var(--vscode-list-activeSelectionBackground, #04395e);
+  --widget: var(--vscode-editorWidget-background, #252526);
+  --widget-border: var(--vscode-editorWidget-border, #454545);
+  --grows: #e5534b;
+  --shrinks: #46b45d;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--vscode-font-family, system-ui, sans-serif);
+  font-size: var(--vscode-font-size, 13px);
+  color: var(--fg);
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+button {
+  font: inherit;
+  color: var(--button-fg);
+  background: var(--button);
+  border: none;
+  border-radius: 3px;
+  padding: 3px 9px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: var(--button-hover);
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 1px solid var(--focus);
+  outline-offset: 1px;
+}
+
+a {
+  color: var(--link);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+/* ---------------------------------------------------------------- header */
+
+#header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 14px 8px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+
+#header .title {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+
+#header .name {
+  font-size: 1.25em;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+#header .vs {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+#header .path {
+  color: var(--muted);
+  font-size: 0.9em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.chips {
+  display: flex;
+  gap: 6px;
+}
+
+.chip {
+  padding: 2px 9px;
+  border-radius: 10px;
+  background: var(--button);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.chip b {
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.chip.grows {
+  background: color-mix(in srgb, var(--grows) 35%, var(--button));
+}
+
+.chip.shrinks {
+  background: color-mix(in srgb, var(--shrinks) 35%, var(--button));
+}
+
+#header .actions {
+  display: flex;
+  gap: 4px;
+}
+
+/* --------------------------------------------------------------- toolbar */
+
+#toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.crumbs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.crumbs .sep {
+  color: var(--muted);
+}
+
+.crumbs .here {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#toolbar .level {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.segmented {
+  display: inline-flex;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.segmented button {
+  border-radius: 0;
+  background: transparent;
+  color: var(--fg);
+  padding: 2px 10px;
+}
+
+.segmented button.on {
+  background: var(--selected);
+  color: var(--vscode-list-activeSelectionForeground, #fff);
+}
+
+.searchbox {
+  position: relative;
+}
+
+#search {
+  width: 220px;
+  font: inherit;
+  color: var(--input-fg);
+  background: var(--input);
+  border: 1px solid var(--input-border);
+  border-radius: 3px;
+  padding: 3px 8px;
+}
+
+#results {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  width: 460px;
+  max-height: 360px;
+  overflow: auto;
+  z-index: 20;
+  background: var(--widget);
+  border: 1px solid var(--widget-border);
+  border-radius: 4px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+
+#results.open {
+  display: block;
+}
+
+#results a {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0 10px;
+  padding: 4px 10px;
+  color: var(--fg);
+}
+
+#results a:hover {
+  background: var(--hover);
+  text-decoration: none;
+}
+
+#results .hit {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#results .where {
+  grid-column: 1;
+  color: var(--muted);
+  font-size: 0.85em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#results .n {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  align-self: center;
+  font-variant-numeric: tabular-nums;
+}
+
+#results .none {
+  padding: 8px 10px;
+  color: var(--muted);
+}
+
+/* ------------------------------------------------------------------ main */
+
+#main {
+  position: relative;
+  flex: 3;
+  min-height: 220px;
+}
+
+#map {
+  position: absolute;
+  inset: 6px 8px 0;
+  overflow: hidden;
+}
+
+.box {
+  position: absolute;
+  overflow: hidden;
+  padding: 2px 5px;
+  color: #fff;
+  border-radius: 2px;
+  font-size: 12px;
+  line-height: 1.3;
+  cursor: default;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transition: filter 80ms;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
+}
+
+.box.zoomable {
+  cursor: zoom-in;
+}
+
+.box:hover {
+  filter: brightness(1.18);
+}
+
+.box.parent:hover {
+  filter: none;
+}
+
+.box:focus {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+
+.box.parent > .label {
+  font-weight: 600;
+}
+
+.box.parent > .size {
+  position: absolute;
+  right: 5px;
+  top: 2px;
+}
+
+.box.inner {
+  font-size: 11px;
+}
+
+.box .label {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.box .size {
+  display: block;
+  opacity: 0.85;
+  font-variant-numeric: tabular-nums;
+}
+
+.ghost {
+  position: absolute;
+  border-radius: 2px;
+  transition: all 160ms ease-out;
+  z-index: 5;
+}
+
+.empty {
+  padding: 24px;
+  color: var(--muted);
+}
+
+svg.sun .arc {
+  stroke: var(--bg);
+  stroke-width: 1;
+  transition: filter 80ms;
+}
+
+svg.sun .arc:hover {
+  filter: brightness(1.2);
+}
+
+svg.sun .arc.zoomable {
+  cursor: zoom-in;
+}
+
+svg.sun .center {
+  fill: var(--panel);
+  cursor: zoom-out;
+}
+
+svg.sun .ctitle {
+  fill: var(--fg);
+  font-weight: 600;
+}
+
+svg.sun .csize {
+  fill: var(--muted);
+  font-size: 0.9em;
+}
+
+#tip {
+  display: none;
+  position: absolute;
+  z-index: 30;
+  pointer-events: none;
+  max-width: 420px;
+  padding: 8px 10px;
+  background: var(--widget);
+  border: 1px solid var(--widget-border);
+  border-radius: 4px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+#tip.show {
+  display: block;
+}
+
+#tip .tname {
+  font-weight: 600;
+  word-break: break-all;
+}
+
+#tip .tpath,
+#tip .thint {
+  color: var(--muted);
+  font-size: 0.9em;
+  margin: 2px 0 4px;
+  word-break: break-all;
+}
+
+#tip table td {
+  padding: 1px 10px 1px 0;
+  border: none;
+}
+
+#legend {
+  padding: 4px 14px;
+  color: var(--muted);
+  font-size: 0.9em;
+}
+
+.sw {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  margin: 0 4px 0 8px;
+  vertical-align: -1px;
+}
+
+.sw.grows {
+  background: var(--grows);
+}
+
+.sw.shrinks {
+  background: var(--shrinks);
+}
+
+/* --------------------------------------------------------------- details */
+
+#details {
+  flex: 2;
+  overflow: auto;
+  padding: 0 14px 12px;
+  border-top: 1px solid var(--border);
+}
+
+.tablebar {
+  display: flex;
+  gap: 10px;
+  padding: 6px 0;
+  color: var(--muted);
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+table.rows thead th {
+  position: sticky;
+  top: 28px;
+  background: var(--bg);
+}
+
+th,
+td {
+  text-align: left;
+  padding: 3px 8px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+th {
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+th.sorted {
+  color: var(--fg);
+}
+
+th.n,
+td.n {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+td.name {
+  word-break: break-all;
+}
+
+tbody tr:hover {
+  background: var(--hover);
+}
+
+tbody tr.selected {
+  background: var(--selected);
+}
+
+td.n.grows {
+  color: var(--grows);
+}
+
+td.n.shrinks {
+  color: var(--shrinks);
+}
+
+td.share {
+  width: 160px;
+  position: relative;
+  white-space: nowrap;
+}
+
+td.share .bar {
+  display: inline-block;
+  height: 8px;
+  max-width: 100px;
+  border-radius: 2px;
+  background: var(--link);
+  opacity: 0.6;
+  vertical-align: 0;
+}
+
+td.share .pct {
+  margin-left: 6px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* -------------------------------------------------------------- findings */
+
+#details.findings {
+  border-top: none;
+  padding-top: 10px;
+}
+
+details.card {
+  margin: 0 0 14px;
+  padding: 4px 14px 10px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+details.card summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  list-style: none;
+}
+
+details.card summary::-webkit-details-marker {
+  display: none;
+}
+
+details.card h2 {
+  margin: 8px 0;
+  font-size: 1.1em;
+}
+
+details.card p {
+  color: var(--muted);
+  margin: 0 0 8px;
+}
+
+details.card.empty h2 {
+  color: var(--muted);
+}
+
+details.card p.none {
+  font-style: italic;
+}
+
+details.card table.rows thead th {
+  top: 0;
+}
+
+/* A row's action (Disassemble): shown on hover and on the selected row. */
+/* The open button: its own narrow column (a long name can't push it out
+   of reach), dim until its row is pointed at. */
+th.acts,
+td.acts {
+  width: 30px;
+  padding: 0 2px 0 4px;
+  text-align: center;
+}
+
+td.acts .act {
+  padding: 0 4px;
+  font-size: 0.85em;
+  line-height: 1.4;
+  opacity: 0.35;
+  transition: opacity 80ms;
+}
+
+tbody tr:hover td.acts .act,
+tbody tr.selected td.acts .act,
+td.acts .act:focus-visible {
+  opacity: 1;
+}
+
+/* ------------------------------------------------------------------ tree */
+
+/* The tree fills the view; the table below the map isn't shown. */
+body.treemode #main {
+  flex: 1;
+}
+
+body.treemode #details {
+  display: none;
+}
+
+body.treemode #map {
+  overflow: hidden;
+}
+
+.treewrap {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+}
+
+table.tree {
+  font-size: 12.5px;
+}
+
+table.tree td {
+  padding: 0 8px;
+  height: 22px;
+  line-height: 22px;
+  border-bottom: none;
+  vertical-align: middle;
+}
+
+table.tree td.share {
+  width: 150px;
+}
+
+table.tree tbody tr {
+  cursor: default;
+}
+
+table.tree td.tname {
+  white-space: nowrap;
+  padding-left: 4px;
+  max-width: 0;
+  width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+table.tree .indent {
+  display: inline-flex;
+  height: 22px;
+  vertical-align: top;
+}
+
+/* Guide lines: dotted, as a Windows tree draws them. A level whose row was
+   the last of its siblings has nothing below it to connect. */
+table.tree .guide {
+  display: inline-block;
+  width: 16px;
+  height: 22px;
+  position: relative;
+}
+
+table.tree .guide::before {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 0;
+  bottom: 0;
+  border-left: 1px dotted var(--muted);
+  opacity: 0.6;
+}
+
+table.tree .guide.none::before {
+  display: none;
+}
+
+table.tree .guide.elbow::after {
+  content: "";
+  position: absolute;
+  left: 8px;
+  width: 7px;
+  top: 11px;
+  border-top: 1px dotted var(--muted);
+  opacity: 0.6;
+}
+
+table.tree .guide.elbow.last::before {
+  bottom: 11px;
+}
+
+table.tree .twisty {
+  display: inline-block;
+  width: 14px;
+  text-align: center;
+  color: var(--muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+table.tree .twisty:hover {
+  color: var(--fg);
+}
+
+table.tree .twisty.leaf {
+  cursor: default;
+}
+
+table.tree .swatch {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  margin: 0 6px 0 3px;
+  vertical-align: 0;
+}
+
+table.tree .label {
+  vertical-align: top;
+}
+
+table.tree td.muted {
+  color: var(--muted);
+}
+
+table.tree tr.grows td.tname .label {
+  color: var(--grows);
+}
+
+table.tree tr.shrinks td.tname .label {
+  color: var(--shrinks);
+}
+
+.treewrap .tablebar a {
+  color: var(--link);
+}
+
+/* ---------------------------------------------------- grouping, threshold */
+
+#toolbar {
+  flex-wrap: wrap;
+}
+
+select.group,
+.threshold input {
+  font: inherit;
+  color: var(--input-fg);
+  background: var(--input);
+  border: 1px solid var(--input-border);
+  border-radius: 3px;
+  padding: 2px 4px;
+}
+
+.threshold {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.threshold input {
+  width: 6em;
+}
+
+/* ------------------------------------------------- grouping chips, filter */
+
+.chips-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.chips-group .muted {
+  color: var(--muted);
+  margin-right: 2px;
+}
+
+.gchip {
+  background: transparent;
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1px 10px;
+}
+
+.gchip.on {
+  background: var(--selected);
+  color: var(--vscode-list-activeSelectionForeground, #fff);
+  border-color: var(--selected);
+  cursor: grab;
+}
+
+.gchip.off {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.searchbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+#search.invalid {
+  border-color: var(--vscode-inputValidation-errorBorder, #be1100);
+}
+
+button.toggle {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid transparent;
+  padding: 1px 6px;
+  font-family: var(--vscode-editor-font-family, monospace);
+}
+
+button.toggle.on {
+  color: var(--fg);
+  border-color: var(--focus);
+  background: var(--vscode-inputOption-activeBackground, rgba(0, 127, 212, 0.4));
+}
+
+.tablebar label.check {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--muted);
+}
+
+.mono {
+  font-family: var(--vscode-editor-font-family, monospace);
+}
+
+table.tree td.mangled {
+  white-space: nowrap;
+  max-width: 0;
+  width: 25%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--muted);
+}
+
+/* The tree's rows out of view: one tall row each side. */
+table.tree tr.spacer td {
+  height: auto;
+  padding: 0;
+}
+
+table.tree thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--vscode-editor-background, #1e1e1e);
+}
+
+table.types td.tname {
+  padding-left: 10px;
+  width: auto;
+}
+
+/* ----------------------------------------------------- build information */
+
+.bpage {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  padding: 12px 14px;
+}
+
+.bpage h3 {
+  margin: 10px 0 6px;
+  font-size: 1em;
+}
+
+.badge {
+  display: inline-block;
+  min-width: 58px;
+  padding: 0 6px;
+  border-radius: 3px;
+  font-size: 0.85em;
+  line-height: 18px;
+  text-align: center;
+  background: var(--button);
+  color: var(--button-fg);
+}
+
+.badge.on {
+  background: color-mix(in srgb, var(--shrinks) 45%, var(--button));
+}
+
+.badge.off,
+.badge.mismatch {
+  background: color-mix(in srgb, var(--grows) 55%, var(--button));
+}
+
+.badge.partial,
+.badge.weakens {
+  background: color-mix(in srgb, #d29922 50%, var(--button));
+}
+
+.badge.na,
+.badge.info,
+.badge.differs {
+  opacity: 0.75;
+}
+
+table.checks td.state {
+  width: 80px;
+}
+
+table.checks td.cname {
+  white-space: nowrap;
+  padding-right: 16px;
+}
+
+td.values {
+  line-height: 24px;
+}
+
+.vchip {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  margin: 1px 6px 1px 0;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--button);
+  color: var(--button-fg);
+  font: inherit;
+  line-height: 18px;
+  cursor: pointer;
+}
+
+.vchip .count {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.vchip.on {
+  border-color: var(--focus);
+  background: color-mix(in srgb, var(--focus) 35%, var(--button));
+}
+
+table.fields {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+table.fields th {
+  text-align: left;
+  vertical-align: top;
+  white-space: nowrap;
+  width: 1%;
+  padding: 2px 14px 2px 0;
+  color: var(--muted);
+  font-weight: normal;
+}
+
+table.fields td {
+  padding: 2px 0;
+  word-break: break-all;
+}
+
+.bpage .buttons {
+  display: flex;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.bpage .buttons button {
+  padding: 2px 10px;
+  border: none;
+  border-radius: 2px;
+  background: var(--button);
+  color: var(--button-fg);
+  font: inherit;
+  cursor: pointer;
+}
+
+.tallies {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.tallies .tally {
+  flex: 1 1 280px;
+}
+
+.objbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0 6px;
+}
+
+.objbar .spacer,
+.bpage .tablebar .spacer {
+  flex: 1;
+}
+
+.bpage .tablebar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.bpage .tablebar .only {
+  color: var(--muted);
+}
+
+.objwrap {
+  position: relative;
+  height: 55vh;
+  min-height: 200px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+
+table.objects {
+  table-layout: fixed;
+  width: 100%;
+}
+
+table.objects thead th {
+  position: sticky;
+  top: 0;
+}
+
+table.objects th:nth-child(1) {
+  width: 26%;
+}
+
+table.objects th:nth-child(2) {
+  width: 16%;
+}
+
+table.objects th:nth-child(3) {
+  width: 20%;
+}
+
+table.objects th:nth-child(4) {
+  width: 8%;
+}
+
+table.objects td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+table.objects td.tname {
+  max-width: none;
+  width: auto;
+}
+
+table.objects tr.group td {
+  font-weight: 600;
+  cursor: pointer;
+}
+
+table.objects tr.group .count {
+  font-weight: normal;
+}
+
+table.objects tr.notcompiled td {
+  color: var(--muted);
+}
+
+table.objects .indent {
+  display: inline-block;
+}
+
+#objdetail {
+  margin-top: 10px;
+}
+
+table.opts {
+  margin-top: 6px;
+  width: auto;
+}
+
+table.opts td {
+  padding-right: 24px;
+}
+
+/* Signatures. */
+.bpage .sig {
+  margin: 6px 0 14px;
+}
+
+.bpage .sig h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.bpage .sig h4,
+.bpage details.stamp h4 {
+  display: inline-block;
+  margin: 10px 0 4px;
+  font-size: 0.95em;
+}
+
+.bpage details.stamp {
+  margin: 8px 0;
+}
+
+.bpage details.stamp > summary,
+.bpage details.cert > summary {
+  cursor: pointer;
+  /* (Not a card's summary: these show that they open.) */
+  display: list-item;
+  list-style: disclosure-closed;
+}
+
+.bpage details.stamp[open] > summary,
+.bpage details.cert[open] > summary {
+  list-style: disclosure-open;
+}
+
+.bpage details.cert {
+  margin: 2px 0;
+}
+
+.bpage details.cert > summary .certname {
+  font-weight: 600;
+  margin-right: 6px;
+}
+
+.bpage details.cert table.fields {
+  margin: 4px 0 8px 18px;
+  width: calc(100% - 18px);
+}
+
+.badge.small {
+  min-width: 0;
+  margin-right: 6px;
+  font-size: 0.75em;
+  line-height: 16px;
+}
+
+.bpage table.fields td {
+  white-space: pre-wrap;
+}
+
+.bpage pre.ents {
+  max-height: 300px;
+  overflow: auto;
+  padding: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.bpage p.note {
+  font-size: 0.9em;
+}
+
+/* A diff's row: what happened to it. */
+table.tree .change {
+  display: inline-block;
+  width: 14px;
+  margin: 0 4px 0 1px;
+  text-align: center;
+  font-weight: 700;
+}
+
+table.tree .change.added,
+table.tree .change.grew {
+  color: var(--grows);
+}
+
+table.tree .change.removed,
+table.tree .change.shrank {
+  color: var(--shrinks);
+}
+
+table.tree th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+#legend .changes .change {
+  margin: 0 3px 0 8px;
+}
+
+#legend .change.added,
+#legend .change.grew {
+  color: var(--grows);
+}
+
+#legend .change.removed,
+#legend .change.shrank {
+  color: var(--shrinks);
+}
+
+.gchip.kind .change.added,
+.gchip.kind .change.grew {
+  color: var(--grows);
+}
+
+.gchip.kind .change.removed,
+.gchip.kind .change.shrank {
+  color: var(--shrinks);
+}

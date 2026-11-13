@@ -1,0 +1,23 @@
+[package]
+name = "xtask"
+description = "Hexcavator's development tasks: `cargo xtask test` builds every test and runs them all at once"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+publish = false
+
+# (No unit tests: their build of the crate would be wasted. The hexcavator
+# tests check that a target marked so has none.)
+[[bin]]
+name = "xtask"
+path = "src/main.rs"
+test = false
+
+[dependencies]
+serde_json.workspace = true
+
+[lints]
+workspace = true

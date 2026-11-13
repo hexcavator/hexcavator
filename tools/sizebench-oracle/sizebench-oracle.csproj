@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Dumps SizeBench's analysis model as text, as an oracle for hexcavator-size.
+       Build: dotnet build -c Release   (needs a SizeBench checkout; see README.md) -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows10.0.17763</TargetFramework>
+    <Platforms>x64</Platforms>
+    <PlatformTarget>x64</PlatformTarget>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(SizeBenchSrc)\SizeBench.AnalysisEngine\SizeBench.AnalysisEngine.csproj" />
+    <ProjectReference Include="$(SizeBenchSrc)\SizeBench.Logging\SizeBench.Logging.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Dia2Lib">
+      <HintPath>$(SizeBenchSrc)\ExternalDependencies\DIA\Dia2Lib.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <Target Name="NeedSizeBench" BeforeTargets="Restore;Build">
+    <Error Condition="'$(SizeBenchSrc)'==''" Text="Give the SizeBench checkout: -p:SizeBenchSrc=&lt;path to SizeBench\src&gt; (see README.md)" />
+  </Target>
+</Project>

@@ -1,0 +1,292 @@
+objc-arm64-opcodes.dylib:
+Contents of (__DATA_CONST,__objc_classlist) section
+0000000000004008 0x8000 _OBJC_CLASS_$_Root
+           isa 0x8028 _OBJC_METACLASS_$_Root
+    superclass 0x0
+         cache 0x0
+        vtable 0x0
+          data 0x8110 (struct class_ro_t *)
+                    flags 0x2 RO_ROOT
+            instanceStart 0
+             instanceSize 8
+                 reserved 0x0
+               ivarLayout 0x0
+                     name 0x748 Root
+              baseMethods 0x844 (struct method_list_t *)
+		   entsize 12 (relative) 
+		     count 1
+		      name 0x7bbc (0x8408) init
+		     types 0xffffff11 (0x761) @16@0:8
+		       imp 0xfffffeac (0x700) -[Root init]
+            baseProtocols 0x0
+                    ivars 0x80e8
+                    entsize 32
+                      count 1
+			   offset 0x8390 34359738368
+			     name 0x7b9 isa
+			     type 0x769 #
+			alignment 3
+			     size 8
+           weakIvarLayout 0x0
+           baseProperties 0x0
+Meta Class
+           isa 0x8028 _OBJC_METACLASS_$_Root
+    superclass 0x8000 _OBJC_CLASS_$_Root
+         cache 0x0
+        vtable 0x0
+          data 0x80a0 (struct class_ro_t *)
+                    flags 0x3 RO_META RO_ROOT
+            instanceStart 40
+             instanceSize 40
+                 reserved 0x0
+               ivarLayout 0x0
+                     name 0x748 Root
+              baseMethods 0x830 (struct method_list_t *)
+		   entsize 12 (relative) 
+		     count 1
+		      name 0x7bc8 (0x8400) alloc
+		     types 0xffffff25 (0x761) @16@0:8
+		       imp 0xfffffeb8 (0x6f8) +[Root alloc]
+            baseProtocols 0x0
+                    ivars 0x0
+           weakIvarLayout 0x0
+           baseProperties 0x0
+0000000000004010 0x8078 _OBJC_CLASS_$_Shape
+           isa 0x8050 _OBJC_METACLASS_$_Shape
+    superclass 0x8000 _OBJC_CLASS_$_Root
+         cache 0x0
+        vtable 0x0
+          data 0x8308 (struct class_ro_t *)
+                    flags 0x0
+            instanceStart 8
+             instanceSize 32
+                 reserved 0x0
+               ivarLayout 0x0
+                     name 0x74d Shape
+              baseMethods 0x86c (struct method_list_t *)
+		   entsize 12 (relative) 
+		     count 5
+		      name 0x7ba4 (0x8418) drawAt:y:
+		     types 0xfffffef3 (0x76b) v24@0:8i16i20
+		       imp 0xfffffe90 (0x70c) -[Shape drawAt:y:]
+		      name 0x7ba0 (0x8420) size
+		     types 0xfffffef5 (0x779) i16@0:8
+		       imp 0xfffffe90 (0x718) -[Shape size]
+		      name 0x7b9c (0x8428) sides
+		     types 0xfffffee9 (0x779) i16@0:8
+		       imp 0xfffffe8c (0x720) -[Shape sides]
+		      name 0x7b98 (0x8430) setSides:
+		     types 0xfffffeee (0x78a) v20@0:8i16
+		       imp 0xfffffe88 (0x728) -[Shape setSides:]
+		      name 0x7b94 (0x8438) scale
+		     types 0xfffffeed (0x795) d16@0:8
+		       imp 0xfffffe84 (0x730) -[Shape scale]
+            baseProtocols 0x8208
+                      count 1
+		      list[0] 0x83a0 (struct protocol_t *)
+			      isa 0x0
+			     name 0x753 Drawable
+			protocols 0x0
+		  instanceMethods 0x8158 (struct method_list_t *)
+			   entsize 24
+			     count 1
+			      name 0x7c2 drawAt:y:
+			     types 0x76b v24@0:8i16i20
+			       imp 0x0 
+		     classMethods 0x0 (struct method_list_t *)
+	  optionalInstanceMethods 0x8178
+	     optionalClassMethods 0x81b0
+	       instanceProperties 0x81d0
+                    ivars 0x8268
+                    entsize 32
+                      count 3
+			   offset 0x8394 68719476744
+			     name 0x7f9 _sides
+			     type 0x79d i
+			alignment 2
+			     size 4
+			   offset 0x8398 103079215120
+			     name 0x800 _scale
+			     type 0x79f d
+			alignment 3
+			     size 8
+			   offset 0x839c 24
+			     name 0x807 _label
+			     type 0x7a1 *
+			alignment 3
+			     size 8
+           weakIvarLayout 0x0
+           baseProperties 0x82d0
+                    entsize 16
+                      count 3
+			     name 0x7e3 sides
+			attributes 0x80e Ti,N,V_sides
+			     name 0x7f3 scale
+			attributes 0x81b Td,R,N,V_scale
+			     name 0x7d2 size
+			attributes 0x7dc Ti,?,R
+Meta Class
+           isa 0x8028 _OBJC_METACLASS_$_Root
+    superclass 0x8028 _OBJC_METACLASS_$_Root
+         cache 0x0
+        vtable 0x0
+          data 0x8220 (struct class_ro_t *)
+                    flags 0x1 RO_META
+            instanceStart 40
+             instanceSize 40
+                 reserved 0x0
+               ivarLayout 0x0
+                     name 0x74d Shape
+              baseMethods 0x858 (struct method_list_t *)
+		   entsize 12 (relative) 
+		     count 1
+		      name 0x7bb0 (0x8410) unit
+		     types 0xfffffefd (0x761) @16@0:8
+		       imp 0xfffffe9c (0x704) +[Shape unit]
+            baseProtocols 0x8208
+                      count 1
+		      list[0] 0x83a0 (struct protocol_t *)
+			      isa 0x0
+			     name 0x753 Drawable
+			protocols 0x0
+		  instanceMethods 0x8158 (struct method_list_t *)
+			   entsize 24
+			     count 1
+			      name 0x7c2 drawAt:y:
+			     types 0x76b v24@0:8i16i20
+			       imp 0x0 
+		     classMethods 0x0 (struct method_list_t *)
+	  optionalInstanceMethods 0x8178
+	     optionalClassMethods 0x81b0
+	       instanceProperties 0x81d0
+                    ivars 0x0
+           weakIvarLayout 0x0
+           baseProperties 0x0
+Contents of (__DATA_CONST,__objc_catlist) section
+0000000000004018 0x8350 __OBJC_$_CATEGORY_Shape_$_Grow
+              name 0x75c Grow
+               cls 0x8078
+           isa 0x8050 _OBJC_METACLASS_$_Shape
+    superclass 0x8000 _OBJC_CLASS_$_Root
+         cache 0x0
+        vtable 0x0
+          data 0x8308 (struct class_ro_t *)
+                    flags 0x0
+            instanceStart 8
+             instanceSize 32
+                 reserved 0x0
+               ivarLayout 0x0
+                     name 0x74d Shape
+              baseMethods 0x86c (struct method_list_t *)
+		   entsize 12 (relative) 
+		     count 5
+		      name 0x7ba4 (0x8418) drawAt:y:
+		     types 0xfffffef3 (0x76b) v24@0:8i16i20
+		       imp 0xfffffe90 (0x70c) -[Shape drawAt:y:]
+		      name 0x7ba0 (0x8420) size
+		     types 0xfffffef5 (0x779) i16@0:8
+		       imp 0xfffffe90 (0x718) -[Shape size]
+		      name 0x7b9c (0x8428) sides
+		     types 0xfffffee9 (0x779) i16@0:8
+		       imp 0xfffffe8c (0x720) -[Shape sides]
+		      name 0x7b98 (0x8430) setSides:
+		     types 0xfffffeee (0x78a) v20@0:8i16
+		       imp 0xfffffe88 (0x728) -[Shape setSides:]
+		      name 0x7b94 (0x8438) scale
+		     types 0xfffffeed (0x795) d16@0:8
+		       imp 0xfffffe84 (0x730) -[Shape scale]
+            baseProtocols 0x8208
+                      count 1
+		      list[0] 0x83a0 (struct protocol_t *)
+			      isa 0x0
+			     name 0x753 Drawable
+			protocols 0x0
+		  instanceMethods 0x8158 (struct method_list_t *)
+			   entsize 24
+			     count 1
+			      name 0x7c2 drawAt:y:
+			     types 0x76b v24@0:8i16i20
+			       imp 0x0 
+		     classMethods 0x0 (struct method_list_t *)
+	  optionalInstanceMethods 0x8178
+	     optionalClassMethods 0x81b0
+	       instanceProperties 0x81d0
+                    ivars 0x8268
+                    entsize 32
+                      count 3
+			   offset 0x8394 68719476744
+			     name 0x7f9 _sides
+			     type 0x79d i
+			alignment 2
+			     size 4
+			   offset 0x8398 103079215120
+			     name 0x800 _scale
+			     type 0x79f d
+			alignment 3
+			     size 8
+			   offset 0x839c 24
+			     name 0x807 _label
+			     type 0x7a1 *
+			alignment 3
+			     size 8
+           weakIvarLayout 0x0
+           baseProperties 0x82d0
+                    entsize 16
+                      count 3
+			     name 0x7e3 sides
+			attributes 0x80e Ti,N,V_sides
+			     name 0x7f3 scale
+			attributes 0x81b Td,R,N,V_scale
+			     name 0x7d2 size
+			attributes 0x7dc Ti,?,R
+Meta Class
+           isa 0x8028 _OBJC_METACLASS_$_Root
+    superclass 0x8028 _OBJC_METACLASS_$_Root
+         cache 0x0
+        vtable 0x0
+          data 0x8220 (struct class_ro_t *)
+                    flags 0x1 RO_META
+            instanceStart 40
+             instanceSize 40
+                 reserved 0x0
+               ivarLayout 0x0
+                     name 0x74d Shape
+              baseMethods 0x858 (struct method_list_t *)
+		   entsize 12 (relative) 
+		     count 1
+		      name 0x7bb0 (0x8410) unit
+		     types 0xfffffefd (0x761) @16@0:8
+		       imp 0xfffffe9c (0x704) +[Shape unit]
+            baseProtocols 0x8208
+                      count 1
+		      list[0] 0x83a0 (struct protocol_t *)
+			      isa 0x0
+			     name 0x753 Drawable
+			protocols 0x0
+		  instanceMethods 0x8158 (struct method_list_t *)
+			   entsize 24
+			     count 1
+			      name 0x7c2 drawAt:y:
+			     types 0x76b v24@0:8i16i20
+			       imp 0x0 
+		     classMethods 0x0 (struct method_list_t *)
+	  optionalInstanceMethods 0x8178
+	     optionalClassMethods 0x81b0
+	       instanceProperties 0x81d0
+                    ivars 0x0
+           weakIvarLayout 0x0
+           baseProperties 0x0
+   instanceMethods 0x8b0
+		   entsize 12 (relative) 
+		     count 1
+		      name 0x7b88 (0x8440) grow:
+		     types 0xfffffee7 (0x7a3) v24@0:8d16
+		       imp 0xfffffe78 (0x738) -[Shape(Grow) grow:]
+      classMethods 0x0
+         protocols 0x0
+instanceProperties 0x0
+Contents of (__DATA_CONST,__objc_protolist) section
+0000000000004000 0x83a0 __OBJC_PROTOCOL_$_Drawable
+Contents of (__DATA_CONST,__objc_imageinfo) section
+  version 0
+    flags 0x40 OBJC_IMAGE_HAS_CATEGORY_CLASS_PROPERTIES

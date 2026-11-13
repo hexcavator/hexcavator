@@ -1,0 +1,1357 @@
+COFFGROUP .data .bss rva=7060 size=0 vsize=1560 vsizepad=4000 chars=c0000080
+COFFGROUP .data .data rva=7000 size=96 vsize=96 vsizepad=96 chars=c0000040
+COFFGROUP .pdata .pdata rva=8000 size=1272 vsize=1272 vsizepad=4096 chars=40000040
+COFFGROUP .rdata .00cfg rva=51d0 size=40 vsize=40 vsizepad=40 chars=40000040
+COFFGROUP .rdata .CRT$XCA rva=51f8 size=8 vsize=8 vsizepad=8 chars=40000040
+COFFGROUP .rdata .CRT$XCZ rva=5200 size=8 vsize=8 vsizepad=8 chars=40000040
+COFFGROUP .rdata .CRT$XIA rva=5208 size=8 vsize=8 vsizepad=8 chars=40000040
+COFFGROUP .rdata .CRT$XIZ rva=5210 size=8 vsize=8 vsizepad=8 chars=40000040
+COFFGROUP .rdata .CRT$XPA rva=5218 size=8 vsize=8 vsizepad=8 chars=40000040
+COFFGROUP .rdata .CRT$XPZ rva=5220 size=8 vsize=8 vsizepad=8 chars=40000040
+COFFGROUP .rdata .CRT$XTA rva=5228 size=8 vsize=8 vsizepad=8 chars=40000040
+COFFGROUP .rdata .CRT$XTZ rva=5230 size=16 vsize=16 vsizepad=16 chars=40000040
+COFFGROUP .rdata .edata rva=6750 size=124 vsize=124 vsizepad=124 chars=40000040
+COFFGROUP .rdata .idata$2 rva=67cc size=80 vsize=80 vsizepad=80 chars=c0000040
+COFFGROUP .rdata .idata$3 rva=681c size=20 vsize=20 vsizepad=20 chars=c0000040
+COFFGROUP .rdata .idata$4 rva=6830 size=464 vsize=464 vsizepad=464 chars=c0000040
+COFFGROUP .rdata .idata$5 rva=5000 size=464 vsize=464 vsizepad=464 chars=c0000040
+COFFGROUP .rdata .idata$6 rva=6a00 size=1204 vsize=1204 vsizepad=1536 chars=c0000040
+COFFGROUP .rdata .rdata rva=5240 size=3008 vsize=3008 vsizepad=3008 chars=40000040
+COFFGROUP .rdata .rdata$CastGuardVftablesA rva=5e00 size=8 vsize=8 vsizepad=8 chars=40000040
+COFFGROUP .rdata .rdata$CastGuardVftablesC rva=5e08 size=8 vsize=8 vsizepad=8 chars=40000040
+COFFGROUP .rdata .rdata$voltmd rva=5e10 size=144 vsize=144 vsizepad=144 chars=40000040
+COFFGROUP .rdata .rdata$zzzdbg rva=5ea0 size=808 vsize=808 vsizepad=808 chars=40000040
+COFFGROUP .rdata .rtc$IAA rva=61c8 size=8 vsize=8 vsizepad=8 chars=40000040
+COFFGROUP .rdata .rtc$IZZ rva=61d0 size=8 vsize=8 vsizepad=8 chars=40000040
+COFFGROUP .rdata .rtc$TAA rva=61d8 size=8 vsize=8 vsizepad=8 chars=40000040
+COFFGROUP .rdata .rtc$TZZ rva=61e0 size=8 vsize=8 vsizepad=8 chars=40000040
+COFFGROUP .rdata .xdata rva=61e8 size=1384 vsize=1384 vsizepad=1384 chars=40000040
+COFFGROUP .reloc .sizebench-synthesized-PE-directory-BaseRelocationTable rva=b000 size=104 vsize=104 vsizepad=4096 chars=0
+COFFGROUP .text .text rva=1000 size=784 vsize=784 vsizepad=784 chars=60000020
+COFFGROUP .text .text$mn rva=1310 size=13248 vsize=13248 vsizepad=13248 chars=60000020
+COFFGROUP .text .text$mn$00 rva=46d0 size=64 vsize=64 vsizepad=64 chars=60000020
+COFFGROUP .text .text$x rva=4710 size=253 vsize=253 vsizepad=2288 chars=60000020
+COFFGROUP .trace .trace rva=9000 size=352 vsize=352 vsizepad=4096 chars=40000040
+COMPILAND ...no name found... | * Linker * size=1033 vsize=1041
+COMPILAND C:\Program Files (x86)\Intel\oneAPI\compiler\2021.4.0\windows\compiler\lib\Intel64_win\libifcoremdd.lib | Import:libifcoremdd.dll size=42 vsize=42
+COMPILAND C:\Program Files (x86)\Intel\oneAPI\compiler\2021.4.0\windows\compiler\lib\Intel64_win\libifcoremdd.lib | libifcoremdd.dll size=74 vsize=74
+COMPILAND C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\amdsecgs.obj size=62 vsize=62
+COMPILAND C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\argv_mode.obj size=6 vsize=6
+COMPILAND C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\cpu_disp.obj size=970 vsize=974
+COMPILAND C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\default_local_stdio_options.obj size=97 vsize=105
+COMPILAND C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\dll_dllmain.obj size=1550 vsize=1554
+COMPILAND C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\dll_dllmain_stub.obj size=76 vsize=76
+COMPILAND C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\dyn_tls_init.obj size=8 vsize=8
+COMPILAND C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj size=3890 vsize=3898
+COMPILAND C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gs_cookie.obj size=16 vsize=16
+COMPILAND C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gs_report.obj size=1188 vsize=2580
+COMPILAND C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gs_support.obj size=346 vsize=346
+COMPILAND C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gshandler.obj size=346 vsize=346
+COMPILAND C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_dispatch.obj size=34 vsize=34
+COMPILAND C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_support.obj size=994 vsize=1002
+COMPILAND C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_xfg_dispatch.obj size=38 vsize=38
+COMPILAND C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\initializers.obj size=64 vsize=64
+COMPILAND C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\initsect.obj size=212 vsize=212
+COMPILAND C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\loadcfg.obj size=312 vsize=312
+COMPILAND C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\pdblkup.obj size=2809 vsize=2819
+COMPILAND C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\stack.obj size=823 vsize=823
+COMPILAND C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\tncleanup.obj size=83 vsize=99
+COMPILAND C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\ucrt_detection.obj size=57 vsize=57
+COMPILAND C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\ucrt_stubs.obj size=30 vsize=30
+COMPILAND C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\userapi.obj size=333 vsize=349
+COMPILAND C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility.obj size=2136 vsize=2208
+COMPILAND C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility_desktop.obj size=988 vsize=992
+COMPILAND C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\vcruntimed.lib | Import:VCRUNTIME140D.dll size=394 vsize=394
+COMPILAND C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\vcruntimed.lib | VCRUNTIME140D.dll size=54 vsize=54
+COMPILAND C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\ucrt\x64\ucrtd.lib | Import:ucrtbased.dll size=734 vsize=734
+COMPILAND C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\ucrt\x64\ucrtd.lib | ucrtbased.dll size=50 vsize=50
+COMPILAND C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\um\x64\kernel32.lib | Import:KERNEL32.dll size=1158 vsize=1158
+COMPILAND C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\um\x64\kernel32.lib | KERNEL32.dll size=50 vsize=50
+COMPILAND C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj | C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj size=884 vsize=884
+COMPILAND C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.exp | C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.exp size=121 vsize=121
+COMPILAND C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj | C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj size=648 vsize=648
+COMPILANDCOFFGROUP ...no name found... | * Linker * | .bss size=0 vsize=8
+COMPILANDCOFFGROUP ...no name found... | * Linker * | .rdata size=84 vsize=84
+COMPILANDCOFFGROUP ...no name found... | * Linker * | .rdata$voltmd size=144 vsize=144
+COMPILANDCOFFGROUP ...no name found... | * Linker * | .rdata$zzzdbg size=805 vsize=805
+COMPILANDCOFFGROUP C:\Program Files (x86)\Intel\oneAPI\compiler\2021.4.0\windows\compiler\lib\Intel64_win\libifcoremdd.lib | Import:libifcoremdd.dll | .idata$4 size=8 vsize=8
+COMPILANDCOFFGROUP C:\Program Files (x86)\Intel\oneAPI\compiler\2021.4.0\windows\compiler\lib\Intel64_win\libifcoremdd.lib | Import:libifcoremdd.dll | .idata$5 size=8 vsize=8
+COMPILANDCOFFGROUP C:\Program Files (x86)\Intel\oneAPI\compiler\2021.4.0\windows\compiler\lib\Intel64_win\libifcoremdd.lib | Import:libifcoremdd.dll | .idata$6 size=20 vsize=20
+COMPILANDCOFFGROUP C:\Program Files (x86)\Intel\oneAPI\compiler\2021.4.0\windows\compiler\lib\Intel64_win\libifcoremdd.lib | Import:libifcoremdd.dll | .text$mn size=6 vsize=6
+COMPILANDCOFFGROUP C:\Program Files (x86)\Intel\oneAPI\compiler\2021.4.0\windows\compiler\lib\Intel64_win\libifcoremdd.lib | libifcoremdd.dll | .idata$2 size=20 vsize=20
+COMPILANDCOFFGROUP C:\Program Files (x86)\Intel\oneAPI\compiler\2021.4.0\windows\compiler\lib\Intel64_win\libifcoremdd.lib | libifcoremdd.dll | .idata$3 size=20 vsize=20
+COMPILANDCOFFGROUP C:\Program Files (x86)\Intel\oneAPI\compiler\2021.4.0\windows\compiler\lib\Intel64_win\libifcoremdd.lib | libifcoremdd.dll | .idata$4 size=8 vsize=8
+COMPILANDCOFFGROUP C:\Program Files (x86)\Intel\oneAPI\compiler\2021.4.0\windows\compiler\lib\Intel64_win\libifcoremdd.lib | libifcoremdd.dll | .idata$5 size=8 vsize=8
+COMPILANDCOFFGROUP C:\Program Files (x86)\Intel\oneAPI\compiler\2021.4.0\windows\compiler\lib\Intel64_win\libifcoremdd.lib | libifcoremdd.dll | .idata$6 size=18 vsize=18
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\amdsecgs.obj | .pdata size=12 vsize=12
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\amdsecgs.obj | .text$mn size=46 vsize=46
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\amdsecgs.obj | .xdata size=4 vsize=4
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\argv_mode.obj | .text$mn size=6 vsize=6
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\cpu_disp.obj | .bss size=0 vsize=4
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\cpu_disp.obj | .data size=24 vsize=24
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\cpu_disp.obj | .pdata size=12 vsize=12
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\cpu_disp.obj | .text$mn size=918 vsize=918
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\cpu_disp.obj | .xdata size=16 vsize=16
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\default_local_stdio_options.obj | .bss size=0 vsize=8
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\default_local_stdio_options.obj | .pdata size=12 vsize=12
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\default_local_stdio_options.obj | .text$mn size=77 vsize=77
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\default_local_stdio_options.obj | .xdata size=8 vsize=8
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\dll_dllmain.obj | .bss size=0 vsize=4
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\dll_dllmain.obj | .pdata size=132 vsize=132
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\dll_dllmain.obj | .rdata size=8 vsize=8
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\dll_dllmain.obj | .text$mn size=1088 vsize=1088
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\dll_dllmain.obj | .text$x size=146 vsize=146
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\dll_dllmain.obj | .xdata size=176 vsize=176
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\dll_dllmain_stub.obj | .pdata size=12 vsize=12
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\dll_dllmain_stub.obj | .text$mn size=56 vsize=56
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\dll_dllmain_stub.obj | .xdata size=8 vsize=8
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\dyn_tls_init.obj | .text$mn size=8 vsize=8
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj | .bss size=0 vsize=8
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj | .data size=20 vsize=20
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj | .pdata size=180 vsize=180
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj | .rdata size=1435 vsize=1435
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj | .text$mn size=1927 vsize=1927
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj | .text$x size=32 vsize=32
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj | .xdata size=296 vsize=296
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gs_cookie.obj | .data size=16 vsize=16
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gs_report.obj | .bss size=0 vsize=1392
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gs_report.obj | .pdata size=84 vsize=84
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gs_report.obj | .rdata size=16 vsize=16
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gs_report.obj | .text$mn size=1032 vsize=1032
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gs_report.obj | .xdata size=56 vsize=56
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gs_support.obj | .pdata size=24 vsize=24
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gs_support.obj | .text$mn size=306 vsize=306
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gs_support.obj | .xdata size=16 vsize=16
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gshandler.obj | .pdata size=24 vsize=24
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gshandler.obj | .text$mn size=306 vsize=306
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gshandler.obj | .xdata size=16 vsize=16
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_dispatch.obj | .pdata size=12 vsize=12
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_dispatch.obj | .text$mn$00 size=18 vsize=18
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_dispatch.obj | .xdata size=4 vsize=4
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_support.obj | .00cfg size=40 vsize=40
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_support.obj | .bss size=0 vsize=8
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_support.obj | .pdata size=132 vsize=132
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_support.obj | .rdata$CastGuardVftablesA size=8 vsize=8
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_support.obj | .rdata$CastGuardVftablesC size=8 vsize=8
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_support.obj | .text$mn size=718 vsize=718
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_support.obj | .xdata size=88 vsize=88
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_xfg_dispatch.obj | .pdata size=12 vsize=12
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_xfg_dispatch.obj | .text$mn$00 size=22 vsize=22
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_xfg_dispatch.obj | .xdata size=4 vsize=4
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\initializers.obj | .CRT$XCA size=8 vsize=8
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\initializers.obj | .CRT$XCZ size=8 vsize=8
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\initializers.obj | .CRT$XIA size=8 vsize=8
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\initializers.obj | .CRT$XIZ size=8 vsize=8
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\initializers.obj | .CRT$XPA size=8 vsize=8
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\initializers.obj | .CRT$XPZ size=8 vsize=8
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\initializers.obj | .CRT$XTA size=8 vsize=8
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\initializers.obj | .CRT$XTZ size=8 vsize=8
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\initsect.obj | .pdata size=24 vsize=24
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\initsect.obj | .rtc$IAA size=8 vsize=8
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\initsect.obj | .rtc$IZZ size=8 vsize=8
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\initsect.obj | .rtc$TAA size=8 vsize=8
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\initsect.obj | .rtc$TZZ size=8 vsize=8
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\initsect.obj | .text$mn size=132 vsize=132
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\initsect.obj | .xdata size=24 vsize=24
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\loadcfg.obj | .rdata size=312 vsize=312
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\pdblkup.obj | .bss size=0 vsize=10
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\pdblkup.obj | .pdata size=48 vsize=48
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\pdblkup.obj | .rdata size=426 vsize=426
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\pdblkup.obj | .text$mn size=2235 vsize=2235
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\pdblkup.obj | .xdata size=100 vsize=100
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\stack.obj | .pdata size=156 vsize=156
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\stack.obj | .text$mn size=447 vsize=447
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\stack.obj | .xdata size=220 vsize=220
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\tncleanup.obj | .bss size=0 vsize=16
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\tncleanup.obj | .pdata size=24 vsize=24
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\tncleanup.obj | .text$mn size=43 vsize=43
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\tncleanup.obj | .xdata size=16 vsize=16
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\ucrt_detection.obj | .pdata size=12 vsize=12
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\ucrt_detection.obj | .text$mn size=37 vsize=37
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\ucrt_detection.obj | .xdata size=8 vsize=8
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\ucrt_stubs.obj | .data size=4 vsize=4
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\ucrt_stubs.obj | .text$mn size=26 vsize=26
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\userapi.obj | .bss size=0 vsize=16
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\userapi.obj | .rdata size=204 vsize=204
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\userapi.obj | .text$mn size=129 vsize=129
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility.obj | .bss size=0 vsize=72
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility.obj | .data size=4 vsize=4
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility.obj | .pdata size=252 vsize=252
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility.obj | .text$mn size=1623 vsize=1623
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility.obj | .text$x size=61 vsize=61
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility.obj | .xdata size=196 vsize=196
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility_desktop.obj | .bss size=0 vsize=4
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility_desktop.obj | .pdata size=72 vsize=72
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility_desktop.obj | .text$mn size=860 vsize=860
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility_desktop.obj | .xdata size=56 vsize=56
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\vcruntimed.lib | Import:VCRUNTIME140D.dll | .idata$4 size=64 vsize=64
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\vcruntimed.lib | Import:VCRUNTIME140D.dll | .idata$5 size=64 vsize=64
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\vcruntimed.lib | Import:VCRUNTIME140D.dll | .idata$6 size=218 vsize=218
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\vcruntimed.lib | Import:VCRUNTIME140D.dll | .text$mn size=48 vsize=48
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\vcruntimed.lib | VCRUNTIME140D.dll | .idata$2 size=20 vsize=20
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\vcruntimed.lib | VCRUNTIME140D.dll | .idata$4 size=8 vsize=8
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\vcruntimed.lib | VCRUNTIME140D.dll | .idata$5 size=8 vsize=8
+COMPILANDCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\vcruntimed.lib | VCRUNTIME140D.dll | .idata$6 size=18 vsize=18
+COMPILANDCOFFGROUP C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\ucrt\x64\ucrtd.lib | Import:ucrtbased.dll | .idata$4 size=144 vsize=144
+COMPILANDCOFFGROUP C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\ucrt\x64\ucrtd.lib | Import:ucrtbased.dll | .idata$5 size=144 vsize=144
+COMPILANDCOFFGROUP C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\ucrt\x64\ucrtd.lib | Import:ucrtbased.dll | .idata$6 size=338 vsize=338
+COMPILANDCOFFGROUP C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\ucrt\x64\ucrtd.lib | Import:ucrtbased.dll | .text$mn size=108 vsize=108
+COMPILANDCOFFGROUP C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\ucrt\x64\ucrtd.lib | ucrtbased.dll | .idata$2 size=20 vsize=20
+COMPILANDCOFFGROUP C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\ucrt\x64\ucrtd.lib | ucrtbased.dll | .idata$4 size=8 vsize=8
+COMPILANDCOFFGROUP C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\ucrt\x64\ucrtd.lib | ucrtbased.dll | .idata$5 size=8 vsize=8
+COMPILANDCOFFGROUP C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\ucrt\x64\ucrtd.lib | ucrtbased.dll | .idata$6 size=14 vsize=14
+COMPILANDCOFFGROUP C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\um\x64\kernel32.lib | Import:KERNEL32.dll | .idata$4 size=216 vsize=216
+COMPILANDCOFFGROUP C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\um\x64\kernel32.lib | Import:KERNEL32.dll | .idata$5 size=216 vsize=216
+COMPILANDCOFFGROUP C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\um\x64\kernel32.lib | Import:KERNEL32.dll | .idata$6 size=564 vsize=564
+COMPILANDCOFFGROUP C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\um\x64\kernel32.lib | Import:KERNEL32.dll | .text$mn size=162 vsize=162
+COMPILANDCOFFGROUP C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\um\x64\kernel32.lib | KERNEL32.dll | .idata$2 size=20 vsize=20
+COMPILANDCOFFGROUP C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\um\x64\kernel32.lib | KERNEL32.dll | .idata$4 size=8 vsize=8
+COMPILANDCOFFGROUP C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\um\x64\kernel32.lib | KERNEL32.dll | .idata$5 size=8 vsize=8
+COMPILANDCOFFGROUP C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\um\x64\kernel32.lib | KERNEL32.dll | .idata$6 size=14 vsize=14
+COMPILANDCOFFGROUP C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj | C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj | .pdata size=24 vsize=24
+COMPILANDCOFFGROUP C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj | C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj | .rdata size=208 vsize=208
+COMPILANDCOFFGROUP C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj | C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj | .text size=420 vsize=420
+COMPILANDCOFFGROUP C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj | C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj | .trace size=192 vsize=192
+COMPILANDCOFFGROUP C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj | C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj | .xdata size=40 vsize=40
+COMPILANDCOFFGROUP C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.exp | C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.exp | .edata size=121 vsize=121
+COMPILANDCOFFGROUP C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj | C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj | .pdata size=12 vsize=12
+COMPILANDCOFFGROUP C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj | C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj | .rdata size=104 vsize=104
+COMPILANDCOFFGROUP C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj | C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj | .text size=352 vsize=352
+COMPILANDCOFFGROUP C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj | C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj | .trace size=160 vsize=160
+COMPILANDCOFFGROUP C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj | C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj | .xdata size=20 vsize=20
+COMPILANDSECTION ...no name found... | * Linker * | .data size=0 vsize=8
+COMPILANDSECTION ...no name found... | * Linker * | .rdata size=1033 vsize=1033
+COMPILANDSECTION C:\Program Files (x86)\Intel\oneAPI\compiler\2021.4.0\windows\compiler\lib\Intel64_win\libifcoremdd.lib | Import:libifcoremdd.dll | .rdata size=36 vsize=36
+COMPILANDSECTION C:\Program Files (x86)\Intel\oneAPI\compiler\2021.4.0\windows\compiler\lib\Intel64_win\libifcoremdd.lib | Import:libifcoremdd.dll | .text size=6 vsize=6
+COMPILANDSECTION C:\Program Files (x86)\Intel\oneAPI\compiler\2021.4.0\windows\compiler\lib\Intel64_win\libifcoremdd.lib | libifcoremdd.dll | .rdata size=74 vsize=74
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\amdsecgs.obj | .pdata size=12 vsize=12
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\amdsecgs.obj | .rdata size=4 vsize=4
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\amdsecgs.obj | .text size=46 vsize=46
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\argv_mode.obj | .text size=6 vsize=6
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\cpu_disp.obj | .data size=24 vsize=28
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\cpu_disp.obj | .pdata size=12 vsize=12
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\cpu_disp.obj | .rdata size=16 vsize=16
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\cpu_disp.obj | .text size=918 vsize=918
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\default_local_stdio_options.obj | .data size=0 vsize=8
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\default_local_stdio_options.obj | .pdata size=12 vsize=12
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\default_local_stdio_options.obj | .rdata size=8 vsize=8
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\default_local_stdio_options.obj | .text size=77 vsize=77
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\dll_dllmain.obj | .data size=0 vsize=4
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\dll_dllmain.obj | .pdata size=132 vsize=132
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\dll_dllmain.obj | .rdata size=184 vsize=184
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\dll_dllmain.obj | .text size=1234 vsize=1234
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\dll_dllmain_stub.obj | .pdata size=12 vsize=12
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\dll_dllmain_stub.obj | .rdata size=8 vsize=8
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\dll_dllmain_stub.obj | .text size=56 vsize=56
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\dyn_tls_init.obj | .text size=8 vsize=8
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj | .data size=20 vsize=28
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj | .pdata size=180 vsize=180
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj | .rdata size=1731 vsize=1731
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj | .text size=1959 vsize=1959
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gs_cookie.obj | .data size=16 vsize=16
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gs_report.obj | .data size=0 vsize=1392
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gs_report.obj | .pdata size=84 vsize=84
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gs_report.obj | .rdata size=72 vsize=72
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gs_report.obj | .text size=1032 vsize=1032
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gs_support.obj | .pdata size=24 vsize=24
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gs_support.obj | .rdata size=16 vsize=16
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gs_support.obj | .text size=306 vsize=306
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gshandler.obj | .pdata size=24 vsize=24
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gshandler.obj | .rdata size=16 vsize=16
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gshandler.obj | .text size=306 vsize=306
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_dispatch.obj | .pdata size=12 vsize=12
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_dispatch.obj | .rdata size=4 vsize=4
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_dispatch.obj | .text size=18 vsize=18
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_support.obj | .data size=0 vsize=8
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_support.obj | .pdata size=132 vsize=132
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_support.obj | .rdata size=144 vsize=144
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_support.obj | .text size=718 vsize=718
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_xfg_dispatch.obj | .pdata size=12 vsize=12
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_xfg_dispatch.obj | .rdata size=4 vsize=4
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_xfg_dispatch.obj | .text size=22 vsize=22
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\initializers.obj | .rdata size=64 vsize=64
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\initsect.obj | .pdata size=24 vsize=24
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\initsect.obj | .rdata size=56 vsize=56
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\initsect.obj | .text size=132 vsize=132
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\loadcfg.obj | .rdata size=312 vsize=312
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\pdblkup.obj | .data size=0 vsize=10
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\pdblkup.obj | .pdata size=48 vsize=48
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\pdblkup.obj | .rdata size=526 vsize=526
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\pdblkup.obj | .text size=2235 vsize=2235
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\stack.obj | .pdata size=156 vsize=156
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\stack.obj | .rdata size=220 vsize=220
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\stack.obj | .text size=447 vsize=447
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\tncleanup.obj | .data size=0 vsize=16
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\tncleanup.obj | .pdata size=24 vsize=24
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\tncleanup.obj | .rdata size=16 vsize=16
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\tncleanup.obj | .text size=43 vsize=43
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\ucrt_detection.obj | .pdata size=12 vsize=12
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\ucrt_detection.obj | .rdata size=8 vsize=8
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\ucrt_detection.obj | .text size=37 vsize=37
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\ucrt_stubs.obj | .data size=4 vsize=4
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\ucrt_stubs.obj | .text size=26 vsize=26
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\userapi.obj | .data size=0 vsize=16
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\userapi.obj | .rdata size=204 vsize=204
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\userapi.obj | .text size=129 vsize=129
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility.obj | .data size=4 vsize=76
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility.obj | .pdata size=252 vsize=252
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility.obj | .rdata size=196 vsize=196
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility.obj | .text size=1684 vsize=1684
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility_desktop.obj | .data size=0 vsize=4
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility_desktop.obj | .pdata size=72 vsize=72
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility_desktop.obj | .rdata size=56 vsize=56
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility_desktop.obj | .text size=860 vsize=860
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\vcruntimed.lib | Import:VCRUNTIME140D.dll | .rdata size=346 vsize=346
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\vcruntimed.lib | Import:VCRUNTIME140D.dll | .text size=48 vsize=48
+COMPILANDSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\vcruntimed.lib | VCRUNTIME140D.dll | .rdata size=54 vsize=54
+COMPILANDSECTION C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\ucrt\x64\ucrtd.lib | Import:ucrtbased.dll | .rdata size=626 vsize=626
+COMPILANDSECTION C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\ucrt\x64\ucrtd.lib | Import:ucrtbased.dll | .text size=108 vsize=108
+COMPILANDSECTION C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\ucrt\x64\ucrtd.lib | ucrtbased.dll | .rdata size=50 vsize=50
+COMPILANDSECTION C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\um\x64\kernel32.lib | Import:KERNEL32.dll | .rdata size=996 vsize=996
+COMPILANDSECTION C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\um\x64\kernel32.lib | Import:KERNEL32.dll | .text size=162 vsize=162
+COMPILANDSECTION C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\um\x64\kernel32.lib | KERNEL32.dll | .rdata size=50 vsize=50
+COMPILANDSECTION C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj | C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj | .pdata size=24 vsize=24
+COMPILANDSECTION C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj | C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj | .rdata size=248 vsize=248
+COMPILANDSECTION C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj | C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj | .text size=420 vsize=420
+COMPILANDSECTION C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj | C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj | .trace size=192 vsize=192
+COMPILANDSECTION C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.exp | C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.exp | .rdata size=121 vsize=121
+COMPILANDSECTION C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj | C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj | .pdata size=12 vsize=12
+COMPILANDSECTION C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj | C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj | .rdata size=124 vsize=124
+COMPILANDSECTION C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj | C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj | .text size=352 vsize=352
+COMPILANDSECTION C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj | C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj | .trace size=160 vsize=160
+LIB ...no name found... size=1033 vsize=1041
+LIB C:\Program Files (x86)\Intel\oneAPI\compiler\2021.4.0\windows\compiler\lib\Intel64_win\libifcoremdd.lib size=116 vsize=116
+LIB C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib size=17468 vsize=19010
+LIB C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\vcruntimed.lib size=448 vsize=448
+LIB C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\ucrt\x64\ucrtd.lib size=784 vsize=784
+LIB C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\um\x64\kernel32.lib size=1208 vsize=1208
+LIB C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj size=884 vsize=884
+LIB C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.exp size=121 vsize=121
+LIB C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj size=648 vsize=648
+LIBCOFFGROUP ...no name found... | .bss size=0 vsize=8
+LIBCOFFGROUP ...no name found... | .rdata size=84 vsize=84
+LIBCOFFGROUP ...no name found... | .rdata$voltmd size=144 vsize=144
+LIBCOFFGROUP ...no name found... | .rdata$zzzdbg size=805 vsize=805
+LIBCOFFGROUP C:\Program Files (x86)\Intel\oneAPI\compiler\2021.4.0\windows\compiler\lib\Intel64_win\libifcoremdd.lib | .idata$2 size=20 vsize=20
+LIBCOFFGROUP C:\Program Files (x86)\Intel\oneAPI\compiler\2021.4.0\windows\compiler\lib\Intel64_win\libifcoremdd.lib | .idata$3 size=20 vsize=20
+LIBCOFFGROUP C:\Program Files (x86)\Intel\oneAPI\compiler\2021.4.0\windows\compiler\lib\Intel64_win\libifcoremdd.lib | .idata$4 size=16 vsize=16
+LIBCOFFGROUP C:\Program Files (x86)\Intel\oneAPI\compiler\2021.4.0\windows\compiler\lib\Intel64_win\libifcoremdd.lib | .idata$5 size=16 vsize=16
+LIBCOFFGROUP C:\Program Files (x86)\Intel\oneAPI\compiler\2021.4.0\windows\compiler\lib\Intel64_win\libifcoremdd.lib | .idata$6 size=38 vsize=38
+LIBCOFFGROUP C:\Program Files (x86)\Intel\oneAPI\compiler\2021.4.0\windows\compiler\lib\Intel64_win\libifcoremdd.lib | .text$mn size=6 vsize=6
+LIBCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | .00cfg size=40 vsize=40
+LIBCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | .CRT$XCA size=8 vsize=8
+LIBCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | .CRT$XCZ size=8 vsize=8
+LIBCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | .CRT$XIA size=8 vsize=8
+LIBCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | .CRT$XIZ size=8 vsize=8
+LIBCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | .CRT$XPA size=8 vsize=8
+LIBCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | .CRT$XPZ size=8 vsize=8
+LIBCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | .CRT$XTA size=8 vsize=8
+LIBCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | .CRT$XTZ size=8 vsize=8
+LIBCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | .bss size=0 vsize=1542
+LIBCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | .data size=68 vsize=68
+LIBCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | .pdata size=1236 vsize=1236
+LIBCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | .rdata size=2401 vsize=2401
+LIBCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | .rdata$CastGuardVftablesA size=8 vsize=8
+LIBCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | .rdata$CastGuardVftablesC size=8 vsize=8
+LIBCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | .rtc$IAA size=8 vsize=8
+LIBCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | .rtc$IZZ size=8 vsize=8
+LIBCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | .rtc$TAA size=8 vsize=8
+LIBCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | .rtc$TZZ size=8 vsize=8
+LIBCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | .text$mn size=12020 vsize=12020
+LIBCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | .text$mn$00 size=40 vsize=40
+LIBCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | .text$x size=239 vsize=239
+LIBCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | .xdata size=1312 vsize=1312
+LIBCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\vcruntimed.lib | .idata$2 size=20 vsize=20
+LIBCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\vcruntimed.lib | .idata$4 size=72 vsize=72
+LIBCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\vcruntimed.lib | .idata$5 size=72 vsize=72
+LIBCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\vcruntimed.lib | .idata$6 size=236 vsize=236
+LIBCOFFGROUP C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\vcruntimed.lib | .text$mn size=48 vsize=48
+LIBCOFFGROUP C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\ucrt\x64\ucrtd.lib | .idata$2 size=20 vsize=20
+LIBCOFFGROUP C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\ucrt\x64\ucrtd.lib | .idata$4 size=152 vsize=152
+LIBCOFFGROUP C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\ucrt\x64\ucrtd.lib | .idata$5 size=152 vsize=152
+LIBCOFFGROUP C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\ucrt\x64\ucrtd.lib | .idata$6 size=352 vsize=352
+LIBCOFFGROUP C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\ucrt\x64\ucrtd.lib | .text$mn size=108 vsize=108
+LIBCOFFGROUP C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\um\x64\kernel32.lib | .idata$2 size=20 vsize=20
+LIBCOFFGROUP C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\um\x64\kernel32.lib | .idata$4 size=224 vsize=224
+LIBCOFFGROUP C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\um\x64\kernel32.lib | .idata$5 size=224 vsize=224
+LIBCOFFGROUP C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\um\x64\kernel32.lib | .idata$6 size=578 vsize=578
+LIBCOFFGROUP C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\um\x64\kernel32.lib | .text$mn size=162 vsize=162
+LIBCOFFGROUP C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj | .pdata size=24 vsize=24
+LIBCOFFGROUP C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj | .rdata size=208 vsize=208
+LIBCOFFGROUP C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj | .text size=420 vsize=420
+LIBCOFFGROUP C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj | .trace size=192 vsize=192
+LIBCOFFGROUP C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj | .xdata size=40 vsize=40
+LIBCOFFGROUP C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.exp | .edata size=121 vsize=121
+LIBCOFFGROUP C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj | .pdata size=12 vsize=12
+LIBCOFFGROUP C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj | .rdata size=104 vsize=104
+LIBCOFFGROUP C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj | .text size=352 vsize=352
+LIBCOFFGROUP C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj | .trace size=160 vsize=160
+LIBCOFFGROUP C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj | .xdata size=20 vsize=20
+LIBSECTION ...no name found... | .data size=0 vsize=8
+LIBSECTION ...no name found... | .rdata size=1033 vsize=1033
+LIBSECTION C:\Program Files (x86)\Intel\oneAPI\compiler\2021.4.0\windows\compiler\lib\Intel64_win\libifcoremdd.lib | .rdata size=110 vsize=110
+LIBSECTION C:\Program Files (x86)\Intel\oneAPI\compiler\2021.4.0\windows\compiler\lib\Intel64_win\libifcoremdd.lib | .text size=6 vsize=6
+LIBSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | .data size=68 vsize=1610
+LIBSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | .pdata size=1236 vsize=1236
+LIBSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | .rdata size=3865 vsize=3865
+LIBSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | .text size=12299 vsize=12299
+LIBSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\vcruntimed.lib | .rdata size=400 vsize=400
+LIBSECTION C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\vcruntimed.lib | .text size=48 vsize=48
+LIBSECTION C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\ucrt\x64\ucrtd.lib | .rdata size=676 vsize=676
+LIBSECTION C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\ucrt\x64\ucrtd.lib | .text size=108 vsize=108
+LIBSECTION C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\um\x64\kernel32.lib | .rdata size=1046 vsize=1046
+LIBSECTION C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\um\x64\kernel32.lib | .text size=162 vsize=162
+LIBSECTION C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj | .pdata size=24 vsize=24
+LIBSECTION C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj | .rdata size=248 vsize=248
+LIBSECTION C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj | .text size=420 vsize=420
+LIBSECTION C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj | .trace size=192 vsize=192
+LIBSECTION C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.exp | .rdata size=121 vsize=121
+LIBSECTION C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj | .pdata size=12 vsize=12
+LIBSECTION C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj | .rdata size=124 vsize=124
+LIBSECTION C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj | .text size=352 vsize=352
+LIBSECTION C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj | .trace size=160 vsize=160
+RANGE ...no name found... | * Linker * 00005c40 84 0
+RANGE ...no name found... | * Linker * 00005e10 265 0
+RANGE ...no name found... | * Linker * 00005f1c 684 0
+RANGE ...no name found... | * Linker * 00007670 8 1
+RANGE C:\Program Files (x86)\Intel\oneAPI\compiler\2021.4.0\windows\compiler\lib\Intel64_win\libifcoremdd.lib | Import:libifcoremdd.dll 00001310 6 0
+RANGE C:\Program Files (x86)\Intel\oneAPI\compiler\2021.4.0\windows\compiler\lib\Intel64_win\libifcoremdd.lib | Import:libifcoremdd.dll 00005128 8 0
+RANGE C:\Program Files (x86)\Intel\oneAPI\compiler\2021.4.0\windows\compiler\lib\Intel64_win\libifcoremdd.lib | Import:libifcoremdd.dll 00006958 8 0
+RANGE C:\Program Files (x86)\Intel\oneAPI\compiler\2021.4.0\windows\compiler\lib\Intel64_win\libifcoremdd.lib | Import:libifcoremdd.dll 00006a00 20 0
+RANGE C:\Program Files (x86)\Intel\oneAPI\compiler\2021.4.0\windows\compiler\lib\Intel64_win\libifcoremdd.lib | libifcoremdd.dll 00005130 8 0
+RANGE C:\Program Files (x86)\Intel\oneAPI\compiler\2021.4.0\windows\compiler\lib\Intel64_win\libifcoremdd.lib | libifcoremdd.dll 000067cc 20 0
+RANGE C:\Program Files (x86)\Intel\oneAPI\compiler\2021.4.0\windows\compiler\lib\Intel64_win\libifcoremdd.lib | libifcoremdd.dll 0000681c 20 0
+RANGE C:\Program Files (x86)\Intel\oneAPI\compiler\2021.4.0\windows\compiler\lib\Intel64_win\libifcoremdd.lib | libifcoremdd.dll 00006960 8 0
+RANGE C:\Program Files (x86)\Intel\oneAPI\compiler\2021.4.0\windows\compiler\lib\Intel64_win\libifcoremdd.lib | libifcoremdd.dll 00006a14 18 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\amdsecgs.obj 00003ce0 46 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\amdsecgs.obj 000066e8 4 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\amdsecgs.obj 00008420 12 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\argv_mode.obj 000040b0 6 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\cpu_disp.obj 00003d10 918 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\cpu_disp.obj 000066ec 16 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\cpu_disp.obj 00007030 24 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\cpu_disp.obj 000070fc 4 1
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\cpu_disp.obj 0000842c 12 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\default_local_stdio_options.obj 00002330 8 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\default_local_stdio_options.obj 00002340 69 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\default_local_stdio_options.obj 00006500 8 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\default_local_stdio_options.obj 00007080 8 1
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\default_local_stdio_options.obj 000081f8 12 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\dll_dllmain.obj 00001500 135 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\dll_dllmain.obj 00001590 314 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\dll_dllmain.obj 000016d0 147 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\dll_dllmain.obj 00001770 309 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\dll_dllmain.obj 000018b0 87 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\dll_dllmain.obj 00001910 42 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\dll_dllmain.obj 00001940 54 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\dll_dllmain.obj 00004710 26 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\dll_dllmain.obj 00004730 120 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\dll_dllmain.obj 00005378 8 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\dll_dllmain.obj 00006300 176 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\dll_dllmain.obj 00007060 4 1
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\dll_dllmain.obj 000080c0 84 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\dll_dllmain.obj 000084b0 48 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\dll_dllmain_stub.obj 000022b0 56 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\dll_dllmain_stub.obj 000064e8 8 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\dll_dllmain_stub.obj 000081d4 12 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\dyn_tls_init.obj 00002a70 8 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj 00001980 54 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj 000019c0 68 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj 00001a10 341 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj 00001b70 78 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj 00001bc0 207 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj 00001c90 178 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj 00001d50 20 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj 00001d70 639 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj 00001ff0 197 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj 000020c0 8 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj 000020d0 100 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj 00002140 37 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj 000047b0 32 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj 00005380 187 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj 00005440 221 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj 00005520 285 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj 00005640 29 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj 00005660 54 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj 00005698 44 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj 000056c8 30 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj 000056f0 108 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj 00005760 81 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj 000057b8 20 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj 000057d0 70 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj 00005818 6 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj 00005820 73 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj 0000586c 2 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj 00005870 3 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj 00005878 9 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj 00005888 42 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj 000058b8 21 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj 000058d0 98 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj 00005938 52 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj 000063b0 296 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj 00007000 20 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj 00007068 8 1
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj 00008114 168 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\error.obj 000084e0 12 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gs_cookie.obj 00007020 16 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gs_report.obj 000040f0 53 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gs_report.obj 00004130 210 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gs_report.obj 00004210 19 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gs_report.obj 00004230 156 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gs_report.obj 000042d0 271 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gs_report.obj 000043e0 145 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gs_report.obj 00004480 178 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gs_report.obj 00005c30 16 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gs_report.obj 00006714 56 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gs_report.obj 00007100 1392 1
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gs_report.obj 00008444 84 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gs_support.obj 00002170 190 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gs_support.obj 00002230 116 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gs_support.obj 000064d8 16 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gs_support.obj 000081bc 24 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gshandler.obj 00003ba0 58 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gshandler.obj 00003be0 248 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gshandler.obj 000066d8 16 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\gshandler.obj 00008408 24 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_dispatch.obj 000046d0 18 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_dispatch.obj 00006708 4 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_dispatch.obj 00008498 12 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_support.obj 00002ed0 6 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_support.obj 00002ee0 30 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_support.obj 00002f00 24 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_support.obj 00002f20 29 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_support.obj 00002f40 35 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_support.obj 00002f70 6 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_support.obj 00002f80 68 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_support.obj 00002fd0 107 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_support.obj 00003040 63 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_support.obj 00003080 69 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_support.obj 000030d0 118 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_support.obj 00003150 105 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_support.obj 000031c0 55 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_support.obj 00003200 3 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_support.obj 000051d0 40 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_support.obj 00005e00 16 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_support.obj 0000661c 88 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_support.obj 000070d8 8 1
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_support.obj 00008354 132 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_xfg_dispatch.obj 000046f0 22 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_xfg_dispatch.obj 00006710 4 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\guard_xfg_dispatch.obj 000084a4 12 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\initializers.obj 000051f8 64 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\initsect.obj 00002e30 66 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\initsect.obj 00002e80 66 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\initsect.obj 000061c8 32 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\initsect.obj 00006604 24 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\initsect.obj 0000833c 24 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\loadcfg.obj 00005ca0 312 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\pdblkup.obj 000032c0 325 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\pdblkup.obj 00003410 686 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\pdblkup.obj 000036c0 259 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\pdblkup.obj 000037d0 965 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\pdblkup.obj 00005a50 84 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\pdblkup.obj 00005ab0 98 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\pdblkup.obj 00005b18 14 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\pdblkup.obj 00005b28 17 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\pdblkup.obj 00005b40 12 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\pdblkup.obj 00005b50 116 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\pdblkup.obj 00005bc8 22 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\pdblkup.obj 00005be0 26 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\pdblkup.obj 00005c00 18 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\pdblkup.obj 00005c18 17 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\pdblkup.obj 00005c2c 2 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\pdblkup.obj 00006674 100 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\pdblkup.obj 000070f0 10 1
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\pdblkup.obj 000083d8 48 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\stack.obj 00001320 59 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\stack.obj 00001360 129 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\stack.obj 000013f0 259 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\stack.obj 00006224 220 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\stack.obj 00008024 156 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\tncleanup.obj 000022f0 22 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\tncleanup.obj 00002310 21 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\tncleanup.obj 000064f0 16 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\tncleanup.obj 00007070 16 1
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\tncleanup.obj 000081e0 24 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\ucrt_detection.obj 000040c0 37 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\ucrt_detection.obj 000066fc 8 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\ucrt_detection.obj 00008438 12 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\ucrt_stubs.obj 00004670 3 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\ucrt_stubs.obj 00004680 3 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\ucrt_stubs.obj 00004690 3 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\ucrt_stubs.obj 000046a0 7 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\ucrt_stubs.obj 000046b0 7 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\ucrt_stubs.obj 000046c0 3 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\ucrt_stubs.obj 00007050 4 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\userapi.obj 00003210 8 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\userapi.obj 00003220 8 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\userapi.obj 00003230 23 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\userapi.obj 00003250 6 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\userapi.obj 00003260 26 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\userapi.obj 00003280 26 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\userapi.obj 000032a0 32 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\userapi.obj 00005970 65 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\userapi.obj 000059b8 42 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\userapi.obj 000059e8 66 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\userapi.obj 00005a30 31 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\userapi.obj 000070e0 16 1
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility.obj 00002390 21 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility.obj 000023b0 198 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility.obj 00002480 14 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility.obj 00002490 138 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility.obj 00002520 10 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility.obj 00002530 98 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility.obj 000025a0 45 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility.obj 000025d0 29 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility.obj 000025f0 69 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility.obj 00002640 101 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility.obj 000026b0 46 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility.obj 000026e0 21 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility.obj 00002700 73 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility.obj 00002750 260 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility.obj 00002860 139 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility.obj 000028f0 47 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility.obj 00002920 63 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility.obj 00002960 125 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility.obj 000029e0 75 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility.obj 00002a30 51 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility.obj 000047d0 61 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility.obj 00006508 196 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility.obj 00007014 4 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility.obj 00007088 72 1
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility.obj 00008204 240 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility.obj 000084ec 12 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility_desktop.obj 00002a80 15 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility_desktop.obj 00002a90 402 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility_desktop.obj 00002c30 81 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility_desktop.obj 00002c90 14 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility_desktop.obj 00002ca0 3 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility_desktop.obj 00002cb0 166 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility_desktop.obj 00002d60 22 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility_desktop.obj 00002d80 3 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility_desktop.obj 00002d90 154 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility_desktop.obj 000065cc 56 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility_desktop.obj 000070d0 4 1
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\MSVCRTD.lib | d:\a01\_work\2\s\Intermediate\vctools\msvcrt.nativeproj_607447030\objd\amd64\utility_desktop.obj 000082f4 72 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\vcruntimed.lib | Import:VCRUNTIME140D.dll 000045d4 48 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\vcruntimed.lib | Import:VCRUNTIME140D.dll 000050e0 64 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\vcruntimed.lib | Import:VCRUNTIME140D.dll 00006910 64 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\vcruntimed.lib | Import:VCRUNTIME140D.dll 00006c68 218 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\vcruntimed.lib | VCRUNTIME140D.dll 00005120 8 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\vcruntimed.lib | VCRUNTIME140D.dll 000067f4 20 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\vcruntimed.lib | VCRUNTIME140D.dll 00006950 8 0
+RANGE C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64\vcruntimed.lib | VCRUNTIME140D.dll 00006d42 18 0
+RANGE C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\ucrt\x64\ucrtd.lib | Import:ucrtbased.dll 00004604 108 0
+RANGE C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\ucrt\x64\ucrtd.lib | Import:ucrtbased.dll 00005138 144 0
+RANGE C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\ucrt\x64\ucrtd.lib | Import:ucrtbased.dll 00006968 144 0
+RANGE C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\ucrt\x64\ucrtd.lib | Import:ucrtbased.dll 00006d54 338 0
+RANGE C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\ucrt\x64\ucrtd.lib | ucrtbased.dll 000051c8 8 0
+RANGE C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\ucrt\x64\ucrtd.lib | ucrtbased.dll 00006808 20 0
+RANGE C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\ucrt\x64\ucrtd.lib | ucrtbased.dll 000069f8 8 0
+RANGE C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\ucrt\x64\ucrtd.lib | ucrtbased.dll 00006ea6 14 0
+RANGE C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\um\x64\kernel32.lib | Import:KERNEL32.dll 00004532 162 0
+RANGE C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\um\x64\kernel32.lib | Import:KERNEL32.dll 00005000 216 0
+RANGE C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\um\x64\kernel32.lib | Import:KERNEL32.dll 00006830 216 0
+RANGE C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\um\x64\kernel32.lib | Import:KERNEL32.dll 00006a26 564 0
+RANGE C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\um\x64\kernel32.lib | KERNEL32.dll 000050d8 8 0
+RANGE C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\um\x64\kernel32.lib | KERNEL32.dll 000067e0 20 0
+RANGE C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\um\x64\kernel32.lib | KERNEL32.dll 00006908 8 0
+RANGE C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\um\x64\kernel32.lib | KERNEL32.dll 00006c5a 14 0
+RANGE C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj | C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj 00001000 420 0
+RANGE C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj | C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj 00005240 208 0
+RANGE C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj | C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj 000061e8 40 0
+RANGE C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj | C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj 00008000 24 0
+RANGE C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj | C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\File2.obj 00009000 192 0
+RANGE C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.exp | C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.exp 00006750 121 0
+RANGE C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj | C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj 000011a4 352 0
+RANGE C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj | C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj 00005310 104 0
+RANGE C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj | C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj 00006210 20 0
+RANGE C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj | C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj 00008018 12 0
+RANGE C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj | C:\Users\austi\source\repos\SizeBench-NetCore\TestPEProjects\FortranDll\x64\Debug\FortranDll.obj 000090c0 160 0
+SECTION .data rva=7000 size=512 vsize=1656 vsizepad=4096 chars=c0000040
+SECTION .pdata rva=8000 size=1536 vsize=1272 vsizepad=4096 chars=40000040
+SECTION .rdata rva=5000 size=8192 vsize=7860 vsizepad=8192 chars=40000040
+SECTION .reloc rva=b000 size=512 vsize=104 vsizepad=4096 chars=42000040
+SECTION .rsrc rva=a000 size=512 vsize=436 vsizepad=4096 chars=40000040
+SECTION .text rva=1000 size=14848 vsize=14349 vsizepad=16384 chars=60000020
+SECTION .trace rva=9000 size=512 vsize=352 vsizepad=4096 chars=40000040
+SYMBOL 00001000 size=212 vsize=212 SimpleFunctionCodeSymbol 0 SUBROUTINE2(double*, complex*, complex*, bool*, bool*)
+SYMBOL 000010d4 size=205 vsize=205 SimpleFunctionCodeSymbol 0 SUBROUTINE3(char[10]*, [OEM_MS_FORTRAN90 defined type 0x5]*, int64)
+SYMBOL 000011a4 size=350 vsize=350 SimpleFunctionCodeSymbol 0 SUBROUTINE1(short*, long*, int64[6]*, float[4][4]*, long[-3 .. 2][0 .. 4]*, float[.tmp.0.MATRIX_WITH_PARAM_BOUNDS][.tmp.1.MATRIX_WITH_PARAM_BOUNDS]*)
+SYMBOL 00001310 size=6 vsize=6 ThunkSymbol 0 for_write_seq_lis
+SYMBOL 00001320 size=59 vsize=59 SimpleFunctionCodeSymbol 0 _RTC_AllocaHelper(_RTC_ALLOCA_NODE*, unsigned int64, _RTC_ALLOCA_NODE**)
+SYMBOL 00001360 size=129 vsize=129 SimpleFunctionCodeSymbol 0 _RTC_CheckStackVars(void*, _RTC_framedesc*)
+SYMBOL 000013f0 size=259 vsize=259 SimpleFunctionCodeSymbol 0 _RTC_CheckStackVars2(void*, _RTC_framedesc*, _RTC_ALLOCA_NODE*)
+SYMBOL 00001500 size=135 vsize=135 SimpleFunctionCodeSymbol 0 dllmain_crt_dispatch(HINSTANCE__* const, const unsigned long, void* const)
+SYMBOL 00001590 size=314 vsize=314 SimpleFunctionCodeSymbol 0 dllmain_crt_process_attach(HINSTANCE__* const, void* const)
+SYMBOL 000016d0 size=147 vsize=147 SimpleFunctionCodeSymbol 0 dllmain_crt_process_detach(const bool)
+SYMBOL 00001770 size=309 vsize=309 SimpleFunctionCodeSymbol 0 dllmain_dispatch(HINSTANCE__* const, const unsigned long, void* const)
+SYMBOL 000018b0 size=87 vsize=87 SimpleFunctionCodeSymbol 0 dllmain_raw(HINSTANCE__* const, const unsigned long, void* const)
+SYMBOL 00001910 size=42 vsize=42 SimpleFunctionCodeSymbol 0 _CRT_INIT(HINSTANCE__* const, const unsigned long, void* const)
+SYMBOL 00001940 size=54 vsize=54 SimpleFunctionCodeSymbol 0 _DllMainCRTStartup(HINSTANCE__* const, const unsigned long, void* const)
+SYMBOL 00001980 size=54 vsize=54 SimpleFunctionCodeSymbol 0 DebuggerProbe(unsigned long)
+SYMBOL 000019c0 size=68 vsize=68 SimpleFunctionCodeSymbol 0 DebuggerRuntime(unsigned long, int, void*, const WCHAR*)
+SYMBOL 00001a10 size=341 vsize=341 SimpleFunctionCodeSymbol 0 _RTC_AllocaFailure(void*, _RTC_ALLOCA_NODE*, int)
+SYMBOL 00001b70 size=78 vsize=78 SimpleFunctionCodeSymbol 0 _RTC_Failure(void*, int)
+SYMBOL 00001bc0 size=207 vsize=207 SimpleFunctionCodeSymbol 0 _RTC_StackFailure(void*, const char*)
+SYMBOL 00001c90 size=178 vsize=178 SimpleFunctionCodeSymbol 0 _getMemBlockDataString(char*, char*, const char*, unsigned int64)
+SYMBOL 00001d50 size=20 vsize=20 SimpleFunctionCodeSymbol 0 _strlen_priv(const char*)
+SYMBOL 00001d70 size=608 vsize=608 SimpleFunctionCodeSymbol 0 failwithmessage(void*, int, int, const char*)
+SYMBOL 00001fd0 size=31 vsize=31 SimpleFunctionCodeSymbol 0 notify_debugger(const tagEXCEPTION_VISUALCPP_DEBUG_INFO&)
+SYMBOL 00001ff0 size=197 vsize=197 SimpleFunctionCodeSymbol 0 _RTC_UninitUse(const char*)
+SYMBOL 000020c0 size=8 vsize=8 SimpleFunctionCodeSymbol 0 __local_stdio_printf_options()
+SYMBOL 000020d0 size=100 vsize=100 SimpleFunctionCodeSymbol 0 _vsprintf_s_l(char* const, const unsigned int64, const char* const, __crt_locale_pointers* const, char*)
+SYMBOL 00002140 size=37 vsize=37 SimpleFunctionCodeSymbol 0 sprintf_s(char* const, const unsigned int64, const char* const, NoType)
+SYMBOL 00002170 size=190 vsize=190 SimpleFunctionCodeSymbol 0 __get_entropy()
+SYMBOL 00002230 size=116 vsize=116 SimpleFunctionCodeSymbol 0 __security_init_cookie()
+SYMBOL 000022b0 size=56 vsize=56 SimpleFunctionCodeSymbol 0 DllMain(HINSTANCE__*, unsigned long, void*)
+SYMBOL 000022f0 size=22 vsize=22 SimpleFunctionCodeSymbol 0 __scrt_initialize_type_info()
+SYMBOL 00002310 size=21 vsize=21 SimpleFunctionCodeSymbol 0 __scrt_uninitialize_type_info()
+SYMBOL 00002330 size=8 vsize=8 SimpleFunctionCodeSymbol 0 __local_stdio_scanf_options()
+SYMBOL 00002340 size=69 vsize=69 SimpleFunctionCodeSymbol 0 __scrt_initialize_default_local_stdio_options()
+SYMBOL 00002390 size=21 vsize=21 SimpleFunctionCodeSymbol 0 __scrt_narrow_argv_policy::configure_argv()
+SYMBOL 000023b0 size=198 vsize=198 SimpleFunctionCodeSymbol 0 find_pe_section(unsigned char* const, const unsigned int64)
+SYMBOL 00002480 size=14 vsize=14 SimpleFunctionCodeSymbol 0 __scrt_narrow_environment_policy::initialize_environment()
+SYMBOL 00002490 size=138 vsize=138 SimpleFunctionCodeSymbol 0 is_potentially_valid_image_base(void* const)
+SYMBOL 00002520 size=10 vsize=10 SimpleFunctionCodeSymbol 0 NtCurrentTeb()
+SYMBOL 00002530 size=98 vsize=98 SimpleFunctionCodeSymbol 0 __scrt_acquire_startup_lock()
+SYMBOL 000025a0 size=45 vsize=45 SimpleFunctionCodeSymbol 0 __scrt_dllmain_after_initialize_c()
+SYMBOL 000025d0 size=29 vsize=29 SimpleFunctionCodeSymbol 0 __scrt_dllmain_before_initialize_c()
+SYMBOL 000025f0 size=48 vsize=48 SimpleFunctionCodeSymbol 0 __scrt_dllmain_crt_thread_attach()
+SYMBOL 00002620 size=21 vsize=21 SimpleFunctionCodeSymbol 0 __scrt_dllmain_crt_thread_detach()
+SYMBOL 00002640 size=101 vsize=101 SimpleFunctionCodeSymbol 0 __scrt_dllmain_exception_filter(HINSTANCE__*, unsigned long, void*, int (*function)(HINSTANCE__*, unsigned long, void*)*, unsigned long, _EXCEPTION_POINTERS*)
+SYMBOL 000026b0 size=46 vsize=46 SimpleFunctionCodeSymbol 0 __scrt_dllmain_uninitialize_c()
+SYMBOL 000026e0 size=21 vsize=21 SimpleFunctionCodeSymbol 0 __scrt_dllmain_uninitialize_critical()
+SYMBOL 00002700 size=73 vsize=73 SimpleFunctionCodeSymbol 0 __scrt_initialize_crt(enum __scrt_module_type)
+SYMBOL 00002750 size=260 vsize=260 SimpleFunctionCodeSymbol 0 __scrt_initialize_onexit_tables(enum __scrt_module_type)
+SYMBOL 00002860 size=139 vsize=139 SimpleFunctionCodeSymbol 0 __scrt_is_nonwritable_in_current_image(const void*)
+SYMBOL 000028f0 size=47 vsize=47 SimpleFunctionCodeSymbol 0 __scrt_release_startup_lock(bool)
+SYMBOL 00002920 size=63 vsize=63 SimpleFunctionCodeSymbol 0 __scrt_uninitialize_crt(bool, bool)
+SYMBOL 00002960 size=125 vsize=125 SimpleFunctionCodeSymbol 0 _onexit(int (*function)()*)
+SYMBOL 000029e0 size=75 vsize=75 SimpleFunctionCodeSymbol 0 at_quick_exit(void (*function)()*)
+SYMBOL 00002a30 size=51 vsize=51 SimpleFunctionCodeSymbol 0 atexit(void (*function)()*)
+SYMBOL 00002a70 size=8 vsize=8 SimpleFunctionCodeSymbol 0 __scrt_get_dyn_tls_init_callback(NoType)
+SYMBOL 00002a80 size=15 vsize=15 SimpleFunctionCodeSymbol 0 __crt_debugger_hook(int)
+SYMBOL 00002a90 size=402 vsize=402 SimpleFunctionCodeSymbol 0 __scrt_fastfail(unsigned int)
+SYMBOL 00002c30 size=81 vsize=81 SimpleFunctionCodeSymbol 0 __scrt_get_show_window_mode()
+SYMBOL 00002c90 size=14 vsize=14 SimpleFunctionCodeSymbol 0 __scrt_initialize_mta()
+SYMBOL 00002ca0 size=3 vsize=3 SimpleFunctionCodeSymbol 0 __scrt_initialize_winrt()
+SYMBOL 00002cb0 size=166 vsize=166 SimpleFunctionCodeSymbol 0 __scrt_is_managed_app()
+SYMBOL 00002d60 size=22 vsize=22 SimpleFunctionCodeSymbol 0 __scrt_set_unhandled_exception_filter()
+SYMBOL 00002d80 size=3 vsize=3 SimpleFunctionCodeSymbol 0 __scrt_stub_for_initialize_mta()
+SYMBOL 00002d90 size=154 vsize=154 SimpleFunctionCodeSymbol 0 __scrt_unhandled_exception_filter(_EXCEPTION_POINTERS* const)
+SYMBOL 00002e30 size=66 vsize=66 SimpleFunctionCodeSymbol 0 _RTC_Initialize()
+SYMBOL 00002e80 size=66 vsize=66 SimpleFunctionCodeSymbol 0 _RTC_Terminate()
+SYMBOL 00002ed0 size=6 vsize=6 SimpleFunctionCodeSymbol 0 _guard_check_icall_nop(unsigned int64)
+SYMBOL 00002ee0 size=30 vsize=30 SimpleFunctionCodeSymbol 0 ReadNoFence64(const volatile int64*)
+SYMBOL 00002f00 size=24 vsize=24 SimpleFunctionCodeSymbol 0 ReadPointerNoFence(void* const volatile*)
+SYMBOL 00002f20 size=29 vsize=29 SimpleFunctionCodeSymbol 0 __castguard_check_failure_debugbreak(void*)
+SYMBOL 00002f40 size=35 vsize=35 SimpleFunctionCodeSymbol 0 __castguard_check_failure_fastfail(void*)
+SYMBOL 00002f70 size=6 vsize=6 SimpleFunctionCodeSymbol 0 __castguard_check_failure_nop(void*)
+SYMBOL 00002f80 size=68 vsize=68 SimpleFunctionCodeSymbol 0 __castguard_check_failure_os_handled(void*)
+SYMBOL 00002fd0 size=107 vsize=107 SimpleFunctionCodeSymbol 0 __castguard_compat_check(void*)
+SYMBOL 00003040 size=63 vsize=63 SimpleFunctionCodeSymbol 0 __castguard_slow_path_check_debugbreak(void*, unsigned int64, unsigned int64)
+SYMBOL 00003080 size=69 vsize=69 SimpleFunctionCodeSymbol 0 __castguard_slow_path_check_fastfail(void*, unsigned int64, unsigned int64)
+SYMBOL 000030d0 size=16 vsize=16 SimpleFunctionCodeSymbol 0 __castguard_slow_path_check_nop(void*, unsigned int64, unsigned int64)
+SYMBOL 000030e0 size=102 vsize=102 SimpleFunctionCodeSymbol 0 __castguard_slow_path_check_os_handled(void*, unsigned int64, unsigned int64)
+SYMBOL 00003150 size=105 vsize=105 SimpleFunctionCodeSymbol 0 __castguard_slow_path_compat_check(void*, unsigned int64, unsigned int64)
+SYMBOL 000031c0 size=55 vsize=55 SimpleFunctionCodeSymbol 0 _guard_icall_checks_enforced()
+SYMBOL 00003200 size=3 vsize=3 SimpleFunctionCodeSymbol 0 _guard_rf_checks_enforced()
+SYMBOL 00003210 size=8 vsize=8 SimpleFunctionCodeSymbol 0 _RTC_GetErrorFunc(const void*)
+SYMBOL 00003220 size=8 vsize=8 SimpleFunctionCodeSymbol 0 _RTC_GetErrorFuncW(const void*)
+SYMBOL 00003230 size=23 vsize=23 SimpleFunctionCodeSymbol 0 _RTC_GetErrDesc(enum _RTC_ErrorNumber)
+SYMBOL 00003250 size=6 vsize=6 SimpleFunctionCodeSymbol 0 _RTC_NumErrors()
+SYMBOL 00003260 size=26 vsize=26 SimpleFunctionCodeSymbol 0 _RTC_SetErrorFunc(int (*function)(int, const char*, int, const char*, const char*, NoType)*)
+SYMBOL 00003280 size=26 vsize=26 SimpleFunctionCodeSymbol 0 _RTC_SetErrorFuncW(int (*function)(int, const WCHAR*, int, const WCHAR*, const WCHAR*, NoType)*)
+SYMBOL 000032a0 size=32 vsize=32 SimpleFunctionCodeSymbol 0 _RTC_SetErrorType(enum _RTC_ErrorNumber, int)
+SYMBOL 000032c0 size=325 vsize=325 SimpleFunctionCodeSymbol 0 GetPdbDll()
+SYMBOL 00003410 size=686 vsize=686 SimpleFunctionCodeSymbol 0 GetPdbDllFromInstallPath()
+SYMBOL 000036c0 size=259 vsize=259 SimpleFunctionCodeSymbol 0 GetPdbDllPathFromFilePath(const WCHAR*, WCHAR*, unsigned int64)
+SYMBOL 000037d0 size=965 vsize=965 SimpleFunctionCodeSymbol 0 _RTC_GetSrcLine(unsigned char*, WCHAR*, unsigned long, int*, WCHAR*, unsigned long)
+SYMBOL 00003ba0 size=58 vsize=58 SimpleFunctionCodeSymbol 0 __GSHandlerCheck(_EXCEPTION_RECORD*, void*, _CONTEXT*, _DISPATCHER_CONTEXT*)
+SYMBOL 00003be0 size=248 vsize=248 SimpleFunctionCodeSymbol 0 __GSHandlerCheckCommon(void*, _DISPATCHER_CONTEXT*, _GS_HANDLER_DATA*)
+SYMBOL 00003cf0 size=30 vsize=30 SimpleFunctionCodeSymbol 0 __security_check_cookie()
+SYMBOL 00003d10 size=918 vsize=918 SimpleFunctionCodeSymbol 0 __isa_available_init(NoType)
+SYMBOL 000040b0 size=6 vsize=6 SimpleFunctionCodeSymbol 0 _get_startup_argv_mode()
+SYMBOL 000040c0 size=37 vsize=37 SimpleFunctionCodeSymbol 0 __scrt_is_ucrt_dll_in_use(NoType)
+SYMBOL 000040f0 size=53 vsize=53 SimpleFunctionCodeSymbol 0 __raise_securityfailure(_EXCEPTION_POINTERS* const)
+SYMBOL 00004130 size=210 vsize=210 SimpleFunctionCodeSymbol 0 __report_gsfailure(unsigned int64)
+SYMBOL 00004210 size=19 vsize=19 SimpleFunctionCodeSymbol 0 __report_rangecheckfailure(NoType)
+SYMBOL 00004230 size=156 vsize=156 SimpleFunctionCodeSymbol 0 __report_securityfailure(unsigned long)
+SYMBOL 000042d0 size=271 vsize=271 SimpleFunctionCodeSymbol 0 __report_securityfailureEx(unsigned long, unsigned long, void**)
+SYMBOL 000043e0 size=145 vsize=145 SimpleFunctionCodeSymbol 0 capture_current_context(_CONTEXT*)
+SYMBOL 00004480 size=178 vsize=178 SimpleFunctionCodeSymbol 0 capture_previous_context(_CONTEXT*)
+SYMBOL 00004532 size=6 vsize=6 ThunkSymbol 0 IsDebuggerPresent
+SYMBOL 00004538 size=6 vsize=6 ThunkSymbol 0 RaiseException
+SYMBOL 0000453e size=6 vsize=6 ThunkSymbol 0 MultiByteToWideChar
+SYMBOL 00004544 size=6 vsize=6 ThunkSymbol 0 WideCharToMultiByte
+SYMBOL 0000454a size=6 vsize=6 ThunkSymbol 0 QueryPerformanceCounter
+SYMBOL 00004550 size=6 vsize=6 ThunkSymbol 0 GetCurrentProcessId
+SYMBOL 00004556 size=6 vsize=6 ThunkSymbol 0 GetCurrentThreadId
+SYMBOL 0000455c size=6 vsize=6 ThunkSymbol 0 GetSystemTimeAsFileTime
+SYMBOL 00004562 size=6 vsize=6 ThunkSymbol 0 DisableThreadLibraryCalls
+SYMBOL 00004568 size=6 vsize=6 ThunkSymbol 0 InitializeSListHead
+SYMBOL 0000456e size=6 vsize=6 ThunkSymbol 0 RtlCaptureContext
+SYMBOL 00004574 size=6 vsize=6 ThunkSymbol 0 RtlLookupFunctionEntry
+SYMBOL 0000457a size=6 vsize=6 ThunkSymbol 0 RtlVirtualUnwind
+SYMBOL 00004580 size=6 vsize=6 ThunkSymbol 0 UnhandledExceptionFilter
+SYMBOL 00004586 size=6 vsize=6 ThunkSymbol 0 SetUnhandledExceptionFilter
+SYMBOL 0000458c size=6 vsize=6 ThunkSymbol 0 GetStartupInfoW
+SYMBOL 00004592 size=6 vsize=6 ThunkSymbol 0 IsProcessorFeaturePresent
+SYMBOL 00004598 size=6 vsize=6 ThunkSymbol 0 GetModuleHandleW
+SYMBOL 0000459e size=6 vsize=6 ThunkSymbol 0 GetLastError
+SYMBOL 000045a4 size=6 vsize=6 ThunkSymbol 0 HeapAlloc
+SYMBOL 000045aa size=6 vsize=6 ThunkSymbol 0 HeapFree
+SYMBOL 000045b0 size=6 vsize=6 ThunkSymbol 0 GetProcessHeap
+SYMBOL 000045b6 size=6 vsize=6 ThunkSymbol 0 VirtualQuery
+SYMBOL 000045bc size=6 vsize=6 ThunkSymbol 0 FreeLibrary
+SYMBOL 000045c2 size=6 vsize=6 ThunkSymbol 0 GetProcAddress
+SYMBOL 000045c8 size=6 vsize=6 ThunkSymbol 0 GetCurrentProcess
+SYMBOL 000045ce size=6 vsize=6 ThunkSymbol 0 TerminateProcess
+SYMBOL 000045d4 size=6 vsize=6 ThunkSymbol 0 __C_specific_handler
+SYMBOL 000045da size=6 vsize=6 ThunkSymbol 0 __C_specific_handler_noexcept
+SYMBOL 000045e0 size=6 vsize=6 ThunkSymbol 0 __std_type_info_destroy_list
+SYMBOL 000045e6 size=6 vsize=6 ThunkSymbol 0 __current_exception
+SYMBOL 000045ec size=6 vsize=6 ThunkSymbol 0 __current_exception_context
+SYMBOL 000045f2 size=6 vsize=6 ThunkSymbol 0 __vcrt_GetModuleFileNameW
+SYMBOL 000045f8 size=6 vsize=6 ThunkSymbol 0 __vcrt_GetModuleHandleW
+SYMBOL 000045fe size=6 vsize=6 ThunkSymbol 0 __vcrt_LoadLibraryExW
+SYMBOL 00004604 size=6 vsize=6 ThunkSymbol 0 _initterm
+SYMBOL 0000460a size=6 vsize=6 ThunkSymbol 0 _initterm_e
+SYMBOL 00004610 size=6 vsize=6 ThunkSymbol 0 strcpy_s
+SYMBOL 00004616 size=6 vsize=6 ThunkSymbol 0 strcat_s
+SYMBOL 0000461c size=6 vsize=6 ThunkSymbol 0 __stdio_common_vsprintf_s
+SYMBOL 00004622 size=6 vsize=6 ThunkSymbol 0 _seh_filter_dll
+SYMBOL 00004628 size=6 vsize=6 ThunkSymbol 0 _configure_narrow_argv
+SYMBOL 0000462e size=6 vsize=6 ThunkSymbol 0 _initialize_narrow_environment
+SYMBOL 00004634 size=6 vsize=6 ThunkSymbol 0 _initialize_onexit_table
+SYMBOL 0000463a size=6 vsize=6 ThunkSymbol 0 _register_onexit_function
+SYMBOL 00004640 size=6 vsize=6 ThunkSymbol 0 _execute_onexit_table
+SYMBOL 00004646 size=6 vsize=6 ThunkSymbol 0 _crt_atexit
+SYMBOL 0000464c size=6 vsize=6 ThunkSymbol 0 _crt_at_quick_exit
+SYMBOL 00004652 size=6 vsize=6 ThunkSymbol 0 _cexit
+SYMBOL 00004658 size=6 vsize=6 ThunkSymbol 0 terminate
+SYMBOL 0000465e size=6 vsize=6 ThunkSymbol 0 _wmakepath_s
+SYMBOL 00004664 size=6 vsize=6 ThunkSymbol 0 _wsplitpath_s
+SYMBOL 0000466a size=6 vsize=6 ThunkSymbol 0 wcscpy_s
+SYMBOL 00004670 size=3 vsize=3 SimpleFunctionCodeSymbol 0 __scrt_stub_for_acrt_initialize()
+SYMBOL 00004680 size=3 vsize=3 SimpleFunctionCodeSymbol 0 __scrt_stub_for_acrt_thread_attach()
+SYMBOL 00004690 size=3 vsize=3 SimpleFunctionCodeSymbol 0 __scrt_stub_for_acrt_thread_detach()
+SYMBOL 000046a0 size=7 vsize=7 SimpleFunctionCodeSymbol 0 __scrt_stub_for_acrt_uninitialize(bool)
+SYMBOL 000046b0 size=7 vsize=7 SimpleFunctionCodeSymbol 0 __scrt_stub_for_acrt_uninitialize_critical(bool)
+SYMBOL 000046c0 size=3 vsize=3 SimpleFunctionCodeSymbol 0 __scrt_stub_for_is_c_termination_complete()
+SYMBOL 000046e0 size=0 vsize=0 SimpleFunctionCodeSymbol 1 _guard_dispatch_icall_nop()
+SYMBOL 000046e0 size=1 vsize=1 StaticDataSymbol 0 _guard_dispatch_icall_nop
+SYMBOL 00004700 size=0 vsize=0 SimpleFunctionCodeSymbol 1 _guard_xfg_dispatch_icall_nop()
+SYMBOL 00004700 size=1 vsize=1 StaticDataSymbol 0 _guard_xfg_dispatch_icall_nop
+SYMBOL 00004710 size=26 vsize=26 SimpleFunctionCodeSymbol 0 `dllmain_crt_process_attach'::`1'::fin$0()
+SYMBOL 00004730 size=26 vsize=26 SimpleFunctionCodeSymbol 0 `dllmain_crt_process_detach'::`1'::fin$0()
+SYMBOL 0000474a size=22 vsize=22 SimpleFunctionCodeSymbol 0 `dllmain_crt_process_detach'::`1'::fin$1()
+SYMBOL 00004760 size=72 vsize=72 SimpleFunctionCodeSymbol 0 `dllmain_dispatch'::`1'::filt$0()
+SYMBOL 000047b0 size=32 vsize=32 SimpleFunctionCodeSymbol 0 `notify_debugger'::`1'::filt$0()
+SYMBOL 000047d0 size=61 vsize=61 SimpleFunctionCodeSymbol 0 __scrt_is_nonwritable_in_current_image$filt$0()
+SYMBOL 00005000 size=8 vsize=8 PublicSymbol 0 __imp_GetModuleHandleW
+SYMBOL 00005008 size=8 vsize=8 PublicSymbol 0 __imp_TerminateProcess
+SYMBOL 00005010 size=8 vsize=8 PublicSymbol 0 __imp_IsDebuggerPresent
+SYMBOL 00005018 size=8 vsize=8 PublicSymbol 0 __imp_RaiseException
+SYMBOL 00005020 size=8 vsize=8 PublicSymbol 0 __imp_MultiByteToWideChar
+SYMBOL 00005028 size=8 vsize=8 PublicSymbol 0 __imp_WideCharToMultiByte
+SYMBOL 00005030 size=8 vsize=8 PublicSymbol 0 __imp_QueryPerformanceCounter
+SYMBOL 00005038 size=8 vsize=8 PublicSymbol 0 __imp_GetCurrentProcessId
+SYMBOL 00005040 size=8 vsize=8 PublicSymbol 0 __imp_GetCurrentThreadId
+SYMBOL 00005048 size=8 vsize=8 PublicSymbol 0 __imp_GetSystemTimeAsFileTime
+SYMBOL 00005050 size=8 vsize=8 PublicSymbol 0 __imp_DisableThreadLibraryCalls
+SYMBOL 00005058 size=8 vsize=8 PublicSymbol 0 __imp_InitializeSListHead
+SYMBOL 00005060 size=8 vsize=8 PublicSymbol 0 __imp_RtlCaptureContext
+SYMBOL 00005068 size=8 vsize=8 PublicSymbol 0 __imp_RtlLookupFunctionEntry
+SYMBOL 00005070 size=8 vsize=8 PublicSymbol 0 __imp_RtlVirtualUnwind
+SYMBOL 00005078 size=8 vsize=8 PublicSymbol 0 __imp_UnhandledExceptionFilter
+SYMBOL 00005080 size=8 vsize=8 PublicSymbol 0 __imp_SetUnhandledExceptionFilter
+SYMBOL 00005088 size=8 vsize=8 PublicSymbol 0 __imp_GetStartupInfoW
+SYMBOL 00005090 size=8 vsize=8 PublicSymbol 0 __imp_IsProcessorFeaturePresent
+SYMBOL 00005098 size=8 vsize=8 PublicSymbol 0 __imp_GetProcAddress
+SYMBOL 000050a0 size=8 vsize=8 PublicSymbol 0 __imp_GetLastError
+SYMBOL 000050a8 size=8 vsize=8 PublicSymbol 0 __imp_HeapAlloc
+SYMBOL 000050b0 size=8 vsize=8 PublicSymbol 0 __imp_HeapFree
+SYMBOL 000050b8 size=8 vsize=8 PublicSymbol 0 __imp_GetProcessHeap
+SYMBOL 000050c0 size=8 vsize=8 PublicSymbol 0 __imp_VirtualQuery
+SYMBOL 000050c8 size=8 vsize=8 PublicSymbol 0 __imp_FreeLibrary
+SYMBOL 000050d0 size=8 vsize=8 PublicSymbol 0 __imp_GetCurrentProcess
+SYMBOL 000050d8 size=8 vsize=8 PublicSymbol 0 KERNEL32_NULL_THUNK_DATA
+SYMBOL 000050e0 size=8 vsize=8 PublicSymbol 0 __imp___current_exception
+SYMBOL 000050e8 size=8 vsize=8 PublicSymbol 0 __imp___vcrt_GetModuleHandleW
+SYMBOL 000050f0 size=8 vsize=8 PublicSymbol 0 __imp___C_specific_handler
+SYMBOL 000050f8 size=8 vsize=8 PublicSymbol 0 __imp___C_specific_handler_noexcept
+SYMBOL 00005100 size=8 vsize=8 PublicSymbol 0 __imp___std_type_info_destroy_list
+SYMBOL 00005108 size=8 vsize=8 PublicSymbol 0 __imp___vcrt_LoadLibraryExW
+SYMBOL 00005110 size=8 vsize=8 PublicSymbol 0 __imp___current_exception_context
+SYMBOL 00005118 size=8 vsize=8 PublicSymbol 0 __imp___vcrt_GetModuleFileNameW
+SYMBOL 00005120 size=8 vsize=8 PublicSymbol 0 VCRUNTIME140D_NULL_THUNK_DATA
+SYMBOL 00005128 size=8 vsize=8 PublicSymbol 0 __imp_for_write_seq_lis
+SYMBOL 00005130 size=8 vsize=8 PublicSymbol 0 libifcoremdd_NULL_THUNK_DATA
+SYMBOL 00005138 size=8 vsize=8 PublicSymbol 0 __imp__initterm
+SYMBOL 00005140 size=8 vsize=8 PublicSymbol 0 __imp__initterm_e
+SYMBOL 00005148 size=8 vsize=8 PublicSymbol 0 __imp_strcpy_s
+SYMBOL 00005150 size=8 vsize=8 PublicSymbol 0 __imp_strcat_s
+SYMBOL 00005158 size=8 vsize=8 PublicSymbol 0 __imp___stdio_common_vsprintf_s
+SYMBOL 00005160 size=8 vsize=8 PublicSymbol 0 __imp__seh_filter_dll
+SYMBOL 00005168 size=8 vsize=8 PublicSymbol 0 __imp__configure_narrow_argv
+SYMBOL 00005170 size=8 vsize=8 PublicSymbol 0 __imp__initialize_narrow_environment
+SYMBOL 00005178 size=8 vsize=8 PublicSymbol 0 __imp__initialize_onexit_table
+SYMBOL 00005180 size=8 vsize=8 PublicSymbol 0 __imp__register_onexit_function
+SYMBOL 00005188 size=8 vsize=8 PublicSymbol 0 __imp__execute_onexit_table
+SYMBOL 00005190 size=8 vsize=8 PublicSymbol 0 __imp__crt_atexit
+SYMBOL 00005198 size=8 vsize=8 PublicSymbol 0 __imp__crt_at_quick_exit
+SYMBOL 000051a0 size=8 vsize=8 PublicSymbol 0 __imp__cexit
+SYMBOL 000051a8 size=8 vsize=8 PublicSymbol 0 __imp_terminate
+SYMBOL 000051b0 size=8 vsize=8 PublicSymbol 0 __imp__wmakepath_s
+SYMBOL 000051b8 size=8 vsize=8 PublicSymbol 0 __imp__wsplitpath_s
+SYMBOL 000051c0 size=8 vsize=8 PublicSymbol 0 __imp_wcscpy_s
+SYMBOL 000051c8 size=8 vsize=8 PublicSymbol 0 ucrtbased_NULL_THUNK_DATA
+SYMBOL 000051d0 size=8 vsize=8 StaticDataSymbol 0 __guard_check_icall_fptr
+SYMBOL 000051d8 size=8 vsize=8 StaticDataSymbol 0 __guard_xfg_check_icall_fptr
+SYMBOL 000051e0 size=8 vsize=8 StaticDataSymbol 0 __guard_dispatch_icall_fptr
+SYMBOL 000051e8 size=8 vsize=8 StaticDataSymbol 0 __guard_xfg_dispatch_icall_fptr
+SYMBOL 000051f0 size=8 vsize=8 StaticDataSymbol 0 __guard_xfg_table_dispatch_icall_fptr
+SYMBOL 000051f8 size=0 vsize=0 StaticDataSymbol 0 __xc_a
+SYMBOL 00005200 size=8 vsize=8 StaticDataSymbol 0 __xc_z
+SYMBOL 00005208 size=8 vsize=8 StaticDataSymbol 0 __xi_a
+SYMBOL 00005210 size=0 vsize=0 StaticDataSymbol 0 __xi_z
+SYMBOL 00005218 size=8 vsize=8 StaticDataSymbol 0 __xp_a
+SYMBOL 00005220 size=8 vsize=8 StaticDataSymbol 0 __xp_z
+SYMBOL 00005228 size=8 vsize=8 StaticDataSymbol 0 __xt_a
+SYMBOL 00005230 size=8 vsize=8 StaticDataSymbol 0 __xt_z
+SYMBOL 00005378 size=0 vsize=0 StaticDataSymbol 1 _pRawDllMain
+SYMBOL 00005378 size=8 vsize=8 StaticDataSymbol 0 _pDefaultRawDllMain
+SYMBOL 00005380 size=48 vsize=48 StaticDataSymbol 0 _RTC_ErrorMessages
+SYMBOL 000053b0 size=24 vsize=24 StaticDataSymbol 0 _RTC_NoFalsePositives
+SYMBOL 000053c8 size=28 vsize=28 StaticDataSymbol 0 stack_premsg
+SYMBOL 000053e8 size=17 vsize=17 StaticDataSymbol 0 stack_postmsg
+SYMBOL 00005400 size=15 vsize=15 StaticDataSymbol 0 uninit_premsg
+SYMBOL 00005410 size=43 vsize=43 StaticDataSymbol 0 uninit_postmsg
+SYMBOL 00005440 size=221 vsize=221 StringSymbol 0 `string': "The value of ESP was not properly saved across a function call.  This is usually a result of calling a function declared with one calling convention with a function pointer declared with a different calling convention.\r\n"
+SYMBOL 00005520 size=285 vsize=285 StringSymbol 0 `string': "A cast to a smaller data type has caused a loss of data.  If this was intentional, you should mask the source of the cast with the appropriate bitmask.  For example:  \r\n\tchar c = (i & 0xFF);\r\nChanging the code in this way will not affect the quality of the resulting optimized code.\r\n"
+SYMBOL 00005640 size=29 vsize=29 StringSymbol 0 `string': "Stack memory was corrupted\r\n"
+SYMBOL 00005660 size=54 vsize=54 StringSymbol 0 `string': "A local variable was used before it was initialized\r\n"
+SYMBOL 00005698 size=44 vsize=44 StringSymbol 0 `string': "Stack memory around _alloca was corrupted\r\n"
+SYMBOL 000056c8 size=30 vsize=30 StringSymbol 0 `string': "Unknown Runtime Check Error\r\n"
+SYMBOL 000056f0 size=108 vsize=108 StringSymbol 0 `string': L"Runtime Check Error.\r\n Unable to display RTC Message."
+SYMBOL 00005760 size=64 vsize=64 StringSymbol 0 `string': L"Run-Time Check Failure #%d - %s"
+SYMBOL 000057a0 size=17 vsize=17 StringSymbol 0 `string': "Unknown Filename"
+SYMBOL 000057b8 size=20 vsize=20 StringSymbol 0 `string': "Unknown Module Name"
+SYMBOL 000057d0 size=32 vsize=32 StringSymbol 0 `string': "Run-Time Check Failure #%d - %s"
+SYMBOL 000057f0 size=38 vsize=38 StringSymbol 0 `string': "Stack corrupted near unknown variable"
+SYMBOL 00005818 size=6 vsize=6 StringSymbol 0 `string': "%.2X "
+SYMBOL 00005820 size=73 vsize=73 StringSymbol 0 `string': "Stack area around _alloca memory reserved by this function is corrupted\n"
+SYMBOL 0000586c size=2 vsize=2 StringSymbol 0 `string': "\n"
+SYMBOL 00005870 size=3 vsize=3 StringSymbol 0 `string': "> "
+SYMBOL 00005878 size=9 vsize=9 StringSymbol 0 `string': "\nData: <"
+SYMBOL 00005888 size=42 vsize=42 StringSymbol 0 `string': "\nAllocation number within this function: "
+SYMBOL 000058b8 size=8 vsize=8 StringSymbol 0 `string': "\nSize: "
+SYMBOL 000058c0 size=13 vsize=13 StringSymbol 0 `string': "\nAddress: 0x"
+SYMBOL 000058d0 size=72 vsize=72 StringSymbol 0 `string': "Stack area around _alloca memory reserved by this function is corrupted"
+SYMBOL 00005918 size=26 vsize=26 StringSymbol 0 `string': "%s%s%p%s%zd%s%d%s%s%s%s%s"
+SYMBOL 00005938 size=52 vsize=52 StringSymbol 0 `string': "A variable is being used without being initialized."
+SYMBOL 00005970 size=40 vsize=40 StaticDataSymbol 0 _RTC_errlist
+SYMBOL 00005998 size=25 vsize=25 StringSymbol 0 `string': "Stack pointer corruption"
+SYMBOL 000059b8 size=42 vsize=42 StringSymbol 0 `string': "Cast to smaller type causing loss of data"
+SYMBOL 000059e8 size=24 vsize=24 StringSymbol 0 `string': "Stack memory corruption"
+SYMBOL 00005a00 size=42 vsize=42 StringSymbol 0 `string': "Local variable used before initialization"
+SYMBOL 00005a30 size=31 vsize=31 StringSymbol 0 `string': "Stack around _alloca corrupted"
+SYMBOL 00005a50 size=46 vsize=46 StaticDataSymbol 0 mspdbName
+SYMBOL 00005a80 size=36 vsize=36 StaticDataSymbol 0 debugCrtFileName
+SYMBOL 00005ab0 size=72 vsize=72 StringSymbol 0 `string': L"api-ms-win-core-registry-l1-1-0.dll"
+SYMBOL 00005af8 size=26 vsize=26 StringSymbol 0 `string': L"advapi32.dll"
+SYMBOL 00005b18 size=14 vsize=14 StringSymbol 0 `string': "RegOpenKeyExW"
+SYMBOL 00005b28 size=17 vsize=17 StringSymbol 0 `string': "RegQueryValueExW"
+SYMBOL 00005b40 size=12 vsize=12 StringSymbol 0 `string': "RegCloseKey"
+SYMBOL 00005b50 size=116 vsize=116 StringSymbol 0 `string': L"SOFTWARE\Wow6432Node\Microsoft\VisualStudio\14.0\Setup\VC"
+SYMBOL 00005bc8 size=22 vsize=22 StringSymbol 0 `string': L"ProductDir"
+SYMBOL 00005be0 size=8 vsize=8 StaticDataSymbol 0 dllExt (in int GetPdbDllPathFromFilePath(const WCHAR* sourcePath, WCHAR* pdbDllPath, unsigned int64 pdbDllPathSize))
+SYMBOL 00005be8 size=18 vsize=18 StaticDataSymbol 0 mspdbFilename (in int GetPdbDllPathFromFilePath(const WCHAR* sourcePath, WCHAR* pdbDllPath, unsigned int64 pdbDllPathSize))
+SYMBOL 00005c00 size=18 vsize=18 StringSymbol 0 `string': L"MSPDB140"
+SYMBOL 00005c18 size=17 vsize=17 StringSymbol 0 `string': "PDBOpenValidate5"
+SYMBOL 00005c2c size=2 vsize=2 StringSymbol 0 `string': "r"
+SYMBOL 00005c30 size=16 vsize=16 StaticDataSymbol 0 GS_ExceptionPointers
+SYMBOL 00005c40 size=84 vsize=84 PEDirectorySymbol 0 [PE Directory] Debug
+SYMBOL 00005ca0 size=312 vsize=312 PEDirectorySymbol 0 [PE Directory] Load Config
+SYMBOL 00005e00 size=8 vsize=8 StaticDataSymbol 0 __CastGuardVftablesStart
+SYMBOL 00005e08 size=8 vsize=8 StaticDataSymbol 0 __CastGuardVftablesEnd
+SYMBOL 00005e10 size=8 vsize=8 StaticDataSymbol 0 __volatile_metadata
+SYMBOL 00005ea0 size=121 vsize=121 PEDirectorySymbol 0 [PE Directory] [Debug Directory] CodeView
+SYMBOL 00005f1c size=20 vsize=20 PEDirectorySymbol 0 [PE Directory] [Debug Directory] VCFeature
+SYMBOL 00005f30 size=664 vsize=664 PEDirectorySymbol 0 [PE Directory] [Debug Directory] POGO
+SYMBOL 000061c8 size=8 vsize=8 StaticDataSymbol 0 __rtc_iaa
+SYMBOL 000061d0 size=8 vsize=8 StaticDataSymbol 0 __rtc_izz
+SYMBOL 000061d8 size=8 vsize=8 StaticDataSymbol 0 __rtc_taa
+SYMBOL 000061e0 size=8 vsize=8 StaticDataSymbol 0 __rtc_tzz
+SYMBOL 000061e8 size=20 vsize=20 UnwindInfoSymbol 0 [unwind] SUBROUTINE2(double*, complex*, complex*, bool*, bool*)
+SYMBOL 000061fc size=20 vsize=20 UnwindInfoSymbol 0 [unwind] SUBROUTINE3(char[10]*, [OEM_MS_FORTRAN90 defined type 0x5]*, int64)
+SYMBOL 00006210 size=20 vsize=20 UnwindInfoSymbol 0 [unwind] SUBROUTINE1(short*, long*, int64[6]*, float[4][4]*, long[-3 .. 2][0 .. 4]*, float[.tmp.0.MATRIX_WITH_PARAM_BOUNDS][.tmp.1.MATRIX_WITH_PARAM_BOUNDS]*)
+SYMBOL 00006224 size=16 vsize=16 UnwindInfoSymbol 0 [unwind] _RTC_CheckStackVars(void*, _RTC_framedesc*)
+SYMBOL 00006234 size=20 vsize=20 ChainUnwindInfoSymbol 0 [chain-unwind] _RTC_CheckStackVars(void*, _RTC_framedesc*)
+SYMBOL 00006248 size=16 vsize=16 ChainUnwindInfoSymbol 0 [chain-unwind] _RTC_CheckStackVars(void*, _RTC_framedesc*)
+SYMBOL 00006258 size=12 vsize=12 UnwindInfoSymbol 0 [unwind] _RTC_CheckStackVars2(void*, _RTC_framedesc*, _RTC_ALLOCA_NODE*)
+SYMBOL 00006264 size=24 vsize=24 ChainUnwindInfoSymbol 0 [chain-unwind] _RTC_CheckStackVars2(void*, _RTC_framedesc*, _RTC_ALLOCA_NODE*)
+SYMBOL 0000627c size=20 vsize=20 ChainUnwindInfoSymbol 0 [chain-unwind] _RTC_CheckStackVars2(void*, _RTC_framedesc*, _RTC_ALLOCA_NODE*)
+SYMBOL 00006290 size=20 vsize=20 ChainUnwindInfoSymbol 0 [chain-unwind] _RTC_CheckStackVars2(void*, _RTC_framedesc*, _RTC_ALLOCA_NODE*)
+SYMBOL 000062a4 size=16 vsize=16 ChainUnwindInfoSymbol 0 [chain-unwind] _RTC_CheckStackVars2(void*, _RTC_framedesc*, _RTC_ALLOCA_NODE*)
+SYMBOL 000062b4 size=16 vsize=16 ChainUnwindInfoSymbol 0 [chain-unwind] _RTC_CheckStackVars2(void*, _RTC_framedesc*, _RTC_ALLOCA_NODE*)
+SYMBOL 000062c4 size=16 vsize=16 ChainUnwindInfoSymbol 0 [chain-unwind] _RTC_CheckStackVars2(void*, _RTC_framedesc*, _RTC_ALLOCA_NODE*)
+SYMBOL 000062d4 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] _RTC_AllocaHelper(_RTC_ALLOCA_NODE*, unsigned int64, _RTC_ALLOCA_NODE**)
+SYMBOL 000062dc size=20 vsize=20 ChainUnwindInfoSymbol 0 [chain-unwind] _RTC_AllocaHelper(_RTC_ALLOCA_NODE*, unsigned int64, _RTC_ALLOCA_NODE**)
+SYMBOL 000062f0 size=16 vsize=16 ChainUnwindInfoSymbol 0 [chain-unwind] _RTC_AllocaHelper(_RTC_ALLOCA_NODE*, unsigned int64, _RTC_ALLOCA_NODE**)
+SYMBOL 00006300 size=32 vsize=32 UnwindInfoSymbol 0 [unwind] dllmain_crt_process_attach(HINSTANCE__* const, void* const)
+SYMBOL 00006320 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] `dllmain_crt_process_attach'::`1'::fin$0()
+SYMBOL 00006328 size=48 vsize=48 UnwindInfoSymbol 0 [unwind] dllmain_crt_process_detach(const bool)
+SYMBOL 00006358 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] `dllmain_crt_process_detach'::`1'::fin$0()
+SYMBOL 00006360 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] `dllmain_crt_process_detach'::`1'::fin$1()
+SYMBOL 00006368 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] dllmain_crt_dispatch(HINSTANCE__* const, const unsigned long, void* const)
+SYMBOL 00006370 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] _CRT_INIT(HINSTANCE__* const, const unsigned long, void* const)
+SYMBOL 00006378 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] dllmain_raw(HINSTANCE__* const, const unsigned long, void* const)
+SYMBOL 00006380 size=32 vsize=32 UnwindInfoSymbol 0 [unwind] dllmain_dispatch(HINSTANCE__* const, const unsigned long, void* const)
+SYMBOL 000063a0 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] `dllmain_dispatch'::`1'::filt$0()
+SYMBOL 000063a8 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] _DllMainCRTStartup(HINSTANCE__* const, const unsigned long, void* const)
+SYMBOL 000063b0 size=24 vsize=24 UnwindInfoSymbol 0 [unwind] _RTC_UninitUse(const char*)
+SYMBOL 000063c8 size=28 vsize=28 UnwindInfoSymbol 0 [unwind] _RTC_StackFailure(void*, const char*)
+SYMBOL 000063e4 size=24 vsize=24 UnwindInfoSymbol 0 [unwind] _RTC_AllocaFailure(void*, _RTC_ALLOCA_NODE*, int)
+SYMBOL 000063fc size=20 vsize=20 ChainUnwindInfoSymbol 0 [chain-unwind] _RTC_AllocaFailure(void*, _RTC_ALLOCA_NODE*, int)
+SYMBOL 00006410 size=16 vsize=16 ChainUnwindInfoSymbol 0 [chain-unwind] _RTC_AllocaFailure(void*, _RTC_ALLOCA_NODE*, int)
+SYMBOL 00006420 size=20 vsize=20 UnwindInfoSymbol 0 [unwind] _vsprintf_s_l(char* const, const unsigned int64, const char* const, __crt_locale_pointers* const, char*)
+SYMBOL 00006434 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] sprintf_s(char* const, const unsigned int64, const char* const, NoType)
+SYMBOL 0000643c size=32 vsize=32 UnwindInfoSymbol 0 [unwind] notify_debugger(const tagEXCEPTION_VISUALCPP_DEBUG_INFO&)
+SYMBOL 0000645c size=8 vsize=8 UnwindInfoSymbol 0 [unwind] `notify_debugger'::`1'::filt$0()
+SYMBOL 00006464 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] DebuggerProbe(unsigned long)
+SYMBOL 0000646c size=8 vsize=8 UnwindInfoSymbol 0 [unwind] DebuggerRuntime(unsigned long, int, void*, const WCHAR*)
+SYMBOL 00006474 size=36 vsize=36 UnwindInfoSymbol 0 [unwind] failwithmessage(void*, int, int, const char*)
+SYMBOL 00006498 size=16 vsize=16 UnwindInfoSymbol 0 [unwind] _getMemBlockDataString(char*, char*, const char*, unsigned int64)
+SYMBOL 000064a8 size=32 vsize=32 ChainUnwindInfoSymbol 0 [chain-unwind] _getMemBlockDataString(char*, char*, const char*, unsigned int64)
+SYMBOL 000064c8 size=16 vsize=16 ChainUnwindInfoSymbol 0 [chain-unwind] _getMemBlockDataString(char*, char*, const char*, unsigned int64)
+SYMBOL 000064d8 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] __security_init_cookie()
+SYMBOL 000064e0 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] __get_entropy()
+SYMBOL 000064e8 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] DllMain(HINSTANCE__*, unsigned long, void*)
+SYMBOL 000064f0 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] __scrt_initialize_type_info()
+SYMBOL 000064f8 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] __scrt_uninitialize_type_info()
+SYMBOL 00006500 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] __scrt_initialize_default_local_stdio_options()
+SYMBOL 00006508 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] atexit(void (*function)()*)
+SYMBOL 00006510 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] _onexit(int (*function)()*)
+SYMBOL 00006518 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] at_quick_exit(void (*function)()*)
+SYMBOL 00006520 size=32 vsize=32 UnwindInfoSymbol 0 [unwind] __scrt_is_nonwritable_in_current_image(const void*)
+SYMBOL 00006540 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] __scrt_is_nonwritable_in_current_image$filt$0()
+SYMBOL 00006548 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] __scrt_acquire_startup_lock()
+SYMBOL 00006550 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] __scrt_release_startup_lock(bool)
+SYMBOL 00006558 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] __scrt_initialize_crt(enum __scrt_module_type)
+SYMBOL 00006560 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] __scrt_uninitialize_crt(bool, bool)
+SYMBOL 00006568 size=12 vsize=12 UnwindInfoSymbol 0 [unwind] __scrt_initialize_onexit_tables(enum __scrt_module_type)
+SYMBOL 00006574 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] __scrt_dllmain_exception_filter(HINSTANCE__*, unsigned long, void*, int (*function)(HINSTANCE__*, unsigned long, void*)*, unsigned long, _EXCEPTION_POINTERS*)
+SYMBOL 0000657c size=8 vsize=8 UnwindInfoSymbol 0 [unwind] __scrt_dllmain_before_initialize_c()
+SYMBOL 00006584 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] __scrt_dllmain_after_initialize_c()
+SYMBOL 0000658c size=8 vsize=8 UnwindInfoSymbol 0 [unwind] __scrt_dllmain_uninitialize_c()
+SYMBOL 00006594 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] __scrt_dllmain_uninitialize_critical()
+SYMBOL 0000659c size=8 vsize=8 UnwindInfoSymbol 0 [unwind] __scrt_dllmain_crt_thread_attach()
+SYMBOL 000065a4 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] __scrt_dllmain_crt_thread_detach()
+SYMBOL 000065ac size=8 vsize=8 UnwindInfoSymbol 0 [unwind] __scrt_narrow_argv_policy::configure_argv()
+SYMBOL 000065b4 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] __scrt_narrow_environment_policy::initialize_environment()
+SYMBOL 000065bc size=8 vsize=8 UnwindInfoSymbol 0 [unwind] is_potentially_valid_image_base(void* const)
+SYMBOL 000065c4 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] find_pe_section(unsigned char* const, const unsigned int64)
+SYMBOL 000065cc size=12 vsize=12 UnwindInfoSymbol 0 [unwind] __scrt_get_show_window_mode()
+SYMBOL 000065d8 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] __scrt_is_managed_app()
+SYMBOL 000065e0 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] __scrt_initialize_mta()
+SYMBOL 000065e8 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] __scrt_set_unhandled_exception_filter()
+SYMBOL 000065f0 size=12 vsize=12 UnwindInfoSymbol 0 [unwind] __scrt_fastfail(unsigned int)
+SYMBOL 000065fc size=8 vsize=8 UnwindInfoSymbol 0 [unwind] __scrt_unhandled_exception_filter(_EXCEPTION_POINTERS* const)
+SYMBOL 00006604 size=12 vsize=12 UnwindInfoSymbol 0 [unwind] _RTC_Initialize()
+SYMBOL 00006610 size=12 vsize=12 UnwindInfoSymbol 0 [unwind] _RTC_Terminate()
+SYMBOL 0000661c size=8 vsize=8 UnwindInfoSymbol 0 [unwind] ReadNoFence64(const volatile int64*)
+SYMBOL 00006624 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] ReadPointerNoFence(void* const volatile*)
+SYMBOL 0000662c size=8 vsize=8 UnwindInfoSymbol 0 [unwind] _guard_icall_checks_enforced()
+SYMBOL 00006634 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] __castguard_compat_check(void*)
+SYMBOL 0000663c size=8 vsize=8 UnwindInfoSymbol 0 [unwind] __castguard_check_failure_debugbreak(void*)
+SYMBOL 00006644 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] __castguard_check_failure_fastfail(void*)
+SYMBOL 0000664c size=8 vsize=8 UnwindInfoSymbol 0 [unwind] __castguard_check_failure_os_handled(void*)
+SYMBOL 00006654 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] __castguard_slow_path_compat_check(void*, unsigned int64, unsigned int64)
+SYMBOL 0000665c size=8 vsize=8 UnwindInfoSymbol 0 [unwind] __castguard_slow_path_check_debugbreak(void*, unsigned int64, unsigned int64)
+SYMBOL 00006664 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] __castguard_slow_path_check_fastfail(void*, unsigned int64, unsigned int64)
+SYMBOL 0000666c size=8 vsize=8 UnwindInfoSymbol 0 [unwind] __castguard_slow_path_check_os_handled(void*, unsigned int64, unsigned int64)
+SYMBOL 00006674 size=24 vsize=24 UnwindInfoSymbol 0 [unwind] _RTC_GetSrcLine(unsigned char*, WCHAR*, unsigned long, int*, WCHAR*, unsigned long)
+SYMBOL 0000668c size=36 vsize=36 UnwindInfoSymbol 0 [unwind] GetPdbDllFromInstallPath()
+SYMBOL 000066b0 size=24 vsize=24 UnwindInfoSymbol 0 [unwind] GetPdbDllPathFromFilePath(const WCHAR*, WCHAR*, unsigned int64)
+SYMBOL 000066c8 size=16 vsize=16 UnwindInfoSymbol 0 [unwind] GetPdbDll()
+SYMBOL 000066d8 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] __GSHandlerCheckCommon(void*, _DISPATCHER_CONTEXT*, _GS_HANDLER_DATA*)
+SYMBOL 000066e0 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] __GSHandlerCheck(_EXCEPTION_RECORD*, void*, _CONTEXT*, _DISPATCHER_CONTEXT*)
+SYMBOL 000066e8 size=4 vsize=4 UnwindInfoSymbol 0 [unwind] __security_check_cookie()
+SYMBOL 000066ec size=16 vsize=16 UnwindInfoSymbol 0 [unwind] __isa_available_init(NoType)
+SYMBOL 000066fc size=8 vsize=8 UnwindInfoSymbol 0 [unwind] __scrt_is_ucrt_dll_in_use(NoType)
+SYMBOL 00006708 size=4 vsize=4 UnwindInfoSymbol 0 [unwind] _guard_dispatch_icall_nop
+SYMBOL 00006710 size=4 vsize=4 UnwindInfoSymbol 0 [unwind] _guard_xfg_dispatch_icall_nop
+SYMBOL 00006714 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] __report_securityfailure(unsigned long)
+SYMBOL 0000671c size=8 vsize=8 UnwindInfoSymbol 0 [unwind] __report_securityfailureEx(unsigned long, unsigned long, void**)
+SYMBOL 00006724 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] __report_rangecheckfailure(NoType)
+SYMBOL 0000672c size=8 vsize=8 UnwindInfoSymbol 0 [unwind] __report_gsfailure(unsigned int64)
+SYMBOL 00006734 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] capture_current_context(_CONTEXT*)
+SYMBOL 0000673c size=8 vsize=8 UnwindInfoSymbol 0 [unwind] capture_previous_context(_CONTEXT*)
+SYMBOL 00006744 size=8 vsize=8 UnwindInfoSymbol 0 [unwind] __raise_securityfailure(_EXCEPTION_POINTERS* const)
+SYMBOL 00006750 size=124 vsize=124 PEDirectorySymbol 0 [PE Directory] Exports
+SYMBOL 000067cc size=20 vsize=20 ImportDescriptorSymbol 0 [import descriptor] libifcoremdd.dll
+SYMBOL 000067e0 size=20 vsize=20 ImportDescriptorSymbol 0 [import descriptor] KERNEL32.dll
+SYMBOL 000067f4 size=20 vsize=20 ImportDescriptorSymbol 0 [import descriptor] VCRUNTIME140D.dll
+SYMBOL 00006808 size=20 vsize=20 ImportDescriptorSymbol 0 [import descriptor] ucrtbased.dll
+SYMBOL 0000681c size=20 vsize=20 ImportDescriptorSymbol 0 [import descriptor] null terminator
+SYMBOL 00006830 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] KERNEL32.dll GetModuleHandleW, ordinal 641
+SYMBOL 00006838 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] KERNEL32.dll TerminateProcess, ordinal 1438
+SYMBOL 00006840 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] KERNEL32.dll IsDebuggerPresent, ordinal 901
+SYMBOL 00006848 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] KERNEL32.dll RaiseException, ordinal 1128
+SYMBOL 00006850 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] KERNEL32.dll MultiByteToWideChar, ordinal 1014
+SYMBOL 00006858 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] KERNEL32.dll WideCharToMultiByte, ordinal 1553
+SYMBOL 00006860 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] KERNEL32.dll QueryPerformanceCounter, ordinal 1106
+SYMBOL 00006868 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] KERNEL32.dll GetCurrentProcessId, ordinal 545
+SYMBOL 00006870 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] KERNEL32.dll GetCurrentThreadId, ordinal 549
+SYMBOL 00006878 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] KERNEL32.dll GetSystemTimeAsFileTime, ordinal 755
+SYMBOL 00006880 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] KERNEL32.dll DisableThreadLibraryCalls, ordinal 293
+SYMBOL 00006888 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] KERNEL32.dll InitializeSListHead, ordinal 879
+SYMBOL 00006890 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] KERNEL32.dll RtlCaptureContext, ordinal 1237
+SYMBOL 00006898 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] KERNEL32.dll RtlLookupFunctionEntry, ordinal 1244
+SYMBOL 000068a0 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] KERNEL32.dll RtlVirtualUnwind, ordinal 1251
+SYMBOL 000068a8 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] KERNEL32.dll UnhandledExceptionFilter, ordinal 1472
+SYMBOL 000068b0 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] KERNEL32.dll SetUnhandledExceptionFilter, ordinal 1407
+SYMBOL 000068b8 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] KERNEL32.dll GetStartupInfoW, ordinal 730
+SYMBOL 000068c0 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] KERNEL32.dll IsProcessorFeaturePresent, ordinal 908
+SYMBOL 000068c8 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] KERNEL32.dll GetProcAddress, ordinal 696
+SYMBOL 000068d0 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] KERNEL32.dll GetLastError, ordinal 618
+SYMBOL 000068d8 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] KERNEL32.dll HeapAlloc, ordinal 849
+SYMBOL 000068e0 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] KERNEL32.dll HeapFree, ordinal 853
+SYMBOL 000068e8 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] KERNEL32.dll GetProcessHeap, ordinal 702
+SYMBOL 000068f0 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] KERNEL32.dll VirtualQuery, ordinal 1505
+SYMBOL 000068f8 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] KERNEL32.dll FreeLibrary, ordinal 436
+SYMBOL 00006900 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] KERNEL32.dll GetCurrentProcess, ordinal 544
+SYMBOL 00006908 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] KERNEL32.dll null terminator, ordinal 0
+SYMBOL 00006910 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] VCRUNTIME140D.dll __current_exception, ordinal 27
+SYMBOL 00006918 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] VCRUNTIME140D.dll __vcrt_GetModuleHandleW, ordinal 47
+SYMBOL 00006920 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] VCRUNTIME140D.dll __C_specific_handler, ordinal 8
+SYMBOL 00006928 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] VCRUNTIME140D.dll __C_specific_handler_noexcept, ordinal 9
+SYMBOL 00006930 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] VCRUNTIME140D.dll __std_type_info_destroy_list, ordinal 37
+SYMBOL 00006938 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] VCRUNTIME140D.dll __vcrt_LoadLibraryExW, ordinal 49
+SYMBOL 00006940 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] VCRUNTIME140D.dll __current_exception_context, ordinal 28
+SYMBOL 00006948 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] VCRUNTIME140D.dll __vcrt_GetModuleFileNameW, ordinal 46
+SYMBOL 00006950 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] VCRUNTIME140D.dll null terminator, ordinal 0
+SYMBOL 00006958 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] libifcoremdd.dll for_write_seq_lis, ordinal 768
+SYMBOL 00006960 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] libifcoremdd.dll null terminator, ordinal 0
+SYMBOL 00006968 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] ucrtbased.dll _initterm, ordinal 372
+SYMBOL 00006970 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] ucrtbased.dll _initterm_e, ordinal 373
+SYMBOL 00006978 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] ucrtbased.dll strcpy_s, ordinal 1324
+SYMBOL 00006980 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] ucrtbased.dll strcat_s, ordinal 1320
+SYMBOL 00006988 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] ucrtbased.dll __stdio_common_vsprintf_s, ordinal 104
+SYMBOL 00006990 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] ucrtbased.dll _seh_filter_dll, ordinal 706
+SYMBOL 00006998 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] ucrtbased.dll _configure_narrow_argv, ordinal 182
+SYMBOL 000069a0 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] ucrtbased.dll _initialize_narrow_environment, ordinal 369
+SYMBOL 000069a8 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] ucrtbased.dll _initialize_onexit_table, ordinal 370
+SYMBOL 000069b0 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] ucrtbased.dll _register_onexit_function, ordinal 693
+SYMBOL 000069b8 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] ucrtbased.dll _execute_onexit_table, ordinal 229
+SYMBOL 000069c0 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] ucrtbased.dll _crt_atexit, ordinal 194
+SYMBOL 000069c8 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] ucrtbased.dll _crt_at_quick_exit, ordinal 193
+SYMBOL 000069d0 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] ucrtbased.dll _cexit, ordinal 164
+SYMBOL 000069d8 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] ucrtbased.dll terminate, ordinal 1355
+SYMBOL 000069e0 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] ucrtbased.dll _wmakepath_s, ordinal 924
+SYMBOL 000069e8 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] ucrtbased.dll _wsplitpath_s, ordinal 952
+SYMBOL 000069f0 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] ucrtbased.dll wcscpy_s, ordinal 1380
+SYMBOL 000069f8 size=8 vsize=8 ImportThunkSymbol 0 [import thunk] ucrtbased.dll null terminator, ordinal 0
+SYMBOL 00006a00 size=20 vsize=20 ImportByNameSymbol 0 `string': "for_write_seq_lis"
+SYMBOL 00006a14 size=17 vsize=17 ImportStringSymbol 0 `string': "libifcoremdd.dll"
+SYMBOL 00006a26 size=20 vsize=20 ImportByNameSymbol 0 `string': "IsDebuggerPresent"
+SYMBOL 00006a3a size=17 vsize=17 ImportByNameSymbol 0 `string': "RaiseException"
+SYMBOL 00006a4c size=22 vsize=22 ImportByNameSymbol 0 `string': "MultiByteToWideChar"
+SYMBOL 00006a62 size=22 vsize=22 ImportByNameSymbol 0 `string': "WideCharToMultiByte"
+SYMBOL 00006a78 size=26 vsize=26 ImportByNameSymbol 0 `string': "QueryPerformanceCounter"
+SYMBOL 00006a92 size=22 vsize=22 ImportByNameSymbol 0 `string': "GetCurrentProcessId"
+SYMBOL 00006aa8 size=21 vsize=21 ImportByNameSymbol 0 `string': "GetCurrentThreadId"
+SYMBOL 00006abe size=26 vsize=26 ImportByNameSymbol 0 `string': "GetSystemTimeAsFileTime"
+SYMBOL 00006ad8 size=28 vsize=28 ImportByNameSymbol 0 `string': "DisableThreadLibraryCalls"
+SYMBOL 00006af4 size=22 vsize=22 ImportByNameSymbol 0 `string': "InitializeSListHead"
+SYMBOL 00006b0a size=20 vsize=20 ImportByNameSymbol 0 `string': "RtlCaptureContext"
+SYMBOL 00006b1e size=25 vsize=25 ImportByNameSymbol 0 `string': "RtlLookupFunctionEntry"
+SYMBOL 00006b38 size=19 vsize=19 ImportByNameSymbol 0 `string': "RtlVirtualUnwind"
+SYMBOL 00006b4c size=27 vsize=27 ImportByNameSymbol 0 `string': "UnhandledExceptionFilter"
+SYMBOL 00006b68 size=30 vsize=30 ImportByNameSymbol 0 `string': "SetUnhandledExceptionFilter"
+SYMBOL 00006b86 size=18 vsize=18 ImportByNameSymbol 0 `string': "GetStartupInfoW"
+SYMBOL 00006b98 size=28 vsize=28 ImportByNameSymbol 0 `string': "IsProcessorFeaturePresent"
+SYMBOL 00006bb4 size=19 vsize=19 ImportByNameSymbol 0 `string': "GetModuleHandleW"
+SYMBOL 00006bc8 size=15 vsize=15 ImportByNameSymbol 0 `string': "GetLastError"
+SYMBOL 00006bd8 size=12 vsize=12 ImportByNameSymbol 0 `string': "HeapAlloc"
+SYMBOL 00006be4 size=11 vsize=11 ImportByNameSymbol 0 `string': "HeapFree"
+SYMBOL 00006bf0 size=17 vsize=17 ImportByNameSymbol 0 `string': "GetProcessHeap"
+SYMBOL 00006c02 size=15 vsize=15 ImportByNameSymbol 0 `string': "VirtualQuery"
+SYMBOL 00006c12 size=14 vsize=14 ImportByNameSymbol 0 `string': "FreeLibrary"
+SYMBOL 00006c20 size=17 vsize=17 ImportByNameSymbol 0 `string': "GetProcAddress"
+SYMBOL 00006c32 size=20 vsize=20 ImportByNameSymbol 0 `string': "GetCurrentProcess"
+SYMBOL 00006c46 size=19 vsize=19 ImportByNameSymbol 0 `string': "TerminateProcess"
+SYMBOL 00006c5a size=13 vsize=13 ImportStringSymbol 0 `string': "KERNEL32.dll"
+SYMBOL 00006c68 size=23 vsize=23 ImportByNameSymbol 0 `string': "__C_specific_handler"
+SYMBOL 00006c80 size=32 vsize=32 ImportByNameSymbol 0 `string': "__C_specific_handler_noexcept"
+SYMBOL 00006ca0 size=31 vsize=31 ImportByNameSymbol 0 `string': "__std_type_info_destroy_list"
+SYMBOL 00006cc0 size=22 vsize=22 ImportByNameSymbol 0 `string': "__current_exception"
+SYMBOL 00006cd6 size=30 vsize=30 ImportByNameSymbol 0 `string': "__current_exception_context"
+SYMBOL 00006cf4 size=28 vsize=28 ImportByNameSymbol 0 `string': "__vcrt_GetModuleFileNameW"
+SYMBOL 00006d10 size=26 vsize=26 ImportByNameSymbol 0 `string': "__vcrt_GetModuleHandleW"
+SYMBOL 00006d2a size=24 vsize=24 ImportByNameSymbol 0 `string': "__vcrt_LoadLibraryExW"
+SYMBOL 00006d42 size=18 vsize=18 ImportStringSymbol 0 `string': "VCRUNTIME140D.dll"
+SYMBOL 00006d54 size=12 vsize=12 ImportByNameSymbol 0 `string': "_initterm"
+SYMBOL 00006d60 size=14 vsize=14 ImportByNameSymbol 0 `string': "_initterm_e"
+SYMBOL 00006d6e size=11 vsize=11 ImportByNameSymbol 0 `string': "strcpy_s"
+SYMBOL 00006d7a size=11 vsize=11 ImportByNameSymbol 0 `string': "strcat_s"
+SYMBOL 00006d86 size=28 vsize=28 ImportByNameSymbol 0 `string': "__stdio_common_vsprintf_s"
+SYMBOL 00006da2 size=18 vsize=18 ImportByNameSymbol 0 `string': "_seh_filter_dll"
+SYMBOL 00006db4 size=25 vsize=25 ImportByNameSymbol 0 `string': "_configure_narrow_argv"
+SYMBOL 00006dce size=33 vsize=33 ImportByNameSymbol 0 `string': "_initialize_narrow_environment"
+SYMBOL 00006df0 size=27 vsize=27 ImportByNameSymbol 0 `string': "_initialize_onexit_table"
+SYMBOL 00006e0c size=28 vsize=28 ImportByNameSymbol 0 `string': "_register_onexit_function"
+SYMBOL 00006e28 size=24 vsize=24 ImportByNameSymbol 0 `string': "_execute_onexit_table"
+SYMBOL 00006e40 size=14 vsize=14 ImportByNameSymbol 0 `string': "_crt_atexit"
+SYMBOL 00006e4e size=21 vsize=21 ImportByNameSymbol 0 `string': "_crt_at_quick_exit"
+SYMBOL 00006e64 size=9 vsize=9 ImportByNameSymbol 0 `string': "_cexit"
+SYMBOL 00006e6e size=12 vsize=12 ImportByNameSymbol 0 `string': "terminate"
+SYMBOL 00006e7a size=15 vsize=15 ImportByNameSymbol 0 `string': "_wmakepath_s"
+SYMBOL 00006e8a size=16 vsize=16 ImportByNameSymbol 0 `string': "_wsplitpath_s"
+SYMBOL 00006e9a size=11 vsize=11 ImportByNameSymbol 0 `string': "wcscpy_s"
+SYMBOL 00006ea6 size=14 vsize=14 ImportStringSymbol 0 `string': "ucrtbased.dll"
+SYMBOL 00007000 size=20 vsize=20 StaticDataSymbol 0 _RTC_ErrorLevels
+SYMBOL 00007014 size=4 vsize=4 StaticDataSymbol 0 __scrt_native_dllmain_reason
+SYMBOL 00007020 size=8 vsize=8 StaticDataSymbol 0 __security_cookie_complement
+SYMBOL 00007028 size=8 vsize=8 StaticDataSymbol 0 __security_cookie
+SYMBOL 00007030 size=4 vsize=4 StaticDataSymbol 0 __isa_available
+SYMBOL 00007034 size=4 vsize=4 StaticDataSymbol 0 __isa_enabled
+SYMBOL 00007038 size=8 vsize=8 StaticDataSymbol 0 __memcpy_nt_iters
+SYMBOL 00007040 size=8 vsize=8 StaticDataSymbol 0 __memset_nt_iters
+SYMBOL 00007050 size=4 vsize=4 StaticDataSymbol 0 __scrt_ucrt_dll_is_in_use
+SYMBOL 00007060 size=0 vsize=4 StaticDataSymbol 0 __proc_attached
+SYMBOL 00007068 size=0 vsize=8 StaticDataSymbol 0 _OptionsStorage (in unsigned int64* __local_stdio_printf_options())
+SYMBOL 00007070 size=0 vsize=16 StaticDataSymbol 0 __type_info_root_node
+SYMBOL 00007080 size=0 vsize=8 StaticDataSymbol 0 _OptionsStorage (in unsigned int64* __local_stdio_scanf_options())
+SYMBOL 00007088 size=0 vsize=4 StaticDataSymbol 0 __scrt_current_native_startup_state
+SYMBOL 00007090 size=0 vsize=8 StaticDataSymbol 0 __scrt_native_startup_lock
+SYMBOL 00007098 size=0 vsize=1 StaticDataSymbol 0 is_initialized_as_dll
+SYMBOL 00007099 size=0 vsize=1 StaticDataSymbol 0 module_local_atexit_table_initialized
+SYMBOL 000070a0 size=0 vsize=24 StaticDataSymbol 0 module_local_atexit_table
+SYMBOL 000070b8 size=0 vsize=24 StaticDataSymbol 0 module_local_at_quick_exit_table
+SYMBOL 000070d0 size=0 vsize=4 StaticDataSymbol 0 __scrt_debugger_hook_flag
+SYMBOL 000070d8 size=0 vsize=8 StaticDataSymbol 0 __castguard_check_failure_os_handled_fptr
+SYMBOL 000070e0 size=0 vsize=8 StaticDataSymbol 0 _RTC_ErrorReportFunc
+SYMBOL 000070e8 size=0 vsize=8 StaticDataSymbol 0 _RTC_ErrorReportFuncW
+SYMBOL 000070f0 size=0 vsize=8 StaticDataSymbol 0 mspdb
+SYMBOL 000070f8 size=0 vsize=1 StaticDataSymbol 0 alreadyTried (in HINSTANCE__* GetPdbDll())
+SYMBOL 000070f9 size=0 vsize=1 StaticDataSymbol 0 PDBOK (in int _RTC_GetSrcLine(unsigned char* address, WCHAR* source, unsigned long sourcelen, int* pline, WCHAR* moduleName, unsigned long modulelen))
+SYMBOL 000070fc size=0 vsize=4 StaticDataSymbol 0 __favor
+SYMBOL 00007100 size=0 vsize=152 StaticDataSymbol 0 GS_ExceptionRecord
+SYMBOL 000071a0 size=0 vsize=1232 StaticDataSymbol 0 GS_ContextRecord
+SYMBOL 00007670 size=0 vsize=8 StaticDataSymbol 0 __dyn_tls_init_callback
+SYMBOL 00008000 size=12 vsize=12 PDataSymbol 0 [pdata] SUBROUTINE2(double*, complex*, complex*, bool*, bool*)
+SYMBOL 0000800c size=12 vsize=12 PDataSymbol 0 [pdata] SUBROUTINE3(char[10]*, [OEM_MS_FORTRAN90 defined type 0x5]*, int64)
+SYMBOL 00008018 size=12 vsize=12 PDataSymbol 0 [pdata] SUBROUTINE1(short*, long*, int64[6]*, float[4][4]*, long[-3 .. 2][0 .. 4]*, float[.tmp.0.MATRIX_WITH_PARAM_BOUNDS][.tmp.1.MATRIX_WITH_PARAM_BOUNDS]*)
+SYMBOL 00008024 size=12 vsize=12 PDataSymbol 0 [pdata] _RTC_AllocaHelper(_RTC_ALLOCA_NODE*, unsigned int64, _RTC_ALLOCA_NODE**)
+SYMBOL 00008030 size=12 vsize=12 PDataSymbol 0 [pdata] _RTC_AllocaHelper(_RTC_ALLOCA_NODE*, unsigned int64, _RTC_ALLOCA_NODE**)
+SYMBOL 0000803c size=12 vsize=12 PDataSymbol 0 [pdata] _RTC_AllocaHelper(_RTC_ALLOCA_NODE*, unsigned int64, _RTC_ALLOCA_NODE**)
+SYMBOL 00008048 size=12 vsize=12 PDataSymbol 0 [pdata] _RTC_CheckStackVars(void*, _RTC_framedesc*)
+SYMBOL 00008054 size=12 vsize=12 PDataSymbol 0 [pdata] _RTC_CheckStackVars(void*, _RTC_framedesc*)
+SYMBOL 00008060 size=12 vsize=12 PDataSymbol 0 [pdata] _RTC_CheckStackVars(void*, _RTC_framedesc*)
+SYMBOL 0000806c size=12 vsize=12 PDataSymbol 0 [pdata] _RTC_CheckStackVars2(void*, _RTC_framedesc*, _RTC_ALLOCA_NODE*)
+SYMBOL 00008078 size=12 vsize=12 PDataSymbol 0 [pdata] _RTC_CheckStackVars2(void*, _RTC_framedesc*, _RTC_ALLOCA_NODE*)
+SYMBOL 00008084 size=12 vsize=12 PDataSymbol 0 [pdata] _RTC_CheckStackVars2(void*, _RTC_framedesc*, _RTC_ALLOCA_NODE*)
+SYMBOL 00008090 size=12 vsize=12 PDataSymbol 0 [pdata] _RTC_CheckStackVars2(void*, _RTC_framedesc*, _RTC_ALLOCA_NODE*)
+SYMBOL 0000809c size=12 vsize=12 PDataSymbol 0 [pdata] _RTC_CheckStackVars2(void*, _RTC_framedesc*, _RTC_ALLOCA_NODE*)
+SYMBOL 000080a8 size=12 vsize=12 PDataSymbol 0 [pdata] _RTC_CheckStackVars2(void*, _RTC_framedesc*, _RTC_ALLOCA_NODE*)
+SYMBOL 000080b4 size=12 vsize=12 PDataSymbol 0 [pdata] _RTC_CheckStackVars2(void*, _RTC_framedesc*, _RTC_ALLOCA_NODE*)
+SYMBOL 000080c0 size=12 vsize=12 PDataSymbol 0 [pdata] dllmain_crt_dispatch(HINSTANCE__* const, const unsigned long, void* const)
+SYMBOL 000080cc size=12 vsize=12 PDataSymbol 0 [pdata] dllmain_crt_process_attach(HINSTANCE__* const, void* const)
+SYMBOL 000080d8 size=12 vsize=12 PDataSymbol 0 [pdata] dllmain_crt_process_detach(const bool)
+SYMBOL 000080e4 size=12 vsize=12 PDataSymbol 0 [pdata] dllmain_dispatch(HINSTANCE__* const, const unsigned long, void* const)
+SYMBOL 000080f0 size=12 vsize=12 PDataSymbol 0 [pdata] dllmain_raw(HINSTANCE__* const, const unsigned long, void* const)
+SYMBOL 000080fc size=12 vsize=12 PDataSymbol 0 [pdata] _CRT_INIT(HINSTANCE__* const, const unsigned long, void* const)
+SYMBOL 00008108 size=12 vsize=12 PDataSymbol 0 [pdata] _DllMainCRTStartup(HINSTANCE__* const, const unsigned long, void* const)
+SYMBOL 00008114 size=12 vsize=12 PDataSymbol 0 [pdata] DebuggerProbe(unsigned long)
+SYMBOL 00008120 size=12 vsize=12 PDataSymbol 0 [pdata] DebuggerRuntime(unsigned long, int, void*, const WCHAR*)
+SYMBOL 0000812c size=12 vsize=12 PDataSymbol 0 [pdata] _RTC_AllocaFailure(void*, _RTC_ALLOCA_NODE*, int)
+SYMBOL 00008138 size=12 vsize=12 PDataSymbol 0 [pdata] _RTC_AllocaFailure(void*, _RTC_ALLOCA_NODE*, int)
+SYMBOL 00008144 size=12 vsize=12 PDataSymbol 0 [pdata] _RTC_AllocaFailure(void*, _RTC_ALLOCA_NODE*, int)
+SYMBOL 00008150 size=12 vsize=12 PDataSymbol 0 [pdata] _RTC_StackFailure(void*, const char*)
+SYMBOL 0000815c size=12 vsize=12 PDataSymbol 0 [pdata] _getMemBlockDataString(char*, char*, const char*, unsigned int64)
+SYMBOL 00008168 size=12 vsize=12 PDataSymbol 0 [pdata] _getMemBlockDataString(char*, char*, const char*, unsigned int64)
+SYMBOL 00008174 size=12 vsize=12 PDataSymbol 0 [pdata] _getMemBlockDataString(char*, char*, const char*, unsigned int64)
+SYMBOL 00008180 size=12 vsize=12 PDataSymbol 0 [pdata] failwithmessage(void*, int, int, const char*)
+SYMBOL 0000818c size=12 vsize=12 PDataSymbol 0 [pdata] notify_debugger(const tagEXCEPTION_VISUALCPP_DEBUG_INFO&)
+SYMBOL 00008198 size=12 vsize=12 PDataSymbol 0 [pdata] _RTC_UninitUse(const char*)
+SYMBOL 000081a4 size=12 vsize=12 PDataSymbol 0 [pdata] _vsprintf_s_l(char* const, const unsigned int64, const char* const, __crt_locale_pointers* const, char*)
+SYMBOL 000081b0 size=12 vsize=12 PDataSymbol 0 [pdata] sprintf_s(char* const, const unsigned int64, const char* const, NoType)
+SYMBOL 000081bc size=12 vsize=12 PDataSymbol 0 [pdata] __get_entropy()
+SYMBOL 000081c8 size=12 vsize=12 PDataSymbol 0 [pdata] __security_init_cookie()
+SYMBOL 000081d4 size=12 vsize=12 PDataSymbol 0 [pdata] DllMain(HINSTANCE__*, unsigned long, void*)
+SYMBOL 000081e0 size=12 vsize=12 PDataSymbol 0 [pdata] __scrt_initialize_type_info()
+SYMBOL 000081ec size=12 vsize=12 PDataSymbol 0 [pdata] __scrt_uninitialize_type_info()
+SYMBOL 000081f8 size=12 vsize=12 PDataSymbol 0 [pdata] __scrt_initialize_default_local_stdio_options()
+SYMBOL 00008204 size=12 vsize=12 PDataSymbol 0 [pdata] __scrt_narrow_argv_policy::configure_argv()
+SYMBOL 00008210 size=12 vsize=12 PDataSymbol 0 [pdata] find_pe_section(unsigned char* const, const unsigned int64)
+SYMBOL 0000821c size=12 vsize=12 PDataSymbol 0 [pdata] __scrt_narrow_environment_policy::initialize_environment()
+SYMBOL 00008228 size=12 vsize=12 PDataSymbol 0 [pdata] is_potentially_valid_image_base(void* const)
+SYMBOL 00008234 size=12 vsize=12 PDataSymbol 0 [pdata] __scrt_acquire_startup_lock()
+SYMBOL 00008240 size=12 vsize=12 PDataSymbol 0 [pdata] __scrt_dllmain_after_initialize_c()
+SYMBOL 0000824c size=12 vsize=12 PDataSymbol 0 [pdata] __scrt_dllmain_before_initialize_c()
+SYMBOL 00008258 size=12 vsize=12 PDataSymbol 0 [pdata] __scrt_dllmain_crt_thread_attach()
+SYMBOL 00008264 size=12 vsize=12 PDataSymbol 0 [pdata] __scrt_dllmain_crt_thread_detach()
+SYMBOL 00008270 size=12 vsize=12 PDataSymbol 0 [pdata] __scrt_dllmain_exception_filter(HINSTANCE__*, unsigned long, void*, int (*function)(HINSTANCE__*, unsigned long, void*)*, unsigned long, _EXCEPTION_POINTERS*)
+SYMBOL 0000827c size=12 vsize=12 PDataSymbol 0 [pdata] __scrt_dllmain_uninitialize_c()
+SYMBOL 00008288 size=12 vsize=12 PDataSymbol 0 [pdata] __scrt_dllmain_uninitialize_critical()
+SYMBOL 00008294 size=12 vsize=12 PDataSymbol 0 [pdata] __scrt_initialize_crt(enum __scrt_module_type)
+SYMBOL 000082a0 size=12 vsize=12 PDataSymbol 0 [pdata] __scrt_initialize_onexit_tables(enum __scrt_module_type)
+SYMBOL 000082ac size=12 vsize=12 PDataSymbol 0 [pdata] __scrt_is_nonwritable_in_current_image(const void*)
+SYMBOL 000082b8 size=12 vsize=12 PDataSymbol 0 [pdata] __scrt_release_startup_lock(bool)
+SYMBOL 000082c4 size=12 vsize=12 PDataSymbol 0 [pdata] __scrt_uninitialize_crt(bool, bool)
+SYMBOL 000082d0 size=12 vsize=12 PDataSymbol 0 [pdata] _onexit(int (*function)()*)
+SYMBOL 000082dc size=12 vsize=12 PDataSymbol 0 [pdata] at_quick_exit(void (*function)()*)
+SYMBOL 000082e8 size=12 vsize=12 PDataSymbol 0 [pdata] atexit(void (*function)()*)
+SYMBOL 000082f4 size=12 vsize=12 PDataSymbol 0 [pdata] __scrt_fastfail(unsigned int)
+SYMBOL 00008300 size=12 vsize=12 PDataSymbol 0 [pdata] __scrt_get_show_window_mode()
+SYMBOL 0000830c size=12 vsize=12 PDataSymbol 0 [pdata] __scrt_initialize_mta()
+SYMBOL 00008318 size=12 vsize=12 PDataSymbol 0 [pdata] __scrt_is_managed_app()
+SYMBOL 00008324 size=12 vsize=12 PDataSymbol 0 [pdata] __scrt_set_unhandled_exception_filter()
+SYMBOL 00008330 size=12 vsize=12 PDataSymbol 0 [pdata] __scrt_unhandled_exception_filter(_EXCEPTION_POINTERS* const)
+SYMBOL 0000833c size=12 vsize=12 PDataSymbol 0 [pdata] _RTC_Initialize()
+SYMBOL 00008348 size=12 vsize=12 PDataSymbol 0 [pdata] _RTC_Terminate()
+SYMBOL 00008354 size=12 vsize=12 PDataSymbol 0 [pdata] ReadNoFence64(const volatile int64*)
+SYMBOL 00008360 size=12 vsize=12 PDataSymbol 0 [pdata] ReadPointerNoFence(void* const volatile*)
+SYMBOL 0000836c size=12 vsize=12 PDataSymbol 0 [pdata] __castguard_check_failure_debugbreak(void*)
+SYMBOL 00008378 size=12 vsize=12 PDataSymbol 0 [pdata] __castguard_check_failure_fastfail(void*)
+SYMBOL 00008384 size=12 vsize=12 PDataSymbol 0 [pdata] __castguard_check_failure_os_handled(void*)
+SYMBOL 00008390 size=12 vsize=12 PDataSymbol 0 [pdata] __castguard_compat_check(void*)
+SYMBOL 0000839c size=12 vsize=12 PDataSymbol 0 [pdata] __castguard_slow_path_check_debugbreak(void*, unsigned int64, unsigned int64)
+SYMBOL 000083a8 size=12 vsize=12 PDataSymbol 0 [pdata] __castguard_slow_path_check_fastfail(void*, unsigned int64, unsigned int64)
+SYMBOL 000083b4 size=12 vsize=12 PDataSymbol 0 [pdata] __castguard_slow_path_check_os_handled(void*, unsigned int64, unsigned int64)
+SYMBOL 000083c0 size=12 vsize=12 PDataSymbol 0 [pdata] __castguard_slow_path_compat_check(void*, unsigned int64, unsigned int64)
+SYMBOL 000083cc size=12 vsize=12 PDataSymbol 0 [pdata] _guard_icall_checks_enforced()
+SYMBOL 000083d8 size=12 vsize=12 PDataSymbol 0 [pdata] GetPdbDll()
+SYMBOL 000083e4 size=12 vsize=12 PDataSymbol 0 [pdata] GetPdbDllFromInstallPath()
+SYMBOL 000083f0 size=12 vsize=12 PDataSymbol 0 [pdata] GetPdbDllPathFromFilePath(const WCHAR*, WCHAR*, unsigned int64)
+SYMBOL 000083fc size=12 vsize=12 PDataSymbol 0 [pdata] _RTC_GetSrcLine(unsigned char*, WCHAR*, unsigned long, int*, WCHAR*, unsigned long)
+SYMBOL 00008408 size=12 vsize=12 PDataSymbol 0 [pdata] __GSHandlerCheck(_EXCEPTION_RECORD*, void*, _CONTEXT*, _DISPATCHER_CONTEXT*)
+SYMBOL 00008414 size=12 vsize=12 PDataSymbol 0 [pdata] __GSHandlerCheckCommon(void*, _DISPATCHER_CONTEXT*, _GS_HANDLER_DATA*)
+SYMBOL 00008420 size=12 vsize=12 PDataSymbol 0 [pdata] __security_check_cookie()
+SYMBOL 0000842c size=12 vsize=12 PDataSymbol 0 [pdata] __isa_available_init(NoType)
+SYMBOL 00008438 size=12 vsize=12 PDataSymbol 0 [pdata] __scrt_is_ucrt_dll_in_use(NoType)
+SYMBOL 00008444 size=12 vsize=12 PDataSymbol 0 [pdata] __raise_securityfailure(_EXCEPTION_POINTERS* const)
+SYMBOL 00008450 size=12 vsize=12 PDataSymbol 0 [pdata] __report_gsfailure(unsigned int64)
+SYMBOL 0000845c size=12 vsize=12 PDataSymbol 0 [pdata] __report_rangecheckfailure(NoType)
+SYMBOL 00008468 size=12 vsize=12 PDataSymbol 0 [pdata] __report_securityfailure(unsigned long)
+SYMBOL 00008474 size=12 vsize=12 PDataSymbol 0 [pdata] __report_securityfailureEx(unsigned long, unsigned long, void**)
+SYMBOL 00008480 size=12 vsize=12 PDataSymbol 0 [pdata] capture_current_context(_CONTEXT*)
+SYMBOL 0000848c size=12 vsize=12 PDataSymbol 0 [pdata] capture_previous_context(_CONTEXT*)
+SYMBOL 00008498 size=12 vsize=12 PDataSymbol 0 [pdata] _guard_dispatch_icall_nop
+SYMBOL 000084a4 size=12 vsize=12 PDataSymbol 0 [pdata] _guard_xfg_dispatch_icall_nop
+SYMBOL 000084b0 size=12 vsize=12 PDataSymbol 0 [pdata] `dllmain_crt_process_attach'::`1'::fin$0()
+SYMBOL 000084bc size=12 vsize=12 PDataSymbol 0 [pdata] `dllmain_crt_process_detach'::`1'::fin$0()
+SYMBOL 000084c8 size=12 vsize=12 PDataSymbol 0 [pdata] `dllmain_crt_process_detach'::`1'::fin$1()
+SYMBOL 000084d4 size=12 vsize=12 PDataSymbol 0 [pdata] `dllmain_dispatch'::`1'::filt$0()
+SYMBOL 000084e0 size=12 vsize=12 PDataSymbol 0 [pdata] `notify_debugger'::`1'::filt$0()
+SYMBOL 000084ec size=12 vsize=12 PDataSymbol 0 [pdata] __scrt_is_nonwritable_in_current_image$filt$0()
+SYMBOL 0000a000 size=24 vsize=24 RsrcDirectorySymbol 0 [rsrc directory] L0 (Root)
+SYMBOL 0000a018 size=24 vsize=24 RsrcDirectorySymbol 0 [rsrc directory] L1 (MANIFEST)
+SYMBOL 0000a030 size=24 vsize=24 RsrcDirectorySymbol 0 [rsrc directory] L2 (MANIFEST, #2)
+SYMBOL 0000a048 size=16 vsize=16 RsrcDataEntrySymbol 0 [rsrc data entry] L2 (MANIFEST, #2, English (United States))
+SYMBOL 0000a058 size=346 vsize=346 RsrcDataSymbol 0 Resource '#2' (MANIFEST, English (United States))
+SYMBOL 0000b000 size=104 vsize=104 PEDirectorySymbol 0 [PE Directory] Base Relocation Table

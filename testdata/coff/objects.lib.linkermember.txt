@@ -1,0 +1,60 @@
+
+Dump of file objects.lib
+
+File Type: LIBRARY
+
+Archive member name at 26E: /               
+FFFFFFFFFFFFFFFF time/date
+         uid
+         gid
+       0 mode
+     203 size
+correct header end
+
+    2 offsets
+
+        1      4AE
+        2     39E0
+
+    25 public symbols
+
+        1 ??$twice@H@@YAHH@Z
+        1 ??$twice@_J@@YA_J_J@Z
+        1 ??0Shape@@QEAA@XZ
+        1 ??0Square@@QEAA@H@Z
+        1 ??1Shape@@UEAA@XZ
+        1 ??1Square@@UEAA@XZ
+        1 ??_7Shape@@6B@
+        1 ??_7Square@@6B@
+        1 ??_GShape@@UEAAPEAXI@Z
+        1 ??_GSquare@@UEAAPEAXI@Z
+        1 ??_R0?AUShape@@@8
+        1 ??_R0?AUSquare@@@8
+        1 ??_R1A@?0A@EA@Shape@@8
+        1 ??_R1A@?0A@EA@Square@@8
+        1 ??_R2Shape@@8
+        1 ??_R2Square@@8
+        1 ??_R3Shape@@8
+        1 ??_R3Square@@8
+        1 ??_R4Shape@@6B@
+        1 ??_R4Square@@6B@
+        1 ?area@Square@@UEBAHXZ
+        1 ?counter@@3HA
+        1 ?table@@3PAHA
+        1 ?use_statics@@YAHH@Z
+        1 exported
+
+  Summary
+
+          10 .bss
+         300 .chks64
+          80 .data
+          72 .data$rs
+        1CAC .debug$S
+         E60 .debug$T
+          80 .drectve
+          30 .pdata
+          88 .rdata
+         1B0 .rdata$r
+         220 .text$mn
+          20 .xdata

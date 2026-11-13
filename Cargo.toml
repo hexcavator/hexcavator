@@ -1,22 +1,120 @@
 [workspace]
 resolver = "3"
-members = ["crates/*"]
+members = ["crates/*/*", "apps/*"]
 
 [workspace.package]
 version = "0.0.1"
 edition = "2024"
-rust-version = "1.85"
-license = "MIT"
-authors = ["James McNellis"]
+rust-version = "1.88"
+license = "Apache-2.0"
+authors = ["James McNellis <james@jamesmcnellis.com>"]
 repository = "https://github.com/hexcavator/hexcavator"
-homepage = "https://github.com/hexcavator/hexcavator"
+
+[workspace.dependencies]
+# Third-party (see the dependency policy: only complex, non-core utilities).
+regex = "1.13"
+miniz_oxide = "0.9"
+ruzstd = "0.8"
+# xz (ELF MiniDebugInfo): LZMA2 only; the xz container is ours. No
+# `optimization` (its unsafe code and assembly), no encoder.
+lzma-rust2 = { version = "0.25", default-features = false, features = ["std"] }
+# Cryptography (never ours): hashes and signature verification only.
+sha1 = { version = "0.11", default-features = false, features = ["oid"] }
+sha2 = { version = "0.11", default-features = false, features = ["oid"] }
+md-5 = { version = "0.11", default-features = false, features = ["oid"] }
+rsa = { version = "0.10", default-features = false, features = ["std", "pkcs1v15"] }
+p256 = { version = "0.14", default-features = false, features = ["ecdsa", "std"] }
+p384 = { version = "0.14", default-features = false, features = ["ecdsa", "std"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+memmap2 = "0.9"
+# O_NONBLOCK, to open a path a file names without blocking on a FIFO
+# (already in the build: memmap2's on Unix).
+libc = { version = "0.2", default-features = false }
+bumpalo = "3.20"
+rustc-hash = "2.1"
+hexcavator-core = { path = "crates/base/core" }
+hexcavator-mmap = { path = "crates/base/mmap" }
+hexcavator-mz = { path = "crates/formats/mz" }
+hexcavator-ne = { path = "crates/formats/ne" }
+hexcavator-lx = { path = "crates/formats/lx" }
+hexcavator-archive = { path = "crates/formats/archive" }
+hexcavator-linkerlog = { path = "crates/formats/linkerlog" }
+hexcavator-linkmap = { path = "crates/formats/linkmap" }
+hexcavator-elf = { path = "crates/formats/elf" }
+hexcavator-dwarf = { path = "crates/symbols/dwarf" }
+hexcavator-macho = { path = "crates/formats/macho" }
+hexcavator-wasm = { path = "crates/formats/wasm" }
+hexcavator-wasm-isa = { path = "crates/isa/wasm" }
+hexcavator-pe = { path = "crates/formats/pe" }
+hexcavator-signature = { path = "crates/formats/signature" }
+hexcavator-image = { path = "crates/formats/image" }
+hexcavator-debuginfo = { path = "crates/symbols/debuginfo" }
+hexcavator-size = { path = "crates/analysis/size" }
+hexcavator-x86 = { path = "crates/isa/x86" }
+hexcavator-arm64 = { path = "crates/isa/arm64" }
+hexcavator-arm32 = { path = "crates/isa/arm32" }
+hexcavator-codeview = { path = "crates/symbols/codeview" }
+hexcavator-pdb = { path = "crates/symbols/pdb" }
+hexcavator-demangle = { path = "crates/symbols/demangle" }
+hexcavator-xref = { path = "crates/analysis/xref" }
+hexcavator-fingerprint = { path = "crates/analysis/fingerprint" }
+hexcavator-query = { path = "crates/analysis/query" }
+hexcavator-unwind = { path = "crates/debug/unwind" }
+hexcavator-code = { path = "crates/analysis/code" }
+hexcavator-program = { path = "crates/analysis/program" }
+hexcavator-etl = { path = "crates/formats/etl" }
+hexcavator-etw = { path = "crates/trace/etw" }
+hexcavator-trace = { path = "crates/trace/trace" }
+hexcavator-trace-analysis = { path = "crates/trace/trace-analysis" }
+hexcavator-symbolize = { path = "crates/symbols/symbolize" }
 
 [workspace.lints.rust]
+# `unsafe` is confined to a few audited spots (Pod casts, mmap FFI) that opt in
+# with a crate- or item-level `allow`.
 unsafe_code = "deny"
 unsafe_op_in_unsafe_fn = "deny"
 
 [workspace.lints.clippy]
+# Target-derived sizes must be converted explicitly and checked.
 cast_possible_truncation = "warn"
+# A curated part of the pedantic group: lints that make code clearer and
+# that the code follows (the rest of the group is too noisy to keep
+# clean, or argues with deliberate style: `must_use_candidate`,
+# `missing_errors_doc`, `doc_markdown`, `similar_names`, ...).
+cast_lossless = "warn"
+cloned_instead_of_copied = "warn"
+explicit_into_iter_loop = "warn"
+explicit_iter_loop = "warn"
+if_not_else = "warn"
+implicit_clone = "warn"
+inefficient_to_string = "warn"
+manual_let_else = "warn"
+map_unwrap_or = "warn"
+needless_continue = "warn"
+needless_raw_string_hashes = "warn"
+redundant_closure_for_method_calls = "warn"
+semicolon_if_nothing_returned = "warn"
+uninlined_format_args = "warn"
+unnested_or_patterns = "warn"
+
+# Everything is built optimized, tests included: what they decode runs to
+# millions of instructions and symbols, which unoptimized code is ten times
+# and more slower at. The development profile keeps its checks: debug
+# assertions and integer overflow checks stay on.
+[profile.dev]
+opt-level = 3
+debug-assertions = true
+overflow-checks = true
+# File and line tables only (backtraces, profilers): full debug info for
+# optimized code costs a sixth of a clean build and changes no code. For a
+# debugger's view of variables, build `--profile debugging`.
+debug = "line-tables-only"
+
+# The development profile with full debug information.
+[profile.debugging]
+inherits = "dev"
+debug = "full"
 
 [profile.release]
 debug = true

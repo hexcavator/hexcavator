@@ -1,0 +1,148 @@
+
+File: unwind-x86_64-linux-gnu
+Format: elf64-x86-64
+Arch: x86_64
+AddressSize: 64bit
+LoadName: <Not found>
+Relocations [
+  Section (9) .rela.text {
+    0x2012D7 R_X86_64_PC32 .bss 0xFFC
+    0x2012E9 R_X86_64_PC32 message 0xFFFFFFFFFFFFFFFC
+    0x201353 R_X86_64_PC32 counter 0xFFFFFFFFFFFFFFFC
+    0x201358 R_X86_64_PLT32 compute 0xFFFFFFFFFFFFFFFC
+    0x20135E R_X86_64_PC32 buffer 0xFFFFFFFFFFFFFFFC
+    0x201363 R_X86_64_PLT32 optional_hook 0xFFFFFFFFFFFFFFFC
+    0x20136B R_X86_64_TPOFF32 per_thread 0x0
+    0x201371 R_X86_64_PC32 .bss 0xFFC
+  }
+  Section (13) .rela.debug_info {
+    0x8 R_X86_64_32 .debug_abbrev 0x0
+    0x11 R_X86_64_32 .debug_str_offsets 0x8
+    0x15 R_X86_64_32 .debug_line 0x0
+    0x1F R_X86_64_32 .debug_addr 0x8
+    0x23 R_X86_64_32 .debug_loclists 0xC
+    0xB7 R_X86_64_DTPOFF64 per_thread 0x0
+  }
+  Section (15) .rela.debug_str_offsets {
+    0x8 R_X86_64_32 .debug_str 0x13
+    0xC R_X86_64_32 .debug_str 0x14
+    0x10 R_X86_64_32 .debug_str 0x1E
+    0x14 R_X86_64_32 .debug_str 0xC
+    0x18 R_X86_64_32 .debug_str 0x20
+    0x1C R_X86_64_32 .debug_str 0x24
+    0x20 R_X86_64_32 .debug_str 0x2
+    0x24 R_X86_64_32 .debug_str 0x5B
+    0x28 R_X86_64_32 .debug_str 0x26
+    0x2C R_X86_64_32 .debug_str 0x66
+    0x30 R_X86_64_32 .debug_str 0x33
+    0x34 R_X86_64_32 .debug_str 0x6D
+    0x38 R_X86_64_32 .debug_str 0x53
+    0x3C R_X86_64_32 .debug_str 0x81
+    0x40 R_X86_64_32 .debug_str 0x38
+    0x44 R_X86_64_32 .debug_str 0x4C
+    0x48 R_X86_64_32 .debug_str 0xA
+    0x4C R_X86_64_32 .debug_str 0x46
+    0x50 R_X86_64_32 .debug_str 0x0
+  }
+  Section (18) .rela.debug_addr {
+    0x8 R_X86_64_64 .text 0x0
+    0x10 R_X86_64_64 .text 0x32
+    0x18 R_X86_64_64 .text 0x70
+    0x20 R_X86_64_64 .text 0x80
+    0x28 R_X86_64_64 .text 0x8C
+    0x30 R_X86_64_64 .text 0x97
+    0x38 R_X86_64_64 counter 0x0
+    0x40 R_X86_64_64 .bss 0x1000
+    0x48 R_X86_64_64 buffer 0x0
+    0x50 R_X86_64_64 .rodata 0x0
+  }
+  Section (19) .rela.eh_frame {
+    0x200270 R_X86_64_PC32 .text 0x0
+    0x200284 R_X86_64_PC32 .text 0x70
+    0x200298 R_X86_64_PC32 .text 0x80
+  }
+  Section (21) .rela.debug_line {
+    0x22 R_X86_64_32 .debug_line_str 0x0
+    0x2E R_X86_64_32 .debug_line_str 0x2
+    0x4B R_X86_64_64 .text 0x0
+  }
+]
+EHFrameHeader {
+  Address: 0x2002ac
+  Offset: 0x2ac
+  Size: 0x24
+  Corresponding Section: .eh_frame_hdr
+  Header {
+    version: 1
+    eh_frame_ptr_enc: 0x1b
+    fde_count_enc: 0x3
+    table_enc: 0x3b
+    eh_frame_ptr: 0x200250
+    fde_count: 3
+    entry 0 {
+      initial_location: 0x2012d0
+      address: 0x200268
+    }
+    entry 1 {
+      initial_location: 0x201340
+      address: 0x20027c
+    }
+    entry 2 {
+      initial_location: 0x201350
+      address: 0x200290
+    }
+  }
+}
+.eh_frame section at offset 0x250 address 0x200250:
+  [0x200250] CIE length=20
+    version: 1
+    augmentation: zR
+    code_alignment_factor: 1
+    data_alignment_factor: -8
+    return_address_register: 16
+
+    Program:
+      DW_CFA_def_cfa: reg7 +8
+      DW_CFA_offset: reg16 -8
+      DW_CFA_nop:
+      DW_CFA_nop:
+
+  [0x200268] FDE length=16 cie=[0x200250]
+    initial_location: 0x2012d0
+    address_range: 0x70 (end : 0x201340)
+
+    Program:
+      DW_CFA_nop:
+      DW_CFA_nop:
+      DW_CFA_nop:
+
+  [0x20027c] FDE length=16 cie=[0x200250]
+    initial_location: 0x201340
+    address_range: 0x3 (end : 0x201343)
+
+    Program:
+      DW_CFA_nop:
+      DW_CFA_nop:
+      DW_CFA_nop:
+
+  [0x200290] FDE length=20 cie=[0x200250]
+    initial_location: 0x201350
+    address_range: 0x32 (end : 0x201382)
+
+    Program:
+      DW_CFA_advance_loc: 1 to 0x201351
+      DW_CFA_def_cfa_offset: +16
+      DW_CFA_nop:
+      DW_CFA_nop:
+      DW_CFA_nop:
+      DW_CFA_nop:
+
+  [0x2002a8] CIE length=0
+    version: 0
+    augmentation: 
+    code_alignment_factor: 0
+    data_alignment_factor: 0
+    return_address_register: 0
+
+    Program:
+

@@ -1,0 +1,30 @@
+[package]
+name = "hexcavator-unwind"
+description = "Virtual stack unwinders: recover a caller's registers from a frame's registers, its stack, and the image's unwind data"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license = "Apache-2.0 AND Apache-2.0 WITH LLVM-exception"
+authors.workspace = true
+repository.workspace = true
+
+# (No unit tests: their build of the crate would be wasted. The hexcavator
+# tests check that a target marked so has none.)
+[lib]
+test = false
+
+[dependencies]
+hexcavator-core.workspace = true
+hexcavator-dwarf.workspace = true
+hexcavator-pe.workspace = true
+
+[lints]
+workspace = true
+
+[dev-dependencies]
+hexcavator-codeview.workspace = true
+hexcavator-x86.workspace = true
+hexcavator-arm64.workspace = true
+hexcavator-arm32.workspace = true
+hexcavator-pdb.workspace = true
+hexcavator-elf.workspace = true

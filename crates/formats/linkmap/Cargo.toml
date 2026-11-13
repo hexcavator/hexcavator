@@ -1,0 +1,14 @@
+[package]
+name = "hexcavator-linkmap"
+description = "Linker map files (MSVC link /MAP so far): COFF groups, and every public and static symbol with its object and library"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+
+[lints]
+workspace = true

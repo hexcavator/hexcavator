@@ -1,0 +1,2 @@
+reference	extracted	symbol
+main.o	lib.a(used.o)	used_helper

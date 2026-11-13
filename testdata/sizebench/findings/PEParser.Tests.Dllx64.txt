@@ -1,0 +1,2 @@
+WASTEFUL Dllx64_BaseClass wasted=16 perslot=16 | unoverridden:ASecondVirtualFunction()
+WASTEFUL std::exception wasted=56 perslot=56 | unoverridden:what() const

@@ -1,0 +1,561 @@
+
+File: program-arm64
+Format: Mach-O arm64
+Arch: aarch64
+AddressSize: 64bit
+MachHeader {
+  Magic: Magic64 (0xFEEDFACF)
+  CpuType: Arm64 (0x100000C)
+  CpuSubType: CPU_SUBTYPE_ARM64_ALL (0x0)
+  CpuCapabilities: 0x0
+  FileType: Executable (0x2)
+  NumOfLoadCommands: 15
+  SizeOfLoadCommands: 1144
+  Flags [ (0xA00085)
+    MH_DYLDLINK (0x4)
+    MH_HAS_TLV_DESCRIPTORS (0x800000)
+    MH_NOUNDEFS (0x1)
+    MH_PIE (0x200000)
+    MH_TWOLEVEL (0x80)
+  ]
+  Reserved: 0x0
+}
+Sections [
+  Section {
+    Index: 0
+    Name: __text (5F 5F 74 65 78 74 00 00 00 00 00 00 00 00 00 00)
+    Segment: __TEXT (5F 5F 54 45 58 54 00 00 00 00 00 00 00 00 00 00)
+    Address: 0x1000004B8
+    Size: 0x130
+    Offset: 1208
+    Alignment: 2
+    RelocationOffset: 0x0
+    RelocationCount: 0
+    Type: Regular (0x0)
+    Attributes [ (0x800004)
+      PureInstructions (0x800000)
+      SomeInstructions (0x4)
+    ]
+    Reserved1: 0x0
+    Reserved2: 0x0
+    Reserved3: 0x0
+  }
+  Section {
+    Index: 1
+    Name: __cstring (5F 5F 63 73 74 72 69 6E 67 00 00 00 00 00 00 00)
+    Segment: __TEXT (5F 5F 54 45 58 54 00 00 00 00 00 00 00 00 00 00)
+    Address: 0x1000005E8
+    Size: 0x10
+    Offset: 1512
+    Alignment: 0
+    RelocationOffset: 0x0
+    RelocationCount: 0
+    Type: CStringLiterals (0x2)
+    Attributes [ (0x0)
+    ]
+    Reserved1: 0x0
+    Reserved2: 0x0
+    Reserved3: 0x0
+  }
+  Section {
+    Index: 2
+    Name: __data (5F 5F 64 61 74 61 00 00 00 00 00 00 00 00 00 00)
+    Segment: __DATA (5F 5F 44 41 54 41 00 00 00 00 00 00 00 00 00 00)
+    Address: 0x100004000
+    Size: 0x84
+    Offset: 16384
+    Alignment: 2
+    RelocationOffset: 0x0
+    RelocationCount: 0
+    Type: Regular (0x0)
+    Attributes [ (0x0)
+    ]
+    Reserved1: 0x0
+    Reserved2: 0x0
+    Reserved3: 0x0
+  }
+  Section {
+    Index: 3
+    Name: __thread_vars (5F 5F 74 68 72 65 61 64 5F 76 61 72 73 00 00 00)
+    Segment: __DATA (5F 5F 44 41 54 41 00 00 00 00 00 00 00 00 00 00)
+    Address: 0x100004088
+    Size: 0x18
+    Offset: 16520
+    Alignment: 3
+    RelocationOffset: 0x0
+    RelocationCount: 0
+    Type: ThreadLocalVariables (0x13)
+    Attributes [ (0x0)
+    ]
+    Reserved1: 0x0
+    Reserved2: 0x0
+    Reserved3: 0x0
+  }
+  Section {
+    Index: 4
+    Name: __thread_data (5F 5F 74 68 72 65 61 64 5F 64 61 74 61 00 00 00)
+    Segment: __DATA (5F 5F 44 41 54 41 00 00 00 00 00 00 00 00 00 00)
+    Address: 0x1000040A0
+    Size: 0x4
+    Offset: 16544
+    Alignment: 2
+    RelocationOffset: 0x0
+    RelocationCount: 0
+    Type: ThreadLocalRegular (0x11)
+    Attributes [ (0x0)
+    ]
+    Reserved1: 0x0
+    Reserved2: 0x0
+    Reserved3: 0x0
+  }
+  Section {
+    Index: 5
+    Name: __common (5F 5F 63 6F 6D 6D 6F 6E 00 00 00 00 00 00 00 00)
+    Segment: __DATA (5F 5F 44 41 54 41 00 00 00 00 00 00 00 00 00 00)
+    Address: 0x1000040A4
+    Size: 0x1000
+    Offset: 0
+    Alignment: 0
+    RelocationOffset: 0x0
+    RelocationCount: 0
+    Type: ZeroFill (0x1)
+    Attributes [ (0x0)
+    ]
+    Reserved1: 0x0
+    Reserved2: 0x0
+    Reserved3: 0x0
+  }
+  Section {
+    Index: 6
+    Name: __bss (5F 5F 62 73 73 00 00 00 00 00 00 00 00 00 00 00)
+    Segment: __DATA (5F 5F 44 41 54 41 00 00 00 00 00 00 00 00 00 00)
+    Address: 0x1000050A4
+    Size: 0x4
+    Offset: 0
+    Alignment: 2
+    RelocationOffset: 0x0
+    RelocationCount: 0
+    Type: ZeroFill (0x1)
+    Attributes [ (0x0)
+    ]
+    Reserved1: 0x0
+    Reserved2: 0x0
+    Reserved3: 0x0
+  }
+]
+Symbols [
+  Symbol {
+    Name: .\program.c (165)
+    Type: SymDebugTable (0x64)
+    Section:  (0x0)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x0
+  }
+  Symbol {
+    Name: program-arm64.o (177)
+    Type: SymDebugTable (0x66)
+    Section:  (0x0)
+    RefType: ReferenceFlagUndefinedLazy (0x1)
+    Flags [ (0x0)
+    ]
+    Value: 0x0
+  }
+  Symbol {
+    Name: _hidden_state (2)
+    Type: SymDebugTable (0x26)
+    Section:  (0x7)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x1000050A4
+  }
+  Symbol {
+    Name: _message (16)
+    Type: SymDebugTable (0x26)
+    Section:  (0x2)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x1000005E8
+  }
+  Symbol {
+    Name: _per_thread$tlv$init (25)
+    Type: SymDebugTable (0x26)
+    Section:  (0x5)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x1000040A0
+  }
+  Symbol {
+    Name: _start (46)
+    Type: SymDebugTable (0x24)
+    Section:  (0x1)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x10000052C
+  }
+  Symbol {
+    Name:  (1)
+    Type: SymDebugTable (0x24)
+    Section:  (0x0)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x50
+  }
+  Symbol {
+    Name: __tlv_bootstrap (53)
+    Type: SymDebugTable (0x24)
+    Section:  (0x1)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x1000004B8
+  }
+  Symbol {
+    Name:  (1)
+    Type: SymDebugTable (0x24)
+    Section:  (0x0)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x4
+  }
+  Symbol {
+    Name: _compute (69)
+    Type: SymDebugTable (0x24)
+    Section:  (0x1)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x1000004BC
+  }
+  Symbol {
+    Name:  (1)
+    Type: SymDebugTable (0x24)
+    Section:  (0x0)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x70
+  }
+  Symbol {
+    Name: _counter (78)
+    Type: SymDebugTable (0x20)
+    Section:  (0x3)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x100004000
+  }
+  Symbol {
+    Name: _per_thread (87)
+    Type: SymDebugTable (0x20)
+    Section:  (0x4)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x100004088
+  }
+  Symbol {
+    Name: _buffer (99)
+    Type: SymDebugTable (0x20)
+    Section:  (0x6)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x1000040A4
+  }
+  Symbol {
+    Name:  (1)
+    Type: SymDebugTable (0x64)
+    Section:  (0x1)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x0
+  }
+  Symbol {
+    Name: .\..\elf/second.c (193)
+    Type: SymDebugTable (0x64)
+    Section:  (0x0)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x0
+  }
+  Symbol {
+    Name: second-arm64.o (211)
+    Type: SymDebugTable (0x66)
+    Section:  (0x0)
+    RefType: ReferenceFlagUndefinedLazy (0x1)
+    Flags [ (0x0)
+    ]
+    Value: 0x0
+  }
+  Symbol {
+    Name: _second_len (107)
+    Type: SymDebugTable (0x24)
+    Section:  (0x1)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x1000005BC
+  }
+  Symbol {
+    Name:  (1)
+    Type: SymDebugTable (0x24)
+    Section:  (0x0)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x2C
+  }
+  Symbol {
+    Name: _second_sum (119)
+    Type: SymDebugTable (0x24)
+    Section:  (0x1)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x10000057C
+  }
+  Symbol {
+    Name:  (1)
+    Type: SymDebugTable (0x24)
+    Section:  (0x0)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x40
+  }
+  Symbol {
+    Name: _second_table (131)
+    Type: SymDebugTable (0x20)
+    Section:  (0x3)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x100004004
+  }
+  Symbol {
+    Name:  (1)
+    Type: SymDebugTable (0x64)
+    Section:  (0x1)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x0
+  }
+  Symbol {
+    Name: _hidden_state (2)
+    Type: Section (0xE)
+    Section: __bss (0x7)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x1000050A4
+  }
+  Symbol {
+    Name: _message (16)
+    Type: Section (0xE)
+    Section: __cstring (0x2)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x1000005E8
+  }
+  Symbol {
+    Name: _per_thread$tlv$init (25)
+    Type: Section (0xE)
+    Section: __thread_data (0x5)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x1000040A0
+  }
+  Symbol {
+    Name: _start (46)
+    Extern
+    Type: Section (0xE)
+    Section: __text (0x1)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x10000052C
+  }
+  Symbol {
+    Name: __tlv_bootstrap (53)
+    Extern
+    Type: Section (0xE)
+    Section: __text (0x1)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x1000004B8
+  }
+  Symbol {
+    Name: _compute (69)
+    Extern
+    Type: Section (0xE)
+    Section: __text (0x1)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x1000004BC
+  }
+  Symbol {
+    Name: _counter (78)
+    Extern
+    Type: Section (0xE)
+    Section: __data (0x3)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x100004000
+  }
+  Symbol {
+    Name: _per_thread (87)
+    Extern
+    Type: Section (0xE)
+    Section: __thread_vars (0x4)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x100004088
+  }
+  Symbol {
+    Name: _buffer (99)
+    Extern
+    Type: Section (0xE)
+    Section: __common (0x6)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x1000040A4
+  }
+  Symbol {
+    Name: _second_len (107)
+    Extern
+    Type: Section (0xE)
+    Section: __text (0x1)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x1000005BC
+  }
+  Symbol {
+    Name: _second_sum (119)
+    Extern
+    Type: Section (0xE)
+    Section: __text (0x1)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x10000057C
+  }
+  Symbol {
+    Name: _second_table (131)
+    Extern
+    Type: Section (0xE)
+    Section: __data (0x3)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x0)
+    ]
+    Value: 0x100004004
+  }
+  Symbol {
+    Name: __mh_execute_header (145)
+    Extern
+    Type: Section (0xE)
+    Section: __text (0x1)
+    RefType: UndefinedNonLazy (0x0)
+    Flags [ (0x10)
+      ReferencedDynamically (0x10)
+    ]
+    Value: 0x100000000
+  }
+]
+Segment {
+  Cmd: LC_SEGMENT_64
+  Name: __PAGEZERO
+  Size: 72
+  vmaddr: 0x0
+  vmsize: 0x100000000
+  fileoff: 0
+  filesize: 0
+  maxprot: ---
+  initprot: ---
+  nsects: 0
+  flags: 0x0
+}
+Segment {
+  Cmd: LC_SEGMENT_64
+  Name: __TEXT
+  Size: 232
+  vmaddr: 0x100000000
+  vmsize: 0x4000
+  fileoff: 0
+  filesize: 16384
+  maxprot: r-x
+  initprot: r-x
+  nsects: 2
+  flags: 0x0
+}
+Segment {
+  Cmd: LC_SEGMENT_64
+  Name: __DATA
+  Size: 472
+  vmaddr: 0x100004000
+  vmsize: 0x4000
+  fileoff: 16384
+  filesize: 16384
+  maxprot: rw-
+  initprot: rw-
+  nsects: 5
+  flags: 0x0
+}
+Segment {
+  Cmd: LC_SEGMENT_64
+  Name: __LINKEDIT
+  Size: 72
+  vmaddr: 0x100008000
+  vmsize: 0x5C0
+  fileoff: 32768
+  filesize: 1472
+  maxprot: r--
+  initprot: r--
+  nsects: 0
+  flags: 0x0
+}
+MinVersion {
+  Cmd: LC_BUILD_VERSION
+  Size: 32
+  Platform: macos
+  Version: 13.0
+  SDK: 13.0
+}
+Dysymtab {
+  ilocalsym: 0
+  nlocalsym: 26
+  iextdefsym: 26
+  nextdefsym: 10
+  iundefsym: 36
+  nundefsym: 0
+  tocoff: 0
+  ntoc: 0
+  modtaboff: 0
+  nmodtab: 0
+  extrefsymoff: 0
+  nextrefsyms: 0
+  indirectsymoff: 0
+  nindirectsyms: 0
+  extreloff: 0
+  nextrel: 0
+  locreloff: 0
+  nlocrel: 0
+}

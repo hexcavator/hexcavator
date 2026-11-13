@@ -1,0 +1,72 @@
+## (anonymous) @0x200224
+array "" "const char[10]" @0x0+10 = "\"%s %d %d\\n\""
+  char "[0]" "const char" @0x0+1 = "37 '%'"
+  char "[1]" "const char" @0x1+1 = "115 's'"
+  char "[2]" "const char" @0x2+1 = "32 ' '"
+  char "[3]" "const char" @0x3+1 = "37 '%'"
+  char "[4]" "const char" @0x4+1 = "100 'd'"
+  char "[5]" "const char" @0x5+1 = "32 ' '"
+  char "[6]" "const char" @0x6+1 = "37 '%'"
+  char "[7]" "const char" @0x7+1 = "100 'd'"
+  char "[8]" "const char" @0x8+1 = "10 '\\n'"
+  char "[9]" "const char" @0x9+1 = "0 '\\0'"
+## (anonymous) @0x20022e
+array "" "const char[4]" @0x0+4 = "\"%d\\n\""
+  char "[0]" "const char" @0x0+1 = "37 '%'"
+  char "[1]" "const char" @0x1+1 = "100 'd'"
+  char "[2]" "const char" @0x2+1 = "10 '\\n'"
+  char "[3]" "const char" @0x3+1 = "0 '\\0'"
+## (anonymous) @0x200232
+array "" "const char[6]" @0x0+6 = "\"hello\""
+  char "[0]" "const char" @0x0+1 = "104 'h'"
+  char "[1]" "const char" @0x1+1 = "101 'e'"
+  char "[2]" "const char" @0x2+1 = "108 'l'"
+  char "[3]" "const char" @0x3+1 = "108 'l'"
+  char "[4]" "const char" @0x4+1 = "111 'o'"
+  char "[5]" "const char" @0x5+1 = "0 '\\0'"
+## Derived::__clang_vtable @0x2023f8
+pointer "" "void *" @0x0+8 = "nullptr"
+## Base::__clang_vtable @0x202440
+pointer "" "void *" @0x0+8 = "nullptr"
+## Diamond::__clang_vtable @0x202460
+pointer "" "void *" @0x0+8 = "0xc" -> 0xc
+## g_sample @0x2034b0
+struct "" "Sample" @0x0+72
+  struct "padded" "Padded" @0x0+12
+    char "a" "char" @0x0+1 = "97 'a'"
+    padding "" "" @0x1+3 = "00 00 00"
+    integer "b" "int" @0x4+4 = "42"
+    char "c" "char" @0x8+1 = "99 'c'"
+    padding "" "" @0x9+3 = "00 00 00"
+  struct "bits" "Bits" @0xc+8
+    integer "a" "unsigned int" @0xc+4 bits 0:3 = "5"
+    integer "b" "unsigned int" @0xc+4 bits 3:5 = "17"
+    integer "c" "int" @0x10+4 = "-3"
+  enum "color" "Color" @0x14+4 = "Green (2)"
+  float "ratio" "double" @0x18+8 = "1.5"
+  pointer "text" "const char *" @0x20+8 = "0x200232" -> 0x200232
+  array "name" "char[8]" @0x28+8 = "\"abc\""
+    char "[0]" "char" @0x28+1 = "97 'a'"
+    char "[1]" "char" @0x29+1 = "98 'b'"
+    char "[2]" "char" @0x2a+1 = "99 'c'"
+    char "[3]" "char" @0x2b+1 = "0 '\\0'"
+    char "[4]" "char" @0x2c+1 = "0 '\\0'"
+    char "[5]" "char" @0x2d+1 = "0 '\\0'"
+    char "[6]" "char" @0x2e+1 = "0 '\\0'"
+    char "[7]" "char" @0x2f+1 = "0 '\\0'"
+  array "numbers" "int[3]" @0x30+12
+    integer "[0]" "int" @0x30+4 = "1"
+    integer "[1]" "int" @0x34+4 = "-2"
+    integer "[2]" "int" @0x38+4 = "3"
+  bool "flag" "bool" @0x3c+1 = "true"
+  padding "" "" @0x3d+3 = "00 00 00"
+  union "either" "Either" @0x40+8
+    char "c" "char" @0x40+1 = "101 'e'"
+    float "d" "double" @0x40+8 = "5e-322"
+## g_derived @0x2034f8
+struct "" "Derived" @0x0+16
+  base "Base" "Base" @0x0+16
+    vfptr "vfptr" "" @0x0+8 = "0x202408" -> 0x202408
+    integer "x" "int" @0x8+4 = "1"
+    padding "" "" @0xc+4 = "02 00 00 00"
+  char "y" "char" @0xc+1 = "2"

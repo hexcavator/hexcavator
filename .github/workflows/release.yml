@@ -1,0 +1,303 @@
+name: Release
+
+# hexc for each platform (Windows signed, with Azure Artifact Signing), and
+# the VS Code extension packaged for each with its hexc inside.
+#
+# - A tag v<version> (the version in Cargo.toml and in the extension's
+#   package.json) builds, tests, signs, and packages, then makes a draft
+#   GitHub release; publishing the extension to the Marketplace waits for
+#   approval (the marketplace environment).
+# - Run by hand (Actions > Release > Run workflow), it builds, tests, and
+#   packages, unsigned, as workflow artifacts only: a dry run.
+#
+# Signing happens only in the release environment (protect it: tags only,
+# with a required reviewer). Windows signs through OIDC (no secrets); see
+# the variables and secrets each job reads.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+  # (4.0.0 brought `publish --oidc`; 4.1.0 matched the Marketplace's
+  # token exchange.)
+  VSCE: "@vscode/vsce@4.1.0"
+
+jobs:
+  # A tag must name the version being built: hexc's and the extension's.
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - id: v
+        shell: bash
+        run: |
+          extension=$(node -p "require('./editors/vscode/hexcavator/package.json').version")
+          cargo=$(sed -n 's/^version = "\(.*\)"$/\1/p' Cargo.toml | head -n 1)
+          echo "extension $extension, hexc $cargo"
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            tag=${GITHUB_REF_NAME#v}
+            if [[ "$tag" != "$extension" || "$tag" != "$cargo" ]]; then
+              echo "::error::tag $GITHUB_REF_NAME, but package.json says $extension and Cargo.toml $cargo"
+              exit 1
+            fi
+          fi
+          echo "version=$extension" >> "$GITHUB_OUTPUT"
+
+  # Each platform built natively, its tests run there first (CI runs
+  # them on Windows and Linux x64 only), and its debug information kept
+  # apart from the program.
+  build:
+    needs: version
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: windows-x64, vscode: win32-x64, os: windows-latest, exe: .exe }
+          - { name: windows-arm64, vscode: win32-arm64, os: windows-11-arm, exe: .exe }
+          - { name: macos-arm64, vscode: darwin-arm64, os: macos-15, exe: "" }
+          # (Ubuntu 22.04: glibc 2.35, so that hexc runs on older systems.)
+          - { name: linux-x64, vscode: linux-x64, os: ubuntu-22.04, exe: "" }
+          - { name: linux-arm64, vscode: linux-arm64, os: ubuntu-22.04-arm, exe: "" }
+    runs-on: ${{ matrix.os }}
+    env:
+      MACOSX_DEPLOYMENT_TARGET: "11.0"
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Rust
+        shell: bash
+        run: |
+          if ! command -v rustup >/dev/null; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
+            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          fi
+      - run: rustup toolchain install stable --profile minimal
+      - run: cargo xtask test
+      - name: Build
+        shell: bash
+        run: |
+          # Windows: the C runtime linked in, so that hexc needs no
+          # Visual C++ redistributable.
+          if [[ "$RUNNER_OS" == Windows ]]; then
+            export RUSTFLAGS="-C target-feature=+crt-static"
+          fi
+          # macOS: the debug information in a dSYM beside the program.
+          if [[ "$RUNNER_OS" == macOS ]]; then
+            export CARGO_PROFILE_RELEASE_SPLIT_DEBUGINFO=packed
+          fi
+          cargo build --release --locked -p hexcavator
+      - name: Stage
+        shell: bash
+        run: |
+          mkdir -p out/bin out/symbols
+          cp "target/release/hexc${{ matrix.exe }}" out/bin/
+          case "$RUNNER_OS" in
+            Windows) cp target/release/hexc.pdb out/symbols/ ;;
+            macOS) cp -R target/release/hexc.dSYM out/symbols/ ;;
+            Linux)
+              objcopy --only-keep-debug out/bin/hexc out/symbols/hexc.debug
+              objcopy --strip-debug --add-gnu-debuglink=out/symbols/hexc.debug out/bin/hexc
+              ;;
+          esac
+          "out/bin/hexc${{ matrix.exe }}" version
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: hexc-${{ matrix.vscode }}
+          path: out/
+          if-no-files-found: error
+
+  # Both Windows programs, signed on x64 (the signing action doesn't run
+  # on ARM64 runners; it signs ARM64 programs all the same). Variables:
+  # AZURE_CLIENT_ID and AZURE_TENANT_ID (an app registration with a
+  # federated credential for this repository's release environment and
+  # the Artifact Signing Certificate Profile Signer role on the account;
+  # it needs no access to the subscription itself), and
+  # ARTIFACT_SIGNING_ENDPOINT, ARTIFACT_SIGNING_ACCOUNT,
+  # ARTIFACT_SIGNING_PROFILE.
+  sign-windows:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: windows-latest
+    environment: release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: hexc-win32-x64
+          path: x64
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: hexc-win32-arm64
+          path: arm64
+      - uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3.1.0
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          allow-no-subscriptions: true
+      - uses: azure/artifact-signing-action@c7ab2a863ab5f9a846ddb8265964877ef296ee82 # v2.0.0
+        with:
+          endpoint: ${{ vars.ARTIFACT_SIGNING_ENDPOINT }}
+          signing-account-name: ${{ vars.ARTIFACT_SIGNING_ACCOUNT }}
+          certificate-profile-name: ${{ vars.ARTIFACT_SIGNING_PROFILE }}
+          files: |
+            ${{ github.workspace }}\x64\bin\hexc.exe
+            ${{ github.workspace }}\arm64\bin\hexc.exe
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+          description: Hexcavator
+          description-url: ${{ github.server_url }}/${{ github.repository }}
+          # (Only the login above: no time spent trying other kinds.)
+          exclude-environment-credential: true
+          exclude-workload-identity-credential: true
+          exclude-managed-identity-credential: true
+          exclude-shared-token-cache-credential: true
+          exclude-visual-studio-credential: true
+          exclude-visual-studio-code-credential: true
+          exclude-azure-cli-credential: false
+          exclude-azure-powershell-credential: true
+          exclude-azure-developer-cli-credential: true
+          exclude-interactive-browser-credential: true
+      # hexc checks its own signatures (and fails unless both verify).
+      - run: x64\bin\hexc.exe signature x64\bin\hexc.exe arm64\bin\hexc.exe
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: hexc-win32-x64
+          path: x64/
+          overwrite: true
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: hexc-win32-arm64
+          path: arm64/
+          overwrite: true
+
+  # (macOS: not signed yet, but for the linker's ad hoc signature, which
+  # Apple silicon requires. Developer ID signing and notarization come
+  # once the Apple developer account is ready.)
+
+  # For each platform: the VSIX (the extension with that platform's
+  # hexc), hexc alone (with its license and notices), and its symbols.
+  package:
+    needs: [version, build, sign-windows]
+    # (After signing on a tag; on a dry run, the signing jobs are skipped.)
+    if: ${{ !cancelled() && !failure() }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: windows-x64, vscode: win32-x64 }
+          - { name: windows-arm64, vscode: win32-arm64 }
+          - { name: macos-arm64, vscode: darwin-arm64 }
+          - { name: linux-x64, vscode: linux-x64 }
+          - { name: linux-arm64, vscode: linux-arm64 }
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: hexc-${{ matrix.vscode }}
+          path: hexc
+      - name: VSIX
+        run: |
+          chmod +x hexc/bin/*
+          ext=editors/vscode/hexcavator
+          mkdir -p "$ext/bin" dist
+          cp hexc/bin/* "$ext/bin/"
+          cp LICENSE NOTICE apps/hexcavator/THIRD_PARTY_NOTICES.txt "$ext/"
+          # The repository the Marketplace links to: this one.
+          node -e '
+            const fs = require("fs");
+            const file = process.argv[1];
+            const p = JSON.parse(fs.readFileSync(file, "utf8"));
+            p.repository = { type: "git", url: process.argv[2] };
+            fs.writeFileSync(file, JSON.stringify(p, null, 2) + "\n");
+          ' "$ext/package.json" "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+          (cd "$ext" && npx --yes "$VSCE" package --no-dependencies --target ${{ matrix.vscode }} \
+            --out "$GITHUB_WORKSPACE/dist/hexcavator-$VERSION-${{ matrix.name }}.vsix")
+      - name: hexc and its symbols
+        run: |
+          base="hexc-$VERSION-${{ matrix.name }}"
+          mkdir -p "$base" "$base-symbols"
+          cp hexc/bin/* LICENSE NOTICE apps/hexcavator/THIRD_PARTY_NOTICES.txt "$base/"
+          cp -R hexc/symbols/. "$base-symbols/"
+          if [[ "${{ matrix.vscode }}" == win32-* ]]; then
+            zip -qr "dist/$base.zip" "$base"
+            zip -qr "dist/$base-symbols.zip" "$base-symbols"
+          else
+            tar -czf "dist/$base.tar.gz" "$base"
+            tar -czf "dist/$base-symbols.tar.gz" "$base-symbols"
+          fi
+          ls -l dist
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: dist-${{ matrix.name }}
+          path: dist/
+          if-no-files-found: error
+
+  # A draft release with everything, its checksums, and (once the
+  # repository is public) build provenance attestations.
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: dist-*
+          path: dist
+          merge-multiple: true
+      - run: cd dist && sha256sum * > SHA256SUMS && cat SHA256SUMS
+      # (Attestations need a public repository, or GitHub Enterprise Cloud.)
+      - if: github.event.repository.visibility == 'public'
+        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2.4.0
+        with:
+          subject-path: dist/*
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh release create "$GITHUB_REF_NAME" dist/* --draft --verify-tag --title "Hexcavator $GITHUB_REF_NAME" --generate-notes
+
+  # The VSIXs to the Visual Studio Marketplace, through the Marketplace's
+  # trusted publishing (OIDC; no token kept here). Set up a trusted
+  # publishing policy for this repository and workflow on the publisher
+  # first, and give the marketplace environment a required reviewer.
+  publish-marketplace:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: release
+    runs-on: ubuntu-latest
+    environment: marketplace
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: dist-*
+          path: dist
+          merge-multiple: true
+      - run: npx --yes "$VSCE" publish --oidc --packagePath dist/*.vsix

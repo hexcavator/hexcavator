@@ -1,0 +1,87 @@
+
+File: consumer.so
+Format: elf64-x86-64
+Arch: x86_64
+AddressSize: 64bit
+LoadName: <Not found>
+DynamicSymbols [
+  Symbol {
+    Name:  (0)
+    Value: 0x0
+    Size: 0
+    Binding: Local (0x0)
+    Type: None (0x0)
+    Other: 0
+    Section: Undefined (0x0)
+  }
+  Symbol {
+    Name: far@VERS_2 (5)
+    Value: 0x0
+    Size: 0
+    Binding: Global (0x1)
+    Type: Object (0x1)
+    Other: 0
+    Section: Undefined (0x0)
+  }
+  Symbol {
+    Name: table@VERS_1 (9)
+    Value: 0x0
+    Size: 0
+    Binding: Global (0x1)
+    Type: Object (0x1)
+    Other: 0
+    Section: Undefined (0x0)
+  }
+  Symbol {
+    Name: use (1)
+    Value: 0x1370
+    Size: 29
+    Binding: Global (0x1)
+    Type: Function (0x2)
+    Other: 0
+    Section: .text (0x9)
+  }
+]
+VersionSymbols [
+  Symbol {
+    Version: 0
+    Name: 
+  }
+  Symbol {
+    Version: 2
+    Name: far@VERS_2
+  }
+  Symbol {
+    Version: 3
+    Name: table@VERS_1
+  }
+  Symbol {
+    Version: 1
+    Name: use
+  }
+]
+VersionDefinitions [
+]
+VersionRequirements [
+  Dependency {
+    Version: 1
+    Count: 2
+    FileName: libversions.so
+    Entries [
+      Entry {
+        Hash: 95058209
+        Flags [ (0x0)
+        ]
+        Index: 3
+        Name: VERS_1
+      }
+      Entry {
+        Hash: 95058210
+        Flags [ (0x0)
+        ]
+        Index: 2
+        Name: VERS_2
+      }
+    ]
+  }
+]

@@ -1,0 +1,2452 @@
+
+Starting pass 1
+Processed /DEFAULTLIB:libcpmt
+Processed /DEFAULTLIB:LIBCMT
+Processed /DEFAULTLIB:OLDNAMES
+
+Searching libraries
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\libcpmt.lib:
+      Found "void __cdecl std::_Xlength_error(char const *)" (?_Xlength_error@std@@YAXPEBD@Z)
+        Referenced in main.obj
+        Loaded libcpmt.lib(xthrow.obj)
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\LIBCMT.lib:
+      Found "void * __cdecl operator new(unsigned __int64)" (??2@YAPEAX_K@Z)
+        Referenced in main.obj
+        Loaded LIBCMT.lib(new_scalar.obj)
+      Found "void __cdecl operator delete(void *,unsigned __int64)" (??3@YAXPEAX_K@Z)
+        Referenced in main.obj
+        Referenced in libcpmt.lib(xthrow.obj)
+        Loaded LIBCMT.lib(delete_scalar_size.obj)
+      Found __GSHandlerCheck
+        Referenced in main.obj
+        Loaded LIBCMT.lib(gshandler.obj)
+      Found __security_check_cookie
+        Referenced in main.obj
+        Referenced in LIBCMT.lib(gshandler.obj)
+        Loaded LIBCMT.lib(amdsecgs.obj)
+      Found "const type_info::`vftable'" (??_7type_info@@6B@)
+        Referenced in main.obj
+        Referenced in libcpmt.lib(xthrow.obj)
+        Loaded LIBCMT.lib(std_type_info_static.obj)
+      Found __security_cookie
+        Referenced in main.obj
+        Referenced in LIBCMT.lib(amdsecgs.obj)
+        Loaded LIBCMT.lib(gs_cookie.obj)
+      Found mainCRTStartup
+        Loaded LIBCMT.lib(exe_main.obj)
+      Found "void __cdecl __scrt_throw_std_bad_alloc(void)" (?__scrt_throw_std_bad_alloc@@YAXXZ)
+        Referenced in LIBCMT.lib(new_scalar.obj)
+        Loaded LIBCMT.lib(throw_bad_alloc.obj)
+      Found "void __cdecl operator delete(void *)" (??3@YAXPEAX@Z)
+        Referenced in LIBCMT.lib(delete_scalar_size.obj)
+        Loaded LIBCMT.lib(delete_scalar.obj)
+      Found __report_gsfailure
+        Referenced in LIBCMT.lib(amdsecgs.obj)
+        Loaded LIBCMT.lib(gs_report.obj)
+      Found atexit
+        Referenced in LIBCMT.lib(exe_main.obj)
+        Loaded LIBCMT.lib(utility.obj)
+      Found __security_init_cookie
+        Referenced in LIBCMT.lib(exe_main.obj)
+        Loaded LIBCMT.lib(gs_support.obj)
+      Found _matherr
+        Referenced in LIBCMT.lib(exe_main.obj)
+        Loaded LIBCMT.lib(matherr.obj)
+      Found _get_startup_argv_mode
+        Referenced in LIBCMT.lib(exe_main.obj)
+        Referenced in LIBCMT.lib(utility.obj)
+        Loaded LIBCMT.lib(argv_mode.obj)
+      Found _get_startup_commit_mode
+        Referenced in LIBCMT.lib(exe_main.obj)
+        Loaded LIBCMT.lib(commit_mode.obj)
+      Found _get_startup_file_mode
+        Referenced in LIBCMT.lib(exe_main.obj)
+        Loaded LIBCMT.lib(file_mode.obj)
+      Found _get_startup_new_mode
+        Referenced in LIBCMT.lib(exe_main.obj)
+        Loaded LIBCMT.lib(new_mode.obj)
+      Found _get_startup_thread_locale_mode
+        Referenced in LIBCMT.lib(exe_main.obj)
+        Loaded LIBCMT.lib(thread_locale.obj)
+      Found "void __cdecl __scrt_initialize_type_info(void)" (?__scrt_initialize_type_info@@YAXXZ)
+        Referenced in LIBCMT.lib(exe_main.obj)
+        Loaded LIBCMT.lib(tncleanup.obj)
+      Found _should_initialize_environment
+        Referenced in LIBCMT.lib(exe_main.obj)
+        Loaded LIBCMT.lib(env_mode.obj)
+      Found _initialize_invalid_parameter_handler
+        Referenced in LIBCMT.lib(exe_main.obj)
+        Loaded LIBCMT.lib(invalid_parameter_handler.obj)
+      Found _initialize_denormal_control
+        Referenced in LIBCMT.lib(exe_main.obj)
+        Loaded LIBCMT.lib(denormal_control.obj)
+      Found __scrt_initialize_default_local_stdio_options
+        Referenced in LIBCMT.lib(exe_main.obj)
+        Loaded LIBCMT.lib(default_local_stdio_options.obj)
+      Found __scrt_is_user_matherr_present
+        Referenced in LIBCMT.lib(exe_main.obj)
+        Loaded LIBCMT.lib(matherr_detection.obj)
+      Found __scrt_get_dyn_tls_init_callback
+        Referenced in LIBCMT.lib(exe_main.obj)
+        Loaded LIBCMT.lib(dyn_tls_init.obj)
+      Found __scrt_get_dyn_tls_dtor_callback
+        Referenced in LIBCMT.lib(exe_main.obj)
+        Loaded LIBCMT.lib(dyn_tls_dtor.obj)
+      Found __scrt_is_managed_app
+        Referenced in LIBCMT.lib(exe_main.obj)
+        Loaded LIBCMT.lib(utility_desktop.obj)
+      Found _RTC_Initialize
+        Referenced in LIBCMT.lib(exe_main.obj)
+        Loaded LIBCMT.lib(initsect.obj)
+      Found __xi_a
+        Referenced in LIBCMT.lib(exe_main.obj)
+        Loaded LIBCMT.lib(initializers.obj)
+Processed /DEFAULTLIB:kernel32.lib
+ Processed /DISALLOWLIB:msvcrt.lib
+ Processed /DISALLOWLIB:msvcrtd.lib
+ Processed /DISALLOWLIB:libcmtd.lib
+ Processed /DISALLOWLIB:vcruntime.lib
+ Processed /DISALLOWLIB:vcruntimed.lib
+Processed /DEFAULTLIB:libvcruntime.lib
+ Processed /DISALLOWLIB:libvcruntimed.lib
+ Processed /DISALLOWLIB:ucrtd.lib
+Processed /DEFAULTLIB:libucrt.lib
+ Processed /DISALLOWLIB:libucrtd.lib
+      Found __guard_dispatch_icall_fptr
+        Referenced in LIBCMT.lib(exe_main.obj)
+        Referenced in LIBCMT.lib(utility.obj)
+        Referenced in LIBCMT.lib(initsect.obj)
+        Loaded LIBCMT.lib(guard_support.obj)
+      Found __isa_available_init
+        Referenced in LIBCMT.lib(utility.obj)
+        Loaded LIBCMT.lib(cpu_disp.obj)
+      Found __scrt_is_ucrt_dll_in_use
+        Referenced in LIBCMT.lib(utility.obj)
+        Loaded LIBCMT.lib(ucrt_detection.obj)
+      Found _guard_dispatch_icall_nop
+        Referenced in LIBCMT.lib(guard_support.obj)
+        Loaded LIBCMT.lib(guard_dispatch.obj)
+      Found _guard_xfg_dispatch_icall_nop
+        Referenced in LIBCMT.lib(guard_support.obj)
+        Loaded LIBCMT.lib(guard_xfg_dispatch.obj)
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\OLDNAMES.lib:
+    Searching C:\Program Files (x86)\Windows Kits\10\\lib\10.0.26100.0\\um\x64\kernel32.lib:
+      Found __imp_QueryPerformanceCounter
+        Referenced in LIBCMT.lib(gs_support.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_GetCurrentProcessId
+        Referenced in LIBCMT.lib(gs_support.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_GetCurrentThreadId
+        Referenced in LIBCMT.lib(gs_support.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_GetSystemTimeAsFileTime
+        Referenced in LIBCMT.lib(gs_support.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_InitializeSListHead
+        Referenced in LIBCMT.lib(tncleanup.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_SetUnhandledExceptionFilter
+        Referenced in LIBCMT.lib(utility_desktop.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_GetStartupInfoW
+        Referenced in LIBCMT.lib(utility_desktop.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_GetModuleHandleW
+        Referenced in LIBCMT.lib(utility_desktop.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __IMPORT_DESCRIPTOR_KERNEL32
+        Referenced in kernel32.lib(KERNEL32.dll)
+        Referenced in kernel32.lib(KERNEL32.dll)
+        Referenced in kernel32.lib(KERNEL32.dll)
+        Referenced in kernel32.lib(KERNEL32.dll)
+        Referenced in kernel32.lib(KERNEL32.dll)
+        Referenced in kernel32.lib(KERNEL32.dll)
+        Referenced in kernel32.lib(KERNEL32.dll)
+        Referenced in kernel32.lib(KERNEL32.dll)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __NULL_IMPORT_DESCRIPTOR
+        Referenced in kernel32.lib(KERNEL32.dll)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found KERNEL32_NULL_THUNK_DATA
+        Referenced in kernel32.lib(KERNEL32.dll)
+        Loaded kernel32.lib(KERNEL32.dll)
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\libvcruntime.lib:
+      Found memcpy
+        Referenced in main.obj
+        Loaded libvcruntime.lib(memcpy.obj)
+      Found __std_exception_copy
+        Referenced in main.obj
+        Referenced in libcpmt.lib(xthrow.obj)
+        Referenced in LIBCMT.lib(throw_bad_alloc.obj)
+        Loaded libvcruntime.lib(std_exception.obj)
+      Found _CxxThrowException
+        Referenced in main.obj
+        Referenced in libcpmt.lib(xthrow.obj)
+        Referenced in LIBCMT.lib(throw_bad_alloc.obj)
+        Loaded libvcruntime.lib(throw.obj)
+      Found __C_specific_handler
+        Referenced in LIBCMT.lib(exe_main.obj)
+        Referenced in LIBCMT.lib(utility.obj)
+        Loaded libvcruntime.lib(riscchandler.obj)
+      Found __vcrt_initialize
+        Referenced in LIBCMT.lib(utility.obj)
+        Loaded libvcruntime.lib(initialization.obj)
+      Found __std_type_info_destroy_list
+        Referenced in LIBCMT.lib(tncleanup.obj)
+        Loaded libvcruntime.lib(std_type_info.obj)
+      Found __current_exception
+        Referenced in LIBCMT.lib(utility_desktop.obj)
+        Loaded libvcruntime.lib(ehhelpers.obj)
+Processed /DEFAULTLIB:uuid.lib
+      Found _NLG_Notify
+        Referenced in libvcruntime.lib(riscchandler.obj)
+        Loaded libvcruntime.lib(notify.obj)
+      Found __except_validate_context_record
+        Referenced in libvcruntime.lib(riscchandler.obj)
+        Loaded libvcruntime.lib(jbcxrval.obj)
+      Found __vcrt_initialize_ptd
+        Referenced in libvcruntime.lib(initialization.obj)
+        Loaded libvcruntime.lib(per_thread_data.obj)
+      Found __vcrt_initialize_locks
+        Referenced in libvcruntime.lib(initialization.obj)
+        Loaded libvcruntime.lib(locks.obj)
+      Found __unDName
+        Referenced in libvcruntime.lib(std_type_info.obj)
+        Loaded libvcruntime.lib(undname.obj)
+      Found _purecall
+        Referenced in libvcruntime.lib(undname.obj)
+        Loaded libvcruntime.lib(purevirt.obj)
+      Found __CxxFrameHandler4
+        Referenced in libvcruntime.lib(undname.obj)
+        Loaded libvcruntime.lib(risctrnsctrl.obj)
+      Found __pPurecall
+        Referenced in libvcruntime.lib(purevirt.obj)
+        Loaded libvcruntime.lib(purevirt_data.obj)
+      Found "public: static int __cdecl __FrameHandler3::StateFromControlPc(struct _s_FuncInfo const *,struct _xDISPATCHER_CONTEXT *)" (?StateFromControlPc@__FrameHandler3@@SAHPEBU_s_FuncInfo@@PEAU_xDISPATCHER_CONTEXT@@@Z)
+        Referenced in libvcruntime.lib(risctrnsctrl.obj)
+        Loaded libvcruntime.lib(ehstate.obj)
+      Found "public: static void __cdecl __FrameHandler3::FrameUnwindToState(unsigned __int64 *,struct _xDISPATCHER_CONTEXT *,struct _s_FuncInfo const *,int)" (?FrameUnwindToState@__FrameHandler3@@SAXPEA_KPEAU_xDISPATCHER_CONTEXT@@PEBU_s_FuncInfo@@H@Z)
+        Referenced in libvcruntime.lib(risctrnsctrl.obj)
+        Loaded libvcruntime.lib(frame.obj)
+      Found _CallSettingFrame
+        Referenced in libvcruntime.lib(frame.obj)
+        Loaded libvcruntime.lib(handlers.obj)
+    Searching C:\Program Files (x86)\Windows Kits\10\lib\10.0.26100.0\ucrt\x64\libucrt.lib:
+      Found __acrt_iob_func
+        Referenced in main.obj
+        Loaded libucrt.lib(_file.obj)
+      Found __stdio_common_vfprintf
+        Referenced in main.obj
+        Loaded libucrt.lib(output.obj)
+      Found _callnewh
+        Referenced in LIBCMT.lib(new_scalar.obj)
+        Loaded libucrt.lib(new_handler.obj)
+      Found malloc
+        Referenced in LIBCMT.lib(new_scalar.obj)
+        Referenced in libvcruntime.lib(std_exception.obj)
+        Referenced in libvcruntime.lib(std_type_info.obj)
+        Loaded libucrt.lib(malloc.obj)
+      Found _seh_filter_exe
+        Referenced in LIBCMT.lib(exe_main.obj)
+        Loaded libucrt.lib(exception_filter.obj)
+      Found _set_app_type
+        Referenced in LIBCMT.lib(exe_main.obj)
+        Loaded libucrt.lib(report_runtime_error.obj)
+      Found __setusermatherr
+        Referenced in LIBCMT.lib(exe_main.obj)
+        Loaded libucrt.lib(matherr.obj)
+      Found _configure_narrow_argv
+        Referenced in LIBCMT.lib(exe_main.obj)
+        Referenced in LIBCMT.lib(utility.obj)
+        Loaded libucrt.lib(argv_parsing.obj)
+      Found _initialize_narrow_environment
+        Referenced in LIBCMT.lib(exe_main.obj)
+        Referenced in LIBCMT.lib(utility.obj)
+        Loaded libucrt.lib(environment_initialization.obj)
+      Found _initterm
+        Referenced in LIBCMT.lib(exe_main.obj)
+        Loaded libucrt.lib(initterm.obj)
+      Found exit
+        Referenced in LIBCMT.lib(exe_main.obj)
+        Loaded libucrt.lib(exit.obj)
+      Found _set_fmode
+        Referenced in LIBCMT.lib(exe_main.obj)
+        Loaded libucrt.lib(setmode.obj)
+      Found __p___argc
+        Referenced in LIBCMT.lib(exe_main.obj)
+        Loaded libucrt.lib(argv_data.obj)
+      Found _configthreadlocale
+        Referenced in LIBCMT.lib(exe_main.obj)
+        Loaded libucrt.lib(wsetlocale.obj)
+      Found _set_new_mode
+        Referenced in LIBCMT.lib(exe_main.obj)
+        Loaded libucrt.lib(new_mode.obj)
+      Found __p__commode
+        Referenced in LIBCMT.lib(exe_main.obj)
+        Loaded libucrt.lib(ncommode.obj)
+      Found free
+        Referenced in LIBCMT.lib(delete_scalar.obj)
+        Referenced in libvcruntime.lib(std_exception.obj)
+        Referenced in libvcruntime.lib(std_type_info.obj)
+        Referenced in libvcruntime.lib(per_thread_data.obj)
+        Loaded libucrt.lib(free.obj)
+      Found _initialize_onexit_table
+        Referenced in LIBCMT.lib(utility.obj)
+        Loaded libucrt.lib(onexit.obj)
+      Found __acrt_initialize
+        Referenced in LIBCMT.lib(utility.obj)
+        Loaded libucrt.lib(initialization.obj)
+      Found terminate
+        Referenced in LIBCMT.lib(utility_desktop.obj)
+        Referenced in libvcruntime.lib(ehhelpers.obj)
+        Referenced in libvcruntime.lib(frame.obj)
+        Referenced in libucrt.lib(exit.obj)
+        Loaded libucrt.lib(terminate.obj)
+      Found strcpy_s
+        Referenced in libvcruntime.lib(std_exception.obj)
+        Referenced in libvcruntime.lib(std_type_info.obj)
+        Referenced in libucrt.lib(environment_initialization.obj)
+        Loaded libucrt.lib(strcpy_s.obj)
+      Found abort
+        Referenced in libvcruntime.lib(ehstate.obj)
+        Referenced in libvcruntime.lib(frame.obj)
+        Referenced in libucrt.lib(output.obj)
+        Referenced in libucrt.lib(terminate.obj)
+        Referenced in libvcruntime.lib(ehhelpers.obj)
+        Referenced in libvcruntime.lib(per_thread_data.obj)
+        Referenced in libvcruntime.lib(purevirt.obj)
+        Referenced in libvcruntime.lib(risctrnsctrl.obj)
+        Loaded libucrt.lib(abort.obj)
+      Found calloc
+        Referenced in libvcruntime.lib(per_thread_data.obj)
+        Loaded libucrt.lib(calloc.obj)
+      Found atol
+        Referenced in libvcruntime.lib(undname.obj)
+        Loaded libucrt.lib(atox.obj)
+      Found strncmp
+        Referenced in libvcruntime.lib(undname.obj)
+        Loaded libucrt.lib(strncmp.obj)
+      Found _invalid_parameter_noinfo
+        Referenced in libucrt.lib(atox.obj)
+        Referenced in libucrt.lib(argv_data.obj)
+        Referenced in libucrt.lib(wsetlocale.obj)
+        Referenced in libucrt.lib(new_mode.obj)
+        Referenced in libucrt.lib(strcpy_s.obj)
+        Referenced in libucrt.lib(_file.obj)
+        Referenced in libucrt.lib(output.obj)
+        Referenced in libucrt.lib(argv_parsing.obj)
+        Referenced in libucrt.lib(setmode.obj)
+        Loaded libucrt.lib(invalid_parameter.obj)
+      Found _errno
+        Referenced in libucrt.lib(atox.obj)
+        Referenced in libucrt.lib(argv_data.obj)
+        Referenced in libucrt.lib(wsetlocale.obj)
+        Referenced in libucrt.lib(new_mode.obj)
+        Referenced in libucrt.lib(strcpy_s.obj)
+        Referenced in libucrt.lib(_file.obj)
+        Referenced in libucrt.lib(output.obj)
+        Referenced in libucrt.lib(argv_parsing.obj)
+        Referenced in libucrt.lib(setmode.obj)
+        Loaded libucrt.lib(errno.obj)
+      Found _calloc_base
+        Referenced in libucrt.lib(calloc.obj)
+        Referenced in libucrt.lib(_file.obj)
+        Referenced in libucrt.lib(argv_parsing.obj)
+        Referenced in libucrt.lib(environment_initialization.obj)
+        Referenced in libucrt.lib(wsetlocale.obj)
+        Loaded libucrt.lib(calloc_base.obj)
+      Found _free_base
+        Referenced in libucrt.lib(wsetlocale.obj)
+        Referenced in libucrt.lib(free.obj)
+        Referenced in libucrt.lib(onexit.obj)
+        Referenced in libucrt.lib(initialization.obj)
+        Referenced in libucrt.lib(_file.obj)
+        Referenced in libucrt.lib(output.obj)
+        Referenced in libucrt.lib(argv_parsing.obj)
+        Referenced in libucrt.lib(environment_initialization.obj)
+        Loaded libucrt.lib(free_base.obj)
+      Found __acrt_InitializeCriticalSectionEx
+        Referenced in libucrt.lib(_file.obj)
+        Loaded libucrt.lib(winapi_thunks.obj)
+      Found _fcloseall
+        Referenced in libucrt.lib(_file.obj)
+        Loaded libucrt.lib(closeall.obj)
+      Found _flushall
+        Referenced in libucrt.lib(_file.obj)
+        Referenced in libucrt.lib(initialization.obj)
+        Loaded libucrt.lib(fflush.obj)
+      Found __acrt_stdio_free_buffer_nolock
+        Referenced in libucrt.lib(_file.obj)
+        Loaded libucrt.lib(_freebuf.obj)
+      Found __pioinfo
+        Referenced in libucrt.lib(_file.obj)
+        Referenced in libucrt.lib(output.obj)
+        Referenced in libucrt.lib(setmode.obj)
+        Loaded libucrt.lib(ioinit.obj)
+      Found __acrt_stdio_initializer
+        Referenced in libucrt.lib(_file.obj)
+        Loaded libucrt.lib(stdio_initializer.obj)
+      Found _malloc_base
+        Referenced in libucrt.lib(output.obj)
+        Referenced in libucrt.lib(malloc.obj)
+        Referenced in libucrt.lib(wsetlocale.obj)
+        Loaded libucrt.lib(malloc_base.obj)
+      Found wcsnlen
+        Referenced in libucrt.lib(output.obj)
+        Referenced in libucrt.lib(wsetlocale.obj)
+        Loaded libucrt.lib(strnlen.obj)
+      Found __acrt_update_locale_info_explicit
+        Referenced in libucrt.lib(output.obj)
+        Referenced in libucrt.lib(atox.obj)
+        Loaded libucrt.lib(locale_update.obj)
+      Found __acrt_fp_format
+        Referenced in libucrt.lib(output.obj)
+        Loaded libucrt.lib(cvt.obj)
+      Found _wctomb_internal
+        Referenced in libucrt.lib(output.obj)
+        Loaded libucrt.lib(wctomb.obj)
+      Found _mbtowc_internal
+        Referenced in libucrt.lib(output.obj)
+        Loaded libucrt.lib(mbtowc.obj)
+      Found "int __cdecl __crt_mbstring::__mblen_utf8(char const *)" (?__mblen_utf8@__crt_mbstring@@YAHPEBD@Z)
+        Referenced in libucrt.lib(output.obj)
+        Loaded libucrt.lib(mbrtoc32.obj)
+      Found "unsigned __int64 __cdecl __crt_mbstring::__c16rtomb_utf8(char *,char16_t,struct _Mbstatet *,class __crt_cached_ptd_host &)" (?__c16rtomb_utf8@__crt_mbstring@@YA_KPEAD_SPEAU_Mbstatet@@AEAV__crt_cached_ptd_host@@@Z)
+        Referenced in libucrt.lib(output.obj)
+        Loaded libucrt.lib(c16rtomb.obj)
+      Found "unsigned __int64 __cdecl __crt_mbstring::__mbsrtowcs_utf8(wchar_t *,char const * *,unsigned __int64,struct _Mbstatet *,class __crt_cached_ptd_host &)" (?__mbsrtowcs_utf8@__crt_mbstring@@YA_KPEA_WPEAPEBD_KPEAU_Mbstatet@@AEAV__crt_cached_ptd_host@@@Z)
+        Referenced in libucrt.lib(output.obj)
+        Loaded libucrt.lib(mbrtowc.obj)
+      Found _fileno
+        Referenced in libucrt.lib(output.obj)
+        Referenced in libucrt.lib(fflush.obj)
+        Loaded libucrt.lib(fileno.obj)
+      Found _get_printf_count_output
+        Referenced in libucrt.lib(output.obj)
+        Loaded libucrt.lib(printf_count_output.obj)
+      Found _fputwc_nolock_internal
+        Referenced in libucrt.lib(output.obj)
+        Loaded libucrt.lib(fputwc.obj)
+      Found _fputc_nolock_internal
+        Referenced in libucrt.lib(output.obj)
+        Referenced in libucrt.lib(fputwc.obj)
+        Loaded libucrt.lib(fputc.obj)
+      Found __acrt_stdio_begin_temporary_buffering_nolock
+        Referenced in libucrt.lib(output.obj)
+        Loaded libucrt.lib(_sftbuf.obj)
+      Found __acrt_getptd_noexit_explicit
+        Referenced in libucrt.lib(c16rtomb.obj)
+        Referenced in libucrt.lib(mbrtowc.obj)
+        Referenced in libucrt.lib(fputwc.obj)
+        Referenced in libucrt.lib(fputc.obj)
+        Referenced in libucrt.lib(cvt.obj)
+        Referenced in libucrt.lib(wctomb.obj)
+        Referenced in libucrt.lib(mbtowc.obj)
+        Referenced in libucrt.lib(mbrtoc32.obj)
+        Referenced in libucrt.lib(output.obj)
+        Referenced in libucrt.lib(atox.obj)
+        Referenced in libucrt.lib(invalid_parameter.obj)
+        Referenced in libucrt.lib(fflush.obj)
+        Loaded libucrt.lib(per_thread_data.obj)
+      Found __acrt_initial_locale_pointers
+        Referenced in libucrt.lib(mbrtowc.obj)
+        Referenced in libucrt.lib(fputwc.obj)
+        Referenced in libucrt.lib(fputc.obj)
+        Referenced in libucrt.lib(wctomb.obj)
+        Referenced in libucrt.lib(mbtowc.obj)
+        Referenced in libucrt.lib(mbrtoc32.obj)
+        Referenced in libucrt.lib(c16rtomb.obj)
+        Referenced in libucrt.lib(output.obj)
+        Referenced in libucrt.lib(atox.obj)
+        Referenced in libucrt.lib(invalid_parameter.obj)
+        Referenced in libucrt.lib(fflush.obj)
+        Loaded libucrt.lib(nlsdata.obj)
+      Found __acrt_lock
+        Referenced in libucrt.lib(per_thread_data.obj)
+        Referenced in libucrt.lib(winapi_thunks.obj)
+        Referenced in libucrt.lib(closeall.obj)
+        Referenced in libucrt.lib(fflush.obj)
+        Referenced in libucrt.lib(ioinit.obj)
+        Referenced in libucrt.lib(new_handler.obj)
+        Referenced in libucrt.lib(exit.obj)
+        Referenced in libucrt.lib(wsetlocale.obj)
+        Referenced in libucrt.lib(onexit.obj)
+        Loaded libucrt.lib(locks.obj)
+      Found _guard_dispatch_icall
+        Referenced in libucrt.lib(terminate.obj)
+        Referenced in libucrt.lib(invalid_parameter.obj)
+        Referenced in libucrt.lib(winapi_thunks.obj)
+        Referenced in libucrt.lib(per_thread_data.obj)
+        Referenced in libucrt.lib(initterm.obj)
+        Referenced in libucrt.lib(exit.obj)
+        Referenced in libucrt.lib(wsetlocale.obj)
+        Referenced in libucrt.lib(onexit.obj)
+        Referenced in libucrt.lib(new_handler.obj)
+        Referenced in libucrt.lib(exception_filter.obj)
+        Referenced in libucrt.lib(matherr.obj)
+        Referenced in libucrt.lib(environment_initialization.obj)
+        Loaded libucrt.lib(dispatchcfg.obj)
+      Found _set_error_mode
+        Referenced in libucrt.lib(report_runtime_error.obj)
+        Loaded libucrt.lib(set_error_mode.obj)
+      Found wcscat_s
+        Referenced in libucrt.lib(report_runtime_error.obj)
+        Referenced in libucrt.lib(wsetlocale.obj)
+        Loaded libucrt.lib(wcscat_s.obj)
+      Found wcscpy_s
+        Referenced in libucrt.lib(report_runtime_error.obj)
+        Referenced in libucrt.lib(environment_initialization.obj)
+        Referenced in libucrt.lib(wsetlocale.obj)
+        Loaded libucrt.lib(wcscpy_s.obj)
+      Found wcsncpy_s
+        Referenced in libucrt.lib(report_runtime_error.obj)
+        Referenced in libucrt.lib(wsetlocale.obj)
+        Loaded libucrt.lib(wcsncpy_s.obj)
+      Found __acrt_show_wide_message_box
+        Referenced in libucrt.lib(report_runtime_error.obj)
+        Loaded libucrt.lib(crtmbox.obj)
+      Found __acrt_expand_narrow_argv_wildcards
+        Referenced in libucrt.lib(argv_parsing.obj)
+        Loaded libucrt.lib(argv_wildcards.obj)
+      Found __acrt_GetModuleFileNameA
+        Referenced in libucrt.lib(argv_parsing.obj)
+        Loaded libucrt.lib(getmodulefilenamea.obj)
+      Found __acrt_initialize_multibyte
+        Referenced in libucrt.lib(argv_parsing.obj)
+        Referenced in libucrt.lib(environment_initialization.obj)
+        Referenced in libucrt.lib(initialization.obj)
+        Loaded libucrt.lib(mbctype.obj)
+      Found _ismbblead
+        Referenced in libucrt.lib(argv_parsing.obj)
+        Loaded libucrt.lib(ismbbyte.obj)
+      Found __acrt_MultiByteToWideChar
+        Referenced in libucrt.lib(argv_wildcards.obj)
+        Referenced in libucrt.lib(environment_initialization.obj)
+        Referenced in libucrt.lib(wsetlocale.obj)
+        Referenced in libucrt.lib(mbtowc.obj)
+        Referenced in libucrt.lib(mbrtowc.obj)
+        Loaded libucrt.lib(multibytetowidechar.obj)
+      Found __acrt_WideCharToMultiByte
+        Referenced in libucrt.lib(environment_initialization.obj)
+        Referenced in libucrt.lib(wctomb.obj)
+        Referenced in libucrt.lib(argv_wildcards.obj)
+        Referenced in libucrt.lib(getmodulefilenamea.obj)
+        Loaded libucrt.lib(widechartomultibyte.obj)
+      Found __dcrt_get_narrow_environment_from_os
+        Referenced in libucrt.lib(environment_initialization.obj)
+        Loaded libucrt.lib(get_environment_from_os.obj)
+      Found __dcrt_set_variable_in_narrow_environment_nolock
+        Referenced in libucrt.lib(environment_initialization.obj)
+        Loaded libucrt.lib(setenv.obj)
+      Found __acrt_app_verifier_enabled
+        Referenced in libucrt.lib(exit.obj)
+        Loaded libucrt.lib(peb_access.obj)
+      Found __acrt_get_process_end_policy
+        Referenced in libucrt.lib(exit.obj)
+        Loaded libucrt.lib(win_policies.obj)
+      Found __acrt_lowio_lock_fh
+        Referenced in libucrt.lib(setmode.obj)
+        Loaded libucrt.lib(osfinfo.obj)
+      Found _fmode
+        Referenced in libucrt.lib(setmode.obj)
+        Loaded libucrt.lib(txtmode.obj)
+      Found __acrt_locale_initialize_ctype
+        Referenced in libucrt.lib(wsetlocale.obj)
+        Loaded libucrt.lib(initctype.obj)
+      Found __acrt_locale_initialize_monetary
+        Referenced in libucrt.lib(wsetlocale.obj)
+        Loaded libucrt.lib(initmon.obj)
+      Found __acrt_locale_initialize_numeric
+        Referenced in libucrt.lib(wsetlocale.obj)
+        Loaded libucrt.lib(initnum.obj)
+      Found __acrt_locale_initialize_time
+        Referenced in libucrt.lib(wsetlocale.obj)
+        Loaded libucrt.lib(inittime.obj)
+      Found _wctype
+        Referenced in libucrt.lib(wsetlocale.obj)
+        Loaded libucrt.lib(ctype.obj)
+      Found wcsncat_s
+        Referenced in libucrt.lib(wsetlocale.obj)
+        Loaded libucrt.lib(wcsncat_s.obj)
+      Found wcscspn
+        Referenced in libucrt.lib(wsetlocale.obj)
+        Loaded libucrt.lib(wcscspn.obj)
+      Found wcsncmp
+        Referenced in libucrt.lib(wsetlocale.obj)
+        Referenced in libucrt.lib(winapi_thunks.obj)
+        Loaded libucrt.lib(wcsncmp.obj)
+      Found wcspbrk
+        Referenced in libucrt.lib(wsetlocale.obj)
+        Referenced in libucrt.lib(argv_wildcards.obj)
+        Loaded libucrt.lib(wcspbrk.obj)
+      Found __acrt_GetStringTypeA
+        Referenced in libucrt.lib(wsetlocale.obj)
+        Referenced in libucrt.lib(mbctype.obj)
+        Referenced in libucrt.lib(initctype.obj)
+        Loaded libucrt.lib(getstringtypea.obj)
+      Found __acrt_add_locale_ref
+        Referenced in libucrt.lib(wsetlocale.obj)
+        Referenced in libucrt.lib(per_thread_data.obj)
+        Loaded libucrt.lib(locale_refcounting.obj)
+      Found __acrt_get_qualified_locale
+        Referenced in libucrt.lib(wsetlocale.obj)
+        Loaded libucrt.lib(get_qualified_locale.obj)
+      Found __acrt_get_qualified_locale_downlevel
+        Referenced in libucrt.lib(wsetlocale.obj)
+        Loaded libucrt.lib(getqloc_downlevel.obj)
+      Found __acrt_lconv
+        Referenced in libucrt.lib(wsetlocale.obj)
+        Loaded libucrt.lib(localeconv.obj)
+      Found __globallocalestatus
+        Referenced in libucrt.lib(wsetlocale.obj)
+        Referenced in libucrt.lib(locale_update.obj)
+        Referenced in libucrt.lib(mbctype.obj)
+        Referenced in libucrt.lib(locale_refcounting.obj)
+        Loaded libucrt.lib(glstatus.obj)
+      Found __acrt_locale_terminator
+        Referenced in libucrt.lib(wsetlocale.obj)
+        Loaded libucrt.lib(locale_initializer.obj)
+      Found _recalloc_base
+        Referenced in libucrt.lib(onexit.obj)
+        Referenced in libucrt.lib(argv_wildcards.obj)
+        Referenced in libucrt.lib(setenv.obj)
+        Loaded libucrt.lib(recalloc.obj)
+      Found __acrt_initialize_heap
+        Referenced in libucrt.lib(initialization.obj)
+        Loaded libucrt.lib(heap_handle.obj)
+      Found __acrt_execute_initializers
+        Referenced in libucrt.lib(initialization.obj)
+        Loaded libucrt.lib(shared_initialization.obj)
+      Found __acrt_initialize_signal_handlers
+        Referenced in libucrt.lib(initialization.obj)
+        Loaded libucrt.lib(signal.obj)
+      Found iswctype
+        Referenced in libucrt.lib(atox.obj)
+        Loaded libucrt.lib(iswctype.obj)
+      Found _isctype_l
+        Referenced in libucrt.lib(atox.obj)
+        Loaded libucrt.lib(isctype.obj)
+      Found __acrt_DownlevelLocaleNameToLCID
+        Referenced in libucrt.lib(winapi_thunks.obj)
+        Loaded libucrt.lib(lcidtoname_downlevel.obj)
+      Found fclose
+        Referenced in libucrt.lib(closeall.obj)
+        Loaded libucrt.lib(fclose.obj)
+      Found _commit
+        Referenced in libucrt.lib(fflush.obj)
+        Loaded libucrt.lib(commit.obj)
+      Found _write_internal
+        Referenced in libucrt.lib(fflush.obj)
+        Loaded libucrt.lib(write.obj)
+      Found __acrt_fp_strflt_to_string
+        Referenced in libucrt.lib(cvt.obj)
+        Loaded libucrt.lib(_fptostr.obj)
+      Found __acrt_fltout
+        Referenced in libucrt.lib(cvt.obj)
+        Loaded libucrt.lib(cfout.obj)
+      Found fegetround
+        Referenced in libucrt.lib(cvt.obj)
+        Referenced in libucrt.lib(_fptostr.obj)
+        Loaded libucrt.lib(fegetround.obj)
+      Found "unsigned __int64 __cdecl __crt_mbstring::__c32rtomb_utf8(char *,char32_t,struct _Mbstatet *,class __crt_cached_ptd_host &)" (?__c32rtomb_utf8@__crt_mbstring@@YA_KPEAD_UPEAU_Mbstatet@@AEAV__crt_cached_ptd_host@@@Z)
+        Referenced in libucrt.lib(wctomb.obj)
+        Referenced in libucrt.lib(c16rtomb.obj)
+        Loaded libucrt.lib(c32rtomb.obj)
+      Found "unsigned __int64 __cdecl __crt_mbstring::return_illegal_sequence(struct _Mbstatet *,class __crt_cached_ptd_host &)" (?return_illegal_sequence@__crt_mbstring@@YA_KPEAU_Mbstatet@@AEAV__crt_cached_ptd_host@@@Z)
+        Referenced in libucrt.lib(mbrtoc32.obj)
+        Referenced in libucrt.lib(c16rtomb.obj)
+        Referenced in libucrt.lib(c32rtomb.obj)
+        Loaded libucrt.lib(common_utf8.obj)
+      Found __acrt_stdio_flush_and_write_wide_nolock
+        Referenced in libucrt.lib(fputwc.obj)
+        Loaded libucrt.lib(_flsbuf.obj)
+      Found _isatty
+        Referenced in libucrt.lib(_sftbuf.obj)
+        Referenced in libucrt.lib(write.obj)
+        Loaded libucrt.lib(isatty.obj)
+      Found __acrt_OutputDebugStringA
+        Referenced in libucrt.lib(crtmbox.obj)
+        Loaded libucrt.lib(outputdebugstringa.obj)
+      Found qsort
+        Referenced in libucrt.lib(argv_wildcards.obj)
+        Loaded libucrt.lib(qsort.obj)
+      Found strncpy_s
+        Referenced in libucrt.lib(argv_wildcards.obj)
+        Loaded libucrt.lib(strncpy_s.obj)
+      Found strpbrk
+        Referenced in libucrt.lib(argv_wildcards.obj)
+        Loaded libucrt.lib(strpbrk.obj)
+      Found _mbsdec
+        Referenced in libucrt.lib(argv_wildcards.obj)
+        Loaded libucrt.lib(mbsdec.obj)
+      Found __acrt_LCMapStringA
+        Referenced in libucrt.lib(mbctype.obj)
+        Referenced in libucrt.lib(initctype.obj)
+        Loaded libucrt.lib(lcmapstringa.obj)
+      Found __acrt_multibyte_initializer
+        Referenced in libucrt.lib(mbctype.obj)
+        Loaded libucrt.lib(multibyte_initializer.obj)
+      Found _wcsnicoll
+        Referenced in libucrt.lib(setenv.obj)
+        Loaded libucrt.lib(wcsnicol.obj)
+      Found _strnicoll
+        Referenced in libucrt.lib(setenv.obj)
+        Loaded libucrt.lib(strnicol.obj)
+      Found __acrt_SetEnvironmentVariableA
+        Referenced in libucrt.lib(setenv.obj)
+        Loaded libucrt.lib(setenvironmentvariablea.obj)
+      Found __acrt_fmode_initializer
+        Referenced in libucrt.lib(txtmode.obj)
+        Loaded libucrt.lib(fmode_initializer.obj)
+      Found __acrt_GetLocaleInfoA
+        Referenced in libucrt.lib(initctype.obj)
+        Referenced in libucrt.lib(initmon.obj)
+        Referenced in libucrt.lib(initnum.obj)
+        Referenced in libucrt.lib(inittime.obj)
+        Loaded libucrt.lib(getlocaleinfoa.obj)
+      Found _itow_s
+        Referenced in libucrt.lib(get_qualified_locale.obj)
+        Referenced in libucrt.lib(getqloc_downlevel.obj)
+        Loaded libucrt.lib(xtoa.obj)
+      Found _wcsicmp
+        Referenced in libucrt.lib(get_qualified_locale.obj)
+        Referenced in libucrt.lib(getqloc_downlevel.obj)
+        Loaded libucrt.lib(wcsicmp.obj)
+      Found _wcsnicmp
+        Referenced in libucrt.lib(get_qualified_locale.obj)
+        Referenced in libucrt.lib(getqloc_downlevel.obj)
+        Loaded libucrt.lib(wcsnicmp.obj)
+      Found wcscmp
+        Referenced in libucrt.lib(get_qualified_locale.obj)
+        Referenced in libucrt.lib(getqloc_downlevel.obj)
+        Loaded libucrt.lib(wcscmpc.obj)
+      Found _msize_base
+        Referenced in libucrt.lib(recalloc.obj)
+        Loaded libucrt.lib(msize.obj)
+      Found _realloc_base
+        Referenced in libucrt.lib(recalloc.obj)
+        Loaded libucrt.lib(realloc_base.obj)
+      Found __acrt_GetStringTypeW
+        Referenced in libucrt.lib(iswctype.obj)
+        Loaded libucrt.lib(getstringtypew.obj)
+      Found _close_internal
+        Referenced in libucrt.lib(fclose.obj)
+        Loaded libucrt.lib(close.obj)
+      Found "void __cdecl __acrt_stdio_free_stream(class __crt_stdio_stream)" (?__acrt_stdio_free_stream@@YAXV__crt_stdio_stream@@@Z)
+        Referenced in libucrt.lib(fclose.obj)
+        Loaded libucrt.lib(stream.obj)
+      Found _lseeki64_nolock_internal
+        Referenced in libucrt.lib(write.obj)
+        Loaded libucrt.lib(lseek.obj)
+      Found _putwch_nolock
+        Referenced in libucrt.lib(write.obj)
+        Loaded libucrt.lib(putwch.obj)
+      Found _lookuptrailbytes
+        Referenced in libucrt.lib(write.obj)
+        Loaded libucrt.lib(read.obj)
+      Found _controlfp_s
+        Referenced in libucrt.lib(cfout.obj)
+        Loaded libucrt.lib(contrlfp.obj)
+      Found fegetenv
+        Referenced in libucrt.lib(cfout.obj)
+        Loaded libucrt.lib(fegetenv.obj)
+      Found fesetenv
+        Referenced in libucrt.lib(cfout.obj)
+        Loaded libucrt.lib(fesetenv.obj)
+      Found feholdexcept
+        Referenced in libucrt.lib(cfout.obj)
+        Loaded libucrt.lib(feholdexcept.obj)
+      Found ceil
+        Referenced in libucrt.lib(cfout.obj)
+        Loaded libucrt.lib(ceil.obj)
+      Found log10
+        Referenced in libucrt.lib(cfout.obj)
+        Loaded libucrt.lib(log10.obj)
+      Found __acrt_fenv_get_control
+        Referenced in libucrt.lib(fegetround.obj)
+        Referenced in libucrt.lib(fegetenv.obj)
+        Loaded libucrt.lib(_fenvutils.obj)
+      Found __acrt_stdio_allocate_buffer_nolock
+        Referenced in libucrt.lib(_flsbuf.obj)
+        Loaded libucrt.lib(_getbuf.obj)
+      Found mbstowcs_s
+        Referenced in libucrt.lib(outputdebugstringa.obj)
+        Loaded libucrt.lib(mbstowcs.obj)
+      Found _guard_check_icall
+        Referenced in libucrt.lib(qsort.obj)
+        Loaded libucrt.lib(checkcfg.obj)
+      Found __strncnt
+        Referenced in libucrt.lib(lcmapstringa.obj)
+        Loaded libucrt.lib(strncnt.obj)
+      Found __acrt_CompareStringW
+        Referenced in libucrt.lib(wcsnicol.obj)
+        Loaded libucrt.lib(comparestringw.obj)
+      Found _strnicmp
+        Referenced in libucrt.lib(strnicol.obj)
+        Loaded libucrt.lib(strnicmp.obj)
+      Found __acrt_CompareStringA
+        Referenced in libucrt.lib(strnicol.obj)
+        Loaded libucrt.lib(comparestringa.obj)
+      Found _towlower_l
+        Referenced in libucrt.lib(wcsicmp.obj)
+        Referenced in libucrt.lib(wcsnicmp.obj)
+        Loaded libucrt.lib(towlower.obj)
+      Found __dcrt_lowio_ensure_console_output_initialized
+        Referenced in libucrt.lib(putwch.obj)
+        Loaded libucrt.lib(initcon.obj)
+      Found _control87
+        Referenced in libucrt.lib(contrlfp.obj)
+        Loaded libucrt.lib(ieee.obj)
+      Found _handle_nan
+        Referenced in libucrt.lib(ceil.obj)
+        Loaded libucrt.lib(libm_error.obj)
+      Found ceil_sse41
+        Referenced in libucrt.lib(ceil.obj)
+        Loaded libucrt.lib(floorceil_sse41.obj)
+      Found __log10_256_lead
+        Referenced in libucrt.lib(log10.obj)
+        Loaded libucrt.lib(log10_256_lead_tail_table.obj)
+      Found __log_F_inv_qword
+        Referenced in libucrt.lib(log10.obj)
+        Loaded libucrt.lib(log_f_inv_qword_table.obj)
+      Found __use_fma3_lib
+        Referenced in libucrt.lib(log10.obj)
+        Loaded libucrt.lib(fma3_available.obj)
+      Found _log10_special
+        Referenced in libucrt.lib(log10.obj)
+        Loaded libucrt.lib(log_special.obj)
+      Found __acrt_LCMapStringW
+        Referenced in libucrt.lib(towlower.obj)
+        Loaded libucrt.lib(lcmapstringw.obj)
+      Found __dcrt_console_output_terminator
+        Referenced in libucrt.lib(initcon.obj)
+        Loaded libucrt.lib(console_output_initializer.obj)
+      Found _clrfp
+        Referenced in libucrt.lib(ieee.obj)
+        Loaded libucrt.lib(fpctrl.obj)
+      Found _set_errno_from_matherr
+        Referenced in libucrt.lib(libm_error.obj)
+        Loaded libucrt.lib(fpexcept.obj)
+      Found __acrt_tran_fma3_initializer
+        Referenced in libucrt.lib(fma3_available.obj)
+        Loaded libucrt.lib(fma3_initializer.obj)
+      Found fegetexceptflag
+        Referenced in libucrt.lib(fpexcept.obj)
+        Loaded libucrt.lib(fegetexceptflag.obj)
+      Found fesetexceptflag
+        Referenced in libucrt.lib(fpexcept.obj)
+        Loaded libucrt.lib(fesetexceptflag.obj)
+      Found _decomp
+        Referenced in libucrt.lib(fpexcept.obj)
+        Loaded libucrt.lib(frexp.obj)
+      Found fetestexcept
+        Referenced in libucrt.lib(fesetexceptflag.obj)
+        Loaded libucrt.lib(fetestexcept.obj)
+    Searching C:\Program Files (x86)\Windows Kits\10\\lib\10.0.26100.0\\um\x64\uuid.lib:
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\libcpmt.lib:
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\LIBCMT.lib:
+      Found _IsNonwritableInCurrentImage
+        Referenced in libvcruntime.lib(riscchandler.obj)
+        Loaded LIBCMT.lib(pesect.obj)
+      Found _fltused
+        Referenced in libucrt.lib(log_special.obj)
+        Referenced in libucrt.lib(fpexcept.obj)
+        Referenced in libucrt.lib(frexp.obj)
+        Referenced in libvcruntime.lib(undname.obj)
+        Referenced in libucrt.lib(cfout.obj)
+        Referenced in libucrt.lib(ceil.obj)
+        Referenced in libucrt.lib(libm_error.obj)
+        Loaded LIBCMT.lib(fltused.obj)
+      Found __GSHandlerCheck_SEH
+        Referenced in libvcruntime.lib(frame.obj)
+        Loaded LIBCMT.lib(gshandlerseh.obj)
+      Found __GSHandlerCheck_EH
+        Referenced in libucrt.lib(output.obj)
+        Referenced in libucrt.lib(write.obj)
+        Loaded LIBCMT.lib(gshandlereh.obj)
+      Found __chkstk
+        Referenced in libucrt.lib(getlocaleinfoa.obj)
+        Referenced in libucrt.lib(comparestringa.obj)
+        Referenced in libucrt.lib(getstringtypea.obj)
+        Referenced in libucrt.lib(write.obj)
+        Referenced in libucrt.lib(outputdebugstringa.obj)
+        Referenced in libucrt.lib(lcmapstringa.obj)
+        Loaded LIBCMT.lib(chkstk.obj)
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\OLDNAMES.lib:
+    Searching C:\Program Files (x86)\Windows Kits\10\\lib\10.0.26100.0\\um\x64\kernel32.lib:
+      Found __imp_RtlPcToFileHeader
+        Referenced in libvcruntime.lib(throw.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_RaiseException
+        Referenced in libvcruntime.lib(throw.obj)
+        Referenced in libvcruntime.lib(frame.obj)
+        Referenced in libucrt.lib(fpexcept.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_RtlUnwindEx
+        Referenced in libvcruntime.lib(riscchandler.obj)
+        Referenced in libvcruntime.lib(risctrnsctrl.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_InterlockedPushEntrySList
+        Referenced in libvcruntime.lib(std_type_info.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_InterlockedFlushSList
+        Referenced in libvcruntime.lib(std_type_info.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_GetLastError
+        Referenced in libucrt.lib(read.obj)
+        Referenced in libucrt.lib(mbstowcs.obj)
+        Referenced in libucrt.lib(initcon.obj)
+        Referenced in libucrt.lib(setenvironmentvariablea.obj)
+        Referenced in libucrt.lib(getlocaleinfoa.obj)
+        Referenced in libucrt.lib(close.obj)
+        Referenced in libucrt.lib(lseek.obj)
+        Referenced in libucrt.lib(fclose.obj)
+        Referenced in libucrt.lib(commit.obj)
+        Referenced in libucrt.lib(write.obj)
+        Referenced in libucrt.lib(c32rtomb.obj)
+        Referenced in libucrt.lib(argv_wildcards.obj)
+        Referenced in libucrt.lib(getmodulefilenamea.obj)
+        Referenced in libucrt.lib(osfinfo.obj)
+        Referenced in libucrt.lib(signal.obj)
+        Referenced in libucrt.lib(mbrtowc.obj)
+        Referenced in libucrt.lib(fputwc.obj)
+        Referenced in libucrt.lib(fputc.obj)
+        Referenced in libucrt.lib(per_thread_data.obj)
+        Referenced in libucrt.lib(wctomb.obj)
+        Referenced in libucrt.lib(mbtowc.obj)
+        Referenced in libucrt.lib(mbrtoc32.obj)
+        Referenced in libucrt.lib(c16rtomb.obj)
+        Referenced in libucrt.lib(free_base.obj)
+        Referenced in libucrt.lib(winapi_thunks.obj)
+        Referenced in libucrt.lib(fflush.obj)
+        Referenced in libucrt.lib(cvt.obj)
+        Referenced in libvcruntime.lib(per_thread_data.obj)
+        Referenced in libucrt.lib(output.obj)
+        Referenced in libucrt.lib(atox.obj)
+        Referenced in libucrt.lib(invalid_parameter.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_SetLastError
+        Referenced in libucrt.lib(c32rtomb.obj)
+        Referenced in libucrt.lib(close.obj)
+        Referenced in libucrt.lib(lseek.obj)
+        Referenced in libucrt.lib(mbstowcs.obj)
+        Referenced in libucrt.lib(fputc.obj)
+        Referenced in libucrt.lib(per_thread_data.obj)
+        Referenced in libucrt.lib(fclose.obj)
+        Referenced in libucrt.lib(write.obj)
+        Referenced in libucrt.lib(mbrtoc32.obj)
+        Referenced in libucrt.lib(c16rtomb.obj)
+        Referenced in libucrt.lib(mbrtowc.obj)
+        Referenced in libucrt.lib(fputwc.obj)
+        Referenced in libucrt.lib(fflush.obj)
+        Referenced in libucrt.lib(cvt.obj)
+        Referenced in libucrt.lib(wctomb.obj)
+        Referenced in libucrt.lib(mbtowc.obj)
+        Referenced in libvcruntime.lib(per_thread_data.obj)
+        Referenced in libucrt.lib(output.obj)
+        Referenced in libucrt.lib(atox.obj)
+        Referenced in libucrt.lib(invalid_parameter.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_FlsAlloc
+        Referenced in libvcruntime.lib(per_thread_data.obj)
+        Referenced in libucrt.lib(winapi_thunks.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_FlsGetValue
+        Referenced in libvcruntime.lib(per_thread_data.obj)
+        Referenced in libucrt.lib(winapi_thunks.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_FlsSetValue
+        Referenced in libvcruntime.lib(per_thread_data.obj)
+        Referenced in libucrt.lib(winapi_thunks.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_FlsFree
+        Referenced in libvcruntime.lib(per_thread_data.obj)
+        Referenced in libucrt.lib(winapi_thunks.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_EnterCriticalSection
+        Referenced in libvcruntime.lib(locks.obj)
+        Referenced in libucrt.lib(_file.obj)
+        Referenced in libucrt.lib(locks.obj)
+        Referenced in libucrt.lib(osfinfo.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_LeaveCriticalSection
+        Referenced in libvcruntime.lib(locks.obj)
+        Referenced in libucrt.lib(_file.obj)
+        Referenced in libucrt.lib(locks.obj)
+        Referenced in libucrt.lib(osfinfo.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_InitializeCriticalSectionEx
+        Referenced in libvcruntime.lib(locks.obj)
+        Referenced in libucrt.lib(winapi_thunks.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_DeleteCriticalSection
+        Referenced in libucrt.lib(osfinfo.obj)
+        Referenced in libvcruntime.lib(locks.obj)
+        Referenced in libucrt.lib(_file.obj)
+        Referenced in libucrt.lib(closeall.obj)
+        Referenced in libucrt.lib(locks.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_RtlLookupFunctionEntry
+        Referenced in libvcruntime.lib(risctrnsctrl.obj)
+        Referenced in libucrt.lib(invalid_parameter.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_EncodePointer
+        Referenced in libvcruntime.lib(frame.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_GetStdHandle
+        Referenced in libucrt.lib(report_runtime_error.obj)
+        Referenced in libucrt.lib(ioinit.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_WriteFile
+        Referenced in libucrt.lib(report_runtime_error.obj)
+        Referenced in libucrt.lib(write.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_GetModuleFileNameW
+        Referenced in libucrt.lib(report_runtime_error.obj)
+        Referenced in libucrt.lib(argv_parsing.obj)
+        Referenced in libucrt.lib(getmodulefilenamea.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_GetCurrentProcess
+        Referenced in libucrt.lib(exit.obj)
+        Referenced in libucrt.lib(invalid_parameter.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_ExitProcess
+        Referenced in libucrt.lib(exit.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_TerminateProcess
+        Referenced in libucrt.lib(exit.obj)
+        Referenced in libucrt.lib(invalid_parameter.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_FreeLibrary
+        Referenced in libucrt.lib(exit.obj)
+        Referenced in libucrt.lib(winapi_thunks.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_GetModuleHandleExW
+        Referenced in libucrt.lib(exit.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_GetProcAddress
+        Referenced in libucrt.lib(exit.obj)
+        Referenced in libucrt.lib(winapi_thunks.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_GetCommandLineA
+        Referenced in libucrt.lib(argv_data.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_GetCommandLineW
+        Referenced in libucrt.lib(argv_data.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_IsProcessorFeaturePresent
+        Referenced in libucrt.lib(abort.obj)
+        Referenced in libucrt.lib(invalid_parameter.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_RtlCaptureContext
+        Referenced in libucrt.lib(invalid_parameter.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_RtlVirtualUnwind
+        Referenced in libucrt.lib(invalid_parameter.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_IsDebuggerPresent
+        Referenced in libucrt.lib(invalid_parameter.obj)
+        Referenced in libucrt.lib(crtmbox.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_UnhandledExceptionFilter
+        Referenced in libucrt.lib(invalid_parameter.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_HeapAlloc
+        Referenced in libucrt.lib(calloc_base.obj)
+        Referenced in libucrt.lib(malloc_base.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_HeapFree
+        Referenced in libucrt.lib(free_base.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_GetTempPathW
+        Referenced in libucrt.lib(winapi_thunks.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_IsThreadAFiber
+        Referenced in libucrt.lib(winapi_thunks.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_VirtualProtect
+        Referenced in libucrt.lib(winapi_thunks.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_LoadLibraryExW
+        Referenced in libucrt.lib(winapi_thunks.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_GetDateFormatW
+        Referenced in libucrt.lib(winapi_thunks.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_GetTimeFormatW
+        Referenced in libucrt.lib(winapi_thunks.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_CompareStringW
+        Referenced in libucrt.lib(winapi_thunks.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_LCMapStringW
+        Referenced in libucrt.lib(winapi_thunks.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_GetLocaleInfoW
+        Referenced in libucrt.lib(winapi_thunks.obj)
+        Referenced in libucrt.lib(getqloc_downlevel.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_IsValidLocale
+        Referenced in libucrt.lib(winapi_thunks.obj)
+        Referenced in libucrt.lib(getqloc_downlevel.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_GetUserDefaultLCID
+        Referenced in libucrt.lib(winapi_thunks.obj)
+        Referenced in libucrt.lib(getqloc_downlevel.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_EnumSystemLocalesW
+        Referenced in libucrt.lib(winapi_thunks.obj)
+        Referenced in libucrt.lib(getqloc_downlevel.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_GetFileType
+        Referenced in libucrt.lib(ioinit.obj)
+        Referenced in libucrt.lib(osfinfo.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_GetCurrentThread
+        Referenced in libucrt.lib(per_thread_data.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_OutputDebugStringW
+        Referenced in libucrt.lib(crtmbox.obj)
+        Referenced in libucrt.lib(outputdebugstringa.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_FindClose
+        Referenced in libucrt.lib(argv_wildcards.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_FindFirstFileExW
+        Referenced in libucrt.lib(argv_wildcards.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_FindNextFileW
+        Referenced in libucrt.lib(argv_wildcards.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_IsValidCodePage
+        Referenced in libucrt.lib(mbctype.obj)
+        Referenced in libucrt.lib(get_qualified_locale.obj)
+        Referenced in libucrt.lib(getqloc_downlevel.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_GetACP
+        Referenced in libucrt.lib(mbctype.obj)
+        Referenced in libucrt.lib(get_qualified_locale.obj)
+        Referenced in libucrt.lib(getqloc_downlevel.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_GetOEMCP
+        Referenced in libucrt.lib(mbctype.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_GetCPInfo
+        Referenced in libucrt.lib(mbctype.obj)
+        Referenced in libucrt.lib(initctype.obj)
+        Referenced in libucrt.lib(comparestringa.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_MultiByteToWideChar
+        Referenced in libucrt.lib(multibytetowidechar.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_WideCharToMultiByte
+        Referenced in libucrt.lib(widechartomultibyte.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_GetEnvironmentStringsW
+        Referenced in libucrt.lib(get_environment_from_os.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_FreeEnvironmentStringsW
+        Referenced in libucrt.lib(get_environment_from_os.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_SetEnvironmentVariableW
+        Referenced in libucrt.lib(setenv.obj)
+        Referenced in libucrt.lib(setenvironmentvariablea.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_SetStdHandle
+        Referenced in libucrt.lib(osfinfo.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_GetStringTypeW
+        Referenced in libucrt.lib(getstringtypea.obj)
+        Referenced in libucrt.lib(getstringtypew.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_GetProcessHeap
+        Referenced in libucrt.lib(heap_handle.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_SetConsoleCtrlHandler
+        Referenced in libucrt.lib(signal.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_FlushFileBuffers
+        Referenced in libucrt.lib(commit.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_GetConsoleOutputCP
+        Referenced in libucrt.lib(write.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_GetConsoleMode
+        Referenced in libucrt.lib(write.obj)
+        Referenced in libucrt.lib(read.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_GetFileSizeEx
+        Referenced in libucrt.lib(_flsbuf.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_SetFilePointerEx
+        Referenced in libucrt.lib(_flsbuf.obj)
+        Referenced in libucrt.lib(lseek.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_HeapSize
+        Referenced in libucrt.lib(msize.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_HeapReAlloc
+        Referenced in libucrt.lib(realloc_base.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_CloseHandle
+        Referenced in libucrt.lib(close.obj)
+        Referenced in libucrt.lib(initcon.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_ReadFile
+        Referenced in libucrt.lib(read.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_ReadConsoleW
+        Referenced in libucrt.lib(read.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_CreateFileW
+        Referenced in libucrt.lib(initcon.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+      Found __imp_WriteConsoleW
+        Referenced in libucrt.lib(initcon.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\libvcruntime.lib:
+      Found memset
+        Referenced in libucrt.lib(qsort.obj)
+        Referenced in libucrt.lib(initctype.obj)
+        Referenced in libucrt.lib(getstringtypea.obj)
+        Referenced in libucrt.lib(recalloc.obj)
+        Referenced in libucrt.lib(cfout.obj)
+        Referenced in libucrt.lib(cvt.obj)
+        Referenced in libucrt.lib(wctomb.obj)
+        Referenced in libucrt.lib(argv_wildcards.obj)
+        Referenced in libucrt.lib(mbctype.obj)
+        Referenced in libucrt.lib(output.obj)
+        Referenced in libucrt.lib(wsetlocale.obj)
+        Referenced in libucrt.lib(invalid_parameter.obj)
+        Referenced in libucrt.lib(ioinit.obj)
+        Loaded libvcruntime.lib(memset.obj)
+      Found memcmp
+        Referenced in libucrt.lib(wsetlocale.obj)
+        Loaded libvcruntime.lib(memcmp.obj)
+      Found __C_specific_handler_noexcept
+        Referenced in libucrt.lib(lseek.obj)
+        Referenced in libucrt.lib(terminate.obj)
+        Referenced in libucrt.lib(mbctype.obj)
+        Referenced in libucrt.lib(signal.obj)
+        Referenced in libucrt.lib(stream.obj)
+        Loaded libvcruntime.lib(chandler_noexcept.obj)
+      Found strrchr
+        Referenced in libucrt.lib(cvt.obj)
+        Loaded libvcruntime.lib(strrchr.obj)
+      Found _local_unwind
+        Referenced in libucrt.lib(fputc.obj)
+        Loaded libvcruntime.lib(jmpuwind.obj)
+      Found strchr
+        Referenced in libucrt.lib(setenv.obj)
+        Loaded libvcruntime.lib(strchr.obj)
+      Found wcschr
+        Referenced in libucrt.lib(setenv.obj)
+        Referenced in libucrt.lib(wcscspn.obj)
+        Referenced in libucrt.lib(wcspbrk.obj)
+        Referenced in libucrt.lib(get_qualified_locale.obj)
+        Loaded libvcruntime.lib(wcschr.obj)
+    Searching C:\Program Files (x86)\Windows Kits\10\lib\10.0.26100.0\ucrt\x64\libucrt.lib:
+    Searching C:\Program Files (x86)\Windows Kits\10\\lib\10.0.26100.0\\um\x64\uuid.lib:
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\libcpmt.lib:
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\LIBCMT.lib:
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\OLDNAMES.lib:
+    Searching C:\Program Files (x86)\Windows Kits\10\\lib\10.0.26100.0\\um\x64\kernel32.lib:
+      Found __imp_RtlUnwind
+        Referenced in libvcruntime.lib(jmpuwind.obj)
+        Loaded kernel32.lib(KERNEL32.dll)
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\libvcruntime.lib:
+    Searching C:\Program Files (x86)\Windows Kits\10\lib\10.0.26100.0\ucrt\x64\libucrt.lib:
+    Searching C:\Program Files (x86)\Windows Kits\10\\lib\10.0.26100.0\\um\x64\uuid.lib:
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\libcpmt.lib:
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\LIBCMT.lib:
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\OLDNAMES.lib:
+
+Finished searching libraries
+
+Searching libraries
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\libcpmt.lib:
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\LIBCMT.lib:
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\OLDNAMES.lib:
+    Searching C:\Program Files (x86)\Windows Kits\10\\lib\10.0.26100.0\\um\x64\kernel32.lib:
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\libvcruntime.lib:
+    Searching C:\Program Files (x86)\Windows Kits\10\lib\10.0.26100.0\ucrt\x64\libucrt.lib:
+    Searching C:\Program Files (x86)\Windows Kits\10\\lib\10.0.26100.0\\um\x64\uuid.lib:
+
+Finished searching libraries
+
+Searching libraries
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\libcpmt.lib:
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\LIBCMT.lib:
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\OLDNAMES.lib:
+    Searching C:\Program Files (x86)\Windows Kits\10\\lib\10.0.26100.0\\um\x64\kernel32.lib:
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\libvcruntime.lib:
+    Searching C:\Program Files (x86)\Windows Kits\10\lib\10.0.26100.0\ucrt\x64\libucrt.lib:
+    Searching C:\Program Files (x86)\Windows Kits\10\\lib\10.0.26100.0\\um\x64\uuid.lib:
+
+Finished searching libraries
+
+Finished pass 1
+
+
+Searching libraries
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\libcpmt.lib:
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\LIBCMT.lib:
+      Found _load_config_used
+        Loaded LIBCMT.lib(loadcfg.obj)
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\OLDNAMES.lib:
+    Searching C:\Program Files (x86)\Windows Kits\10\\lib\10.0.26100.0\\um\x64\kernel32.lib:
+    Searching C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\libvcruntime.lib:
+      Found __guard_memcpy_fptr
+        Referenced in LIBCMT.lib(loadcfg.obj)
+        Loaded libvcruntime.lib(softmemtag.obj)
+
+Finished searching libraries
+
+
+Unused libraries:
+  C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.51.36231\lib\x64\OLDNAMES.lib
+  C:\Program Files (x86)\Windows Kits\10\\lib\10.0.26100.0\\um\x64\uuid.lib
+
+    Discarded "struct _Digit_pair_table<char>::_Digit_pair_table<char> const std::_Digit_pairs<char>" (??$_Digit_pairs@D@std@@3U?$_Digit_pair_table@D@1@B) from libcpmt.lib(xthrow.obj)
+    Discarded "struct _Digit_pair_table<wchar_t>::_Digit_pair_table<wchar_t> const std::_Digit_pairs<wchar_t>" (??$_Digit_pairs@_W@std@@3U?$_Digit_pair_table@_W@1@B) from libcpmt.lib(xthrow.obj)
+    Discarded "const std::bad_function_call::`vftable'" (??_7bad_function_call@std@@6B@) from libcpmt.lib(xthrow.obj)
+    Discarded "`string'" (??_C@_0BC@DPJNKNAF@bad?5function?5call@) from libcpmt.lib(xthrow.obj)
+    Discarded "const std::invalid_argument::`vftable'" (??_7invalid_argument@std@@6B@) from libcpmt.lib(xthrow.obj)
+    Discarded "const std::out_of_range::`vftable'" (??_7out_of_range@std@@6B@) from libcpmt.lib(xthrow.obj)
+    Discarded "const std::runtime_error::`vftable'" (??_7runtime_error@std@@6B@) from libcpmt.lib(xthrow.obj)
+    Discarded "const std::overflow_error::`vftable'" (??_7overflow_error@std@@6B@) from libcpmt.lib(xthrow.obj)
+    Discarded "const std::regex_error::`vftable'" (??_7regex_error@std@@6B@) from libcpmt.lib(xthrow.obj)
+    Discarded "`string'" (??_C@_0FI@CMNGHIFF@regex_error?$CIerror_collate?$CJ?3?5The@) from libcpmt.lib(xthrow.obj)
+    Discarded "`string'" (??_C@_0FE@LJMHKIOC@regex_error?$CIerror_ctype?$CJ?3?5The?5e@) from libcpmt.lib(xthrow.obj)
+    Discarded "`string'" (??_C@_0GI@HEGGMMDL@regex_error?$CIerror_escape?$CJ?3?5The?5@) from libcpmt.lib(xthrow.obj)
+    Discarded "`string'" (??_C@_0FA@HFMLPGNN@regex_error?$CIerror_backref?$CJ?3?5The@) from libcpmt.lib(xthrow.obj)
+    Discarded "`string'" (??_C@_0EH@LGEANNAL@regex_error?$CIerror_brack?$CJ?3?5The?5e@) from libcpmt.lib(xthrow.obj)
+    Discarded "`string'" (??_C@_0EH@CAGOJGLE@regex_error?$CIerror_paren?$CJ?3?5The?5e@) from libcpmt.lib(xthrow.obj)
+    Discarded "`string'" (??_C@_0EH@DICJJKLO@regex_error?$CIerror_brace?$CJ?3?5The?5e@) from libcpmt.lib(xthrow.obj)
+    Discarded "`string'" (??_C@_0FL@PFIPCJPP@regex_error?$CIerror_badbrace?$CJ?3?5Th@) from libcpmt.lib(xthrow.obj)
+    Discarded "`string'" (??_C@_0HA@ICNJLCMC@regex_error?$CIerror_range?$CJ?3?5The?5e@) from libcpmt.lib(xthrow.obj)
+    Discarded "`string'" (??_C@_0GP@PICOBCHA@regex_error?$CIerror_space?$CJ?3?5There@) from libcpmt.lib(xthrow.obj)
+    Discarded "`string'" (??_C@_0FK@LCHHHEOA@regex_error?$CIerror_badrepeat?$CJ?3?5O@) from libcpmt.lib(xthrow.obj)
+    Discarded "`string'" (??_C@_0HL@NEKOFBJA@regex_error?$CIerror_complexity?$CJ?3?5@) from libcpmt.lib(xthrow.obj)
+    Discarded "`string'" (??_C@_0JC@HCDLJLGO@regex_error?$CIerror_stack?$CJ?3?5There@) from libcpmt.lib(xthrow.obj)
+    Discarded "`string'" (??_C@_0BJ@CHBLKGNM@regex_error?$CIerror_parse?$CJ@) from libcpmt.lib(xthrow.obj)
+    Discarded "`string'" (??_C@_0BK@DFJCACNI@regex_error?$CIerror_syntax?$CJ@) from libcpmt.lib(xthrow.obj)
+    Discarded "`string'" (??_C@_0M@KGKAAGCA@regex_error@) from libcpmt.lib(xthrow.obj)
+    Discarded "`string'" (??_C@_04HEJADOOB@CV?3?5@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_02MOLJINC@?3?3@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_0BE@JAEOCHPE@template?9parameter?9@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_0BF@LNLGBBNL@?$GAtemplate?9parameter?9@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_0O@KHGCOMHP@generic?9type?9@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_0P@ODDENDLM@?$GAgeneric?9type?9@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_02OHHJMEON@?8?8@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_0BN@IBLMMFAP@?$GAnon?9type?9template?9parameter@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_03DLDNIBIK@?$CFlf@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_04OFALKAJ@?$DP?$DP_C@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_03KHICJKCI@?4?4?4@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_04HIBGFPH@NULL@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_02DPKJAMEF@?$CFd@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_0BK@IHCCFNEL@?$GAtemplate?9type?9parameter?9@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_0BK@OFCNNNKO@?$GAgeneric?9class?9parameter?9@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_0BL@NGJBLFIL@?$GAgeneric?9method?9parameter?9@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_07OHNGEDJK@nullptr@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_06COJIGPIB@lambda@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_04GKJNKENE@void@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_0BE@EODMJLIF@?$GAtemplate?9parameter@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_03OPGICMGF@?$HN?8?5@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_02IGFCGPIL@?$HN?8@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_0N@CBHHHENL@?$GAvtordispex?$HL@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_0L@GHPFDFH@?$GAvtordisp?$HL@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_0L@HNGCOGAE@?$GAadjustor?$HL@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_0CB@KJDOOODE@?$GAlocal?5static?5destructor?5helper@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_0DB@ILEFOCIJ@?$GAtemplate?5static?5data?5member?5co@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_0DA@HGFJFBBE@?$GAtemplate?5static?5data?5member?5de@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_07PGOEDBHP@static?5@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_08NIEOINHE@virtual?5@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_09LAPHOOG@private?3?5@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_0M@GAIFPFIP@protected?3?5@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_08GPDDCMKI@public?3?5@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_08KJLFOPNE@?$FLthunk?$FN?3@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_0M@DHNBOJMP@extern?5?$CCC?$CC?5@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_02KCKGHPCA@?$CJ?5@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_05CIHEBHNO@char?5@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_06EHJMALKF@short?5@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_04LAHKHJMA@int?5@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_05CJIMAING@long?5@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_09EBBEKKIH@unsigned?5@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_05BEFAKPML@void?5@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_09GAIEOBLP@volatile?5@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_08PABEKFH@volatile@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_01OHGJGJJP@?$FL@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_02OMMIPCFP@?$FL?$CB@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_06GIBMGPCF@svbool@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_06GJNEONJA@svint8@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_07HGKLONFD@svint16@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_07BBEDPMDJ@svint32@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_07EBNCJJFE@svint64@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_07GHOJCGPN@svuint8@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_08EFKGMNHN@svuint16@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_08CCEONMBH@svuint32@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_08HCNPLJHK@svuint64@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_0L@DFPAGDNK@svbfloat16@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_09MNDIFGIL@svfloat16@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_09KKNAEHOB@svfloat32@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_09PKEBCCIM@svfloat64@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_02LHCMELHE@x2@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_02KODHHKDF@x3@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_02OBHGOMPC@x4@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_0BA@LKIJLKPP@std?3?3nullptr_t?5@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_0P@GCOCNKDM@std?3?3nullptr_t@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_0L@EGPHHEKN@?$DMellipsis?$DO@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_04EENFHACM@?0?4?4?4@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_0M@ELJOJFFH@?0?$DMellipsis?$DO@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_09DNHFEOJI@?5noexcept@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_03PBJBJNON@cpu@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_03DCBBJBAA@amp@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_02KEGNLNML@?0?5@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_04ENMBGAPA@char@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_05BFKKPKCG@short@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_03JBIPMCLC@int@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_04GOKPGOLB@long@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_05KNFBNCOH@float@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_06BNJCAIGJ@double@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_04DDKJGDCM@bool@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_06EBGKOKIG@__int8@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_07ICFHOGAF@__int16@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_07OFLPPHGP@__int32@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_07LFCOJCAC@__int64@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_08GAHOLHEO@__int128@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_09EEKGDCPH@?$DMunknown?$DO@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_07CFHGOPCN@char8_t@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_08HBIPOFJB@char16_t@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_08IECNCBKG@char32_t@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_07CLGGIAMF@wchar_t@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_04HAPDLBFF@auto@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_0P@LHCGKIGK@decltype?$CIauto?$CJ@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_05PCNBGHCF@this?5@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_06GCICPBLB@__w64?5@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_07NFANNNEC@UNKNOWN@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_07EDHNAJHC@signed?5@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_05BNCCCJPP@const@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_09EFNPDFFP@?5volatile@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_0P@GCIFDJCJ@?$GAunknown?5ecsu?8@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_06MOJHIBMG@union?5@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_07DIBCDNGL@struct?5@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_06LJBABKPM@class?5@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_08KOFANOFK@coclass?5@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_0N@DLIEFKNA@cointerface?5@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_05LJGMCFOG@enum?5@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_06LIJLOJAG@const?5@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_02KJPKDIBN@?$CG?5@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_03PCKGMOPB@?$CG?$CG?5@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_0M@EALIELKG@cli?3?3array?$DM@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_0O@GKABPPIF@cli?3?3pin_ptr?$DM@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_02GOGNNPBN@?$CJ?$FL@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_06EEGAIFAK@?$HLflat?$HN@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_05JIBOFOHK@?$HLfor?5@) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_02MDINNEEG@s?5@) from libvcruntime.lib(undname.obj)
+    Discarded "const DNameNode::`vftable'" (??_7DNameNode@@6B@) from libvcruntime.lib(undname.obj)
+    Discarded "const charNode::`vftable'" (??_7charNode@@6B@) from libvcruntime.lib(undname.obj)
+    Discarded "const pcharNode::`vftable'" (??_7pcharNode@@6B@) from libvcruntime.lib(undname.obj)
+    Discarded "const pDNameNode::`vftable'" (??_7pDNameNode@@6B@) from libvcruntime.lib(undname.obj)
+    Discarded "const DNameStatusNode::`vftable'" (??_7DNameStatusNode@@6B@) from libvcruntime.lib(undname.obj)
+    Discarded "const pairNode::`vftable'" (??_7pairNode@@6B@) from libvcruntime.lib(undname.obj)
+    Discarded "struct `__cdecl InitValidIdentChar(void)'::`2'::<unnamed-type-result> const `bool __cdecl IsValidIdentChar(char)'::`2'::result" (?result@?1??IsValidIdentChar@@YA_ND@Z@4U<unnamed-type-result>@?1??InitValidIdentChar@@YA@XZ@B) from libvcruntime.lib(undname.obj)
+    Discarded "`string'" (??_C@_04OKOHEJBO@?5?$DP?$DP?5@) from libvcruntime.lib(undname.obj)
+    Discarded "class DNameStatusNode const * const `public: static class DNameStatusNode const * __cdecl DNameStatusNode::make(enum DNameStatus)'::`2'::nodes" (?nodes@?1??make@DNameStatusNode@@SAPEBV2@W4DNameStatus@@@Z@4QBV2@B) from libvcruntime.lib(undname.obj)
+    Discarded "signed char const * const FH4::s_negLengthTab" (?s_negLengthTab@FH4@@3QBCB) from libvcruntime.lib(risctrnsctrl.obj)
+    Discarded "unsigned char const * const FH4::s_shiftTab" (?s_shiftTab@FH4@@3QBEB) from libvcruntime.lib(risctrnsctrl.obj)
+    Discarded "struct _EXCEPTION_RECORD const `public: static void __cdecl __FrameHandler4::UnwindNestedFrames(unsigned __int64 *,struct EHExceptionRecord *,struct _CONTEXT *,unsigned __int64 *,void *,struct FH4::FuncInfo4 *,int,int,struct FH4::HandlerType4 *,struct _xDISPATCHER_CONTEXT *,unsigned char)'::`2'::ExceptionTemplate" (?ExceptionTemplate@?1??UnwindNestedFrames@__FrameHandler4@@SAXPEA_KPEAUEHExceptionRecord@@PEAU_CONTEXT@@0PEAXPEAUFuncInfo4@FH4@@HHPEAUHandlerType4@6@PEAU_xDISPATCHER_CONTEXT@@E@Z@4U_EXCEPTION_RECORD@@B) from libvcruntime.lib(risctrnsctrl.obj)
+    Discarded _Fenv1 from libucrt.lib(output.obj)
+    Discarded "class __crt_stdio_output::spectre_mitigated_lookup_table<struct __crt_stdio_output::state_transition_pair,128> const __crt_stdio_output::format_validation_lookup_table_spectre" (?format_validation_lookup_table_spectre@__crt_stdio_output@@3V?$spectre_mitigated_lookup_table@Ustate_transition_pair@__crt_stdio_output@@$0IA@@1@B) from libucrt.lib(output.obj)
+    Discarded $cppxdata$?write_stored_string_tchar@?$output_processor@DV?$stream_output_adapter@D@__crt_stdio_output@@V?$standard_base@DV?$stream_output_adapter@D@__crt_stdio_output@@@2@@__crt_stdio_output@@AEAA_ND@Z from libucrt.lib(output.obj)
+    Discarded $cppxdata$?state_case_type@?$output_processor@_WV?$stream_output_adapter@_W@__crt_stdio_output@@V?$standard_base@_WV?$stream_output_adapter@_W@__crt_stdio_output@@@2@@__crt_stdio_output@@AEAA_NXZ from libucrt.lib(output.obj)
+    Discarded $cppxdata$?type_case_s_compute_narrow_string_length@?$output_processor@_WV?$stream_output_adapter@_W@__crt_stdio_output@@V?$standard_base@_WV?$stream_output_adapter@_W@__crt_stdio_output@@@2@@__crt_stdio_output@@AEAAHH_W@Z from libucrt.lib(output.obj)
+    Discarded $cppxdata$?write_stored_string_tchar@?$output_processor@_WV?$stream_output_adapter@_W@__crt_stdio_output@@V?$standard_base@_WV?$stream_output_adapter@_W@__crt_stdio_output@@@2@@__crt_stdio_output@@AEAA_N_W@Z from libucrt.lib(output.obj)
+    Discarded $cppxdata$?state_case_type@?$output_processor@DV?$stream_output_adapter@D@__crt_stdio_output@@V?$format_validation_base@DV?$stream_output_adapter@D@__crt_stdio_output@@@2@@__crt_stdio_output@@AEAA_NXZ from libucrt.lib(output.obj)
+    Discarded $cppxdata$?write_stored_string_tchar@?$output_processor@DV?$stream_output_adapter@D@__crt_stdio_output@@V?$format_validation_base@DV?$stream_output_adapter@D@__crt_stdio_output@@@2@@__crt_stdio_output@@AEAA_ND@Z from libucrt.lib(output.obj)
+    Discarded $cppxdata$?state_case_type@?$output_processor@_WV?$stream_output_adapter@_W@__crt_stdio_output@@V?$format_validation_base@_WV?$stream_output_adapter@_W@__crt_stdio_output@@@2@@__crt_stdio_output@@AEAA_NXZ from libucrt.lib(output.obj)
+    Discarded $cppxdata$?type_case_s_compute_narrow_string_length@?$output_processor@_WV?$stream_output_adapter@_W@__crt_stdio_output@@V?$format_validation_base@_WV?$stream_output_adapter@_W@__crt_stdio_output@@@2@@__crt_stdio_output@@AEAAHH_W@Z from libucrt.lib(output.obj)
+    Discarded $cppxdata$?write_stored_string_tchar@?$output_processor@_WV?$stream_output_adapter@_W@__crt_stdio_output@@V?$format_validation_base@_WV?$stream_output_adapter@_W@__crt_stdio_output@@@2@@__crt_stdio_output@@AEAA_N_W@Z from libucrt.lib(output.obj)
+    Discarded $cppxdata$?state_case_type@?$output_processor@DV?$stream_output_adapter@D@__crt_stdio_output@@V?$positional_parameter_base@DV?$stream_output_adapter@D@__crt_stdio_output@@@2@@__crt_stdio_output@@AEAA_NXZ from libucrt.lib(output.obj)
+    Discarded $cppxdata$?write_stored_string_tchar@?$output_processor@DV?$stream_output_adapter@D@__crt_stdio_output@@V?$positional_parameter_base@DV?$stream_output_adapter@D@__crt_stdio_output@@@2@@__crt_stdio_output@@AEAA_ND@Z from libucrt.lib(output.obj)
+    Discarded $cppxdata$?state_case_type@?$output_processor@_WV?$stream_output_adapter@_W@__crt_stdio_output@@V?$positional_parameter_base@_WV?$stream_output_adapter@_W@__crt_stdio_output@@@2@@__crt_stdio_output@@AEAA_NXZ from libucrt.lib(output.obj)
+    Discarded $cppxdata$?type_case_s_compute_narrow_string_length@?$output_processor@_WV?$stream_output_adapter@_W@__crt_stdio_output@@V?$positional_parameter_base@_WV?$stream_output_adapter@_W@__crt_stdio_output@@@2@@__crt_stdio_output@@AEAAHH_W@Z from libucrt.lib(output.obj)
+    Discarded $cppxdata$?write_stored_string_tchar@?$output_processor@_WV?$stream_output_adapter@_W@__crt_stdio_output@@V?$positional_parameter_base@_WV?$stream_output_adapter@_W@__crt_stdio_output@@@2@@__crt_stdio_output@@AEAA_N_W@Z from libucrt.lib(output.obj)
+    Discarded $cppxdata$?state_case_type@?$output_processor@DV?$string_output_adapter@D@__crt_stdio_output@@V?$standard_base@DV?$string_output_adapter@D@__crt_stdio_output@@@2@@__crt_stdio_output@@AEAA_NXZ from libucrt.lib(output.obj)
+    Discarded $cppxdata$?write_stored_string_tchar@?$output_processor@DV?$string_output_adapter@D@__crt_stdio_output@@V?$standard_base@DV?$string_output_adapter@D@__crt_stdio_output@@@2@@__crt_stdio_output@@AEAA_ND@Z from libucrt.lib(output.obj)
+    Discarded $cppxdata$?state_case_type@?$output_processor@_WV?$string_output_adapter@_W@__crt_stdio_output@@V?$standard_base@_WV?$string_output_adapter@_W@__crt_stdio_output@@@2@@__crt_stdio_output@@AEAA_NXZ from libucrt.lib(output.obj)
+    Discarded $cppxdata$?type_case_s_compute_narrow_string_length@?$output_processor@_WV?$string_output_adapter@_W@__crt_stdio_output@@V?$standard_base@_WV?$string_output_adapter@_W@__crt_stdio_output@@@2@@__crt_stdio_output@@AEAAHH_W@Z from libucrt.lib(output.obj)
+    Discarded $cppxdata$?write_stored_string_tchar@?$output_processor@_WV?$string_output_adapter@_W@__crt_stdio_output@@V?$standard_base@_WV?$string_output_adapter@_W@__crt_stdio_output@@@2@@__crt_stdio_output@@AEAA_N_W@Z from libucrt.lib(output.obj)
+    Discarded $cppxdata$?state_case_type@?$output_processor@DV?$string_output_adapter@D@__crt_stdio_output@@V?$positional_parameter_base@DV?$string_output_adapter@D@__crt_stdio_output@@@2@@__crt_stdio_output@@AEAA_NXZ from libucrt.lib(output.obj)
+    Discarded $cppxdata$?write_stored_string_tchar@?$output_processor@DV?$string_output_adapter@D@__crt_stdio_output@@V?$positional_parameter_base@DV?$string_output_adapter@D@__crt_stdio_output@@@2@@__crt_stdio_output@@AEAA_ND@Z from libucrt.lib(output.obj)
+    Discarded $cppxdata$?state_case_type@?$output_processor@_WV?$string_output_adapter@_W@__crt_stdio_output@@V?$positional_parameter_base@_WV?$string_output_adapter@_W@__crt_stdio_output@@@2@@__crt_stdio_output@@AEAA_NXZ from libucrt.lib(output.obj)
+    Discarded $cppxdata$?type_case_s_compute_narrow_string_length@?$output_processor@_WV?$string_output_adapter@_W@__crt_stdio_output@@V?$positional_parameter_base@_WV?$string_output_adapter@_W@__crt_stdio_output@@@2@@__crt_stdio_output@@AEAAHH_W@Z from libucrt.lib(output.obj)
+    Discarded $cppxdata$?write_stored_string_tchar@?$output_processor@_WV?$string_output_adapter@_W@__crt_stdio_output@@V?$positional_parameter_base@_WV?$string_output_adapter@_W@__crt_stdio_output@@@2@@__crt_stdio_output@@AEAA_N_W@Z from libucrt.lib(output.obj)
+    Discarded $cppxdata$?state_case_type@?$output_processor@DV?$string_output_adapter@D@__crt_stdio_output@@V?$format_validation_base@DV?$string_output_adapter@D@__crt_stdio_output@@@2@@__crt_stdio_output@@AEAA_NXZ from libucrt.lib(output.obj)
+    Discarded $cppxdata$?write_stored_string_tchar@?$output_processor@DV?$string_output_adapter@D@__crt_stdio_output@@V?$format_validation_base@DV?$string_output_adapter@D@__crt_stdio_output@@@2@@__crt_stdio_output@@AEAA_ND@Z from libucrt.lib(output.obj)
+    Discarded $cppxdata$?state_case_type@?$output_processor@_WV?$string_output_adapter@_W@__crt_stdio_output@@V?$format_validation_base@_WV?$string_output_adapter@_W@__crt_stdio_output@@@2@@__crt_stdio_output@@AEAA_NXZ from libucrt.lib(output.obj)
+    Discarded $cppxdata$?type_case_s_compute_narrow_string_length@?$output_processor@_WV?$string_output_adapter@_W@__crt_stdio_output@@V?$format_validation_base@_WV?$string_output_adapter@_W@__crt_stdio_output@@@2@@__crt_stdio_output@@AEAAHH_W@Z from libucrt.lib(output.obj)
+    Discarded $cppxdata$?write_stored_string_tchar@?$output_processor@_WV?$string_output_adapter@_W@__crt_stdio_output@@V?$format_validation_base@_WV?$string_output_adapter@_W@__crt_stdio_output@@@2@@__crt_stdio_output@@AEAA_N_W@Z from libucrt.lib(output.obj)
+    Discarded __acrt_signal_action_table_size from libucrt.lib(exception_filter.obj)
+    Discarded "`string'" (??_C@_1DE@JNGNBFGO@?$AAR?$AAu?$AAn?$AAt?$AAi?$AAm?$AAe?$AA?5?$AAE?$AAr?$AAr?$AAo?$AAr?$AA?$CB?$AA?6@) from libucrt.lib(report_runtime_error.obj)
+    Discarded "`string'" (??_C@_1CO@EAEJAADC@?$AA?$DM?$AAp?$AAr?$AAo?$AAg?$AAr?$AAa?$AAm?$AA?5?$AAn?$AAa?$AAm?$AAe?$AA?5?$AAu@) from libucrt.lib(report_runtime_error.obj)
+    Discarded "`string'" (??_C@_17LGKOMLJ@?$AA?4?$AA?4?$AA?4@) from libucrt.lib(report_runtime_error.obj)
+    Discarded "`string'" (??_C@_15IABLJNFO@?$AA?6?$AA?6@) from libucrt.lib(report_runtime_error.obj)
+    Discarded "`string'" (??_C@_1EK@MBDPDCGA@?$AAM?$AAi?$AAc?$AAr?$AAo?$AAs?$AAo?$AAf?$AAt?$AA?5?$AAV?$AAi?$AAs?$AAu?$AAa@) from libucrt.lib(report_runtime_error.obj)
+    Discarded $cppxdata$??$uninitialize@A6AXAEAPEAPEAD@_E@?$dual_state_global@PEAPEAD@__crt_state_management@@QEAAXA6AXAEAPEAPEAD@_E@Z from libucrt.lib(environment_initialization.obj)
+    Discarded $cppxdata$??$uninitialize@A6AXAEAPEAPEA_W@_E@?$dual_state_global@PEAPEA_W@__crt_state_management@@QEAAXA6AXAEAPEAPEA_W@_E@Z from libucrt.lib(environment_initialization.obj)
+    Discarded $cppxdata$??$__acrt_lock_and_call@V<lambda_6e4b09c48022b2350581041d5f6b0c4c>@@@@YAXW4__acrt_lock_id@@$$QEAV<lambda_6e4b09c48022b2350581041d5f6b0c4c>@@@Z from libucrt.lib(exit.obj)
+    Discarded _first_127char from libucrt.lib(wsetlocale.obj)
+    Discarded __lc_category from libucrt.lib(wsetlocale.obj)
+    Discarded "`string'" (??_C@_1O@GIFLHMA@?$AAL?$AAC?$AA_?$AAA?$AAL?$AAL@) from libucrt.lib(wsetlocale.obj)
+    Discarded "`string'" (??_C@_1BG@PPOMIBNJ@?$AAL?$AAC?$AA_?$AAC?$AAO?$AAL?$AAL?$AAA?$AAT?$AAE@) from libucrt.lib(wsetlocale.obj)
+    Discarded "`string'" (??_C@_1BC@FFJGAPJM@?$AAL?$AAC?$AA_?$AAC?$AAT?$AAY?$AAP?$AAE@) from libucrt.lib(wsetlocale.obj)
+    Discarded "`string'" (??_C@_1BI@PCKFNJFB@?$AAL?$AAC?$AA_?$AAM?$AAO?$AAN?$AAE?$AAT?$AAA?$AAR?$AAY@) from libucrt.lib(wsetlocale.obj)
+    Discarded "`string'" (??_C@_1BG@ENIEDKID@?$AAL?$AAC?$AA_?$AAN?$AAU?$AAM?$AAE?$AAR?$AAI?$AAC@) from libucrt.lib(wsetlocale.obj)
+    Discarded "`string'" (??_C@_1BA@HAAOMIIG@?$AAL?$AAC?$AA_?$AAT?$AAI?$AAM?$AAE@) from libucrt.lib(wsetlocale.obj)
+    Discarded "`string'" (??_C@_15NBPDDFIP@?$AA?$DN?$AA?$DL@) from libucrt.lib(wsetlocale.obj)
+    Discarded "`string'" (??_C@_13PJJBFPED@?$AA?$DL@) from libucrt.lib(wsetlocale.obj)
+    Discarded "`string'" (??_C@_13NMPKAAJP@?$AA?$DN@) from libucrt.lib(wsetlocale.obj)
+    Discarded "`string'" (??_C@_13IMODFHAA@?$AA?9@) from libucrt.lib(wsetlocale.obj)
+    Discarded "`string'" (??_C@_17EFJLDFDO@?$AA?9?$AA_?$AA?4@) from libucrt.lib(wsetlocale.obj)
+    Discarded "`string'" (??_C@_13FHBKNHDA@?$AAC@) from libucrt.lib(wsetlocale.obj)
+    Discarded "`string'" (??_C@_17MBJJLFDM@?$AA_?$AA?4?$AA?0@) from libucrt.lib(wsetlocale.obj)
+    Discarded "`string'" (??_C@_13ENNFDPBH@?$AA_@) from libucrt.lib(wsetlocale.obj)
+    Discarded "`string'" (??_C@_13JOFGPIOO@?$AA?4@) from libucrt.lib(wsetlocale.obj)
+    Discarded $cppxdata$??$__acrt_lock_and_call@V<lambda_f03950bc5685219e0bcd2087efbe011e>@@@@YAHW4__acrt_lock_id@@$$QEAV<lambda_f03950bc5685219e0bcd2087efbe011e>@@@Z from libucrt.lib(onexit.obj)
+    Discarded RtlNtPathSeperatorString from libucrt.lib(winapi_thunks.obj)
+    Discarded "`string'" (??_C@_13FPGAJAPJ@?$AA?2@) from libucrt.lib(winapi_thunks.obj)
+    Discarded RtlDosPathSeperatorsString from libucrt.lib(winapi_thunks.obj)
+    Discarded "`string'" (??_C@_15MNCACJLI@?$AA?2?$AA?1@) from libucrt.lib(winapi_thunks.obj)
+    Discarded RtlAlternateDosPathSeperatorString from libucrt.lib(winapi_thunks.obj)
+    Discarded "`string'" (??_C@_13CGOKJPIL@?$AA?1@) from libucrt.lib(winapi_thunks.obj)
+    Discarded "enum `anonymous namespace'::module_id const * const `int (__cdecl*__cdecl try_get_EnumSystemLocalesEx(void))(int (__cdecl*)(wchar_t *,unsigned long,__int64),unsigned long,__int64,void *)'::`2'::candidate_modules" (?candidate_modules@?1??try_get_EnumSystemLocalesEx@@YAP6AHP6AHPEA_WK_J@ZK1PEAX@ZXZ@4QBW4module_id@?A0x391cf84c@@B) from libucrt.lib(winapi_thunks.obj)
+    Discarded "`string'" (??_C@_0BE@LJANKFHF@EnumSystemLocalesEx@) from libucrt.lib(winapi_thunks.obj)
+    Discarded "enum `anonymous namespace'::module_id const * const `struct HWND__ * (__cdecl*__cdecl try_get_GetActiveWindow(void))(void)'::`2'::candidate_modules" (?candidate_modules@?1??try_get_GetActiveWindow@@YAP6APEAUHWND__@@XZXZ@4QBW4module_id@?A0x391cf84c@@B) from libucrt.lib(winapi_thunks.obj)
+    Discarded "`string'" (??_C@_0BA@HNOPNCHB@GetActiveWindow@) from libucrt.lib(winapi_thunks.obj)
+    Discarded "enum `anonymous namespace'::module_id const * const `int (__cdecl*__cdecl try_get_GetDateFormatEx(void))(wchar_t const *,unsigned long,struct _SYSTEMTIME const *,wchar_t const *,wchar_t *,int,wchar_t const *)'::`2'::candidate_modules" (?candidate_modules@?1??try_get_GetDateFormatEx@@YAP6AHPEB_WKPEBU_SYSTEMTIME@@0PEA_WH0@ZXZ@4QBW4module_id@?A0x391cf84c@@B) from libucrt.lib(winapi_thunks.obj)
+    Discarded "`string'" (??_C@_0BA@EPCJIIPD@GetDateFormatEx@) from libucrt.lib(winapi_thunks.obj)
+    Discarded "enum `anonymous namespace'::module_id const * const `unsigned long (__cdecl*__cdecl try_get_GetTempPath2W(void))(unsigned long,wchar_t *)'::`2'::candidate_modules" (?candidate_modules@?1??try_get_GetTempPath2W@@YAP6AKKPEA_W@ZXZ@4QBW4module_id@?A0x391cf84c@@B) from libucrt.lib(winapi_thunks.obj)
+    Discarded "`string'" (??_C@_0O@NNMIPI@GetTempPath2W@) from libucrt.lib(winapi_thunks.obj)
+    Discarded "enum `anonymous namespace'::module_id const * const `int (__cdecl*__cdecl try_get_GetFileInformationByName(void))(wchar_t const *,unsigned long,void *,unsigned long)'::`2'::candidate_modules" (?candidate_modules@?1??try_get_GetFileInformationByName@@YAP6AHPEB_WKPEAXK@ZXZ@4QBW4module_id@?A0x391cf84c@@B) from libucrt.lib(winapi_thunks.obj)
+    Discarded "`string'" (??_C@_0BJ@IGDICJAB@GetFileInformationByName@) from libucrt.lib(winapi_thunks.obj)
+    Discarded "enum `anonymous namespace'::module_id const * const `unsigned __int64 (__cdecl*__cdecl try_get_GetEnabledXStateFeatures(void))(void)'::`2'::candidate_modules" (?candidate_modules@?1??try_get_GetEnabledXStateFeatures@@YAP6A_KXZXZ@4QBW4module_id@?A0x391cf84c@@B) from libucrt.lib(winapi_thunks.obj)
+    Discarded "`string'" (??_C@_0BJ@DIBIJBHA@GetEnabledXStateFeatures@) from libucrt.lib(winapi_thunks.obj)
+    Discarded "enum `anonymous namespace'::module_id const * const `struct HWND__ * (__cdecl*__cdecl try_get_GetLastActivePopup(void))(struct HWND__ *)'::`2'::candidate_modules" (?candidate_modules@?1??try_get_GetLastActivePopup@@YAP6APEAUHWND__@@PEAU2@@ZXZ@4QBW4module_id@?A0x391cf84c@@B) from libucrt.lib(winapi_thunks.obj)
+    Discarded "`string'" (??_C@_0BD@HHGDFDBJ@GetLastActivePopup@) from libucrt.lib(winapi_thunks.obj)
+    Discarded "enum `anonymous namespace'::module_id const * const `int (__cdecl*__cdecl try_get_GetLocaleInfoEx(void))(wchar_t const *,unsigned long,wchar_t *,int)'::`2'::candidate_modules" (?candidate_modules@?1??try_get_GetLocaleInfoEx@@YAP6AHPEB_WKPEA_WH@ZXZ@4QBW4module_id@?A0x391cf84c@@B) from libucrt.lib(winapi_thunks.obj)
+    Discarded "`string'" (??_C@_0BA@ONOKGCMP@GetLocaleInfoEx@) from libucrt.lib(winapi_thunks.obj)
+    Discarded "enum `anonymous namespace'::module_id const * const `struct HWINSTA__ * (__cdecl*__cdecl try_get_GetProcessWindowStation(void))(void)'::`2'::candidate_modules" (?candidate_modules@?1??try_get_GetProcessWindowStation@@YAP6APEAUHWINSTA__@@XZXZ@4QBW4module_id@?A0x391cf84c@@B) from libucrt.lib(winapi_thunks.obj)
+    Discarded "`string'" (??_C@_0BI@DFKBFLJE@GetProcessWindowStation@) from libucrt.lib(winapi_thunks.obj)
+    Discarded "enum `anonymous namespace'::module_id const * const `void (__cdecl*__cdecl try_get_GetSystemTimePreciseAsFileTime(void))(struct _FILETIME *)'::`2'::candidate_modules" (?candidate_modules@?1??try_get_GetSystemTimePreciseAsFileTime@@YAP6AXPEAU_FILETIME@@@ZXZ@4QBW4module_id@?A0x391cf84c@@B) from libucrt.lib(winapi_thunks.obj)
+    Discarded "`string'" (??_C@_0BP@FPNJPEJC@GetSystemTimePreciseAsFileTime@) from libucrt.lib(winapi_thunks.obj)
+    Discarded "enum `anonymous namespace'::module_id const * const `int (__cdecl*__cdecl try_get_GetTimeFormatEx(void))(wchar_t const *,unsigned long,struct _SYSTEMTIME const *,wchar_t const *,wchar_t *,int)'::`2'::candidate_modules" (?candidate_modules@?1??try_get_GetTimeFormatEx@@YAP6AHPEB_WKPEBU_SYSTEMTIME@@0PEA_WH@ZXZ@4QBW4module_id@?A0x391cf84c@@B) from libucrt.lib(winapi_thunks.obj)
+    Discarded "`string'" (??_C@_0BA@CIJJKCJJ@GetTimeFormatEx@) from libucrt.lib(winapi_thunks.obj)
+    Discarded "enum `anonymous namespace'::module_id const * const `int (__cdecl*__cdecl try_get_GetUserDefaultLocaleName(void))(wchar_t *,int)'::`2'::candidate_modules" (?candidate_modules@?1??try_get_GetUserDefaultLocaleName@@YAP6AHPEA_WH@ZXZ@4QBW4module_id@?A0x391cf84c@@B) from libucrt.lib(winapi_thunks.obj)
+    Discarded "`string'" (??_C@_0BJ@PBCCBIPI@GetUserDefaultLocaleName@) from libucrt.lib(winapi_thunks.obj)
+    Discarded "enum `anonymous namespace'::module_id const * const `int (__cdecl*__cdecl try_get_GetUserObjectInformationW(void))(void *,int,void *,unsigned long,unsigned long *)'::`2'::candidate_modules" (?candidate_modules@?1??try_get_GetUserObjectInformationW@@YAP6AHPEAXH0KPEAK@ZXZ@4QBW4module_id@?A0x391cf84c@@B) from libucrt.lib(winapi_thunks.obj)
+    Discarded "`string'" (??_C@_0BK@DEKFELLI@GetUserObjectInformationW@) from libucrt.lib(winapi_thunks.obj)
+    Discarded "enum `anonymous namespace'::module_id const * const `int (__cdecl*__cdecl try_get_GetXStateFeaturesMask(void))(struct _CONTEXT *,unsigned __int64 *)'::`2'::candidate_modules" (?candidate_modules@?1??try_get_GetXStateFeaturesMask@@YAP6AHPEAU_CONTEXT@@PEA_K@ZXZ@4QBW4module_id@?A0x391cf84c@@B) from libucrt.lib(winapi_thunks.obj)
+    Discarded "`string'" (??_C@_0BG@IKLDMBLM@GetXStateFeaturesMask@) from libucrt.lib(winapi_thunks.obj)
+    Discarded "enum `anonymous namespace'::module_id const * const `int (__cdecl*__cdecl try_get_IsValidLocaleName(void))(wchar_t const *)'::`2'::candidate_modules" (?candidate_modules@?1??try_get_IsValidLocaleName@@YAP6AHPEB_W@ZXZ@4QBW4module_id@?A0x391cf84c@@B) from libucrt.lib(winapi_thunks.obj)
+    Discarded "`string'" (??_C@_0BC@CELBKLLA@IsValidLocaleName@) from libucrt.lib(winapi_thunks.obj)
+    Discarded "enum `anonymous namespace'::module_id const * const `int (__cdecl*__cdecl try_get_LCIDToLocaleName(void))(unsigned long,wchar_t *,int,unsigned long)'::`2'::candidate_modules" (?candidate_modules@?1??try_get_LCIDToLocaleName@@YAP6AHKPEA_WHK@ZXZ@4QBW4module_id@?A0x391cf84c@@B) from libucrt.lib(winapi_thunks.obj)
+    Discarded "`string'" (??_C@_0BB@CDHDDLLP@LCIDToLocaleName@) from libucrt.lib(winapi_thunks.obj)
+    Discarded "enum `anonymous namespace'::module_id const * const `void * (__cdecl*__cdecl try_get_LocateXStateFeature(void))(struct _CONTEXT *,unsigned long,unsigned long *)'::`2'::candidate_modules" (?candidate_modules@?1??try_get_LocateXStateFeature@@YAP6APEAXPEAU_CONTEXT@@KPEAK@ZXZ@4QBW4module_id@?A0x391cf84c@@B) from libucrt.lib(winapi_thunks.obj)
+    Discarded "`string'" (??_C@_0BE@KINNKFDA@LocateXStateFeature@) from libucrt.lib(winapi_thunks.obj)
+    Discarded "enum `anonymous namespace'::module_id const * const `int (__cdecl*__cdecl try_get_MessageBoxA(void))(struct HWND__ *,char const *,char const *,unsigned int)'::`2'::candidate_modules" (?candidate_modules@?1??try_get_MessageBoxA@@YAP6AHPEAUHWND__@@PEBD1I@ZXZ@4QBW4module_id@?A0x391cf84c@@B) from libucrt.lib(winapi_thunks.obj)
+    Discarded "`string'" (??_C@_0M@CHKKJDAI@MessageBoxA@) from libucrt.lib(winapi_thunks.obj)
+    Discarded "enum `anonymous namespace'::module_id const * const `int (__cdecl*__cdecl try_get_MessageBoxW(void))(struct HWND__ *,wchar_t const *,wchar_t const *,unsigned int)'::`2'::candidate_modules" (?candidate_modules@?1??try_get_MessageBoxW@@YAP6AHPEAUHWND__@@PEB_W1I@ZXZ@4QBW4module_id@?A0x391cf84c@@B) from libucrt.lib(winapi_thunks.obj)
+    Discarded "`string'" (??_C@_0M@DLDCCGNP@MessageBoxW@) from libucrt.lib(winapi_thunks.obj)
+    Discarded "enum `anonymous namespace'::module_id const * const `long (__cdecl*__cdecl try_get_RoInitialize(void))(enum RO_INIT_TYPE)'::`2'::candidate_modules" (?candidate_modules@?1??try_get_RoInitialize@@YAP6AJW4RO_INIT_TYPE@@@ZXZ@4QBW4module_id@?A0x391cf84c@@B) from libucrt.lib(winapi_thunks.obj)
+    Discarded "`string'" (??_C@_0N@PPOMPGGK@RoInitialize@) from libucrt.lib(winapi_thunks.obj)
+    Discarded "enum `anonymous namespace'::module_id const * const `void (__cdecl*__cdecl try_get_RoUninitialize(void))(void)'::`2'::candidate_modules" (?candidate_modules@?1??try_get_RoUninitialize@@YAP6AXXZXZ@4QBW4module_id@?A0x391cf84c@@B) from libucrt.lib(winapi_thunks.obj)
+    Discarded "`string'" (??_C@_0P@LLFHBIJD@RoUninitialize@) from libucrt.lib(winapi_thunks.obj)
+    Discarded "enum `anonymous namespace'::module_id const * const `long (__cdecl*__cdecl try_get_AppPolicyGetThreadInitializationType(void))(void *,enum AppPolicyThreadInitializationType *)'::`2'::candidate_modules" (?candidate_modules@?1??try_get_AppPolicyGetThreadInitializationType@@YAP6AJPEAXPEAW4AppPolicyThreadInitializationType@@@ZXZ@4QBW4module_id@?A0x391cf84c@@B) from libucrt.lib(winapi_thunks.obj)
+    Discarded "`string'" (??_C@_0CF@NNDFDCOC@AppPolicyGetThreadInitializatio@) from libucrt.lib(winapi_thunks.obj)
+    Discarded "enum `anonymous namespace'::module_id const * const `long (__cdecl*__cdecl try_get_AppPolicyGetShowDeveloperDiagnostic(void))(void *,enum AppPolicyShowDeveloperDiagnostic *)'::`2'::candidate_modules" (?candidate_modules@?1??try_get_AppPolicyGetShowDeveloperDiagnostic@@YAP6AJPEAXPEAW4AppPolicyShowDeveloperDiagnostic@@@ZXZ@4QBW4module_id@?A0x391cf84c@@B) from libucrt.lib(winapi_thunks.obj)
+    Discarded "`string'" (??_C@_0CE@OICFMIKE@AppPolicyGetShowDeveloperDiagno@) from libucrt.lib(winapi_thunks.obj)
+    Discarded "enum `anonymous namespace'::module_id const * const `long (__cdecl*__cdecl try_get_AppPolicyGetWindowingModel(void))(void *,enum AppPolicyWindowingModel *)'::`2'::candidate_modules" (?candidate_modules@?1??try_get_AppPolicyGetWindowingModel@@YAP6AJPEAXPEAW4AppPolicyWindowingModel@@@ZXZ@4QBW4module_id@?A0x391cf84c@@B) from libucrt.lib(winapi_thunks.obj)
+    Discarded "`string'" (??_C@_0BL@ODDJNEDA@AppPolicyGetWindowingModel@) from libucrt.lib(winapi_thunks.obj)
+    Discarded "enum `anonymous namespace'::module_id const * const `int (__cdecl*__cdecl try_get_SetThreadStackGuarantee(void))(unsigned long *)'::`2'::candidate_modules" (?candidate_modules@?1??try_get_SetThreadStackGuarantee@@YAP6AHPEAK@ZXZ@4QBW4module_id@?A0x391cf84c@@B) from libucrt.lib(winapi_thunks.obj)
+    Discarded "`string'" (??_C@_0BI@BKLFFAPO@SetThreadStackGuarantee@) from libucrt.lib(winapi_thunks.obj)
+    Discarded "enum `anonymous namespace'::module_id const * const `unsigned char (__cdecl*__cdecl try_get_SystemFunction036(void))(void *,unsigned long)'::`2'::candidate_modules" (?candidate_modules@?1??try_get_SystemFunction036@@YAP6AEPEAXK@ZXZ@4QBW4module_id@?A0x391cf84c@@B) from libucrt.lib(winapi_thunks.obj)
+    Discarded "`string'" (??_C@_0BC@JEAENNKH@SystemFunction036@) from libucrt.lib(winapi_thunks.obj)
+    Discarded $cppxdata$?_mbrtowc_internal@@YAHPEAHPEA_WPEBD_KPEAU_Mbstatet@@AEAV__crt_cached_ptd_host@@@Z from libucrt.lib(mbrtowc.obj)
+    Discarded $cppxdata$?_mbsrtowcs_helper@@YA_KPEA_WPEAPEBD_KPEAU_Mbstatet@@AEAV__crt_cached_ptd_host@@@Z from libucrt.lib(mbrtowc.obj)
+    Discarded $cppxdata$__acrt_freeptd from libucrt.lib(per_thread_data.obj)
+    Discarded $cppxdata$?internal_getptd_noexit@@YAPEAU__acrt_ptd@@AEBV__crt_scoped_get_last_error_reset@@_K@Z from libucrt.lib(per_thread_data.obj)
+    Discarded $cppxdata$??$internal_get_ptd_head@P6APEAXK@Z@@YAPEAU__acrt_ptd@@P6APEAXK@Z@Z from libucrt.lib(per_thread_data.obj)
+    Discarded $cppxdata$?internal_getptd_noexit@@YAPEAU__acrt_ptd@@XZ from libucrt.lib(per_thread_data.obj)
+    Discarded $cppxdata$?internal_getptd_noexit2@@YAPEAU__acrt_ptd@@XZ from libucrt.lib(per_thread_data.obj)
+    Discarded $cppxdata$??$try_get_ptd_head@P6APEAXK@Z@@YAPEAU__acrt_ptd@@P6APEAXK@Z@Z from libucrt.lib(per_thread_data.obj)
+    Discarded _wctype from libucrt.lib(ctype.obj)
+    Discarded __acrt_rg_language from libucrt.lib(get_qualified_locale.obj)
+    Discarded __acrt_rg_language_count from libucrt.lib(get_qualified_locale.obj)
+    Discarded __acrt_rg_country from libucrt.lib(get_qualified_locale.obj)
+    Discarded __acrt_rg_country_count from libucrt.lib(get_qualified_locale.obj)
+    Discarded "`string'" (??_C@_1BC@LLOKLNP@?$AAa?$AAm?$AAe?$AAr?$AAi?$AAc?$AAa?$AAn@) from libucrt.lib(get_qualified_locale.obj)
+    Discarded "`string'" (??_C@_1CC@HEIGCDGG@?$AAa?$AAm?$AAe?$AAr?$AAi?$AAc?$AAa?$AAn?$AA?5?$AAe?$AAn?$AAg?$AAl?$AAi?$AAs@) from libucrt.lib(get_qualified_locale.obj)
+    Discarded "`string'" (??_C@_1CC@IHCNOMIN@?$AAa?$AAm?$AAe?$AAr?$AAi?$AAc?$AAa?$AAn?$AA?9?$AAe?$AAn?$AAg?$AAl?$AAi?$AAs@) from libucrt.lib(get_qualified_locale.obj)
+    Discarded "`string'" (??_C@_1BG@GKAGPCGG@?$AAa?$AAu?$AAs?$AAt?$AAr?$AAa?$AAl?$AAi?$AAa?$AAn@) from libucrt.lib(get_qualified_locale.obj)
+    Discarded "`string'" (??_C@_1BA@GMENCENF@?$AAb?$AAe?$AAl?$AAg?$AAi?$AAa?$AAn@) from libucrt.lib(get_qualified_locale.obj)
+    Discarded "`string'" (??_C@_1BC@PJMIIAAN@?$AAc?$AAa?$AAn?$AAa?$AAd?$AAi?$AAa?$AAn@) from libucrt.lib(get_qualified_locale.obj)
+    Discarded "`string'" (??_C@_17NOIMNFBF@?$AAc?$AAh?$AAh@) from libucrt.lib(get_qualified_locale.obj)
+    Discarded "`string'" (??_C@_17GGDALCHA@?$AAc?$AAh?$AAi@) from libucrt.lib(get_qualified_locale.obj)
+    Discarded "`string'" (??_C@_1BA@NPNJKIBL@?$AAc?$AAh?$AAi?$AAn?$AAe?$AAs?$AAe@) from libucrt.lib(get_qualified_locale.obj)
+    Discarded "`string'" (??_C@_1CC@DINBAMMJ@?$AAc?$AAh?$AAi?$AAn?$AAe?$AAs?$AAe?$AA?9?$AAh?$AAo?$AAn?$AAg?$AAk?$AAo?$AAn@) from libucrt.lib(get_qualified_locale.obj)
+    Discarded "`string'" (??_C@_1CG@IOBJPACO@?$AAc?$AAh?$AAi?$AAn?$AAe?$AAs?$AAe?$AA?9?$AAs?$AAi?$AAm?$AAp?$AAl?$AAi?$AAf@) from libucrt.lib(get_qualified_locale.obj)
+    Discarded "`string'" (??_C@_1CE@GAJNDCKG@?$AAc?$AAh?$AAi?$AAn?$AAe?$AAs?$AAe?$AA?9?$AAs?$AAi?$AAn?$AAg?$AAa?$AAp?$AAo@) from libucrt.lib(get_qualified_locale.obj)
+    Discarded "`string'" (??_C@_1CI@PAJPIOOD@?$AAc?$AAh?$AAi?$AAn?$AAe?$AAs?$AAe?$AA?9?$AAt?$AAr?$AAa?$AAd?$AAi?$AAt?$AAi@) from libucrt.lib(get_qualified_locale.obj)
+    Discarded "`string'" (??_C@_1BM@NILJBMMD@?$AAd?$AAu?$AAt?$AAc?$AAh?$AA?9?$AAb?$AAe?$AAl?$AAg?$AAi?$AAa?$AAn@) from libucrt.lib(get_qualified_locale.obj)
+    Discarded "`string'" (??_C@_1CC@OOJPJNEJ@?$AAe?$AAn?$AAg?$AAl?$AAi?$AAs?$AAh?$AA?9?$AAa?$AAm?$AAe?$AAr?$AAi?$AAc?$AAa@) from libucrt.lib(get_qualified_locale.obj)
+    Discarded "`string'" (??_C@_1BI@IOLFEEM@?$AAe?$AAn?$AAg?$AAl?$AAi?$AAs?$AAh?$AA?9?$AAa?$AAu?$AAs@) from libucrt.lib(get_qualified_locale.obj)
+    Discarded "`string'" (??_C@_1BO@HFFNLENJ@?$AAe?$AAn?$AAg?$AAl?$AAi?$AAs?$AAh?$AA?9?$AAb?$AAe?$AAl?$AAi?$AAz?$AAe@) from libucrt.lib(get_qualified_locale.obj)
+    Discarded "`string'" (??_C@_1BI@HAPKJMPO@?$AAe?$AAn?$AAg?$AAl?$AAi?$AAs?$AAh?$AA?9?$AAc?$AAa?$AAn@) from libucrt.lib(get_qualified_locale.obj)
+    Discarded "`string'" (??_C@_1CE@HLNDMIOJ@?$AAe?$AAn?$AAg?$AAl?$AAi?$AAs?$AAh?$AA?9?$AAc?$AAa?$AAr?$AAi?$AAb?$AAb?$AAe@) from libucrt.lib(get_qualified_locale.obj)
+    Discarded "`string'" (??_C@_1BI@LDHJHHAC@?$AAe?$AAn?$AAg?$AAl?$AAi?$AAs?$AAh?$AA?9?$AAi?$AAr?$AAe@) from libucrt.lib(get_qualified_locale.obj)
+    Discarded "`string'" (??_C@_1CA@NJMMCFOC@?$AAe?$AAn?$AAg?$AAl?$AAi?$AAs?$AAh?$AA?9?$AAj?$AAa?$AAm?$AAa?$AAi?$AAc?$AAa@) from libucrt.lib(get_qualified_locale.obj)
+    Discarded "`string'" (??_C@_1BG@BHJEBBGG@?$AAe?$AAn?$AAg?$AAl?$AAi?$AAs?$AAh?$AA?9?$AAn?$AAz@) from libucrt.lib(get_qualified_locale.obj)
+
+    Selected symbol:
+        _should_initialize_environment from LIBCMT.lib(env_mode.obj)
+    Replaced symbol(s):
+        uninitialize_c from libucrt.lib(initialization.obj)
+        report_memory_leaks from libucrt.lib(initialization.obj)
+        initialize_global_state_isolation from libucrt.lib(initialization.obj)
+        uninitialize_global_state_isolation from libucrt.lib(initialization.obj)
+        __acrt_uninitialize_command_line from libucrt.lib(argv_data.obj)
+        initialize_environment from libucrt.lib(initialization.obj)
+
+    Selected symbol:
+        _initialize_invalid_parameter_handler from LIBCMT.lib(invalid_parameter_handler.obj)
+    Replaced symbol(s):
+        _guard_check_icall_nop from LIBCMT.lib(guard_support.obj)
+        _initialize_denormal_control from LIBCMT.lib(denormal_control.obj)
+
+    Selected symbol:
+        _matherr from LIBCMT.lib(matherr.obj)
+    Replaced symbol(s):
+        _get_startup_new_mode from LIBCMT.lib(new_mode.obj)
+        __scrt_stub_for_initialize_mta from LIBCMT.lib(utility_desktop.obj)
+        _get_startup_commit_mode from LIBCMT.lib(commit_mode.obj)
+        __scrt_initialize_winrt from LIBCMT.lib(utility_desktop.obj)
+        _get_startup_thread_locale_mode from LIBCMT.lib(thread_locale.obj)
+
+    Selected symbol:
+        "public: static void __cdecl `anonymous namespace'::_GsFailureOnError::_HandleError(void)" (?_HandleError@_GsFailureOnError@?A0x71023ff6@@SAXXZ) from LIBCMT.lib(gshandler.obj)
+    Replaced symbol(s):
+        __report_gsfailure from LIBCMT.lib(gs_report.obj)
+
+    Selected symbol:
+        _get_fpcsr from libucrt.lib(fpctrl.obj)
+    Replaced symbol(s):
+        _get_fpsr from libucrt.lib(fpctrl.obj)
+
+    Selected symbol:
+        _set_fpcsr from libucrt.lib(fpctrl.obj)
+    Replaced symbol(s):
+        _set_fpsr from libucrt.lib(fpctrl.obj)
+
+    Selected symbol:
+        _write_internal$fin$0 from libucrt.lib(write.obj)
+    Replaced symbol(s):
+        "int `__int64 __cdecl common_lseek<__int64>(int,__int64,int,class __crt_cached_ptd_host &)'::`1'::fin$0" (?fin$0@?0???$common_lseek@_J@@YA_JH_JHAEAV__crt_cached_ptd_host@@@Z@4HA) from libucrt.lib(lseek.obj)
+
+    Selected symbol:
+        __acrt_initialize_lowio$fin$0 from libucrt.lib(ioinit.obj)
+    Replaced symbol(s):
+        __acrt_lowio_ensure_fh_exists$fin$0 from libucrt.lib(osfinfo.obj)
+
+    Selected symbol:
+        "int `public: void __cdecl __crt_seh_guarded_call<void>::operator()<class <lambda_d80eeec6fff315bfe5c115232f3240e3>,class <lambda_6e4b09c48022b2350581041d5f6b0c4c> &,class <lambda_2358e3775559c9db80273638284d5e45> >(class <lambda_d80eeec6fff315bfe5c115232f3240e3> &&,class <lambda_6e4b09c48022b2350581041d5f6b0c4c> &,class <lambda_2358e3775559c9db80273638284d5e45> &&)'::`1'::fin$0" (?fin$0@?0???$?RV<lambda_d80eeec6fff315bfe5c115232f3240e3>@@AEAV<lambda_6e4b09c48022b2350581041d5f6b0c4c>@@V<lambda_2358e3775559c9db80273638284d5e45>@@@?$__crt_seh_guarded_call@X@@QEAAX$$QEAV<lambda_d80eeec6fff315bfe5c115232f3240e3>@@AEAV<lambda_6e4b09c48022b2350581041d5f6b0c4c>@@$$QEAV<lambda_2358e3775559c9db80273638284d5e45>@@@Z@4HA) from libucrt.lib(exit.obj)
+    Replaced symbol(s):
+        "int `public: void __cdecl __crt_seh_guarded_call<void>::operator()<class <lambda_f2e299630e499de9f9a165e60fcd3db5>,class <lambda_2ae9d31cdba2644fcbeaf08da7c24588> &,class <lambda_40d01ff24d0e7b3814fdbdcee8eab3c7> >(class <lambda_f2e299630e499de9f9a165e60fcd3db5> &&,class <lambda_2ae9d31cdba2644fcbeaf08da7c24588> &,class <lambda_40d01ff24d0e7b3814fdbdcee8eab3c7> &&)'::`1'::fin$0" (?fin$0@?0???$?RV<lambda_f2e299630e499de9f9a165e60fcd3db5>@@AEAV<lambda_2ae9d31cdba2644fcbeaf08da7c24588>@@V<lambda_40d01ff24d0e7b3814fdbdcee8eab3c7>@@@?$__crt_seh_guarded_call@X@@QEAAX$$QEAV<lambda_f2e299630e499de9f9a165e60fcd3db5>@@AEAV<lambda_2ae9d31cdba2644fcbeaf08da7c24588>@@$$QEAV<lambda_40d01ff24d0e7b3814fdbdcee8eab3c7>@@@Z@4HA) from libucrt.lib(per_thread_data.obj)
+        "int `public: void __cdecl __crt_seh_guarded_call<void>::operator()<class <lambda_0ae27a3a962d80f24befdcbee591983d>,class <lambda_8d0ee55de4b1038c4002e0adecdf1839> &,class <lambda_dc504788e8f1664fe9b84e20bfb512f2> >(class <lambda_0ae27a3a962d80f24befdcbee591983d> &&,class <lambda_8d0ee55de4b1038c4002e0adecdf1839> &,class <lambda_dc504788e8f1664fe9b84e20bfb512f2> &&)'::`1'::fin$0" (?fin$0@?0???$?RV<lambda_0ae27a3a962d80f24befdcbee591983d>@@AEAV<lambda_8d0ee55de4b1038c4002e0adecdf1839>@@V<lambda_dc504788e8f1664fe9b84e20bfb512f2>@@@?$__crt_seh_guarded_call@X@@QEAAX$$QEAV<lambda_0ae27a3a962d80f24befdcbee591983d>@@AEAV<lambda_8d0ee55de4b1038c4002e0adecdf1839>@@$$QEAV<lambda_dc504788e8f1664fe9b84e20bfb512f2>@@@Z@4HA) from libucrt.lib(per_thread_data.obj)
+        "int `public: void __cdecl __crt_seh_guarded_call<void>::operator()<class <lambda_2d41944a1d46af3157314b8a01080d33>,class <lambda_8f455de75cd7d7f24b4096f044d8b9e6> &,class <lambda_aa500f224e6afead328df44964fe2772> >(class <lambda_2d41944a1d46af3157314b8a01080d33> &&,class <lambda_8f455de75cd7d7f24b4096f044d8b9e6> &,class <lambda_aa500f224e6afead328df44964fe2772> &&)'::`1'::fin$0" (?fin$0@?0???$?RV<lambda_2d41944a1d46af3157314b8a01080d33>@@AEAV<lambda_8f455de75cd7d7f24b4096f044d8b9e6>@@V<lambda_aa500f224e6afead328df44964fe2772>@@@?$__crt_seh_guarded_call@X@@QEAAX$$QEAV<lambda_2d41944a1d46af3157314b8a01080d33>@@AEAV<lambda_8f455de75cd7d7f24b4096f044d8b9e6>@@$$QEAV<lambda_aa500f224e6afead328df44964fe2772>@@@Z@4HA) from libucrt.lib(per_thread_data.obj)
+        "int `public: void __cdecl __crt_seh_guarded_call<void>::operator()<class <lambda_aa87e3671a710a21b5dc78c0bdf72e11>,class <lambda_92619d2358a28f41a33ba319515a20b9> &,class <lambda_6992ecaafeb10aed2b74cb1fae11a551> >(class <lambda_aa87e3671a710a21b5dc78c0bdf72e11> &&,class <lambda_92619d2358a28f41a33ba319515a20b9> &,class <lambda_6992ecaafeb10aed2b74cb1fae11a551> &&)'::`1'::fin$0" (?fin$0@?0???$?RV<lambda_aa87e3671a710a21b5dc78c0bdf72e11>@@AEAV<lambda_92619d2358a28f41a33ba319515a20b9>@@V<lambda_6992ecaafeb10aed2b74cb1fae11a551>@@@?$__crt_seh_guarded_call@X@@QEAAX$$QEAV<lambda_aa87e3671a710a21b5dc78c0bdf72e11>@@AEAV<lambda_92619d2358a28f41a33ba319515a20b9>@@$$QEAV<lambda_6992ecaafeb10aed2b74cb1fae11a551>@@@Z@4HA) from libucrt.lib(per_thread_data.obj)
+        "int `public: int __cdecl __crt_seh_guarded_call<int>::operator()<class <lambda_7777bce6b2f8c936911f934f8298dc43>,class <lambda_f03950bc5685219e0bcd2087efbe011e> &,class <lambda_3883c3dff614d5e0c5f61bb1ac94921c> >(class <lambda_7777bce6b2f8c936911f934f8298dc43> &&,class <lambda_f03950bc5685219e0bcd2087efbe011e> &,class <lambda_3883c3dff614d5e0c5f61bb1ac94921c> &&)'::`1'::fin$0" (?fin$0@?0???$?RV<lambda_7777bce6b2f8c936911f934f8298dc43>@@AEAV<lambda_f03950bc5685219e0bcd2087efbe011e>@@V<lambda_3883c3dff614d5e0c5f61bb1ac94921c>@@@?$__crt_seh_guarded_call@H@@QEAAH$$QEAV<lambda_7777bce6b2f8c936911f934f8298dc43>@@AEAV<lambda_f03950bc5685219e0bcd2087efbe011e>@@$$QEAV<lambda_3883c3dff614d5e0c5f61bb1ac94921c>@@@Z@4HA) from libucrt.lib(onexit.obj)
+        "int `public: int __cdecl __crt_seh_guarded_call<int>::operator()<class <lambda_638799b9deba96c50f710eeac98168cd>,class <lambda_22ebabd17bc4fa466a2aca6d8deb888d> &,class <lambda_a6f7d7db0129f75315ebf26d50c089f1> >(class <lambda_638799b9deba96c50f710eeac98168cd> &&,class <lambda_22ebabd17bc4fa466a2aca6d8deb888d> &,class <lambda_a6f7d7db0129f75315ebf26d50c089f1> &&)'::`1'::fin$0" (?fin$0@?0???$?RV<lambda_638799b9deba96c50f710eeac98168cd>@@AEAV<lambda_22ebabd17bc4fa466a2aca6d8deb888d>@@V<lambda_a6f7d7db0129f75315ebf26d50c089f1>@@@?$__crt_seh_guarded_call@H@@QEAAH$$QEAV<lambda_638799b9deba96c50f710eeac98168cd>@@AEAV<lambda_22ebabd17bc4fa466a2aca6d8deb888d>@@$$QEAV<lambda_a6f7d7db0129f75315ebf26d50c089f1>@@@Z@4HA) from libucrt.lib(onexit.obj)
+        "int `public: void (__cdecl*__cdecl __crt_seh_guarded_call<void (__cdecl*)(int)>::operator()<class <lambda_450d765d439847d4c735a33c368b5fc0>,class <lambda_44731a7d0e6d81c3e6aa82d741081786> &,class <lambda_601a2a7da3b7a96e9554ac7215c4b07c> >(class <lambda_450d765d439847d4c735a33c368b5fc0> &&,class <lambda_44731a7d0e6d81c3e6aa82d741081786> &,class <lambda_601a2a7da3b7a96e9554ac7215c4b07c> &&))(int)'::`1'::fin$0" (?fin$0@?0???$?RV<lambda_450d765d439847d4c735a33c368b5fc0>@@AEAV<lambda_44731a7d0e6d81c3e6aa82d741081786>@@V<lambda_601a2a7da3b7a96e9554ac7215c4b07c>@@@?$__crt_seh_guarded_call@P6AXH@Z@@QEAAP6AXH@Z$$QEAV<lambda_450d765d439847d4c735a33c368b5fc0>@@AEAV<lambda_44731a7d0e6d81c3e6aa82d741081786>@@$$QEAV<lambda_601a2a7da3b7a96e9554ac7215c4b07c>@@@Z@4HA) from libucrt.lib(signal.obj)
+
+    Selected symbol:
+        "int `public: int __cdecl __crt_seh_guarded_call<int>::operator()<class <lambda_a37b2b86f63e897a80ea819b0eb08c01>,class <lambda_38ce7e780aa69e748d6df282ebc68efe> &,class <lambda_99fb1378e971ab6e7edea83e3a7a83a2> >(class <lambda_a37b2b86f63e897a80ea819b0eb08c01> &&,class <lambda_38ce7e780aa69e748d6df282ebc68efe> &,class <lambda_99fb1378e971ab6e7edea83e3a7a83a2> &&)'::`1'::fin$0" (?fin$0@?0???$?RV<lambda_a37b2b86f63e897a80ea819b0eb08c01>@@AEAV<lambda_38ce7e780aa69e748d6df282ebc68efe>@@V<lambda_99fb1378e971ab6e7edea83e3a7a83a2>@@@?$__crt_seh_guarded_call@H@@QEAAH$$QEAV<lambda_a37b2b86f63e897a80ea819b0eb08c01>@@AEAV<lambda_38ce7e780aa69e748d6df282ebc68efe>@@$$QEAV<lambda_99fb1378e971ab6e7edea83e3a7a83a2>@@@Z@4HA) from libucrt.lib(commit.obj)
+    Replaced symbol(s):
+        "int `public: int __cdecl __crt_seh_guarded_call<int>::operator()<class <lambda_ad8af0d99a0adf03d037d7dffe354bb5>,class <lambda_c9ba49e555ba839a7b07aa3fbecb7617> &,class <lambda_2f1ebd5d68526518146ae959c9e734c8> >(class <lambda_ad8af0d99a0adf03d037d7dffe354bb5> &&,class <lambda_c9ba49e555ba839a7b07aa3fbecb7617> &,class <lambda_2f1ebd5d68526518146ae959c9e734c8> &&)'::`1'::fin$0" (?fin$0@?0???$?RV<lambda_ad8af0d99a0adf03d037d7dffe354bb5>@@AEAV<lambda_c9ba49e555ba839a7b07aa3fbecb7617>@@V<lambda_2f1ebd5d68526518146ae959c9e734c8>@@@?$__crt_seh_guarded_call@H@@QEAAH$$QEAV<lambda_ad8af0d99a0adf03d037d7dffe354bb5>@@AEAV<lambda_c9ba49e555ba839a7b07aa3fbecb7617>@@$$QEAV<lambda_2f1ebd5d68526518146ae959c9e734c8>@@@Z@4HA) from libucrt.lib(close.obj)
+
+    Selected symbol:
+        "int `public: int __cdecl __crt_seh_guarded_call<int>::operator()<class <lambda_d854c62834386a3b23916ad6dae2782d>,class <lambda_303760bc4008a2b3ec4768a30b06a80c> &,class <lambda_4780a7ea4f8cbd2590aec34bd14e2bbf> >(class <lambda_d854c62834386a3b23916ad6dae2782d> &&,class <lambda_303760bc4008a2b3ec4768a30b06a80c> &,class <lambda_4780a7ea4f8cbd2590aec34bd14e2bbf> &&)'::`1'::fin$0" (?fin$0@?0???$?RV<lambda_d854c62834386a3b23916ad6dae2782d>@@AEAV<lambda_303760bc4008a2b3ec4768a30b06a80c>@@V<lambda_4780a7ea4f8cbd2590aec34bd14e2bbf>@@@?$__crt_seh_guarded_call@H@@QEAAH$$QEAV<lambda_d854c62834386a3b23916ad6dae2782d>@@AEAV<lambda_303760bc4008a2b3ec4768a30b06a80c>@@$$QEAV<lambda_4780a7ea4f8cbd2590aec34bd14e2bbf>@@@Z@4HA) from libucrt.lib(output.obj)
+    Replaced symbol(s):
+        "int `public: void __cdecl __crt_seh_guarded_call<void>::operator()<class <lambda_842d9ff0dc9ef11c61343bbaebe7f885>,class <lambda_c5860995281e5c4ce005b3de8f5874ee> &,class <lambda_d90129c13df834fdcbf8d2b88dafcf2d> >(class <lambda_842d9ff0dc9ef11c61343bbaebe7f885> &&,class <lambda_c5860995281e5c4ce005b3de8f5874ee> &,class <lambda_d90129c13df834fdcbf8d2b88dafcf2d> &&)'::`1'::fin$0" (?fin$0@?0???$?RV<lambda_842d9ff0dc9ef11c61343bbaebe7f885>@@AEAV<lambda_c5860995281e5c4ce005b3de8f5874ee>@@V<lambda_d90129c13df834fdcbf8d2b88dafcf2d>@@@?$__crt_seh_guarded_call@X@@QEAAX$$QEAV<lambda_842d9ff0dc9ef11c61343bbaebe7f885>@@AEAV<lambda_c5860995281e5c4ce005b3de8f5874ee>@@$$QEAV<lambda_d90129c13df834fdcbf8d2b88dafcf2d>@@@Z@4HA) from libucrt.lib(fflush.obj)
+
+    Selected symbol:
+        "void __cdecl free_environment<char>(char * * const)" (??$free_environment@D@@YAXQEAPEAD@Z) from libucrt.lib(environment_initialization.obj)
+    Replaced symbol(s):
+        "void __cdecl free_environment<wchar_t>(wchar_t * * const)" (??$free_environment@_W@@YAXQEAPEA_W@Z) from libucrt.lib(environment_initialization.obj)
+
+    Selected symbol:
+        "public: virtual __cdecl std::bad_alloc::~bad_alloc(void)" (??1bad_alloc@std@@UEAA@XZ) from main.obj
+    Replaced symbol(s):
+        "public: virtual __cdecl std::length_error::~length_error(void)" (??1length_error@std@@UEAA@XZ) from libcpmt.lib(xthrow.obj)
+        "public: virtual __cdecl std::bad_array_new_length::~bad_array_new_length(void)" (??1bad_array_new_length@std@@UEAA@XZ) from main.obj
+        "public: virtual __cdecl std::bad_exception::~bad_exception(void)" (??1bad_exception@std@@UEAA@XZ) from libvcruntime.lib(frame.obj)
+
+    Selected symbol:
+        "void __cdecl std::_Throw_bad_array_new_length(void)" (?_Throw_bad_array_new_length@std@@YAXXZ) from main.obj
+    Replaced symbol(s):
+        "void __cdecl __scrt_throw_std_bad_array_new_length(void)" (?__scrt_throw_std_bad_array_new_length@@YAXXZ) from LIBCMT.lib(throw_bad_alloc.obj)
+
+    Selected symbol:
+        "public: virtual void * __cdecl std::bad_alloc::`scalar deleting destructor'(unsigned int)" (??_Gbad_alloc@std@@UEAAPEAXI@Z) from main.obj
+    Replaced symbol(s):
+        "public: virtual void * __cdecl std::length_error::`scalar deleting destructor'(unsigned int)" (??_Glength_error@std@@UEAAPEAXI@Z) from libcpmt.lib(xthrow.obj)
+        "public: virtual void * __cdecl std::logic_error::`scalar deleting destructor'(unsigned int)" (??_Glogic_error@std@@UEAAPEAXI@Z) from libcpmt.lib(xthrow.obj)
+        "public: virtual void * __cdecl std::exception::`scalar deleting destructor'(unsigned int)" (??_Gexception@std@@UEAAPEAXI@Z) from main.obj
+        "public: virtual void * __cdecl std::bad_exception::`scalar deleting destructor'(unsigned int)" (??_Gbad_exception@std@@UEAAPEAXI@Z) from libvcruntime.lib(frame.obj)
+        "public: virtual void * __cdecl std::bad_array_new_length::`scalar deleting destructor'(unsigned int)" (??_Gbad_array_new_length@std@@UEAAPEAXI@Z) from main.obj
+
+    Selected symbol:
+        $cppxdata$__dcrt_uninitialize_environments_nolock from libucrt.lib(environment_initialization.obj)
+    Replaced symbol(s):
+        $cppxdata$__acrt_getptd_noexit_explicit from libucrt.lib(per_thread_data.obj)
+        $cppxdata$__acrt_getptd_noexit from libucrt.lib(per_thread_data.obj)
+        $cppxdata$__acrt_getptd_head from libucrt.lib(per_thread_data.obj)
+
+    Selected symbol:
+        $unwind$?process@?$output_processor@DV?$stream_output_adapter@D@__crt_stdio_output@@V?$standard_base@DV?$stream_output_adapter@D@__crt_stdio_output@@@2@@__crt_stdio_output@@QEAAHXZ from libucrt.lib(output.obj)
+    Replaced symbol(s):
+        $unwind$??$type_case_integer@$09@?$output_processor@DV?$stream_output_adapter@D@__crt_stdio_output@@V?$standard_base@DV?$stream_output_adapter@D@__crt_stdio_output@@@2@@__crt_stdio_output@@AEAA_N_N@Z from libucrt.lib(output.obj)
+        $unwind$??$type_case_integer@$07@?$output_processor@DV?$stream_output_adapter@D@__crt_stdio_output@@V?$standard_base@DV?$stream_output_adapter@D@__crt_stdio_output@@@2@@__crt_stdio_output@@AEAA_N_N@Z from libucrt.lib(output.obj)
+        $unwind$??$__acrt_convert_wcs_mbs_cp@D_WV<lambda_7c9dea7b4ca7285d2cdb541a38da6275>@@U__crt_win32_buffer_internal_dynamic_resizing@@@@YAHQEBDAEAV?$__crt_win32_buffer@_WU__crt_win32_buffer_internal_dynamic_resizing@@@@AEBV<lambda_7c9dea7b4ca7285d2cdb541a38da6275>@@I@Z from libucrt.lib(argv_wildcards.obj)
+        $unwind$_mbtowc_internal from libucrt.lib(mbtowc.obj)
+        $unwind$??$type_case_integer@$0BA@@?$output_processor@DV?$stream_output_adapter@D@__crt_stdio_output@@V?$standard_base@DV?$stream_output_adapter@D@__crt_stdio_output@@@2@@__crt_stdio_output@@AEAA_N_N@Z from libucrt.lib(output.obj)
+        $unwind$??$create_environment@D@@YAQEAPEADQEAD@Z from libucrt.lib(environment_initialization.obj)
+
+    Selected symbol:
+        $unwind$??_Gexception@std@@UEAAPEAXI@Z from main.obj
+    Replaced symbol(s):
+        $unwind$??_Gbad_exception@std@@UEAAPEAXI@Z from libvcruntime.lib(frame.obj)
+        $unwind$??_Glength_error@std@@UEAAPEAXI@Z from libcpmt.lib(xthrow.obj)
+        $unwind$??_Glogic_error@std@@UEAAPEAXI@Z from libcpmt.lib(xthrow.obj)
+        $unwind$??_Gbad_alloc@std@@UEAAPEAXI@Z from main.obj
+        $unwind$??_Gbad_array_new_length@std@@UEAAPEAXI@Z from main.obj
+        $unwind$__acrt_execute_uninitializers from libucrt.lib(shared_initialization.obj)
+        $unwind$?setSBCS@@YAXPEAU__crt_multibyte_data@@@Z from libucrt.lib(mbctype.obj)
+        $unwind$_FindAndUnlinkFrame from libvcruntime.lib(risctrnsctrl.obj)
+        $unwind$?free_crt_array_internal@@YAXQEAPEBX_K@Z from libucrt.lib(inittime.obj)
+        $unwind$__acrt_stdio_begin_temporary_buffering_nolock from libucrt.lib(_sftbuf.obj)
+        $unwind$_RTC_Terminate from LIBCMT.lib(initsect.obj)
+        $unwind$__acrt_uninitialize_lowio from libucrt.lib(ioinit.obj)
+        $unwind$_initterm_e from libucrt.lib(initterm.obj)
+        $unwind$?replace_current_thread_locale_nolock@@YAXQEAU__acrt_ptd@@QEAU__crt_locale_data@@@Z from libucrt.lib(per_thread_data.obj)
+        $unwind$__FrameUnwindFilter from libvcruntime.lib(ehhelpers.obj)
+        $unwind$_RTC_Initialize from LIBCMT.lib(initsect.obj)
+        $unwind$__scrt_unhandled_exception_filter from LIBCMT.lib(utility_desktop.obj)
+        $unwind$__vcrt_getptd from libvcruntime.lib(per_thread_data.obj)
+        $unwind$??$_Impl_copy_memmeow@$00PEBHPEAH@std@@YAPEAHPEBH0PEAH@Z from main.obj
+        $unwind$__acrt_stdio_allocate_buffer_nolock from libucrt.lib(_getbuf.obj)
+        $unwind$__C_specific_handler_noexcept from libvcruntime.lib(chandler_noexcept.obj)
+        $unwind$strncpy_s from libucrt.lib(strncpy_s.obj)
+        $unwind$__acrt_LocaleNameToLCID from libucrt.lib(winapi_thunks.obj)
+        $unwind$_updatetlocinfoEx_nolock from libucrt.lib(locale_refcounting.obj)
+        $unwind$?SetUnwindTryBlock@__FrameHandler3@@SAXPEA_KPEAU_xDISPATCHER_CONTEXT@@PEBU_s_FuncInfo@@H@Z from libvcruntime.lib(ehstate.obj)
+        $unwind$__vcrt_initialize_locks from libvcruntime.lib(locks.obj)
+        $unwind$??$common_initialize_environment_nolock@D@@YAHXZ from libucrt.lib(environment_initialization.obj)
+
+    Selected symbol:
+        $unwind$?_Throw_bad_array_new_length@std@@YAXXZ from main.obj
+    Replaced symbol(s):
+        $unwind$?__scrt_throw_std_bad_array_new_length@@YAXXZ from LIBCMT.lib(throw_bad_alloc.obj)
+        $unwind$?__scrt_throw_std_bad_alloc@@YAXXZ from LIBCMT.lib(throw_bad_alloc.obj)
+        $unwind$?_Xlength_error@std@@YAXPEBD@Z from libcpmt.lib(xthrow.obj)
+        $unwind$_raise_exc from libucrt.lib(fpexcept.obj)
+
+    Selected symbol:
+        $unwind$?filt$0@?0??__scrt_common_main_seh@@YAHXZ@4HA from LIBCMT.lib(exe_main.obj)
+    Replaced symbol(s):
+        $unwind$__acrt_update_thread_locale_data$fin$0 from libucrt.lib(locale_refcounting.obj)
+        $unwind$?fin$1@?0??FrameUnwindToState@__FrameHandler3@@SAXPEA_KPEAU_xDISPATCHER_CONTEXT@@PEBU_s_FuncInfo@@H@Z@4HA from libvcruntime.lib(frame.obj)
+        $unwind$?fin$0@?0???$?RV<lambda_d80eeec6fff315bfe5c115232f3240e3>@@AEAV<lambda_6e4b09c48022b2350581041d5f6b0c4c>@@V<lambda_2358e3775559c9db80273638284d5e45>@@@?$__crt_seh_guarded_call@X@@QEAAX$$QEAV<lambda_d80eeec6fff315bfe5c115232f3240e3>@@AEAV<lambda_6e4b09c48022b2350581041d5f6b0c4c>@@$$QEAV<lambda_2358e3775559c9db80273638284d5e45>@@@Z@4HA from libucrt.lib(exit.obj)
+        $unwind$?filt$0@?0??CxxCallCatchBlock@__FrameHandler3@@SAPEAXPEAU_EXCEPTION_RECORD@@@Z@4HA from libvcruntime.lib(frame.obj)
+        $unwind$?fin$0@?0???$?RV<lambda_410d79af7f07d98d83a3f525b3859a53>@@AEAV<lambda_3e16ef9562a7dcce91392c22ab16ea36>@@V<lambda_38119f0e861e05405d8a144b9b982f0a>@@@?$__crt_seh_guarded_call@X@@QEAAX$$QEAV<lambda_410d79af7f07d98d83a3f525b3859a53>@@AEAV<lambda_3e16ef9562a7dcce91392c22ab16ea36>@@$$QEAV<lambda_38119f0e861e05405d8a144b9b982f0a>@@@Z@4HA from libucrt.lib(wsetlocale.obj)
+        $unwind$?fin$0@?0??update_thread_multibyte_data_internal@@YAPEAU__crt_multibyte_data@@QEAU__acrt_ptd@@QEAPEAU1@@Z@4HA from libucrt.lib(mbctype.obj)
+        $unwind$?fin$0@?0???$?RV<lambda_d854c62834386a3b23916ad6dae2782d>@@AEAV<lambda_303760bc4008a2b3ec4768a30b06a80c>@@V<lambda_4780a7ea4f8cbd2590aec34bd14e2bbf>@@@?$__crt_seh_guarded_call@H@@QEAAH$$QEAV<lambda_d854c62834386a3b23916ad6dae2782d>@@AEAV<lambda_303760bc4008a2b3ec4768a30b06a80c>@@$$QEAV<lambda_4780a7ea4f8cbd2590aec34bd14e2bbf>@@@Z@4HA from libucrt.lib(output.obj)
+        $unwind$?fin$0@?0???$?RV<lambda_886d6c58226a84441f68b9f2b8217b83>@@AEAV<lambda_ab61a845afdef5b7c387490eaf3616ee>@@V<lambda_f7f22ab5edc0698d5f6905b0d3f44752>@@@?$__crt_seh_guarded_call@X@@QEAAX$$QEAV<lambda_886d6c58226a84441f68b9f2b8217b83>@@AEAV<lambda_ab61a845afdef5b7c387490eaf3616ee>@@$$QEAV<lambda_f7f22ab5edc0698d5f6905b0d3f44752>@@@Z@4HA from libucrt.lib(fflush.obj)
+        $unwind$raise$fin$0 from libucrt.lib(signal.obj)
+        $unwind$?fin$0@?0???$?RV<lambda_efdfa57d1f175319df784efa44bb7b81>@@AEAV<lambda_5f0a4c1567f8adc6734073e5d1e1b35c>@@V<lambda_2e8a7d3640ea6ccb4c2413664c2db6fd>@@@?$__crt_seh_guarded_call@X@@QEAAX$$QEAV<lambda_efdfa57d1f175319df784efa44bb7b81>@@AEAV<lambda_5f0a4c1567f8adc6734073e5d1e1b35c>@@$$QEAV<lambda_2e8a7d3640ea6ccb4c2413664c2db6fd>@@@Z@4HA from libucrt.lib(mbctype.obj)
+        $unwind$?fin$0@?0???$?RV<lambda_a37b2b86f63e897a80ea819b0eb08c01>@@AEAV<lambda_38ce7e780aa69e748d6df282ebc68efe>@@V<lambda_99fb1378e971ab6e7edea83e3a7a83a2>@@@?$__crt_seh_guarded_call@H@@QEAAH$$QEAV<lambda_a37b2b86f63e897a80ea819b0eb08c01>@@AEAV<lambda_38ce7e780aa69e748d6df282ebc68efe>@@$$QEAV<lambda_99fb1378e971ab6e7edea83e3a7a83a2>@@@Z@4HA from libucrt.lib(commit.obj)
+        $unwind$_fcloseall$fin$0 from libucrt.lib(closeall.obj)
+        $unwind$__acrt_initialize_lowio$fin$0 from libucrt.lib(ioinit.obj)
+        $unwind$?filt$0@?0??FrameUnwindToState@__FrameHandler3@@SAXPEA_KPEAU_xDISPATCHER_CONTEXT@@PEBU_s_FuncInfo@@H@Z@4HA from libvcruntime.lib(frame.obj)
+        $unwind$common_control87$filt$0 from libucrt.lib(ieee.obj)
+        $unwind$_IsNonwritableInCurrentImage$filt$0 from LIBCMT.lib(pesect.obj)
+        $unwind$?filt$0@?0???R<lambda_6e4b09c48022b2350581041d5f6b0c4c>@@QEBA@XZ@4HA from libucrt.lib(exit.obj)
+        $unwind$?fin$0@?0???$?RV<lambda_ad8af0d99a0adf03d037d7dffe354bb5>@@AEAV<lambda_c9ba49e555ba839a7b07aa3fbecb7617>@@V<lambda_2f1ebd5d68526518146ae959c9e734c8>@@@?$__crt_seh_guarded_call@H@@QEAAH$$QEAV<lambda_ad8af0d99a0adf03d037d7dffe354bb5>@@AEAV<lambda_c9ba49e555ba839a7b07aa3fbecb7617>@@$$QEAV<lambda_2f1ebd5d68526518146ae959c9e734c8>@@@Z@4HA from libucrt.lib(close.obj)
+        $unwind$?fin$0@?0???$?RV<lambda_450d765d439847d4c735a33c368b5fc0>@@AEAV<lambda_44731a7d0e6d81c3e6aa82d741081786>@@V<lambda_601a2a7da3b7a96e9554ac7215c4b07c>@@@?$__crt_seh_guarded_call@P6AXH@Z@@QEAAP6AXH@Z$$QEAV<lambda_450d765d439847d4c735a33c368b5fc0>@@AEAV<lambda_44731a7d0e6d81c3e6aa82d741081786>@@$$QEAV<lambda_601a2a7da3b7a96e9554ac7215c4b07c>@@@Z@4HA from libucrt.lib(signal.obj)
+        $unwind$__acrt_lowio_ensure_fh_exists$fin$0 from libucrt.lib(osfinfo.obj)
+        $unwind$?fin$0@?0???$?RV<lambda_2d41944a1d46af3157314b8a01080d33>@@AEAV<lambda_8f455de75cd7d7f24b4096f044d8b9e6>@@V<lambda_aa500f224e6afead328df44964fe2772>@@@?$__crt_seh_guarded_call@X@@QEAAX$$QEAV<lambda_2d41944a1d46af3157314b8a01080d33>@@AEAV<lambda_8f455de75cd7d7f24b4096f044d8b9e6>@@$$QEAV<lambda_aa500f224e6afead328df44964fe2772>@@@Z@4HA from libucrt.lib(per_thread_data.obj)
+        $unwind$?fin$0@?0???$?RV<lambda_f2e299630e499de9f9a165e60fcd3db5>@@AEAV<lambda_2ae9d31cdba2644fcbeaf08da7c24588>@@V<lambda_40d01ff24d0e7b3814fdbdcee8eab3c7>@@@?$__crt_seh_guarded_call@X@@QEAAX$$QEAV<lambda_f2e299630e499de9f9a165e60fcd3db5>@@AEAV<lambda_2ae9d31cdba2644fcbeaf08da7c24588>@@$$QEAV<lambda_40d01ff24d0e7b3814fdbdcee8eab3c7>@@@Z@4HA from libucrt.lib(per_thread_data.obj)
+        $unwind$?fin$0@?0???$?RV<lambda_aa87e3671a710a21b5dc78c0bdf72e11>@@AEAV<lambda_92619d2358a28f41a33ba319515a20b9>@@V<lambda_6992ecaafeb10aed2b74cb1fae11a551>@@@?$__crt_seh_guarded_call@X@@QEAAX$$QEAV<lambda_aa87e3671a710a21b5dc78c0bdf72e11>@@AEAV<lambda_92619d2358a28f41a33ba319515a20b9>@@$$QEAV<lambda_6992ecaafeb10aed2b74cb1fae11a551>@@@Z@4HA from libucrt.lib(per_thread_data.obj)
+        $unwind$?fin$0@?0???$?RV<lambda_0ae27a3a962d80f24befdcbee591983d>@@AEAV<lambda_8d0ee55de4b1038c4002e0adecdf1839>@@V<lambda_dc504788e8f1664fe9b84e20bfb512f2>@@@?$__crt_seh_guarded_call@X@@QEAAX$$QEAV<lambda_0ae27a3a962d80f24befdcbee591983d>@@AEAV<lambda_8d0ee55de4b1038c4002e0adecdf1839>@@$$QEAV<lambda_dc504788e8f1664fe9b84e20bfb512f2>@@@Z@4HA from libucrt.lib(per_thread_data.obj)
+        $unwind$?fin$0@?0???$?RV<lambda_842d9ff0dc9ef11c61343bbaebe7f885>@@AEAV<lambda_c5860995281e5c4ce005b3de8f5874ee>@@V<lambda_d90129c13df834fdcbf8d2b88dafcf2d>@@@?$__crt_seh_guarded_call@X@@QEAAX$$QEAV<lambda_842d9ff0dc9ef11c61343bbaebe7f885>@@AEAV<lambda_c5860995281e5c4ce005b3de8f5874ee>@@$$QEAV<lambda_d90129c13df834fdcbf8d2b88dafcf2d>@@@Z@4HA from libucrt.lib(fflush.obj)
+        $unwind$?fin$0@?0???$?RV<lambda_7777bce6b2f8c936911f934f8298dc43>@@AEAV<lambda_f03950bc5685219e0bcd2087efbe011e>@@V<lambda_3883c3dff614d5e0c5f61bb1ac94921c>@@@?$__crt_seh_guarded_call@H@@QEAAH$$QEAV<lambda_7777bce6b2f8c936911f934f8298dc43>@@AEAV<lambda_f03950bc5685219e0bcd2087efbe011e>@@$$QEAV<lambda_3883c3dff614d5e0c5f61bb1ac94921c>@@@Z@4HA from libucrt.lib(onexit.obj)
+        $unwind$?fin$0@?0???$?RV<lambda_638799b9deba96c50f710eeac98168cd>@@AEAV<lambda_22ebabd17bc4fa466a2aca6d8deb888d>@@V<lambda_a6f7d7db0129f75315ebf26d50c089f1>@@@?$__crt_seh_guarded_call@H@@QEAAH$$QEAV<lambda_638799b9deba96c50f710eeac98168cd>@@AEAV<lambda_22ebabd17bc4fa466a2aca6d8deb888d>@@$$QEAV<lambda_a6f7d7db0129f75315ebf26d50c089f1>@@@Z@4HA from libucrt.lib(onexit.obj)
+
+    Selected symbol:
+        $unwind$??0exception@std@@QEAA@AEBV01@@Z from main.obj
+    Replaced symbol(s):
+        $unwind$__acrt_AppPolicyGetProcessTerminationMethodInternal from libucrt.lib(winapi_thunks.obj)
+        $unwind$__acrt_uninitialize_winapi_thunks from libucrt.lib(winapi_thunks.obj)
+        $unwind$__acrt_should_use_temporary_buffer from libucrt.lib(_sftbuf.obj)
+        $unwind$__acrt_errno_map_os_error_ptd from libucrt.lib(errno.obj)
+        $unwind$__acrt_uninitialize_stdio from libucrt.lib(_file.obj)
+        $unwind$??0bad_exception@std@@QEAA@AEBV01@@Z from libvcruntime.lib(frame.obj)
+        $unwind$__acrt_update_locale_info from libucrt.lib(locale_update.obj)
+        $unwind$__acrt_update_multibyte_info from libucrt.lib(locale_update.obj)
+        $unwind$__acrt_update_locale_info_explicit from libucrt.lib(locale_update.obj)
+        $unwind$feholdexcept from libucrt.lib(feholdexcept.obj)
+        $unwind$__acrt_get_process_end_policy from libucrt.lib(win_policies.obj)
+        $unwind$?ExFilterRethrow@@YAHPEAU_EXCEPTION_POINTERS@@PEAUEHExceptionRecord@@PEAH@Z from libvcruntime.lib(frame.obj)
+        $unwind$fegetenv from libucrt.lib(fegetenv.obj)
+        $unwind$__acrt_initialize_locks from libucrt.lib(locks.obj)
+        $unwind$?stream_is_at_end_of_file_nolock@@YA_NV__crt_stdio_stream@@@Z from libucrt.lib(_flsbuf.obj)
+        $unwind$atexit from LIBCMT.lib(utility.obj)
+        $unwind$__acrt_uninitialize_locks from libucrt.lib(locks.obj)
+        $unwind$_controlfp_s from libucrt.lib(contrlfp.obj)
+        $unwind$__std_exception_destroy from libvcruntime.lib(std_exception.obj)
+        $unwind$?pre_c_initialization@@YAHXZ from LIBCMT.lib(exe_main.obj)
+        $unwind$??0bad_array_new_length@std@@QEAA@AEBV01@@Z from main.obj
+        $unwind$__acrt_stdio_free_buffer_nolock from libucrt.lib(_freebuf.obj)
+        $unwind$__acrt_update_multibyte_info_explicit from libucrt.lib(locale_update.obj)
+        $unwind$?exit_or_terminate_process@@YAXI_N@Z from libucrt.lib(exit.obj)
+        $unwind$__acrt_errno_map_os_error from libucrt.lib(errno.obj)
+        $unwind$??0length_error@std@@QEAA@AEBV01@@Z from libcpmt.lib(xthrow.obj)
+        $unwind$__vcrt_uninitialize_locks from libvcruntime.lib(locks.obj)
+        $unwind$??2@YAPEAX_K@Z from LIBCMT.lib(new_scalar.obj)
+        $unwind$??_Gtype_info@@UEAAPEAXI@Z from LIBCMT.lib(std_type_info_static.obj)
+        $unwind$_IsExceptionObjectToBeDestroyed from libvcruntime.lib(ehhelpers.obj)
+        $unwind$??0logic_error@std@@QEAA@AEBV01@@Z from libcpmt.lib(xthrow.obj)
+        $unwind$?__c16rtomb_utf8@__crt_mbstring@@YA_KPEAD_SPEAU_Mbstatet@@AEAV__crt_cached_ptd_host@@@Z from libucrt.lib(c16rtomb.obj)
+        $unwind$_configthreadlocale from libucrt.lib(wsetlocale.obj)
+        $unwind$_SetImageBase from libvcruntime.lib(risctrnsctrl.obj)
+        $unwind$_SetThrowImageBase from libvcruntime.lib(risctrnsctrl.obj)
+        $unwind$?type_case_s@?$output_processor@DV?$stream_output_adapter@D@__crt_stdio_output@@V?$standard_base@DV?$stream_output_adapter@D@__crt_stdio_output@@@2@@__crt_stdio_output@@AEAA_NXZ from libucrt.lib(output.obj)
+        $unwind$__scrt_initialize_onexit_tables from LIBCMT.lib(utility.obj)
+        $unwind$_CreateFrameInfo from libvcruntime.lib(risctrnsctrl.obj)
+        $unwind$?StateFromControlPc@__FrameHandler3@@SAHPEBU_s_FuncInfo@@PEAU_xDISPATCHER_CONTEXT@@@Z from libvcruntime.lib(ehstate.obj)
+        $unwind$??0bad_alloc@std@@QEAA@AEBV01@@Z from main.obj
+        $unwind$?StateFromIp@__FrameHandler3@@SAHPEBU_s_FuncInfo@@PEAU_xDISPATCHER_CONTEXT@@_K@Z from libvcruntime.lib(ehstate.obj)
+        $unwind$__acrt_allocate_buffer_for_argv from libucrt.lib(argv_parsing.obj)
+        $unwind$?GetUnwindTryBlock@__FrameHandler3@@SAHPEA_KPEAU_xDISPATCHER_CONTEXT@@PEBU_s_FuncInfo@@@Z from libvcruntime.lib(ehstate.obj)
+        $unwind$uninitialize_allocated_memory from libucrt.lib(initialization.obj)
+        $unwind$initialize_pointers from libucrt.lib(initialization.obj)
+        $unwind$__scrt_uninitialize_crt from LIBCMT.lib(utility.obj)
+        $unwind$__scrt_release_startup_lock from LIBCMT.lib(utility.obj)
+
+    Selected symbol:
+        $xdatasym$memcpy from libvcruntime.lib(memcpy.obj)
+    Replaced symbol(s):
+        $xdatasym$memset from libvcruntime.lib(memset.obj)
+        $xdatasym$__NLG_Dispatch2 from libvcruntime.lib(notify.obj)
+        $xdatasym$_guard_dispatch_icall from libucrt.lib(dispatchcfg.obj)
+        $xdatasym$__NLG_Return2 from libvcruntime.lib(notify.obj)
+        $xdatasym$_NLG_Notify from libvcruntime.lib(notify.obj)
+
+    Selected symbol:
+        $unwind$?state_case_size@?$output_processor@DV?$stream_output_adapter@D@__crt_stdio_output@@V?$standard_base@DV?$stream_output_adapter@D@__crt_stdio_output@@@2@@__crt_stdio_output@@AEAA_NXZ from libucrt.lib(output.obj)
+    Replaced symbol(s):
+        $unwind$_invalid_parameter_noinfo from libucrt.lib(invalid_parameter.obj)
+        $unwind$_log10_special from libucrt.lib(log_special.obj)
+
+    Selected symbol:
+        $unwind$??$type_case_integer_parse_into_buffer@_K$09@?$output_processor@DV?$stream_output_adapter@D@__crt_stdio_output@@V?$standard_base@DV?$stream_output_adapter@D@__crt_stdio_output@@@2@@__crt_stdio_output@@AEAAX_K_N@Z from libucrt.lib(output.obj)
+    Replaced symbol(s):
+        $unwind$??$type_case_integer_parse_into_buffer@I$09@?$output_processor@DV?$stream_output_adapter@D@__crt_stdio_output@@V?$standard_base@DV?$stream_output_adapter@D@__crt_stdio_output@@@2@@__crt_stdio_output@@AEAAXI_N@Z from libucrt.lib(output.obj)
+
+    Selected symbol:
+        $unwind$__acrt_uninitialize_locale from libucrt.lib(wsetlocale.obj)
+    Replaced symbol(s):
+        $unwind$__acrt_get_sigabrt_handler from libucrt.lib(signal.obj)
+
+    Selected symbol:
+        $unwind$?fin$0@?0??_fclose_internal@@YAHQEAU_iobuf@@AEAV__crt_cached_ptd_host@@@Z@4HA from libucrt.lib(fclose.obj)
+    Replaced symbol(s):
+        $unwind$_write_internal$fin$0 from libucrt.lib(write.obj)
+        $unwind$?fin$0@?0???$common_lseek@_J@@YA_JH_JHAEAV__crt_cached_ptd_host@@@Z@4HA from libucrt.lib(lseek.obj)
+
+    Selected symbol:
+        $unwind$??0length_error@std@@QEAA@PEBD@Z from libcpmt.lib(xthrow.obj)
+    Replaced symbol(s):
+        $unwind$__security_init_cookie from LIBCMT.lib(gs_support.obj)
+
+    Selected symbol:
+        $unwind$__scrt_is_nonwritable_in_current_image$filt$0 from LIBCMT.lib(utility.obj)
+    Replaced symbol(s):
+        $unwind$_ctrlfp$filt$0 from libucrt.lib(fpctrl.obj)
+
+    Selected symbol:
+        $unwind$?_Xlength@?$vector@HV?$allocator@H@std@@@std@@CAXXZ from main.obj
+    Replaced symbol(s):
+        $unwind$__acrt_uninitialize from libucrt.lib(initialization.obj)
+        $unwind$__vcrt_uninitialize from libvcruntime.lib(initialization.obj)
+        $unwind$__acrt_uninitialize_ptd from libucrt.lib(per_thread_data.obj)
+        $unwind$__scrt_is_managed_app from LIBCMT.lib(utility_desktop.obj)
+        $unwind$__acrt_getptd from libucrt.lib(per_thread_data.obj)
+        $unwind$?validate_stream_is_ansi_if_required@?$__acrt_stdio_char_traits@D@@SA_NQEAU_iobuf@@@Z from libucrt.lib(output.obj)
+        $unwind$?GetCurrentState@__FrameHandler3@@SAHPEA_KPEAU_xDISPATCHER_CONTEXT@@PEBU_s_FuncInfo@@@Z from libvcruntime.lib(ehstate.obj)
+        $unwind$_get_osfhandle from libucrt.lib(osfinfo.obj)
+        $unwind$__vcrt_uninitialize_ptd from libvcruntime.lib(per_thread_data.obj)
+        $unwind$__vcrt_initialize_ptd from libvcruntime.lib(per_thread_data.obj)
+        $unwind$_isatty from libucrt.lib(isatty.obj)
+        $unwind$__doserrno from libucrt.lib(errno.obj)
+        $unwind$??$_Allocate_manually_vector_aligned@U_Default_allocate_traits@std@@@std@@YAPEAX_K@Z from main.obj
+        $unwind$_set_fmode from libucrt.lib(setmode.obj)
+        $unwind$_errno from libucrt.lib(errno.obj)
+        $unwind$?initialize_multibyte@@YAHXZ from libucrt.lib(multibyte_initializer.obj)
+        $unwind$initialize_c from libucrt.lib(initialization.obj)
+        $unwind$uninitialize_environment from libucrt.lib(initialization.obj)
+        $unwind$fegetround from libucrt.lib(fegetround.obj)
+        $unwind$__std_terminate from libvcruntime.lib(ehhelpers.obj)
+        $xdatasym$_CallSettingFrame from libvcruntime.lib(handlers.obj)
+        $unwind$__current_exception_context from libvcruntime.lib(ehhelpers.obj)
+        $unwind$__current_exception from libvcruntime.lib(ehhelpers.obj)
+        $unwind$__acrt_tls2_supported from libucrt.lib(winapi_thunks.obj)
+        $unwind$__vcrt_initialize from libvcruntime.lib(initialization.obj)
+        $unwind$__scrt_acquire_startup_lock from LIBCMT.lib(utility.obj)
+        $unwind$__scrt_initialize_crt from LIBCMT.lib(utility.obj)
+        $unwind$_set_errno_from_matherr from libucrt.lib(fpexcept.obj)
+        $unwind$abort from libucrt.lib(abort.obj)
+        $unwind$_clearfp from libucrt.lib(ieee.obj)
+        $unwind$__dcrt_terminate_console_output from libucrt.lib(initcon.obj)
+        $unwind$??$uninitialize_environment_internal@D@@YAXAEAPEAPEAD@Z from libucrt.lib(environment_initialization.obj)
+        $unwind$?_strnicmp_validate_param@@YAHQEBD0_K@Z from libucrt.lib(strnicmp.obj)
+        $unwind$??$uninitialize_environment_internal@_W@@YAXAEAPEAPEA_W@Z from libucrt.lib(environment_initialization.obj)
+        $unwind$__dcrt_get_or_create_narrow_environment_nolock from libucrt.lib(environment_initialization.obj)
+        $unwind$_get_initial_narrow_environment from libucrt.lib(environment_initialization.obj)
+        $unwind$strcpy_s from libucrt.lib(strcpy_s.obj)
+        $unwind$mainCRTStartup from LIBCMT.lib(exe_main.obj)
+        $unwind$_GetImageBase from libvcruntime.lib(risctrnsctrl.obj)
+        $unwind$__acrt_initialize_command_line from libucrt.lib(argv_data.obj)
+        $unwind$_GetThrowImageBase from libvcruntime.lib(risctrnsctrl.obj)
+        $unwind$_fileno from libucrt.lib(fileno.obj)
+        $unwind$uninitialize_allocated_io_buffers from libucrt.lib(initialization.obj)
+        $unwind$?pre_cpp_initialization@@YAXXZ from LIBCMT.lib(exe_main.obj)
+        $unwind$__scrt_initialize_default_local_stdio_options from LIBCMT.lib(default_local_stdio_options.obj)
+        $unwind$?post_pgo_initialization@@YAHXZ from LIBCMT.lib(exe_main.obj)
+        $unwind$_invoke_watson from libucrt.lib(invalid_parameter.obj)
+        $unwind$__acrt_update_thread_multibyte_data from libucrt.lib(mbctype.obj)
+        $unwind$__acrt_release_locale_ref from libucrt.lib(locale_refcounting.obj)
+        $unwind$__acrt_initialize_multibyte from libucrt.lib(mbctype.obj)
+        $unwind$__acrt_AreFileApisANSI from libucrt.lib(winapi_thunks.obj)
+        $unwind$__acrt_initialize_winapi_thunks from libucrt.lib(winapi_thunks.obj)
+        $unwind$__GSHandlerCheck from LIBCMT.lib(gshandler.obj)
+        $unwind$__acrt_initialize_ptd from libucrt.lib(per_thread_data.obj)
+        $unwind$_register_thread_local_exe_atexit_callback from libucrt.lib(exit.obj)
+
+    Selected symbol:
+        $unwind$?__mbrtowc_utf8@__crt_mbstring@@YA_KPEA_WPEBD_KPEAU_Mbstatet@@AEAV__crt_cached_ptd_host@@@Z from libucrt.lib(mbrtowc.obj)
+    Replaced symbol(s):
+        $unwind$__dcrt_lowio_ensure_console_output_initialized from libucrt.lib(initcon.obj)
+        $unwind$?getSystemCP@@YAHH@Z from libucrt.lib(mbctype.obj)
+
+    Selected symbol:
+        $unwind$?destroy_fls@@YAXPEAX@Z from libucrt.lib(per_thread_data.obj)
+    Replaced symbol(s):
+        $unwind$__acrt_locale_free_lc_time_if_unreferenced from libucrt.lib(locale_refcounting.obj)
+        $unwind$__acrt_locale_free_numeric from libucrt.lib(initnum.obj)
+
+    Selected symbol:
+        $unwind$?type_case_c_tchar@?$output_processor@DV?$stream_output_adapter@D@__crt_stdio_output@@V?$standard_base@DV?$stream_output_adapter@D@__crt_stdio_output@@@2@@__crt_stdio_output@@AEAA_ND@Z from libucrt.lib(output.obj)
+    Replaced symbol(s):
+        $unwind$?type_case_n@?$output_processor@DV?$stream_output_adapter@D@__crt_stdio_output@@V?$standard_base@DV?$stream_output_adapter@D@__crt_stdio_output@@@2@@__crt_stdio_output@@AEAA_NXZ from libucrt.lib(output.obj)
+
+    Selected symbol:
+        $unwind$__DestructExceptionObject$filt$0 from libvcruntime.lib(ehhelpers.obj)
+    Replaced symbol(s):
+        $unwind$?fin$1@?0??CxxCallCatchBlock@__FrameHandler3@@SAPEAXPEAU_EXCEPTION_RECORD@@@Z@4HA from libvcruntime.lib(frame.obj)
+
+    Selected symbol:
+        $unwind$_fflush_nolock from libucrt.lib(fflush.obj)
+    Replaced symbol(s):
+        $unwind$_lseeki64 from libucrt.lib(lseek.obj)
+        $unwind$fclose from libucrt.lib(fclose.obj)
+
+    Selected symbol:
+        $unwind$??$free_environment@D@@YAXQEAPEAD@Z from libucrt.lib(environment_initialization.obj)
+    Replaced symbol(s):
+        $unwind$_initterm from libucrt.lib(initterm.obj)
+        $unwind$??$free_environment@_W@@YAXQEAPEA_W@Z from libucrt.lib(environment_initialization.obj)
+
+    Selected symbol:
+        $unwind$?ExecutionInCatch@__FrameHandler3@@SA_NPEAU_xDISPATCHER_CONTEXT@@PEBU_s_FuncInfo@@@Z from libvcruntime.lib(risctrnsctrl.obj)
+    Replaced symbol(s):
+        $unwind$_close_nolock_internal from libucrt.lib(close.obj)
+        $unwind$__acrt_stdio_flush_and_write_narrow_nolock from libucrt.lib(_flsbuf.obj)
+        $unwind$memcpy_s from libucrt.lib(cfout.obj)
+        $unwind$__acrt_execute_initializers from libucrt.lib(shared_initialization.obj)
+        $unwind$??0_LocaleUpdate@@QEAA@QEAU__crt_locale_pointers@@@Z from libucrt.lib(argv_wildcards.obj)
+        $unwind$?update_locale_slow@__crt_cached_ptd_host@@AEAAXXZ from libucrt.lib(output.obj)
+        $unwind$?internal_get_ptd_head_slow@@YAPEAU__acrt_ptd@@XZ from libucrt.lib(per_thread_data.obj)
+        $unwind$?value@?$dual_state_global@P6AXPEB_W00I_K@Z@__crt_state_management@@QEAAAEAP6AXPEB_W00I_K@ZAEAV__crt_cached_ptd_host@@@Z from libucrt.lib(invalid_parameter.obj)
+
+    Selected symbol:
+        $unwind$?x_ismbbtype_l@@YAHPEAU__crt_locale_pointers@@IHH@Z from libucrt.lib(ismbbyte.obj)
+    Replaced symbol(s):
+        $unwind$_strnicmp_l from libucrt.lib(strnicmp.obj)
+
+    Selected symbol:
+        $unwind$??$ensure_buffer_is_big_enough@D@formatting_buffer@__crt_stdio_output@@QEAA_N_KAEAV__crt_cached_ptd_host@@@Z from libucrt.lib(output.obj)
+    Replaced symbol(s):
+        $unwind$__acrt_stdio_flush_nolock from libucrt.lib(fflush.obj)
+        $unwind$?should_round_up@@YA_NQEBD0HW4__acrt_has_trailing_digits@@W4__acrt_rounding_mode@@@Z from libucrt.lib(_fptostr.obj)
+        $unwind$_seh_filter_exe from libucrt.lib(exception_filter.obj)
+        $unwind$__acrt_lowio_create_handle_array from libucrt.lib(osfinfo.obj)
+        $unwind$__acrt_free_locale from libucrt.lib(locale_refcounting.obj)
+
+    Selected symbol:
+        $unwind$_invalid_parameter_internal from libucrt.lib(invalid_parameter.obj)
+    Replaced symbol(s):
+        $unwind$__acrt_fp_strflt_to_string from libucrt.lib(_fptostr.obj)
+        $unwind$??$common_lseek_nolock@_J@@YA_JH_JHAEAV__crt_cached_ptd_host@@@Z from libucrt.lib(lseek.obj)
+
+    Selected symbol:
+        $unwind$??$__acrt_convert_wcs_mbs_cp@_WDV<lambda_f788ae46380686e8b737efdd8c720d07>@@U__crt_win32_buffer_no_resizing@@@@YAHQEB_WAEAV?$__crt_win32_buffer@DU__crt_win32_buffer_no_resizing@@@@AEBV<lambda_f788ae46380686e8b737efdd8c720d07>@@I@Z from libucrt.lib(getmodulefilenamea.obj)
+    Replaced symbol(s):
+        $unwind$__dcrt_write_console from libucrt.lib(initcon.obj)
+
+    Selected symbol:
+        $unwind$__acrt_CompareStringEx from libucrt.lib(winapi_thunks.obj)
+    Replaced symbol(s):
+        $unwind$__acrt_LCMapStringEx from libucrt.lib(winapi_thunks.obj)
+        $unwind$?fp_format_f@@YAHQEBNQEAD_K12HW4__acrt_rounding_mode@@AEAV__crt_cached_ptd_host@@@Z from libucrt.lib(cvt.obj)
+
+    Selected symbol:
+        $unwind$?write_string_impl@?$output_adapter_common@DV?$stream_output_adapter@D@__crt_stdio_output@@@__crt_stdio_output@@IEBAXQEBDHQEAHAEAV__crt_cached_ptd_host@@@Z from libucrt.lib(output.obj)
+    Replaced symbol(s):
+        $unwind$__acrt_DownlevelLocaleNameToLCID from libucrt.lib(lcidtoname_downlevel.obj)
+        $unwind$?fp_format_f_internal@@YAHQEAD_KHQEAU_strflt@@_NAEAV__crt_cached_ptd_host@@@Z from libucrt.lib(cvt.obj)
+        $unwind$??R<lambda_f03950bc5685219e0bcd2087efbe011e>@@QEBA@XZ from libucrt.lib(onexit.obj)
+        $unwind$??R<lambda_22ebabd17bc4fa466a2aca6d8deb888d>@@QEBA@XZ from libucrt.lib(onexit.obj)
+
+    Selected symbol:
+        $unwind$??$__acrt_convert_wcs_mbs_cp@_WDV<lambda_d8593a27d1aa8c02be35c86a17d324c4>@@U__crt_win32_buffer_internal_dynamic_resizing@@@@YAHQEB_WAEAV?$__crt_win32_buffer@DU__crt_win32_buffer_internal_dynamic_resizing@@@@AEBV<lambda_d8593a27d1aa8c02be35c86a17d324c4>@@I@Z from libucrt.lib(argv_wildcards.obj)
+    Replaced symbol(s):
+        $unwind$__dcrt_get_narrow_environment_from_os from libucrt.lib(get_environment_from_os.obj)
+
+    Selected symbol:
+        $unwind$??$parse_integer@KV?$c_string_character_source@D@__crt_strtox@@$0A@@__crt_strtox@@YAKAEAV__crt_cached_ptd_host@@V?$c_string_character_source@D@0@H_N@Z from libucrt.lib(output.obj)
+    Replaced symbol(s):
+        $unwind$??$copy_and_add_argument_to_buffer@D@@YAHQEBD0_KAEAV?$argument_list@D@?A0x5f5c8891@@@Z from libucrt.lib(argv_wildcards.obj)
+
+    Selected symbol:
+        $unwind$??$parse_command_line@D@@YAXPEADPEAPEAD0PEA_K2@Z from libucrt.lib(argv_parsing.obj)
+    Replaced symbol(s):
+        $unwind$?should_round_up@@YA_NQEBN_KFW4__acrt_rounding_mode@@@Z from libucrt.lib(cvt.obj)
+
+    Selected symbol:
+        $unwind$__acrt_initialize_stdio from libucrt.lib(_file.obj)
+    Replaced symbol(s):
+        $unwind$?initialize_stdio_handles_nolock@@YAXXZ from libucrt.lib(ioinit.obj)
+
+    Selected symbol:
+        $stateUnwindMap$?state_case_type@?$output_processor@DV?$stream_output_adapter@D@__crt_stdio_output@@V?$standard_base@DV?$stream_output_adapter@D@__crt_stdio_output@@@2@@__crt_stdio_output@@AEAA_NXZ from libucrt.lib(output.obj)
+    Replaced symbol(s):
+        $stateUnwindMap$_execute_onexit_table from libucrt.lib(onexit.obj)
+        $stateUnwindMap$?common_exit@@YAXHW4_crt_exit_cleanup_mode@@W4_crt_exit_return_mode@@@Z from libucrt.lib(exit.obj)
+        $stateUnwindMap$__dcrt_uninitialize_environments_nolock from libucrt.lib(environment_initialization.obj)
+        $stateUnwindMap$__acrt_getptd_noexit_explicit from libucrt.lib(per_thread_data.obj)
+        $stateUnwindMap$__acrt_getptd_noexit from libucrt.lib(per_thread_data.obj)
+        $stateUnwindMap$__acrt_getptd_head from libucrt.lib(per_thread_data.obj)
+
+    Selected symbol:
+        $unwind$?write_text_ansi_nolock@@YA?AUwrite_result@?A0x17268360@@HQEBDI@Z from libucrt.lib(write.obj)
+    Replaced symbol(s):
+        $unwind$?write_text_utf16le_nolock@@YA?AUwrite_result@?A0x17268360@@HQEBDI@Z from libucrt.lib(write.obj)
+
+    Selected symbol:
+        $unwind$__acrt_getptd_noexit from libucrt.lib(per_thread_data.obj)
+    Replaced symbol(s):
+        $unwind$__acrt_getptd_noexit_explicit from libucrt.lib(per_thread_data.obj)
+
+    Selected symbol:
+        $unwind$__dcrt_uninitialize_environments_nolock from libucrt.lib(environment_initialization.obj)
+    Replaced symbol(s):
+        $unwind$__acrt_getptd_head from libucrt.lib(per_thread_data.obj)
+
+    Selected symbol:
+        $chain$2$?GetCurrentState@__FrameHandler3@@SAHPEA_KPEAU_xDISPATCHER_CONTEXT@@PEBU_s_FuncInfo@@@Z from libvcruntime.lib(ehstate.obj)
+    Replaced symbol(s):
+        $chain$4$?GetCurrentState@__FrameHandler3@@SAHPEA_KPEAU_xDISPATCHER_CONTEXT@@PEBU_s_FuncInfo@@@Z from libvcruntime.lib(ehstate.obj)
+
+    Selected symbol:
+        $pdata$??_Gexception@std@@UEAAPEAXI@Z from main.obj
+    Replaced symbol(s):
+        $pdata$??_Gbad_exception@std@@UEAAPEAXI@Z from libvcruntime.lib(frame.obj)
+        $pdata$??_Glength_error@std@@UEAAPEAXI@Z from libcpmt.lib(xthrow.obj)
+        $pdata$??_Glogic_error@std@@UEAAPEAXI@Z from libcpmt.lib(xthrow.obj)
+        $pdata$??_Gbad_array_new_length@std@@UEAAPEAXI@Z from main.obj
+        $pdata$??_Gbad_alloc@std@@UEAAPEAXI@Z from main.obj
+
+    Selected symbol:
+        $pdata$?_Throw_bad_array_new_length@std@@YAXXZ from main.obj
+    Replaced symbol(s):
+        $pdata$?__scrt_throw_std_bad_array_new_length@@YAXXZ from LIBCMT.lib(throw_bad_alloc.obj)
+
+    Selected symbol:
+        $pdata$_write_internal$fin$0 from libucrt.lib(write.obj)
+    Replaced symbol(s):
+        $pdata$?fin$0@?0???$common_lseek@_J@@YA_JH_JHAEAV__crt_cached_ptd_host@@@Z@4HA from libucrt.lib(lseek.obj)
+
+    Selected symbol:
+        $pdata$?fin$0@?0???$?RV<lambda_a37b2b86f63e897a80ea819b0eb08c01>@@AEAV<lambda_38ce7e780aa69e748d6df282ebc68efe>@@V<lambda_99fb1378e971ab6e7edea83e3a7a83a2>@@@?$__crt_seh_guarded_call@H@@QEAAH$$QEAV<lambda_a37b2b86f63e897a80ea819b0eb08c01>@@AEAV<lambda_38ce7e780aa69e748d6df282ebc68efe>@@$$QEAV<lambda_99fb1378e971ab6e7edea83e3a7a83a2>@@@Z@4HA from libucrt.lib(commit.obj)
+    Replaced symbol(s):
+        $pdata$?fin$0@?0???$?RV<lambda_ad8af0d99a0adf03d037d7dffe354bb5>@@AEAV<lambda_c9ba49e555ba839a7b07aa3fbecb7617>@@V<lambda_2f1ebd5d68526518146ae959c9e734c8>@@@?$__crt_seh_guarded_call@H@@QEAAH$$QEAV<lambda_ad8af0d99a0adf03d037d7dffe354bb5>@@AEAV<lambda_c9ba49e555ba839a7b07aa3fbecb7617>@@$$QEAV<lambda_2f1ebd5d68526518146ae959c9e734c8>@@@Z@4HA from libucrt.lib(close.obj)
+
+    Selected symbol:
+        $pdata$?fin$0@?0???$?RV<lambda_d80eeec6fff315bfe5c115232f3240e3>@@AEAV<lambda_6e4b09c48022b2350581041d5f6b0c4c>@@V<lambda_2358e3775559c9db80273638284d5e45>@@@?$__crt_seh_guarded_call@X@@QEAAX$$QEAV<lambda_d80eeec6fff315bfe5c115232f3240e3>@@AEAV<lambda_6e4b09c48022b2350581041d5f6b0c4c>@@$$QEAV<lambda_2358e3775559c9db80273638284d5e45>@@@Z@4HA from libucrt.lib(exit.obj)
+    Replaced symbol(s):
+        $pdata$?fin$0@?0???$?RV<lambda_450d765d439847d4c735a33c368b5fc0>@@AEAV<lambda_44731a7d0e6d81c3e6aa82d741081786>@@V<lambda_601a2a7da3b7a96e9554ac7215c4b07c>@@@?$__crt_seh_guarded_call@P6AXH@Z@@QEAAP6AXH@Z$$QEAV<lambda_450d765d439847d4c735a33c368b5fc0>@@AEAV<lambda_44731a7d0e6d81c3e6aa82d741081786>@@$$QEAV<lambda_601a2a7da3b7a96e9554ac7215c4b07c>@@@Z@4HA from libucrt.lib(signal.obj)
+        $pdata$?fin$0@?0???$?RV<lambda_2d41944a1d46af3157314b8a01080d33>@@AEAV<lambda_8f455de75cd7d7f24b4096f044d8b9e6>@@V<lambda_aa500f224e6afead328df44964fe2772>@@@?$__crt_seh_guarded_call@X@@QEAAX$$QEAV<lambda_2d41944a1d46af3157314b8a01080d33>@@AEAV<lambda_8f455de75cd7d7f24b4096f044d8b9e6>@@$$QEAV<lambda_aa500f224e6afead328df44964fe2772>@@@Z@4HA from libucrt.lib(per_thread_data.obj)
+        $pdata$?fin$0@?0???$?RV<lambda_f2e299630e499de9f9a165e60fcd3db5>@@AEAV<lambda_2ae9d31cdba2644fcbeaf08da7c24588>@@V<lambda_40d01ff24d0e7b3814fdbdcee8eab3c7>@@@?$__crt_seh_guarded_call@X@@QEAAX$$QEAV<lambda_f2e299630e499de9f9a165e60fcd3db5>@@AEAV<lambda_2ae9d31cdba2644fcbeaf08da7c24588>@@$$QEAV<lambda_40d01ff24d0e7b3814fdbdcee8eab3c7>@@@Z@4HA from libucrt.lib(per_thread_data.obj)
+        $pdata$?fin$0@?0???$?RV<lambda_aa87e3671a710a21b5dc78c0bdf72e11>@@AEAV<lambda_92619d2358a28f41a33ba319515a20b9>@@V<lambda_6992ecaafeb10aed2b74cb1fae11a551>@@@?$__crt_seh_guarded_call@X@@QEAAX$$QEAV<lambda_aa87e3671a710a21b5dc78c0bdf72e11>@@AEAV<lambda_92619d2358a28f41a33ba319515a20b9>@@$$QEAV<lambda_6992ecaafeb10aed2b74cb1fae11a551>@@@Z@4HA from libucrt.lib(per_thread_data.obj)
+        $pdata$?fin$0@?0???$?RV<lambda_0ae27a3a962d80f24befdcbee591983d>@@AEAV<lambda_8d0ee55de4b1038c4002e0adecdf1839>@@V<lambda_dc504788e8f1664fe9b84e20bfb512f2>@@@?$__crt_seh_guarded_call@X@@QEAAX$$QEAV<lambda_0ae27a3a962d80f24befdcbee591983d>@@AEAV<lambda_8d0ee55de4b1038c4002e0adecdf1839>@@$$QEAV<lambda_dc504788e8f1664fe9b84e20bfb512f2>@@@Z@4HA from libucrt.lib(per_thread_data.obj)
+        $pdata$?fin$0@?0???$?RV<lambda_7777bce6b2f8c936911f934f8298dc43>@@AEAV<lambda_f03950bc5685219e0bcd2087efbe011e>@@V<lambda_3883c3dff614d5e0c5f61bb1ac94921c>@@@?$__crt_seh_guarded_call@H@@QEAAH$$QEAV<lambda_7777bce6b2f8c936911f934f8298dc43>@@AEAV<lambda_f03950bc5685219e0bcd2087efbe011e>@@$$QEAV<lambda_3883c3dff614d5e0c5f61bb1ac94921c>@@@Z@4HA from libucrt.lib(onexit.obj)
+        $pdata$?fin$0@?0???$?RV<lambda_638799b9deba96c50f710eeac98168cd>@@AEAV<lambda_22ebabd17bc4fa466a2aca6d8deb888d>@@V<lambda_a6f7d7db0129f75315ebf26d50c089f1>@@@?$__crt_seh_guarded_call@H@@QEAAH$$QEAV<lambda_638799b9deba96c50f710eeac98168cd>@@AEAV<lambda_22ebabd17bc4fa466a2aca6d8deb888d>@@$$QEAV<lambda_a6f7d7db0129f75315ebf26d50c089f1>@@@Z@4HA from libucrt.lib(onexit.obj)
+
+    Selected symbol:
+        $pdata$__acrt_initialize_lowio$fin$0 from libucrt.lib(ioinit.obj)
+    Replaced symbol(s):
+        $pdata$__acrt_lowio_ensure_fh_exists$fin$0 from libucrt.lib(osfinfo.obj)
+
+    Selected symbol:
+        $pdata$?fin$0@?0???$?RV<lambda_d854c62834386a3b23916ad6dae2782d>@@AEAV<lambda_303760bc4008a2b3ec4768a30b06a80c>@@V<lambda_4780a7ea4f8cbd2590aec34bd14e2bbf>@@@?$__crt_seh_guarded_call@H@@QEAAH$$QEAV<lambda_d854c62834386a3b23916ad6dae2782d>@@AEAV<lambda_303760bc4008a2b3ec4768a30b06a80c>@@$$QEAV<lambda_4780a7ea4f8cbd2590aec34bd14e2bbf>@@@Z@4HA from libucrt.lib(output.obj)
+    Replaced symbol(s):
+        $pdata$?fin$0@?0???$?RV<lambda_842d9ff0dc9ef11c61343bbaebe7f885>@@AEAV<lambda_c5860995281e5c4ce005b3de8f5874ee>@@V<lambda_d90129c13df834fdcbf8d2b88dafcf2d>@@@?$__crt_seh_guarded_call@X@@QEAAX$$QEAV<lambda_842d9ff0dc9ef11c61343bbaebe7f885>@@AEAV<lambda_c5860995281e5c4ce005b3de8f5874ee>@@$$QEAV<lambda_d90129c13df834fdcbf8d2b88dafcf2d>@@@Z@4HA from libucrt.lib(fflush.obj)
+
+    Selected symbol:
+        $pdata$??$free_environment@D@@YAXQEAPEAD@Z from libucrt.lib(environment_initialization.obj)
+    Replaced symbol(s):
+        $pdata$??$free_environment@_W@@YAXQEAPEA_W@Z from libucrt.lib(environment_initialization.obj)
+
+    ICF total savings: 3578 bytes
+
+Starting pass 2
+     main.obj
+     libcpmt.lib(xthrow.obj)
+     LIBCMT.lib(argv_mode.obj)
+     LIBCMT.lib(commit_mode.obj)
+     LIBCMT.lib(default_local_stdio_options.obj)
+     LIBCMT.lib(denormal_control.obj)
+     LIBCMT.lib(env_mode.obj)
+     LIBCMT.lib(file_mode.obj)
+     LIBCMT.lib(fltused.obj)
+     LIBCMT.lib(invalid_parameter_handler.obj)
+     LIBCMT.lib(matherr.obj)
+     LIBCMT.lib(new_mode.obj)
+     LIBCMT.lib(thread_locale.obj)
+     LIBCMT.lib(std_type_info_static.obj)
+     LIBCMT.lib(tncleanup.obj)
+     LIBCMT.lib(delete_scalar.obj)
+     LIBCMT.lib(delete_scalar_size.obj)
+     LIBCMT.lib(new_scalar.obj)
+     LIBCMT.lib(throw_bad_alloc.obj)
+     LIBCMT.lib(exe_main.obj)
+     LIBCMT.lib(initializers.obj)
+     LIBCMT.lib(utility.obj)
+     LIBCMT.lib(gs_cookie.obj)
+     LIBCMT.lib(gs_report.obj)
+     LIBCMT.lib(gs_support.obj)
+     LIBCMT.lib(guard_support.obj)
+     LIBCMT.lib(loadcfg.obj)
+     LIBCMT.lib(pesect.obj)
+     LIBCMT.lib(dyn_tls_dtor.obj)
+     LIBCMT.lib(dyn_tls_init.obj)
+     LIBCMT.lib(matherr_detection.obj)
+     LIBCMT.lib(ucrt_detection.obj)
+     LIBCMT.lib(cpu_disp.obj)
+     LIBCMT.lib(utility_desktop.obj)
+     LIBCMT.lib(initsect.obj)
+     LIBCMT.lib(gshandler.obj)
+     LIBCMT.lib(gshandlereh.obj)
+     LIBCMT.lib(gshandlerseh.obj)
+     LIBCMT.lib(amdsecgs.obj)
+     LIBCMT.lib(chkstk.obj)
+     LIBCMT.lib(guard_dispatch.obj)
+     LIBCMT.lib(guard_xfg_dispatch.obj)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     kernel32.lib(KERNEL32.dll)
+     libvcruntime.lib(ehhelpers.obj)
+     libvcruntime.lib(frame.obj)
+     libvcruntime.lib(std_exception.obj)
+     libvcruntime.lib(std_type_info.obj)
+     libvcruntime.lib(throw.obj)
+     libvcruntime.lib(initialization.obj)
+     libvcruntime.lib(locks.obj)
+     libvcruntime.lib(per_thread_data.obj)
+     libvcruntime.lib(purevirt.obj)
+     libvcruntime.lib(purevirt_data.obj)
+     libvcruntime.lib(undname.obj)
+     libvcruntime.lib(softmemtag.obj)
+     libvcruntime.lib(jbcxrval.obj)
+     libvcruntime.lib(jmpuwind.obj)
+     libvcruntime.lib(strchr.obj)
+     libvcruntime.lib(strrchr.obj)
+     libvcruntime.lib(wcschr.obj)
+     libvcruntime.lib(chandler_noexcept.obj)
+     libvcruntime.lib(ehstate.obj)
+     libvcruntime.lib(riscchandler.obj)
+     libvcruntime.lib(risctrnsctrl.obj)
+     libvcruntime.lib(handlers.obj)
+     libvcruntime.lib(notify.obj)
+     libvcruntime.lib(memcmp.obj)
+     libvcruntime.lib(memcpy.obj)
+     libvcruntime.lib(memset.obj)
+     libucrt.lib(dispatchcfg.obj)
+     libucrt.lib(checkcfg.obj)
+     libucrt.lib(log_special.obj)
+     libucrt.lib(ieee.obj)
+     libucrt.lib(fpctrl.obj)
+     libucrt.lib(libm_error.obj)
+     libucrt.lib(ceil.obj)
+     libucrt.lib(mbsdec.obj)
+     libucrt.lib(ismbbyte.obj)
+     libucrt.lib(console_output_initializer.obj)
+     libucrt.lib(setenv.obj)
+     libucrt.lib(get_environment_from_os.obj)
+     libucrt.lib(environment_initialization.obj)
+     libucrt.lib(write.obj)
+     libucrt.lib(txtmode.obj)
+     libucrt.lib(setmode.obj)
+     libucrt.lib(read.obj)
+     libucrt.lib(osfinfo.obj)
+     libucrt.lib(lseek.obj)
+     libucrt.lib(isatty.obj)
+     libucrt.lib(ioinit.obj)
+     libucrt.lib(commit.obj)
+     libucrt.lib(close.obj)
+     libucrt.lib(putwch.obj)
+     libucrt.lib(initcon.obj)
+     libucrt.lib(_fenvutils.obj)
+     libucrt.lib(matherr.obj)
+     libucrt.lib(log_f_inv_qword_table.obj)
+     libucrt.lib(log10_256_lead_tail_table.obj)
+     libucrt.lib(log10.obj)
+     libucrt.lib(frexp.obj)
+     libucrt.lib(fpexcept.obj)
+     libucrt.lib(fma3_available.obj)
+     libucrt.lib(floorceil_sse41.obj)
+     libucrt.lib(fetestexcept.obj)
+     libucrt.lib(fesetexceptflag.obj)
+     libucrt.lib(fesetenv.obj)
+     libucrt.lib(feholdexcept.obj)
+     libucrt.lib(fegetround.obj)
+     libucrt.lib(fegetexceptflag.obj)
+     libucrt.lib(fegetenv.obj)
+     libucrt.lib(contrlfp.obj)
+     libucrt.lib(wcspbrk.obj)
+     libucrt.lib(wcsnicol.obj)
+     libucrt.lib(wcsnicmp.obj)
+     libucrt.lib(wcsncpy_s.obj)
+     libucrt.lib(wcsncmp.obj)
+     libucrt.lib(wcsncat_s.obj)
+     libucrt.lib(wcsicmp.obj)
+     libucrt.lib(wcscspn.obj)
+     libucrt.lib(wcscpy_s.obj)
+     libucrt.lib(wcscmpc.obj)
+     libucrt.lib(wcscat_s.obj)
+     libucrt.lib(strpbrk.obj)
+     libucrt.lib(strnlen.obj)
+     libucrt.lib(strnicol.obj)
+     libucrt.lib(strnicmp.obj)
+     libucrt.lib(strncpy_s.obj)
+     libucrt.lib(strncnt.obj)
+     libucrt.lib(strncmp.obj)
+     libucrt.lib(strcpy_s.obj)
+     libucrt.lib(qsort.obj)
+     libucrt.lib(_sftbuf.obj)
+     libucrt.lib(_getbuf.obj)
+     libucrt.lib(_freebuf.obj)
+     libucrt.lib(_flsbuf.obj)
+     libucrt.lib(_file.obj)
+     libucrt.lib(stream.obj)
+     libucrt.lib(printf_count_output.obj)
+     libucrt.lib(output.obj)
+     libucrt.lib(ncommode.obj)
+     libucrt.lib(fputwc.obj)
+     libucrt.lib(fputc.obj)
+     libucrt.lib(fileno.obj)
+     libucrt.lib(fflush.obj)
+     libucrt.lib(fclose.obj)
+     libucrt.lib(closeall.obj)
+     libucrt.lib(onexit.obj)
+     libucrt.lib(initterm.obj)
+     libucrt.lib(exit.obj)
+     libucrt.lib(argv_wildcards.obj)
+     libucrt.lib(argv_parsing.obj)
+     libucrt.lib(argv_data.obj)
+     libucrt.lib(abort.obj)
+     libucrt.lib(terminate.obj)
+     libucrt.lib(signal.obj)
+     libucrt.lib(set_error_mode.obj)
+     libucrt.lib(invalid_parameter.obj)
+     libucrt.lib(exception_filter.obj)
+     libucrt.lib(errno.obj)
+     libucrt.lib(crtmbox.obj)
+     libucrt.lib(mbctype.obj)
+     libucrt.lib(wsetlocale.obj)
+     libucrt.lib(widechartomultibyte.obj)
+     libucrt.lib(nlsdata.obj)
+     libucrt.lib(multibytetowidechar.obj)
+     libucrt.lib(locale_update.obj)
+     libucrt.lib(locale_refcounting.obj)
+     libucrt.lib(localeconv.obj)
+     libucrt.lib(lcmapstringw.obj)
+     libucrt.lib(lcmapstringa.obj)
+     libucrt.lib(lcidtoname_downlevel.obj)
+     libucrt.lib(inittime.obj)
+     libucrt.lib(initnum.obj)
+     libucrt.lib(initmon.obj)
+     libucrt.lib(initctype.obj)
+     libucrt.lib(glstatus.obj)
+     libucrt.lib(get_qualified_locale.obj)
+     libucrt.lib(getstringtypew.obj)
+     libucrt.lib(getstringtypea.obj)
+     libucrt.lib(getqloc_downlevel.obj)
+     libucrt.lib(getlocaleinfoa.obj)
+     libucrt.lib(ctype.obj)
+     libucrt.lib(comparestringw.obj)
+     libucrt.lib(comparestringa.obj)
+     libucrt.lib(win_policies.obj)
+     libucrt.lib(winapi_thunks.obj)
+     libucrt.lib(shared_initialization.obj)
+     libucrt.lib(setenvironmentvariablea.obj)
+     libucrt.lib(report_runtime_error.obj)
+     libucrt.lib(per_thread_data.obj)
+     libucrt.lib(peb_access.obj)
+     libucrt.lib(outputdebugstringa.obj)
+     libucrt.lib(locks.obj)
+     libucrt.lib(initialization.obj)
+     libucrt.lib(getmodulefilenamea.obj)
+     libucrt.lib(stdio_initializer.obj)
+     libucrt.lib(multibyte_initializer.obj)
+     libucrt.lib(locale_initializer.obj)
+     libucrt.lib(fmode_initializer.obj)
+     libucrt.lib(fma3_initializer.obj)
+     libucrt.lib(recalloc.obj)
+     libucrt.lib(realloc_base.obj)
+     libucrt.lib(new_mode.obj)
+     libucrt.lib(new_handler.obj)
+     libucrt.lib(msize.obj)
+     libucrt.lib(malloc_base.obj)
+     libucrt.lib(malloc.obj)
+     libucrt.lib(heap_handle.obj)
+     libucrt.lib(free_base.obj)
+     libucrt.lib(free.obj)
+     libucrt.lib(calloc_base.obj)
+     libucrt.lib(calloc.obj)
+     libucrt.lib(_fptostr.obj)
+     libucrt.lib(xtoa.obj)
+     libucrt.lib(wctomb.obj)
+     libucrt.lib(towlower.obj)
+     libucrt.lib(mbtowc.obj)
+     libucrt.lib(mbstowcs.obj)
+     libucrt.lib(mbrtowc.obj)
+     libucrt.lib(mbrtoc32.obj)
+     libucrt.lib(iswctype.obj)
+     libucrt.lib(isctype.obj)
+     libucrt.lib(cvt.obj)
+     libucrt.lib(common_utf8.obj)
+     libucrt.lib(cfout.obj)
+     libucrt.lib(c32rtomb.obj)
+     libucrt.lib(c16rtomb.obj)
+     libucrt.lib(atox.obj)
+Finished pass 2

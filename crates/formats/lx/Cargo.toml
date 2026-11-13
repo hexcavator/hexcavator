@@ -1,0 +1,16 @@
+[package]
+name = "hexcavator-lx"
+description = "LE and LX (linear executable) files: VxDs, DOS extenders, and 32-bit OS/2 modules"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+hexcavator-core.workspace = true
+hexcavator-mz.workspace = true
+
+[lints]
+workspace = true

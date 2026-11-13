@@ -1,0 +1,261 @@
+
+sample.wasm:	file format wasm
+
+Disassembly of section CODE:
+
+00000095 <CODE>:
+        # 7 functions in section.
+
+00000096 <apply>:
+        .local i32
+      9a: 41 00        	i32.const	0
+      9c: 21 02        	local.set	2
+      9e: 20 01        	local.get	1
+      a0: 20 00        	local.get	0
+      a2: 11 80 80 80 80 00 80 80 80 80 00     	call_indirect	 0
+      ad: 21 00        	local.set	0
+      af: 02 40        	block   	
+      b1: 20 01        	local.get	1
+      b3: 41 05        	i32.const	5
+      b5: 4b           	i32.gt_u
+      b6: 0d 00        	br_if   	0                       # 0: down to label0
+      b8: 20 01        	local.get	1
+      ba: 2d 00 80 80 c0 80 00 	i32.load8_u	1048576
+      c1: 21 02        	local.set	2
+      c3: 0b           	end
+      c4: 20 02        	local.get	2
+      c6: 20 00        	local.get	0
+      c8: 6a           	i32.add 
+      c9: 0b           	end
+
+000000ca <blend>:
+
+      cc: 44 00 00 00 00 00 00 c0 bf   	f64.const	-0x1p-3
+      d5: 20 00        	local.get	0
+      d7: bb           	f64.promote_f32
+      d8: 44 00 00 00 00 00 00 f8 3f   	f64.const	0x1.8p0
+      e1: a2           	f64.mul 
+      e2: 20 01        	local.get	1
+      e4: 44 00 00 00 00 00 00 0a 40   	f64.const	0x1.ap1
+      ed: a3           	f64.div 
+      ee: a0           	f64.add 
+      ef: 22 01        	local.tee	1
+      f1: 20 01        	local.get	1
+      f3: 44 00 00 00 20 5f a0 02 42   	f64.const	0x1.2a05f2p33
+      fc: 64           	f64.gt  
+      fd: 1b           	f32.select
+      fe: 20 02        	local.get	2
+     100: b2           	f32.convert_i32_s
+     101: 43 cd cc cc 3d       	f32.const	0x1.99999ap-4
+     106: 94           	f32.mul 
+     107: bb           	f64.promote_f32
+     108: a0           	f64.add 
+     109: 20 01        	local.get	1
+     10b: fc 06        	i64.trunc_sat_f64_s
+     10d: b9           	f64.convert_i64_s
+     10e: a0           	f64.add 
+     10f: 0b           	end
+
+00000110 <classify>:
+        .local i32
+     114: 41 00        	i32.const	0
+     116: 21 01        	local.set	1
+     118: 02 40        	block   	
+     11a: 20 00        	local.get	0
+     11c: 41 05        	i32.const	5
+     11e: 4b           	i32.gt_u
+     11f: 0d 00        	br_if   	0                       # 0: down to label1
+     121: 20 00        	local.get	0
+     123: 2d 00 80 80 c0 80 00 	i32.load8_u	1048576
+     12a: 21 01        	local.set	1
+     12c: 0b           	end
+     12d: 20 01        	local.get	1
+     12f: 0b           	end
+
+00000130 <dot>:
+        .local v128
+     134: 20 01        	local.get	1
+     136: fd 00 00 00  	v128.load	0:p2align=0
+     13a: 20 00        	local.get	0
+     13c: fd 00 00 00  	v128.load	0:p2align=0
+     140: fd b5 01     	i32x4.mul
+     143: 22 02        	local.tee	2
+     145: 20 02        	local.get	2
+     147: 20 02        	local.get	2
+     149: fd 0d 08 09 0a 0b 0c 0d 0e 0f 00 01 02 03 04 05 06 07	i8x16.shuffle	8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3, 4, 5, 6, 7
+     15b: fd ae 01     	i32x4.add
+     15e: fd 0c 07 00 00 00 f9 ff ff ff 09 00 00 00 f7 ff ff ff	v128.const	7, 4294967289, 9, 4294967287
+     170: fd ae 01     	i32x4.add
+     173: 22 02        	local.tee	2
+     175: 20 02        	local.get	2
+     177: fd 0d 03 03 03 03 00 00 00 00 00 00 00 00 00 00 00 00	i8x16.shuffle	3, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+     189: 20 02        	local.get	2
+     18b: fd ae 01     	i32x4.add
+     18e: fd 1b 00     	i32x4.extract_lane	0
+     191: 0b           	end
+
+00000192 <move_and_clear>:
+        .local i32
+     196: 02 40        	block   	
+     198: 20 02        	local.get	2
+     19a: 45           	i32.eqz
+     19b: 22 03        	local.tee	3
+     19d: 0d 00        	br_if   	0                       # 0: down to label2
+     19f: 20 00        	local.get	0
+     1a1: 20 01        	local.get	1
+     1a3: 20 02        	local.get	2
+     1a5: fc 0a 00 00  	memory.copy	0, 0
+     1a9: 0b           	end
+     1aa: 02 40        	block   	
+     1ac: 20 03        	local.get	3
+     1ae: 0d 00        	br_if   	0                       # 0: down to label3
+     1b0: 20 00        	local.get	0
+     1b2: 20 02        	local.get	2
+     1b4: 6a           	i32.add 
+     1b5: 41 00        	i32.const	0
+     1b7: 20 02        	local.get	2
+     1b9: fc 0b 00     	memory.fill	0
+     1bc: 0b           	end
+     1bd: 0b           	end
+
+000001be <narrow>:
+        .local i32
+     1c2: 20 00        	local.get	0
+     1c4: a7           	i32.wrap_i64
+     1c5: 22 02        	local.tee	2
+     1c7: c0           	i32.extend8_s
+     1c8: 20 02        	local.get	2
+     1ca: c1           	i32.extend16_s
+     1cb: 6a           	i32.add 
+     1cc: 20 01        	local.get	1
+     1ce: fc 00        	i32.trunc_sat_f32_s
+     1d0: 6a           	i32.add 
+     1d1: 0b           	end
+
+000001d2 <sum>:
+        .local i32, i64, i32, i32, v128, v128, i32, i32, v128, v128
+     1e1: 02 40        	block   	
+     1e3: 20 01        	local.get	1
+     1e5: 0d 00        	br_if   	0                       # 0: down to label4
+     1e7: 42 00        	i64.const	0
+     1e9: 0f           	return
+     1ea: 0b           	end
+     1eb: 02 40        	block   	
+     1ed: 02 40        	block   	
+     1ef: 02 40        	block   	
+     1f1: 20 01        	local.get	1
+     1f3: 41 02        	i32.const	2
+     1f5: 74           	i32.shl 
+     1f6: 22 02        	local.tee	2
+     1f8: 41 7c        	i32.const	-4
+     1fa: 6a           	i32.add 
+     1fb: 22 01        	local.tee	1
+     1fd: 0d 00        	br_if   	0                       # 0: down to label7
+     1ff: 41 00        	i32.const	0
+     201: 21 01        	local.set	1
+     203: 42 00        	i64.const	0
+     205: 21 03        	local.set	3
+     207: 20 00        	local.get	0
+     209: 21 04        	local.set	4
+     20b: 0c 01        	br      	1                       # 1: down to label6
+     20d: 0b           	end
+     20e: 20 00        	local.get	0
+     210: 20 01        	local.get	1
+     212: 41 02        	i32.const	2
+     214: 76           	i32.shr_u
+     215: 41 01        	i32.const	1
+     217: 6a           	i32.add 
+     218: 22 05        	local.tee	5
+     21a: 41 fe ff ff ff 07    	i32.const	2147483646
+     220: 71           	i32.and 
+     221: 22 01        	local.tee	1
+     223: 41 02        	i32.const	2
+     225: 74           	i32.shl 
+     226: 6a           	i32.add 
+     227: 21 04        	local.set	4
+     229: fd 0c 00 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00	v128.const	0, 1, 0, 0
+     23b: 21 06        	local.set	6
+     23d: fd 0c 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00	v128.const	0, 0, 0, 0
+     24f: 21 07        	local.set	7
+     251: 20 00        	local.get	0
+     253: 21 08        	local.set	8
+     255: 20 01        	local.get	1
+     257: 21 09        	local.set	9
+     259: 03 40        	loop    	                        # label8:
+     25b: 20 08        	local.get	8
+     25d: fd 06 02 00  	i64x2.load32x2_u	0:p2align=2
+     261: 22 0a        	local.tee	10
+     263: fd 1d 00     	i64x2.extract_lane	0
+     266: 20 06        	local.get	6
+     268: fd 0c 07 00 00 00 07 00 00 00 07 00 00 00 07 00 00 00	v128.const	7, 7, 7, 7
+     27a: fd 4e        	v128.and
+     27c: fd c9 01     	i64x2.extend_low_i32x4_u
+     27f: 22 0b        	local.tee	11
+     281: fd 1d 00     	i64x2.extract_lane	0
+     284: 86           	i64.shl 
+     285: fd 12        	i64x2.splat
+     287: 20 0a        	local.get	10
+     289: fd 1d 01     	i64x2.extract_lane	1
+     28c: 20 0b        	local.get	11
+     28e: fd 1d 01     	i64x2.extract_lane	1
+     291: 86           	i64.shl 
+     292: fd 1e 01     	i64x2.replace_lane	1
+     295: 20 07        	local.get	7
+     297: fd ce 01     	i64x2.add
+     29a: 21 07        	local.set	7
+     29c: 20 08        	local.get	8
+     29e: 41 08        	i32.const	8
+     2a0: 6a           	i32.add 
+     2a1: 21 08        	local.set	8
+     2a3: 20 06        	local.get	6
+     2a5: fd 0c 02 00 00 00 02 00 00 00 02 00 00 00 02 00 00 00	v128.const	2, 2, 2, 2
+     2b7: fd ae 01     	i32x4.add
+     2ba: 21 06        	local.set	6
+     2bc: 20 09        	local.get	9
+     2be: 41 7e        	i32.const	-2
+     2c0: 6a           	i32.add 
+     2c1: 22 09        	local.tee	9
+     2c3: 0d 00        	br_if   	0                       # 0: up to label8
+     2c5: 0b           	end
+     2c6: 20 07        	local.get	7
+     2c8: 20 07        	local.get	7
+     2ca: 20 06        	local.get	6
+     2cc: fd 0d 08 09 0a 0b 0c 0d 0e 0f 00 01 02 03 04 05 06 07	i8x16.shuffle	8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3, 4, 5, 6, 7
+     2de: fd ce 01     	i64x2.add
+     2e1: fd 1d 00     	i64x2.extract_lane	0
+     2e4: 21 03        	local.set	3
+     2e6: 20 05        	local.get	5
+     2e8: 20 01        	local.get	1
+     2ea: 46           	i32.eq  
+     2eb: 0d 01        	br_if   	1                       # 1: down to label7
+     2ed: 0b           	end
+     2ee: 20 00        	local.get	0
+     2f0: 20 02        	local.get	2
+     2f2: 6a           	i32.add 
+     2f3: 21 08        	local.set	8
+     2f5: 03 40        	loop    	                        # label9:
+     2f7: 20 04        	local.get	4
+     2f9: 35 02 00     	i64.load32_u	0
+     2fc: 20 01        	local.get	1
+     2fe: 41 07        	i32.const	7
+     300: 71           	i32.and 
+     301: ad           	i64.extend_i32_u
+     302: 86           	i64.shl 
+     303: 20 03        	local.get	3
+     305: 7c           	i64.add 
+     306: 21 03        	local.set	3
+     308: 20 01        	local.get	1
+     30a: 41 01        	i32.const	1
+     30c: 6a           	i32.add 
+     30d: 21 01        	local.set	1
+     30f: 20 04        	local.get	4
+     311: 41 04        	i32.const	4
+     313: 6a           	i32.add 
+     314: 22 04        	local.tee	4
+     316: 20 08        	local.get	8
+     318: 47           	i32.ne  
+     319: 0d 00        	br_if   	0                       # 0: up to label9
+     31b: 0b           	end
+     31c: 0b           	end
+     31d: 20 03        	local.get	3
+     31f: 0b           	end

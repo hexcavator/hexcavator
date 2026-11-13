@@ -1,0 +1,64 @@
+
+File: names.o
+Format: elf64-x86-64
+Arch: x86_64
+AddressSize: 64bit
+LoadName: <Not found>
+Groups {
+  Group {
+    Name: .group (126)
+    Index: 4
+    Link: 33
+    Info: 19
+    Type: COMDAT (0x1)
+    Signature: _ZN8geometry5PointIiEC2Eii
+    Section(s) in group [
+      .text._ZN8geometry5PointIiEC2Eii (5)
+    ]
+  }
+  Group {
+    Name: .group (126)
+    Index: 6
+    Link: 33
+    Info: 20
+    Type: COMDAT (0x1)
+    Signature: _ZN8geometry5PointIlEC2Ell
+    Section(s) in group [
+      .text._ZN8geometry5PointIlEC2Ell (7)
+    ]
+  }
+  Group {
+    Name: .group (126)
+    Index: 8
+    Link: 33
+    Info: 21
+    Type: COMDAT (0x1)
+    Signature: _ZN8geometryplIiEENS_5PointIT_EERKS3_S5_
+    Section(s) in group [
+      .text._ZN8geometryplIiEENS_5PointIT_EERKS3_S5_ (9)
+      .rela.text._ZN8geometryplIiEENS_5PointIT_EERKS3_S5_ (10)
+    ]
+  }
+  Group {
+    Name: .group (126)
+    Index: 11
+    Link: 33
+    Info: 22
+    Type: COMDAT (0x1)
+    Signature: _ZNK8geometry5PointIiE3dotERKS1_
+    Section(s) in group [
+      .text._ZNK8geometry5PointIiE3dotERKS1_ (12)
+    ]
+  }
+  Group {
+    Name: .group (126)
+    Index: 13
+    Link: 33
+    Info: 23
+    Type: COMDAT (0x1)
+    Signature: _ZNK8geometry5PointIlE3dotERKS1_
+    Section(s) in group [
+      .text._ZNK8geometry5PointIlE3dotERKS1_ (14)
+    ]
+  }
+}

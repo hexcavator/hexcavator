@@ -1,0 +1,37 @@
+
+macho-arm64:	file format mach-o arm64
+Unwind info:
+
+Contents of __unwind_info section:
+  Version:                                   0x1
+  Common encodings array section offset:     0x1c
+  Number of common encodings in array:       0x7
+  Personality function array section offset: 0x38
+  Number of personality functions in array:  0x0
+  Index array section offset:                0x38
+  Number of indices in array:                0x2
+  Common encodings: (count = 7)
+    encoding[0]: 0x02000000
+    encoding[1]: 0x03000138
+    encoding[2]: 0x030000f4
+    encoding[3]: 0x030000a0
+    encoding[4]: 0x03000068
+    encoding[5]: 0x03000038
+    encoding[6]: 0x03000014
+  Personality functions: (count = 0)
+  Top level indices: (count = 2)
+    [0]: function offset=0x00000468, 2nd level page offset=0x00000060, LSDA offset=0x00000050
+    [1]: function offset=0x00000650, 2nd level page offset=0x00000000, LSDA offset=0x00000060
+  LSDA descriptors:
+    [0]: function offset=0x00000584, LSDA offset=0x00000668
+    [1]: function offset=0x000005ec, LSDA offset=0x00000674
+  Second level indices:
+    Second level index[0]: offset in section=0x00000060, base function offset=0x00000468
+      [0]: function offset=0x00000468, encoding[6]=0x03000014
+      [1]: function offset=0x000004cc, encoding[0]=0x02000000
+      [2]: function offset=0x000004d4, encoding[5]=0x03000038
+      [3]: function offset=0x00000504, encoding[0]=0x02000000
+      [4]: function offset=0x00000534, encoding[4]=0x03000068
+      [5]: function offset=0x00000584, encoding[2]=0x030000f4
+      [6]: function offset=0x000005c0, encoding[3]=0x030000a0
+      [7]: function offset=0x000005ec, encoding[1]=0x03000138

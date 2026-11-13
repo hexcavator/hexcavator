@@ -1,0 +1,10 @@
+
+module.wasm:	file format wasm
+
+SYMBOL TABLE:
+00000000       F *UND*	00000000 log
+00000074 g     F CODE	00000008 add
+0000007c l     F CODE	00000008 square
+00000084 g     F CODE	0000000d main
+00000010 l     O DATA	00000005 .rodata
+00000000 l     O DATA	0000000c .data

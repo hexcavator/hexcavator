@@ -1,0 +1,41 @@
+name: Nightly
+
+# The long checks: every ARM64 word, and an hour of guided fuzzing. (The
+# comparisons with outside tools, dumpbin and the rest, are the extended
+# tests, in hexcavator-private, which runs them nightly itself.)
+
+on:
+  schedule:
+    - cron: "17 7 * * *"
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  arm64-exhaustive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - run: cargo test --release -p hexcavator-arm64 --test it -- --ignored --nocapture exhaustive::
+
+  fuzz:
+    # (Coverage from LLVM's profiling counters; proven on Windows.)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: fuzz-corpus
+          key: fuzz-corpus-${{ github.run_id }}
+          restore-keys: fuzz-corpus-
+      - run: cargo build --release -p hexcavator-fuzz --features coverage --target-dir target/fuzz-cov
+        env:
+          RUSTFLAGS: -C instrument-coverage
+      - run: target/fuzz-cov/release/hexcavator-fuzz.exe selftest
+      - run: target/fuzz-cov/release/hexcavator-fuzz.exe run all -seconds 3600 -batch 3000
+      - if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: fuzz-findings
+          path: fuzz-findings/

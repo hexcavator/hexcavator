@@ -1,0 +1,17 @@
+[package]
+name = "hexcavator-xref"
+description = "Cross-references: what each function and datum of an image refers to, found in its code and data, and why each is reachable"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+hexcavator-core.workspace = true
+hexcavator-x86.workspace = true
+hexcavator-arm64.workspace = true
+
+[lints]
+workspace = true

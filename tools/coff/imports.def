@@ -1,0 +1,7 @@
+LIBRARY example.dll
+EXPORTS
+    ByName
+    ByOrdinal @7 NONAME
+    _Decorated@8
+    Data DATA
+    Renamed=Internal

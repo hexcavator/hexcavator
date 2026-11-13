@@ -1,0 +1,15 @@
+[package]
+name = "hexcavator-codeview"
+description = "CodeView debug records: symbols, types, line numbers and inline annotations, as PDBs and COFF objects hold them"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+hexcavator-core.workspace = true
+
+[lints]
+workspace = true

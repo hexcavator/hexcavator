@@ -1,0 +1,523 @@
+R:\tools\types\..\..\testdata\types\types-x86_64-linux-gnu-names:	file format elf64-x86-64
+
+.debug_names contents:
+Name Index @ 0x0 {
+  Header {
+    Length: 0x3A8
+    Format: DWARF32
+    Version: 5
+    CU count: 1
+    Local TU count: 0
+    Foreign TU count: 0
+    Bucket count: 19
+    Name count: 38
+    Abbreviations table size: 0x41
+    Augmentation: 'LLVM0700'
+  }
+  Compilation Unit offsets [
+    CU[0]: 0x00000000
+  ]
+  Abbreviations [
+    Abbreviation 0x1 {
+      Tag: DW_TAG_base_type
+      DW_IDX_die_offset: DW_FORM_ref4
+      DW_IDX_parent: DW_FORM_flag_present
+    }
+    Abbreviation 0x2 {
+      Tag: DW_TAG_subprogram
+      DW_IDX_die_offset: DW_FORM_ref4
+      DW_IDX_parent: DW_FORM_flag_present
+    }
+    Abbreviation 0x3 {
+      Tag: DW_TAG_variable
+      DW_IDX_die_offset: DW_FORM_ref4
+      DW_IDX_parent: DW_FORM_flag_present
+    }
+    Abbreviation 0x4 {
+      Tag: DW_TAG_structure_type
+      DW_IDX_die_offset: DW_FORM_ref4
+      DW_IDX_parent: DW_FORM_flag_present
+    }
+    Abbreviation 0x5 {
+      Tag: DW_TAG_pointer_type
+      DW_IDX_die_offset: DW_FORM_ref4
+      DW_IDX_parent: DW_FORM_flag_present
+    }
+    Abbreviation 0x6 {
+      Tag: DW_TAG_inlined_subroutine
+      DW_IDX_die_offset: DW_FORM_ref4
+      DW_IDX_parent: DW_FORM_ref4
+    }
+    Abbreviation 0x7 {
+      Tag: DW_TAG_union_type
+      DW_IDX_die_offset: DW_FORM_ref4
+      DW_IDX_parent: DW_FORM_flag_present
+    }
+    Abbreviation 0x8 {
+      Tag: DW_TAG_enumeration_type
+      DW_IDX_die_offset: DW_FORM_ref4
+      DW_IDX_parent: DW_FORM_flag_present
+    }
+  ]
+  Bucket 0 [
+    Name 1 {
+      Hash: 0xB888030
+      String: 0x00000145 "int"
+      Entry @ 0x285 {
+        Abbrev: 0x1
+        Tag: DW_TAG_base_type
+        DW_IDX_die_offset: 0x000000d1
+        DW_IDX_parent: <parent not indexed>
+      }
+    }
+    Name 2 {
+      Hash: 0xF1688595
+      String: 0x00000016 "_ZN7DerivedD0Ev"
+      Entry @ 0x28b {
+        Abbrev: 0x2
+        Tag: DW_TAG_subprogram
+        DW_IDX_die_offset: 0x00000329
+        DW_IDX_parent: <parent not indexed>
+      }
+    }
+  ]
+  Bucket 1 [
+    Name 3 {
+      Hash: 0x5F0EA5C2
+      String: 0x000001bc "_ZTV7Derived"
+      Entry @ 0x291 {
+        Abbrev: 0x3
+        Tag: DW_TAG_variable
+        DW_IDX_die_offset: 0x000004ec
+        DW_IDX_parent: <parent not indexed>
+      }
+    }
+    Name 4 {
+      Hash: 0x6731BC9B
+      String: 0x000001a8 "_ZTV7Diamond"
+      Entry @ 0x297 {
+        Abbrev: 0x3
+        Tag: DW_TAG_variable
+        DW_IDX_die_offset: 0x00000500
+        DW_IDX_parent: <parent not indexed>
+      }
+    }
+    Name 5 {
+      Hash: 0x7C94B391
+      String: 0x0000009e "bool"
+      Entry @ 0x29d {
+        Abbrev: 0x1
+        Tag: DW_TAG_base_type
+        DW_IDX_die_offset: 0x00000498
+        DW_IDX_parent: <parent not indexed>
+      }
+    }
+  ]
+  Bucket 2 [
+    Name 6 {
+      Hash: 0xF605C34
+      String: 0x00000150 "Empty"
+      Entry @ 0x2a3 {
+        Abbrev: 0x4
+        Tag: DW_TAG_structure_type
+        DW_IDX_die_offset: 0x0000016d
+        DW_IDX_parent: <parent not indexed>
+      }
+    }
+    Name 7 {
+      Hash: 0x2693436C
+      String: 0x000000bf "_ZN4BaseD2Ev"
+      Entry @ 0x2a9 {
+        Abbrev: 0x2
+        Tag: DW_TAG_subprogram
+        DW_IDX_die_offset: 0x0000030f
+        DW_IDX_parent: <parent not indexed>
+      }
+    }
+  ]
+  Bucket 3 [
+    Name 8 {
+      Hash: 0x108DB496
+      String: 0x00000006 "VBase"
+      Entry @ 0x2af {
+        Abbrev: 0x4
+        Tag: DW_TAG_structure_type
+        DW_IDX_die_offset: 0x000001c9
+        DW_IDX_parent: <parent not indexed>
+      }
+    }
+  ]
+  Bucket 4 [
+    Name 9 {
+      Hash: 0x3CC71451
+      String: 0x0000025c "__vtbl_ptr_type"
+      Entry @ 0x2b5 {
+        Abbrev: 0x5
+        Tag: DW_TAG_pointer_type
+        DW_IDX_die_offset: 0x000000c6
+        DW_IDX_parent: <parent not indexed>
+      }
+    }
+    Name 10 {
+      Hash: 0x7C947880
+      String: 0x00000257 "Base"
+      Entry @ 0x2bb {
+        Abbrev: 0x4
+        Tag: DW_TAG_structure_type
+        DW_IDX_die_offset: 0x00000083
+        DW_IDX_parent: <parent not indexed>
+      }
+      Entry @ 0x2c0 {
+        Abbrev: 0x6
+        Tag: DW_TAG_inlined_subroutine
+        DW_IDX_die_offset: 0x00000269
+        DW_IDX_parent: Entry @ 0x2da
+      }
+    }
+    Name 11 {
+      Hash: 0x7C949AB7
+      String: 0x00000236 "Bits"
+      Entry @ 0x2ca {
+        Abbrev: 0x4
+        Tag: DW_TAG_structure_type
+        DW_IDX_die_offset: 0x00000441
+        DW_IDX_parent: <parent not indexed>
+      }
+    }
+    Name 12 {
+      Hash: 0xF07CD8CE
+      String: 0x0000008e "_ZN7DiamondC1Ev"
+      Entry @ 0x2d0 {
+        Abbrev: 0x6
+        Tag: DW_TAG_inlined_subroutine
+        DW_IDX_die_offset: 0x00000298
+        DW_IDX_parent: Entry @ 0x3a6
+      }
+    }
+    Name 13 {
+      Hash: 0xF16801B6
+      String: 0x0000010b "_ZN7DerivedC2Ev"
+      Entry @ 0x2da {
+        Abbrev: 0x6
+        Tag: DW_TAG_inlined_subroutine
+        DW_IDX_die_offset: 0x00000253
+        DW_IDX_parent: Entry @ 0x3a6
+      }
+    }
+  ]
+  Bucket 5 [
+    Name 14 {
+      Hash: 0x2E66B56D
+      String: 0x00000293 "g_sample"
+      Entry @ 0x2e4 {
+        Abbrev: 0x3
+        Tag: DW_TAG_variable
+        DW_IDX_die_offset: 0x000003bc
+        DW_IDX_parent: <parent not indexed>
+      }
+    }
+    Name 15 {
+      Hash: 0x7C952063
+      String: 0x0000014b "char"
+      Entry @ 0x2ea {
+        Abbrev: 0x1
+        Tag: DW_TAG_base_type
+        DW_IDX_die_offset: 0x0000012d
+        DW_IDX_parent: <parent not indexed>
+      }
+    }
+    Name 16 {
+      Hash: 0xC9BD5446
+      String: 0x0000028a "~Derived"
+      Entry @ 0x2f0 {
+        Abbrev: 0x2
+        Tag: DW_TAG_subprogram
+        DW_IDX_die_offset: 0x00000329
+        DW_IDX_parent: <parent not indexed>
+      }
+    }
+    Name 17 {
+      Hash: 0xFF36EA05
+      String: 0x000000dd "__clang_vtable"
+      Entry @ 0x2f6 {
+        Abbrev: 0x3
+        Tag: DW_TAG_variable
+        DW_IDX_die_offset: 0x000004ec
+        DW_IDX_parent: <parent not indexed>
+      }
+      Entry @ 0x2fb {
+        Abbrev: 0x3
+        Tag: DW_TAG_variable
+        DW_IDX_die_offset: 0x000004f6
+        DW_IDX_parent: <parent not indexed>
+      }
+      Entry @ 0x300 {
+        Abbrev: 0x3
+        Tag: DW_TAG_variable
+        DW_IDX_die_offset: 0x00000500
+        DW_IDX_parent: <parent not indexed>
+      }
+    }
+  ]
+  Bucket 6 [
+    Name 18 {
+      Hash: 0x111E789E
+      String: 0x00000000 "~Base"
+      Entry @ 0x306 {
+        Abbrev: 0x2
+        Tag: DW_TAG_subprogram
+        DW_IDX_die_offset: 0x0000030f
+        DW_IDX_parent: <parent not indexed>
+      }
+      Entry @ 0x30b {
+        Abbrev: 0x2
+        Tag: DW_TAG_subprogram
+        DW_IDX_die_offset: 0x00000370
+        DW_IDX_parent: <parent not indexed>
+      }
+    }
+    Name 19 {
+      Hash: 0x1434A0C7
+      String: 0x000001b5 "Padded"
+      Entry @ 0x311 {
+        Abbrev: 0x4
+        Tag: DW_TAG_structure_type
+        DW_IDX_die_offset: 0x0000041f
+        DW_IDX_parent: <parent not indexed>
+      }
+    }
+  ]
+  Bucket 7 [
+    Name 20 {
+      Hash: 0xDA52C750
+      String: 0x000001e6 "WithEmpty"
+      Entry @ 0x317 {
+        Abbrev: 0x4
+        Tag: DW_TAG_structure_type
+        DW_IDX_die_offset: 0x0000014e
+        DW_IDX_parent: <parent not indexed>
+      }
+      Entry @ 0x31c {
+        Abbrev: 0x6
+        Tag: DW_TAG_inlined_subroutine
+        DW_IDX_die_offset: 0x00000281
+        DW_IDX_parent: Entry @ 0x3a6
+      }
+    }
+  ]
+  Bucket 8 [
+    Name 21 {
+      Hash: 0x962E0E8
+      String: 0x00000224 "Derived"
+      Entry @ 0x326 {
+        Abbrev: 0x4
+        Tag: DW_TAG_structure_type
+        DW_IDX_die_offset: 0x000000f2
+        DW_IDX_parent: <parent not indexed>
+      }
+      Entry @ 0x32b {
+        Abbrev: 0x6
+        Tag: DW_TAG_inlined_subroutine
+        DW_IDX_die_offset: 0x00000253
+        DW_IDX_parent: Entry @ 0x3a6
+      }
+    }
+    Name 22 {
+      Hash: 0x1185F7C1
+      String: 0x0000016a "Diamond"
+      Entry @ 0x335 {
+        Abbrev: 0x4
+        Tag: DW_TAG_structure_type
+        DW_IDX_die_offset: 0x00000190
+        DW_IDX_parent: <parent not indexed>
+      }
+      Entry @ 0x33a {
+        Abbrev: 0x6
+        Tag: DW_TAG_inlined_subroutine
+        DW_IDX_die_offset: 0x00000298
+        DW_IDX_parent: Entry @ 0x3a6
+      }
+    }
+  ]
+  Bucket 9 [
+    Name 23 {
+      Hash: 0x26933AEA
+      String: 0x000002ab "_ZN4BaseD0Ev"
+      Entry @ 0x344 {
+        Abbrev: 0x2
+        Tag: DW_TAG_subprogram
+        DW_IDX_die_offset: 0x00000370
+        DW_IDX_parent: <parent not indexed>
+      }
+    }
+    Name 24 {
+      Hash: 0xAA58C25B
+      String: 0x00000030 "_Z3useP6PaddedP4BitsP7DerivedP9WithEmptyP7DiamondP6EitherP5Grows"
+      Entry @ 0x34a {
+        Abbrev: 0x2
+        Tag: DW_TAG_subprogram
+        DW_IDX_die_offset: 0x0000002f
+        DW_IDX_parent: <parent not indexed>
+      }
+    }
+  ]
+  Bucket 10 [
+    Name 25 {
+      Hash: 0xCEF4CFB
+      String: 0x000001fe "__ARRAY_SIZE_TYPE__"
+      Entry @ 0x350 {
+        Abbrev: 0x1
+        Tag: DW_TAG_base_type
+        DW_IDX_die_offset: 0x000003b8
+        DW_IDX_parent: <parent not indexed>
+      }
+    }
+  ]
+  Bucket 11 [
+    Name 26 {
+      Hash: 0xF874737
+      String: 0x0000024d "Grows"
+      Entry @ 0x356 {
+        Abbrev: 0x4
+        Tag: DW_TAG_structure_type
+        DW_IDX_die_offset: 0x0000051e
+        DW_IDX_parent: <parent not indexed>
+      }
+    }
+    Name 27 {
+      Hash: 0x7EAA0EE0
+      String: 0x0000007c "_ZN9WithEmptyC2Ev"
+      Entry @ 0x35c {
+        Abbrev: 0x6
+        Tag: DW_TAG_inlined_subroutine
+        DW_IDX_die_offset: 0x00000281
+        DW_IDX_parent: Entry @ 0x3a6
+      }
+    }
+    Name 28 {
+      Hash: 0xF93D5B20
+      String: 0x00000135 "double"
+      Entry @ 0x366 {
+        Abbrev: 0x1
+        Tag: DW_TAG_base_type
+        DW_IDX_die_offset: 0x0000047c
+        DW_IDX_parent: <parent not indexed>
+      }
+    }
+  ]
+  Bucket 12 [
+    EMPTY
+  ]
+  Bucket 13 [
+    Name 29 {
+      Hash: 0xB88B3D2
+      String: 0x00000253 "use"
+      Entry @ 0x36c {
+        Abbrev: 0x2
+        Tag: DW_TAG_subprogram
+        DW_IDX_die_offset: 0x0000002f
+        DW_IDX_parent: <parent not indexed>
+      }
+    }
+    Name 30 {
+      Hash: 0x1B393E07
+      String: 0x00000156 "Sample"
+      Entry @ 0x372 {
+        Abbrev: 0x4
+        Tag: DW_TAG_structure_type
+        DW_IDX_die_offset: 0x000003c7
+        DW_IDX_parent: <parent not indexed>
+      }
+    }
+    Name 31 {
+      Hash: 0x2692B70B
+      String: 0x0000015d "_ZN4BaseC2Ev"
+      Entry @ 0x378 {
+        Abbrev: 0x6
+        Tag: DW_TAG_inlined_subroutine
+        DW_IDX_die_offset: 0x00000269
+        DW_IDX_parent: Entry @ 0x2da
+      }
+    }
+    Name 32 {
+      Hash: 0xF9D0B672
+      String: 0x00000273 "unsigned long"
+      Entry @ 0x382 {
+        Abbrev: 0x1
+        Tag: DW_TAG_base_type
+        DW_IDX_die_offset: 0x0000036c
+        DW_IDX_parent: <parent not indexed>
+      }
+    }
+  ]
+  Bucket 14 [
+    Name 33 {
+      Hash: 0xFB257D06
+      String: 0x00000281 "Either"
+      Entry @ 0x388 {
+        Abbrev: 0x7
+        Tag: DW_TAG_union_type
+        DW_IDX_die_offset: 0x0000049c
+        DW_IDX_parent: <parent not indexed>
+      }
+    }
+  ]
+  Bucket 15 [
+    Name 34 {
+      Hash: 0xB23C93CD
+      String: 0x000001d9 "unsigned int"
+      Entry @ 0x38e {
+        Abbrev: 0x1
+        Tag: DW_TAG_base_type
+        DW_IDX_die_offset: 0x00000465
+        DW_IDX_parent: <parent not indexed>
+      }
+    }
+    Name 35 {
+      Hash: 0xBC329217
+      String: 0x000000a3 "_ZTV4Base"
+      Entry @ 0x394 {
+        Abbrev: 0x3
+        Tag: DW_TAG_variable
+        DW_IDX_die_offset: 0x000004f6
+        DW_IDX_parent: <parent not indexed>
+      }
+    }
+  ]
+  Bucket 16 [
+    Name 36 {
+      Hash: 0xF3D3244
+      String: 0x000000cc "Color"
+      Entry @ 0x39a {
+        Abbrev: 0x8
+        Tag: DW_TAG_enumeration_type
+        DW_IDX_die_offset: 0x00000469
+        DW_IDX_parent: <parent not indexed>
+      }
+    }
+  ]
+  Bucket 17 [
+    Name 37 {
+      Hash: 0x823F450E
+      String: 0x0000018f "g_derived"
+      Entry @ 0x3a0 {
+        Abbrev: 0x3
+        Tag: DW_TAG_variable
+        DW_IDX_die_offset: 0x000004b5
+        DW_IDX_parent: <parent not indexed>
+      }
+    }
+  ]
+  Bucket 18 [
+    Name 38 {
+      Hash: 0x7C9A7F6A
+      String: 0x0000013c "main"
+      Entry @ 0x3a6 {
+        Abbrev: 0x2
+        Tag: DW_TAG_subprogram
+        DW_IDX_die_offset: 0x000001f6
+        DW_IDX_parent: <parent not indexed>
+      }
+    }
+  ]
+}

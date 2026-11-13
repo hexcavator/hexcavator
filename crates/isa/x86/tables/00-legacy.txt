@@ -1,0 +1,305 @@
+# One-byte opcode map (Intel SDM Vol. 2, Table A-2).
+#
+# Operand notation (see build.rs): E=ModRM.rm gpr/mem, G=ModRM.reg gpr,
+# Z=opcode-low-bits gpr, I=immediate, J=relative, O=moffs, X/Y=string
+# source/destination, M=memory only. Sizes: b w d q v(16/32/64) z(16/32)
+# y(32/64) p(far pointer). "Ibs" is a sign-extended imm8, "Izs" an imm16/32
+# sign-extended to a 64-bit operand.
+
+00 /r : add Eb,Gb ; lock hle
+01 /r : add Ev,Gv ; lock hle
+02 /r : add Gb,Eb ; hle
+03 /r : add Gv,Ev ; hle
+04 : add al,Ib ; hle
+05 : add rAX,Izs ; hle
+06 i64 : push es
+07 i64 : pop es
+08 /r : or Eb,Gb ; lock hle
+09 /r : or Ev,Gv ; lock hle
+0A /r : or Gb,Eb ; hle
+0B /r : or Gv,Ev ; hle
+0C : or al,Ib ; hle
+0D : or rAX,Izs ; hle
+0E i64 : push cs
+10 /r : adc Eb,Gb ; lock hle
+11 /r : adc Ev,Gv ; lock hle
+12 /r : adc Gb,Eb ; hle
+13 /r : adc Gv,Ev ; hle
+14 : adc al,Ib ; hle
+15 : adc rAX,Izs ; hle
+16 i64 : push ss
+17 i64 : pop ss
+18 /r : sbb Eb,Gb ; lock hle
+19 /r : sbb Ev,Gv ; lock hle
+1A /r : sbb Gb,Eb ; hle
+1B /r : sbb Gv,Ev ; hle
+1C : sbb al,Ib ; hle
+1D : sbb rAX,Izs ; hle
+1E i64 : push ds
+1F i64 : pop ds
+20 /r : and Eb,Gb ; lock hle
+21 /r : and Ev,Gv ; lock hle
+22 /r : and Gb,Eb ; hle
+23 /r : and Gv,Ev ; hle
+24 : and al,Ib ; hle
+25 : and rAX,Izs ; hle
+27 i64 : daa
+28 /r : sub Eb,Gb ; lock hle
+29 /r : sub Ev,Gv ; lock hle
+2A /r : sub Gb,Eb ; hle
+2B /r : sub Gv,Ev ; hle
+2C : sub al,Ib ; hle
+2D : sub rAX,Izs ; hle
+2F i64 : das
+30 /r : xor Eb,Gb ; lock hle
+31 /r : xor Ev,Gv ; lock hle
+32 /r : xor Gb,Eb ; hle
+33 /r : xor Gv,Ev ; hle
+34 : xor al,Ib ; hle
+35 : xor rAX,Izs ; hle
+37 i64 : aaa
+38 /r : cmp Eb,Gb
+39 /r : cmp Ev,Gv
+3A /r : cmp Gb,Eb
+3B /r : cmp Gv,Ev
+3C : cmp al,Ib
+3D : cmp rAX,Izs
+3F i64 : aas
+40+r i64 : inc Zv ; hle
+48+r i64 : dec Zv ; hle
+50+r : push Zv ; d64
+58+r : pop Zv ; d64
+60 i64 os16 : pusha
+60 i64 os32 : pushad
+61 i64 os16 : popa
+61 i64 os32 : popad
+62 i64 mem : bound Gv,Mpr
+63 i64 /r : arpl Ew,Gw
+63 o64 /r : movsxd Gv,Ed
+68 : push Izs ; d64
+69 /r : imul Gv,Ev,Izs
+6A : push Ibs ; d64
+6B /r : imul Gv,Ev,Ibs
+6C : ins Yb,dx ; rep
+6D : ins Yv,dx ; rep
+6E : outs dx,Xb ; rep
+6F : outs dx,Xv ; rep
+70 : jo Jb ; f64 bnd
+71 : jno Jb ; f64 bnd
+72 : jb Jb ; f64 bnd
+73 : jae Jb ; f64 bnd
+74 : je Jb ; f64 bnd
+75 : jne Jb ; f64 bnd
+76 : jbe Jb ; f64 bnd
+77 : ja Jb ; f64 bnd
+78 : js Jb ; f64 bnd
+79 : jns Jb ; f64 bnd
+7A : jp Jb ; f64 bnd
+7B : jnp Jb ; f64 bnd
+7C : jl Jb ; f64 bnd
+7D : jge Jb ; f64 bnd
+7E : jle Jb ; f64 bnd
+7F : jg Jb ; f64 bnd
+80 /0 : add Eb,Ib ; lock hle
+80 /1 : or Eb,Ib ; lock hle
+80 /2 : adc Eb,Ib ; lock hle
+80 /3 : sbb Eb,Ib ; lock hle
+80 /4 : and Eb,Ib ; lock hle
+80 /5 : sub Eb,Ib ; lock hle
+80 /6 : xor Eb,Ib ; lock hle
+80 /7 : cmp Eb,Ib
+81 /0 : add Ev,Izs ; lock hle
+81 /1 : or Ev,Izs ; lock hle
+81 /2 : adc Ev,Izs ; lock hle
+81 /3 : sbb Ev,Izs ; lock hle
+81 /4 : and Ev,Izs ; lock hle
+81 /5 : sub Ev,Izs ; lock hle
+81 /6 : xor Ev,Izs ; lock hle
+81 /7 : cmp Ev,Izs
+82 i64 /0 : add Eb,Ib ; lock hle
+82 i64 /1 : or Eb,Ib ; lock hle
+82 i64 /2 : adc Eb,Ib ; lock hle
+82 i64 /3 : sbb Eb,Ib ; lock hle
+82 i64 /4 : and Eb,Ib ; lock hle
+82 i64 /5 : sub Eb,Ib ; lock hle
+82 i64 /6 : xor Eb,Ib ; lock hle
+82 i64 /7 : cmp Eb,Ib
+83 /0 : add Ev,Ibs ; lock hle
+83 /1 : or Ev,Ibs ; lock hle
+83 /2 : adc Ev,Ibs ; lock hle
+83 /3 : sbb Ev,Ibs ; lock hle
+83 /4 : and Ev,Ibs ; lock hle
+83 /5 : sub Ev,Ibs ; lock hle
+83 /6 : xor Ev,Ibs ; lock hle
+83 /7 : cmp Ev,Ibs
+84 /r : test Eb,Gb
+85 /r : test Ev,Gv
+86 /r : xchg Gb,Eb ; lock hle
+87 /r : xchg Gv,Ev ; lock hle
+88 /r : mov Eb,Gb
+89 /r : mov Ev,Gv
+8A /r : mov Gb,Eb
+8B /r : mov Gv,Ev
+8C /r : mov Ev:w,Sw
+8D mem : lea Gv,M
+8E /r : mov Sw,Ew
+8F /0 : pop Ev ; d64
+90 F3 : pause
+90 : nop
+91+r : xchg rAX,Zv ; hle
+98 os16 : cbw
+98 os32 : cwde
+98 os64 : cdqe
+99 os16 : cwd
+99 os32 : cdq
+99 os64 : cqo
+9A i64 : call Ap ; bnd
+9B : wait
+9C os16 : pushf ; d64
+9C os32 : pushfd ; d64
+9C os64 : pushfq ; d64
+9D os16 : popf ; d64
+9D os32 : popfd ; d64
+9D os64 : popfq ; d64
+9E : sahf
+9F : lahf
+A0 : mov al,Ob
+A1 : mov rAX,Ov
+A2 : mov Ob,al
+A3 : mov Ov,rAX
+A4 : movs Yb,Xb ; rep
+A5 : movs Yv,Xv ; rep
+A6 : cmps Xb,Yb ; repe
+A7 : cmps Xv,Yv ; repe
+A8 : test al,Ib
+A9 : test rAX,Izs
+AA : stos Yb ; rep
+AB : stos Yv ; rep
+AC : lods Xb ; rep
+AD : lods Xv ; rep
+AE : scas Yb ; repe
+AF : scas Yv ; repe
+B0+r : mov Zb,Ib
+B8+r : mov Zv,Iv
+C0 /0 : rol Eb,Ib
+C0 /1 : ror Eb,Ib
+C0 /2 : rcl Eb,Ib
+C0 /3 : rcr Eb,Ib
+C0 /4 : shl Eb,Ib
+C0 /5 : shr Eb,Ib
+C0 /6 : sal Eb,Ib
+C0 /7 : sar Eb,Ib
+C1 /0 : rol Ev,Ib
+C1 /1 : ror Ev,Ib
+C1 /2 : rcl Ev,Ib
+C1 /3 : rcr Ev,Ib
+C1 /4 : shl Ev,Ib
+C1 /5 : shr Ev,Ib
+C1 /6 : sal Ev,Ib
+C1 /7 : sar Ev,Ib
+C2 : ret Iw ; f64 bnd
+C3 : ret ; f64 bnd
+C4 i64 mem : les Gz,Mp
+C5 i64 mem : lds Gz,Mp
+C6 /0 : mov Eb,Ib
+C6 !F8 : xabort Ib
+C7 /0 : mov Ev,Izs
+C7 !F8 : xbegin Jz ; f64
+C8 : enter Iw,Ib ; d64
+C9 : leave ; d64
+CA os16 : retf Iw
+CA os32 : retf Iw
+CA os64 : retfq Iw
+CB os16 : retf
+CB os32 : retf
+CB os64 : retfq
+CC : int 3
+CD : int Ib
+CE i64 : into
+CF os16 : iret
+CF os32 : iretd
+CF os64 : iretq
+D0 /0 : rol Eb,1
+D0 /1 : ror Eb,1
+D0 /2 : rcl Eb,1
+D0 /3 : rcr Eb,1
+D0 /4 : shl Eb,1
+D0 /5 : shr Eb,1
+D0 /6 : sal Eb,1
+D0 /7 : sar Eb,1
+D1 /0 : rol Ev,1
+D1 /1 : ror Ev,1
+D1 /2 : rcl Ev,1
+D1 /3 : rcr Ev,1
+D1 /4 : shl Ev,1
+D1 /5 : shr Ev,1
+D1 /6 : sal Ev,1
+D1 /7 : sar Ev,1
+D2 /0 : rol Eb,cl
+D2 /1 : ror Eb,cl
+D2 /2 : rcl Eb,cl
+D2 /3 : rcr Eb,cl
+D2 /4 : shl Eb,cl
+D2 /5 : shr Eb,cl
+D2 /6 : sal Eb,cl
+D2 /7 : sar Eb,cl
+D3 /0 : rol Ev,cl
+D3 /1 : ror Ev,cl
+D3 /2 : rcl Ev,cl
+D3 /3 : rcr Ev,cl
+D3 /4 : shl Ev,cl
+D3 /5 : shr Ev,cl
+D3 /6 : sal Ev,cl
+D3 /7 : sar Ev,cl
+D4 i64 : aam Ib
+D5 i64 : aad Ib
+D7 : xlat XLATb
+E0 : loopne Jb ; f64
+E1 : loope Jb ; f64
+E2 : loop Jb ; f64
+E3 as16 : jcxz Jb ; f64
+E3 as32 : jecxz Jb ; f64
+E3 as64 : jrcxz Jb ; f64
+E4 : in al,Ib
+E5 : in rAX,Ib
+E6 : out Ib,al
+E7 : out Ib,rAX
+E8 : call Jz ; f64 bnd
+E9 : jmp Jz ; f64 bnd
+EA i64 : jmp Ap ; bnd
+EB : jmp Jb ; f64 bnd
+EC : in al,dx
+ED : in rAX,dx
+EE : out dx,al
+EF : out dx,rAX
+F4 : hlt
+F5 : cmc
+F6 /0 : test Eb,Ib
+F6 /2 : not Eb ; lock hle
+F6 /3 : neg Eb ; lock hle
+F6 /4 : mul al,Eb
+F6 /5 : imul Eb
+F6 /6 : div al,Eb
+F6 /7 : idiv Eb
+F7 /0 : test Ev,Izs
+F7 /2 : not Ev ; lock hle
+F7 /3 : neg Ev ; lock hle
+F7 /4 : mul rAX,Ev
+F7 /5 : imul Ev
+F7 /6 : div rAX,Ev
+F7 /7 : idiv rAX,Ev
+F8 : clc
+F9 : stc
+FA : cli
+FB : sti
+FC : cld
+FD : std
+FE /0 : inc Eb ; lock hle
+FE /1 : dec Eb ; lock hle
+FF /0 : inc Ev ; lock hle
+FF /1 : dec Ev ; lock hle
+FF /2 : call Ev ; d64 bnd
+FF /3 mem : call Mp ; bnd
+FF /4 : jmp Ev ; d64 bnd
+FF /5 mem : jmp Mp ; bnd
+FF /6 : push Ev ; d64

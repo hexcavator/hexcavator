@@ -1,0 +1,446 @@
+##  @0x1548
+integer "" "unsigned int" @0x0+4 = "268452020"
+##  @0x15a4
+integer "" "unsigned int" @0x0+4 = "268452032"
+##  @0x166c
+integer "" "unsigned int" @0x0+4 = "268455264"
+##  @0x1670
+integer "" "unsigned int" @0x0+4 = "268452040"
+##  @0x16ec
+integer "" "unsigned int" @0x0+4 = "268451964"
+##  @0x172c
+integer "" "unsigned int" @0x0+4 = "268451908"
+##  @0x1730
+integer "" "unsigned int" @0x0+4 = "268452220"
+##  @0x1780
+integer "" "unsigned int" @0x0+4 = "268451908"
+##  @0x1784
+integer "" "unsigned int" @0x0+4 = "268452220"
+##  @0x17a8
+integer "" "unsigned int" @0x0+4 = "268451904"
+##  @0x17ac
+integer "" "unsigned int" @0x0+4 = "268452220"
+##  @0x1814
+integer "" "unsigned int" @0x0+4 = "268452228"
+##  @0x18a0
+integer "" "unsigned int" @0x0+4 = "268452252"
+##  @0x19aa
+integer "" "unsigned __int8" @0x0+1 = "10"
+##  @0x19ab
+integer "" "unsigned __int8" @0x0+1 = "2"
+##  @0x19ac
+integer "" "unsigned __int8" @0x0+1 = "28"
+##  @0x19ad
+integer "" "__int8" @0x0+1 = "36"
+##  @0x1b18
+integer "" "unsigned int" @0x0+4 = "268460172"
+##  @0x1b1c
+integer "" "unsigned int" @0x0+4 = "268460176"
+##  @0x1b20
+integer "" "unsigned int" @0x0+4 = "268451980"
+##  @0x1b24
+integer "" "unsigned int" @0x0+4 = "268451984"
+##  @0x1b28
+integer "" "unsigned int" @0x0+4 = "268451988"
+##  @0x1b2c
+integer "" "unsigned int" @0x0+4 = "268451992"
+##  @0x1b30
+integer "" "unsigned int" @0x0+4 = "268445045"
+##  @0x1b34
+integer "" "unsigned int" @0x0+4 = "268445693"
+##  @0x1bb0
+integer "" "unsigned int" @0x0+4 = "268460176"
+##  @0x1bb4
+integer "" "unsigned int" @0x0+4 = "268460172"
+##  @0x1ca4
+integer "" "unsigned int" @0x0+4 = "268460172"
+##  @0x1cf0
+integer "" "unsigned int" @0x0+4 = "268452256"
+##  @0x1d9c
+integer "" "unsigned int" @0x0+4 = "268460036"
+##  @0x1dd8
+integer "" "unsigned int" @0x0+4 = "268460036"
+##  @0x1fcc
+integer "" "unsigned int" @0x0+4 = "268460180"
+##  @0x213c
+integer "" "unsigned int" @0x0+4 = "268460184"
+##  @0x21b8
+integer "" "unsigned int" @0x0+4 = "268460208"
+##  @0x2274
+integer "" "unsigned int" @0x0+4 = "268460196"
+##  @0x2278
+integer "" "unsigned int" @0x0+4 = "268460184"
+##  @0x230c
+integer "" "unsigned int" @0x0+4 = "268435456"
+##  @0x2354
+integer "" "unsigned int" @0x0+4 = "268460180"
+##  @0x23a0
+integer "" "unsigned int" @0x0+4 = "268460208"
+##  @0x2410
+integer "" "unsigned int" @0x0+4 = "268460184"
+##  @0x2464
+integer "" "unsigned int" @0x0+4 = "268460196"
+##  @0x2538
+integer "" "unsigned int" @0x0+4 = "268460032"
+##  @0x253c
+integer "" "unsigned int" @0x0+4 = "268460036"
+##  @0x2540
+integer "" "unsigned int" @0x0+4 = "3141592655"
+##  @0x2544
+integer "" "unsigned int" @0x0+4 = "3141592654"
+##  @0x2548
+integer "" "unsigned int" @0x0+4 = "268451876"
+##  @0x254c
+integer "" "unsigned int" @0x0+4 = "268451840"
+##  @0x2550
+integer "" "unsigned int" @0x0+4 = "268451844"
+##  @0x2554
+integer "" "unsigned int" @0x0+4 = "268451848"
+##  @0x256c
+integer "" "unsigned int" @0x0+4 = "268451852"
+##  @0x2570
+integer "" "unsigned int" @0x0+4 = "268460216"
+##  @0x2584
+integer "" "unsigned int" @0x0+4 = "268460216"
+##  @0x259c
+integer "" "unsigned int" @0x0+4 = "268460224"
+##  @0x25b4
+integer "" "unsigned int" @0x0+4 = "268460232"
+##  @0x2618
+integer "" "unsigned int" @0x0+4 = "268460740"
+##  @0x2668
+integer "" "unsigned int" @0x0+4 = "268451860"
+##  @0x2728
+integer "" "unsigned int" @0x0+4 = "268451864"
+##  @0x2740
+integer "" "unsigned int" @0x0+4 = "268451856"
+##  @0x2744
+integer "" "unsigned int" @0x0+4 = "268445513"
+##  @0x27b0
+integer "" "unsigned int" @0x0+4 = "26820608"
+##  @0x27b4
+integer "" "unsigned int" @0x0+4 = "429065506"
+##  @0x27b8
+integer "" "unsigned int" @0x0+4 = "429065505"
+##  @0x27bc
+integer "" "unsigned int" @0x0+4 = "429065504"
+##  @0x27c0
+integer "" "unsigned int" @0x0+4 = "3765269347"
+##  @0x2848
+integer "" "unsigned int" @0x0+4 = "268451976"
+##  @0x28a8
+integer "" "unsigned int" @0x0+4 = "268460736"
+##  @0x28e8
+integer "" "unsigned int" @0x0+4 = "268460044"
+##  @0x292c
+integer "" "unsigned int" @0x0+4 = "268445933"
+##  @0x2930
+integer "" "unsigned int" @0x0+4 = "268451976"
+##  @0x2d78
+integer "" "unsigned int" @0x0+4 = "4282376447"
+##  @0x2d7c
+integer "" "unsigned int" @0x0+4 = "268451868"
+##  @0x2d80
+integer "" "unsigned int" @0x0+4 = "3221225615"
+##  @0x2d84
+integer "" "unsigned int" @0x0+4 = "3221225619"
+##  @0x2d88
+integer "" "unsigned int" @0x0+4 = "3221225617"
+##  @0x2d8c
+integer "" "unsigned int" @0x0+4 = "3221225614"
+##  @0x2d90
+integer "" "unsigned int" @0x0+4 = "3221225616"
+##  @0x2db4
+integer "" "unsigned int" @0x0+4 = "268451868"
+##  @0x2db8
+integer "" "unsigned int" @0x0+4 = "3221225620"
+##  @0x2fe4
+integer "" "unsigned int" @0x0+4 = "268441167"
+##  @0x2fe8
+integer "" "unsigned int" @0x0+4 = "268441169"
+##  @0x3068
+integer "" "unsigned int" @0x0+4 = "268442001"
+##  @0x308c
+integer "" "unsigned int" @0x0+4 = "3221225477"
+## __guard_check_icall_fptr @0x4088
+pointer "" "void*" @0x0+4 = "0x100028ed" -> 0x100028ed
+## __guard_check_icall_fptr @0x4088
+pointer "" "void * volatile" @0x0+4 = "0x100028ed" -> 0x100028ed
+## __xc_a @0x408c
+array "" "void () *[0]" @0x0+0
+## __xc_a @0x408c
+array "" "void () *[1]" @0x0+4
+  pointer "[0]" "void () *" @0x0+4 = "nullptr"
+## __xc_z @0x4090
+array "" "void () *[0]" @0x0+0
+## __xc_z @0x4090
+array "" "void () *[1]" @0x0+4
+  pointer "[0]" "void () *" @0x0+4 = "nullptr"
+## __xi_a @0x4094
+array "" "int () *[0]" @0x0+0
+## __xi_a @0x4094
+array "" "int () *[1]" @0x0+4
+  pointer "[0]" "int () *" @0x0+4 = "nullptr"
+## __xi_z @0x4098
+array "" "int () *[0]" @0x0+0
+## __xi_z @0x4098
+array "" "int () *[1]" @0x0+4
+  pointer "[0]" "int () *" @0x0+4 = "nullptr"
+## __xp_a @0x409c
+array "" "void () *[1]" @0x0+4
+  pointer "[0]" "void () *" @0x0+4 = "nullptr"
+## __xp_z @0x40a0
+array "" "void () *[1]" @0x0+4
+  pointer "[0]" "void () *" @0x0+4 = "nullptr"
+## __xt_a @0x40a4
+array "" "void () *[1]" @0x0+4
+  pointer "[0]" "void () *" @0x0+4 = "nullptr"
+## __xt_z @0x40a8
+array "" "void () *[1]" @0x0+4
+  pointer "[0]" "void () *" @0x0+4 = "nullptr"
+## _pDefaultRawDllMain @0x41a0
+pointer "" "int (HINSTANCE__ *, unsigned long, void*) * const" @0x0+4 = "nullptr"
+## _pRawDllMain @0x41a0
+pointer "" "int (HINSTANCE__ *, unsigned long, void*) * const" @0x0+4 = "nullptr"
+## GS_ExceptionPointers @0x41a4
+struct "" "_EXCEPTION_POINTERS" @0x0+8
+  pointer "ExceptionRecord" "_EXCEPTION_RECORD *" @0x0+4 = "0x100060d0" -> 0x100060d0
+  pointer "ContextRecord" "_CONTEXT *" @0x4+4 = "0x10006120" -> 0x10006120
+## _load_config_used @0x4208
+struct "" "_IMAGE_LOAD_CONFIG_DIRECTORY32" @0x0+92
+  integer "Size" "unsigned long" @0x0+4 = "92"
+  integer "TimeDateStamp" "unsigned long" @0x4+4 = "0"
+  integer "MajorVersion" "unsigned short" @0x8+2 = "0"
+  integer "MinorVersion" "unsigned short" @0xa+2 = "0"
+  integer "GlobalFlagsClear" "unsigned long" @0xc+4 = "0"
+  integer "GlobalFlagsSet" "unsigned long" @0x10+4 = "0"
+  integer "CriticalSectionDefaultTimeout" "unsigned long" @0x14+4 = "0"
+  integer "DeCommitFreeBlockThreshold" "unsigned long" @0x18+4 = "0"
+  integer "DeCommitTotalFreeThreshold" "unsigned long" @0x1c+4 = "0"
+  integer "LockPrefixTable" "unsigned long" @0x20+4 = "0"
+  integer "MaximumAllocationSize" "unsigned long" @0x24+4 = "0"
+  integer "VirtualMemoryThreshold" "unsigned long" @0x28+4 = "0"
+  integer "ProcessHeapFlags" "unsigned long" @0x2c+4 = "0"
+  integer "ProcessAffinityMask" "unsigned long" @0x30+4 = "0"
+  integer "CSDVersion" "unsigned short" @0x34+2 = "0"
+  integer "Reserved1" "unsigned short" @0x36+2 = "0"
+  integer "EditList" "unsigned long" @0x38+4 = "0"
+  integer "SecurityCookie" "unsigned long" @0x3c+4 = "268460036"
+  integer "SEHandlerTable" "unsigned long" @0x40+4 = "0"
+  integer "SEHandlerCount" "unsigned long" @0x44+4 = "0"
+  integer "GuardCFCheckFunctionPointer" "unsigned long" @0x48+4 = "268451976"
+  integer "Reserved2" "unsigned long" @0x4c+4 = "0"
+  integer "GuardCFFunctionTable" "unsigned long" @0x50+4 = "0"
+  integer "GuardCFFunctionCount" "unsigned long" @0x54+4 = "0"
+  integer "GuardFlags" "unsigned long" @0x58+4 = "256"
+## __rtc_iaa @0x4698
+array "" "void () * const[1]" @0x0+4
+  pointer "[0]" "void () * const" @0x0+4 = "nullptr"
+## __rtc_izz @0x469c
+array "" "void () * const[1]" @0x0+4
+  pointer "[0]" "void () * const" @0x0+4 = "nullptr"
+## __rtc_taa @0x46a0
+array "" "void () * const[1]" @0x0+4
+  pointer "[0]" "void () * const" @0x0+4 = "nullptr"
+## __rtc_tzz @0x46a4
+array "" "void () * const[1]" @0x0+4
+  pointer "[0]" "void () * const" @0x0+4 = "nullptr"
+## __security_cookie_complement @0x6000
+integer "" "unsigned int" @0x0+4 = "1153374641"
+## __security_cookie @0x6004
+integer "" "unsigned int" @0x0+4 = "3141592654"
+## __scrt_native_dllmain_reason @0x6008
+integer "" "unsigned int" @0x0+4 = "4294967295"
+## __scrt_ucrt_dll_is_in_use @0x600c
+integer "" "int" @0x0+4 = "1"
+## __scrt_ucrt_dll_is_in_use @0x600c
+integer "" "const int" @0x0+4 = "1"
+## __@@_PchSym_@00@UhravyvmxsUkvkzihviOgvhghOwoozinDCUgvhgkvhUhgwzucOlyq@D841F9D984417CFC @0x6088
+integer "" "int" @0x0+4 = "0"
+## __proc_attached @0x608c
+integer "" "int" @0x0+4 = "0"
+## __scrt_current_native_startup_state @0x6090
+enum "" "__scrt_native_startup_state" @0x0+4 = "uninitialized (0)"
+## __scrt_native_startup_lock @0x6094
+pointer "" "void*" @0x0+4 = "nullptr"
+## module_local_atexit_table @0x6098
+struct "" "_onexit_table_t" @0x0+12
+  pointer "_first" "void () * *" @0x0+4 = "nullptr"
+  pointer "_last" "void () * *" @0x4+4 = "nullptr"
+  pointer "_end" "void () * *" @0x8+4 = "nullptr"
+## module_local_at_quick_exit_table @0x60a4
+struct "" "_onexit_table_t" @0x0+12
+  pointer "_first" "void () * *" @0x0+4 = "nullptr"
+  pointer "_last" "void () * *" @0x4+4 = "nullptr"
+  pointer "_end" "void () * *" @0x8+4 = "nullptr"
+## is_initialized_as_dll @0x60b0
+bool "" "bool" @0x0+1 = "false"
+## __type_info_root_node @0x60b8
+struct "" "__type_info_node" @0x0+8
+  union "_Header" "_SLIST_HEADER" @0x0+8
+    integer "Alignment" "unsigned __int64" @0x0+8 = "0"
+    struct "Next" "_SINGLE_LIST_ENTRY" @0x0+4
+      pointer "Next" "_SINGLE_LIST_ENTRY *" @0x0+4 = "nullptr"
+    integer "Depth" "unsigned short" @0x4+2 = "0"
+    integer "Reserved" "unsigned short" @0x6+2 = "0"
+## _OptionsStorage @0x60c0
+integer "" "unsigned __int64" @0x0+8 = "0"
+## _OptionsStorage @0x60c8
+integer "" "unsigned __int64" @0x0+8 = "0"
+## GS_ExceptionRecord @0x60d0
+struct "" "_EXCEPTION_RECORD" @0x0+80
+  integer "ExceptionCode" "unsigned long" @0x0+4 = "0"
+  integer "ExceptionFlags" "unsigned long" @0x4+4 = "0"
+  pointer "ExceptionRecord" "_EXCEPTION_RECORD *" @0x8+4 = "nullptr"
+  pointer "ExceptionAddress" "void*" @0xc+4 = "nullptr"
+  integer "NumberParameters" "unsigned long" @0x10+4 = "0"
+  array "ExceptionInformation" "unsigned long[15]" @0x14+60
+    integer "[0]" "unsigned long" @0x14+4 = "0"
+    integer "[1]" "unsigned long" @0x18+4 = "0"
+    integer "[2]" "unsigned long" @0x1c+4 = "0"
+    integer "[3]" "unsigned long" @0x20+4 = "0"
+    integer "[4]" "unsigned long" @0x24+4 = "0"
+    integer "[5]" "unsigned long" @0x28+4 = "0"
+    integer "[6]" "unsigned long" @0x2c+4 = "0"
+    integer "[7]" "unsigned long" @0x30+4 = "0"
+    integer "[8]" "unsigned long" @0x34+4 = "0"
+    integer "[9]" "unsigned long" @0x38+4 = "0"
+    integer "[10]" "unsigned long" @0x3c+4 = "0"
+    integer "[11]" "unsigned long" @0x40+4 = "0"
+    integer "[12]" "unsigned long" @0x44+4 = "0"
+    integer "[13]" "unsigned long" @0x48+4 = "0"
+    integer "[14]" "unsigned long" @0x4c+4 = "0"
+## GS_ContextRecord @0x6120
+struct "" "_CONTEXT" @0x0+416
+  integer "ContextFlags" "unsigned long" @0x0+4 = "0"
+  integer "R0" "unsigned long" @0x4+4 = "0"
+  integer "R1" "unsigned long" @0x8+4 = "0"
+  integer "R2" "unsigned long" @0xc+4 = "0"
+  integer "R3" "unsigned long" @0x10+4 = "0"
+  integer "R4" "unsigned long" @0x14+4 = "0"
+  integer "R5" "unsigned long" @0x18+4 = "0"
+  integer "R6" "unsigned long" @0x1c+4 = "0"
+  integer "R7" "unsigned long" @0x20+4 = "0"
+  integer "R8" "unsigned long" @0x24+4 = "0"
+  integer "R9" "unsigned long" @0x28+4 = "0"
+  integer "R10" "unsigned long" @0x2c+4 = "0"
+  integer "R11" "unsigned long" @0x30+4 = "0"
+  integer "R12" "unsigned long" @0x34+4 = "0"
+  integer "Sp" "unsigned long" @0x38+4 = "0"
+  integer "Lr" "unsigned long" @0x3c+4 = "0"
+  integer "Pc" "unsigned long" @0x40+4 = "0"
+  integer "Cpsr" "unsigned long" @0x44+4 = "0"
+  integer "Fpscr" "unsigned long" @0x48+4 = "0"
+  integer "Padding" "unsigned long" @0x4c+4 = "0"
+  array "Q" "_NEON128[16]" @0x50+256
+    struct "[0]" "_NEON128" @0x50+16
+      integer "Low" "unsigned __int64" @0x50+8 = "0"
+      integer "High" "__int64" @0x58+8 = "0"
+    struct "[1]" "_NEON128" @0x60+16
+      integer "Low" "unsigned __int64" @0x60+8 = "0"
+      integer "High" "__int64" @0x68+8 = "0"
+    struct "[2]" "_NEON128" @0x70+16
+      integer "Low" "unsigned __int64" @0x70+8 = "0"
+      integer "High" "__int64" @0x78+8 = "0"
+    struct "[3]" "_NEON128" @0x80+16
+      integer "Low" "unsigned __int64" @0x80+8 = "0"
+      integer "High" "__int64" @0x88+8 = "0"
+    struct "[4]" "_NEON128" @0x90+16
+      integer "Low" "unsigned __int64" @0x90+8 = "0"
+      integer "High" "__int64" @0x98+8 = "0"
+    struct "[5]" "_NEON128" @0xa0+16
+      integer "Low" "unsigned __int64" @0xa0+8 = "0"
+      integer "High" "__int64" @0xa8+8 = "0"
+    struct "[6]" "_NEON128" @0xb0+16
+      integer "Low" "unsigned __int64" @0xb0+8 = "0"
+      integer "High" "__int64" @0xb8+8 = "0"
+    struct "[7]" "_NEON128" @0xc0+16
+      integer "Low" "unsigned __int64" @0xc0+8 = "0"
+      integer "High" "__int64" @0xc8+8 = "0"
+    struct "[8]" "_NEON128" @0xd0+16
+      integer "Low" "unsigned __int64" @0xd0+8 = "0"
+      integer "High" "__int64" @0xd8+8 = "0"
+    struct "[9]" "_NEON128" @0xe0+16
+      integer "Low" "unsigned __int64" @0xe0+8 = "0"
+      integer "High" "__int64" @0xe8+8 = "0"
+    struct "[10]" "_NEON128" @0xf0+16
+      integer "Low" "unsigned __int64" @0xf0+8 = "0"
+      integer "High" "__int64" @0xf8+8 = "0"
+    struct "[11]" "_NEON128" @0x100+16
+      integer "Low" "unsigned __int64" @0x100+8 = "0"
+      integer "High" "__int64" @0x108+8 = "0"
+    struct "[12]" "_NEON128" @0x110+16
+      integer "Low" "unsigned __int64" @0x110+8 = "0"
+      integer "High" "__int64" @0x118+8 = "0"
+    struct "[13]" "_NEON128" @0x120+16
+      integer "Low" "unsigned __int64" @0x120+8 = "0"
+      integer "High" "__int64" @0x128+8 = "0"
+    struct "[14]" "_NEON128" @0x130+16
+      integer "Low" "unsigned __int64" @0x130+8 = "0"
+      integer "High" "__int64" @0x138+8 = "0"
+    struct "[15]" "_NEON128" @0x140+16
+      integer "Low" "unsigned __int64" @0x140+8 = "0"
+      integer "High" "__int64" @0x148+8 = "0"
+  array "D" "unsigned __int64[32]" @0x50+256 (+16 elided)
+    integer "[0]" "unsigned __int64" @0x50+8 = "0"
+    integer "[1]" "unsigned __int64" @0x58+8 = "0"
+    integer "[2]" "unsigned __int64" @0x60+8 = "0"
+    integer "[3]" "unsigned __int64" @0x68+8 = "0"
+    integer "[4]" "unsigned __int64" @0x70+8 = "0"
+    integer "[5]" "unsigned __int64" @0x78+8 = "0"
+    integer "[6]" "unsigned __int64" @0x80+8 = "0"
+    integer "[7]" "unsigned __int64" @0x88+8 = "0"
+    integer "[8]" "unsigned __int64" @0x90+8 = "0"
+    integer "[9]" "unsigned __int64" @0x98+8 = "0"
+    integer "[10]" "unsigned __int64" @0xa0+8 = "0"
+    integer "[11]" "unsigned __int64" @0xa8+8 = "0"
+    integer "[12]" "unsigned __int64" @0xb0+8 = "0"
+    integer "[13]" "unsigned __int64" @0xb8+8 = "0"
+    integer "[14]" "unsigned __int64" @0xc0+8 = "0"
+    integer "[15]" "unsigned __int64" @0xc8+8 = "0"
+  array "S" "unsigned long[32]" @0x50+128 (+16 elided)
+    integer "[0]" "unsigned long" @0x50+4 = "0"
+    integer "[1]" "unsigned long" @0x54+4 = "0"
+    integer "[2]" "unsigned long" @0x58+4 = "0"
+    integer "[3]" "unsigned long" @0x5c+4 = "0"
+    integer "[4]" "unsigned long" @0x60+4 = "0"
+    integer "[5]" "unsigned long" @0x64+4 = "0"
+    integer "[6]" "unsigned long" @0x68+4 = "0"
+    integer "[7]" "unsigned long" @0x6c+4 = "0"
+    integer "[8]" "unsigned long" @0x70+4 = "0"
+    integer "[9]" "unsigned long" @0x74+4 = "0"
+    integer "[10]" "unsigned long" @0x78+4 = "0"
+    integer "[11]" "unsigned long" @0x7c+4 = "0"
+    integer "[12]" "unsigned long" @0x80+4 = "0"
+    integer "[13]" "unsigned long" @0x84+4 = "0"
+    integer "[14]" "unsigned long" @0x88+4 = "0"
+    integer "[15]" "unsigned long" @0x8c+4 = "0"
+  array "Bvr" "unsigned long[8]" @0x150+32
+    integer "[0]" "unsigned long" @0x150+4 = "0"
+    integer "[1]" "unsigned long" @0x154+4 = "0"
+    integer "[2]" "unsigned long" @0x158+4 = "0"
+    integer "[3]" "unsigned long" @0x15c+4 = "0"
+    integer "[4]" "unsigned long" @0x160+4 = "0"
+    integer "[5]" "unsigned long" @0x164+4 = "0"
+    integer "[6]" "unsigned long" @0x168+4 = "0"
+    integer "[7]" "unsigned long" @0x16c+4 = "0"
+  array "Bcr" "unsigned long[8]" @0x170+32
+    integer "[0]" "unsigned long" @0x170+4 = "0"
+    integer "[1]" "unsigned long" @0x174+4 = "0"
+    integer "[2]" "unsigned long" @0x178+4 = "0"
+    integer "[3]" "unsigned long" @0x17c+4 = "0"
+    integer "[4]" "unsigned long" @0x180+4 = "0"
+    integer "[5]" "unsigned long" @0x184+4 = "0"
+    integer "[6]" "unsigned long" @0x188+4 = "0"
+    integer "[7]" "unsigned long" @0x18c+4 = "0"
+  array "Wvr" "unsigned long[1]" @0x190+4
+    integer "[0]" "unsigned long" @0x190+4 = "0"
+  array "Wcr" "unsigned long[1]" @0x194+4
+    integer "[0]" "unsigned long" @0x194+4 = "0"
+  array "Padding2" "unsigned long[2]" @0x198+8
+    integer "[0]" "unsigned long" @0x198+4 = "0"
+    integer "[1]" "unsigned long" @0x19c+4 = "0"
+## __isa_available @0x62c0
+integer "" "int" @0x0+4 = "0"
+## __dyn_tls_init_callback @0x62c4
+pointer "" "void (void*, unsigned long, void*) * const" @0x0+4 = "nullptr"

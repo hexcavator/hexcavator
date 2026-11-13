@@ -1,0 +1,360 @@
+# Intel APX: EVEX-promoted general-purpose instructions (EVEX map 4, and
+# promotions in maps 2, 3, and 7), and the REX2-only instructions.
+#
+# Sources: the Intel APX Architecture Specification, checked against Intel
+# XED's APX data (datafiles/apx-f) and LLVM.
+#
+# In these forms the last EVEX payload byte holds ND (a new data
+# destination, in EVEX.vvvv), NF (no flags), and for CCMP/CTEST the source
+# condition; L'L is 0 and there is no masking. Tokens:
+#
+# | token | meaning |
+# |---|---|
+# | `NP66` | both NP and 66 (66: a 16-bit operand size) |
+# | `ND0` `ND1` `NF0` `NF1` | EVEX.ND / EVEX.NF must be this (ND0, NF0 by default) |
+# | `SCC` | CCMP/CTEST: one form per condition, `$cc` in the mnemonic |
+# | `rex2` | only with a REX2 prefix |
+#
+# Attributes: `nf` (NF may be set, shown as `{nf}`), `ndd` (also a form with
+# ND = 1 and a new data destination first), `evex` (an EVEX form of a legacy
+# instruction: shown as `{evex}` unless NF or ND is set), `evexv` (likewise,
+# for VEX and 0F38 instructions, whose other encodings can't reach r16-r31:
+# shown only when no such register is used), `norsp`.
+
+# --- REX2-only legacy forms ----------------------------------------------
+50+r rex2 W1 : pushp Zq
+58+r rex2 W1 : popp Zq
+A1 rex2 W0 : jmpabs Jabs
+
+# --- Arithmetic (00-33) ----------------------------------------------------
+EVEX.M4 00 NP /r : add Eb,Gb ; nf ndd evex
+EVEX.M4 01 NP66 /r : add Ev,Gv ; nf ndd evex
+EVEX.M4 02 NP /r : add Gb,Eb ; nf ndd evex
+EVEX.M4 03 NP66 /r : add Gv,Ev ; nf ndd evex
+EVEX.M4 08 NP /r : or Eb,Gb ; nf ndd evex
+EVEX.M4 09 NP66 /r : or Ev,Gv ; nf ndd evex
+EVEX.M4 0A NP /r : or Gb,Eb ; nf ndd evex
+EVEX.M4 0B NP66 /r : or Gv,Ev ; nf ndd evex
+EVEX.M4 10 NP /r : adc Eb,Gb ; ndd evex
+EVEX.M4 11 NP66 /r : adc Ev,Gv ; ndd evex
+EVEX.M4 12 NP /r : adc Gb,Eb ; ndd evex
+EVEX.M4 13 NP66 /r : adc Gv,Ev ; ndd evex
+EVEX.M4 18 NP /r : sbb Eb,Gb ; ndd evex
+EVEX.M4 19 NP66 /r : sbb Ev,Gv ; ndd evex
+EVEX.M4 1A NP /r : sbb Gb,Eb ; ndd evex
+EVEX.M4 1B NP66 /r : sbb Gv,Ev ; ndd evex
+EVEX.M4 20 NP /r : and Eb,Gb ; nf ndd evex
+EVEX.M4 21 NP66 /r : and Ev,Gv ; nf ndd evex
+EVEX.M4 22 NP /r : and Gb,Eb ; nf ndd evex
+EVEX.M4 23 NP66 /r : and Gv,Ev ; nf ndd evex
+EVEX.M4 24 NP66 /r : shld Ev,Gv,Ib ; nf ndd evex
+EVEX.M4 28 NP /r : sub Eb,Gb ; nf ndd evex
+EVEX.M4 29 NP66 /r : sub Ev,Gv ; nf ndd evex
+EVEX.M4 2A NP /r : sub Gb,Eb ; nf ndd evex
+EVEX.M4 2B NP66 /r : sub Gv,Ev ; nf ndd evex
+EVEX.M4 2C NP66 /r : shrd Ev,Gv,Ib ; nf ndd evex
+EVEX.M4 30 NP /r : xor Eb,Gb ; nf ndd evex
+EVEX.M4 31 NP66 /r : xor Ev,Gv ; nf ndd evex
+EVEX.M4 32 NP /r : xor Gb,Eb ; nf ndd evex
+EVEX.M4 33 NP66 /r : xor Gv,Ev ; nf ndd evex
+
+# --- Conditional compare and test --------------------------------------------
+EVEX.M4 38 NP /r SCC : ccmp$cc Eb,Gb
+EVEX.M4 39 NP66 /r SCC : ccmp$cc Ev,Gv
+EVEX.M4 3A NP /r SCC : ccmp$cc Gb,Eb
+EVEX.M4 3B NP66 /r SCC : ccmp$cc Gv,Ev
+EVEX.M4 80 NP /7 SCC : ccmp$cc Eb,Ib
+EVEX.M4 81 NP66 /7 SCC : ccmp$cc Ev,Izs
+EVEX.M4 83 NP66 /7 SCC : ccmp$cc Ev,Ibs
+EVEX.M4 84 NP /r SCC : ctest$cc Eb,Gb
+EVEX.M4 85 NP66 /r SCC : ctest$cc Ev,Gv
+EVEX.M4 F6 NP /0 SCC : ctest$cc Eb,Ib
+EVEX.M4 F6 NP /1 SCC : ctest$cc Eb,Ib
+EVEX.M4 F7 NP66 /0 SCC : ctest$cc Ev,Izs
+EVEX.M4 F7 NP66 /1 SCC : ctest$cc Ev,Izs
+
+# --- CMOVcc with a new destination, CFCMOVcc, SETcc / SETZUcc ---------------
+# CFCMOVcc: NF0 loads (r, r/m); NF1 stores (r/m, r); ND1 NF1 is the
+# three-operand form. ND1 NF0 is CMOVcc with a new destination.
+EVEX.M4 40 NP66 /r ND1 NF0 : cmovo Bv,Gv,Ev
+EVEX.M4 41 NP66 /r ND1 NF0 : cmovno Bv,Gv,Ev
+EVEX.M4 42 NP66 /r ND1 NF0 : cmovb Bv,Gv,Ev
+EVEX.M4 43 NP66 /r ND1 NF0 : cmovae Bv,Gv,Ev
+EVEX.M4 44 NP66 /r ND1 NF0 : cmove Bv,Gv,Ev
+EVEX.M4 45 NP66 /r ND1 NF0 : cmovne Bv,Gv,Ev
+EVEX.M4 46 NP66 /r ND1 NF0 : cmovbe Bv,Gv,Ev
+EVEX.M4 47 NP66 /r ND1 NF0 : cmova Bv,Gv,Ev
+EVEX.M4 48 NP66 /r ND1 NF0 : cmovs Bv,Gv,Ev
+EVEX.M4 49 NP66 /r ND1 NF0 : cmovns Bv,Gv,Ev
+EVEX.M4 4A NP66 /r ND1 NF0 : cmovp Bv,Gv,Ev
+EVEX.M4 4B NP66 /r ND1 NF0 : cmovnp Bv,Gv,Ev
+EVEX.M4 4C NP66 /r ND1 NF0 : cmovl Bv,Gv,Ev
+EVEX.M4 4D NP66 /r ND1 NF0 : cmovge Bv,Gv,Ev
+EVEX.M4 4E NP66 /r ND1 NF0 : cmovle Bv,Gv,Ev
+EVEX.M4 4F NP66 /r ND1 NF0 : cmovg Bv,Gv,Ev
+EVEX.M4 40 NP66 /r ND0 NF0 : cfcmovo Gv,Ev
+EVEX.M4 41 NP66 /r ND0 NF0 : cfcmovno Gv,Ev
+EVEX.M4 42 NP66 /r ND0 NF0 : cfcmovb Gv,Ev
+EVEX.M4 43 NP66 /r ND0 NF0 : cfcmovae Gv,Ev
+EVEX.M4 44 NP66 /r ND0 NF0 : cfcmove Gv,Ev
+EVEX.M4 45 NP66 /r ND0 NF0 : cfcmovne Gv,Ev
+EVEX.M4 46 NP66 /r ND0 NF0 : cfcmovbe Gv,Ev
+EVEX.M4 47 NP66 /r ND0 NF0 : cfcmova Gv,Ev
+EVEX.M4 48 NP66 /r ND0 NF0 : cfcmovs Gv,Ev
+EVEX.M4 49 NP66 /r ND0 NF0 : cfcmovns Gv,Ev
+EVEX.M4 4A NP66 /r ND0 NF0 : cfcmovp Gv,Ev
+EVEX.M4 4B NP66 /r ND0 NF0 : cfcmovnp Gv,Ev
+EVEX.M4 4C NP66 /r ND0 NF0 : cfcmovl Gv,Ev
+EVEX.M4 4D NP66 /r ND0 NF0 : cfcmovge Gv,Ev
+EVEX.M4 4E NP66 /r ND0 NF0 : cfcmovle Gv,Ev
+EVEX.M4 4F NP66 /r ND0 NF0 : cfcmovg Gv,Ev
+EVEX.M4 40 NP66 /r ND0 NF1 : cfcmovo Ev,Gv
+EVEX.M4 41 NP66 /r ND0 NF1 : cfcmovno Ev,Gv
+EVEX.M4 42 NP66 /r ND0 NF1 : cfcmovb Ev,Gv
+EVEX.M4 43 NP66 /r ND0 NF1 : cfcmovae Ev,Gv
+EVEX.M4 44 NP66 /r ND0 NF1 : cfcmove Ev,Gv
+EVEX.M4 45 NP66 /r ND0 NF1 : cfcmovne Ev,Gv
+EVEX.M4 46 NP66 /r ND0 NF1 : cfcmovbe Ev,Gv
+EVEX.M4 47 NP66 /r ND0 NF1 : cfcmova Ev,Gv
+EVEX.M4 48 NP66 /r ND0 NF1 : cfcmovs Ev,Gv
+EVEX.M4 49 NP66 /r ND0 NF1 : cfcmovns Ev,Gv
+EVEX.M4 4A NP66 /r ND0 NF1 : cfcmovp Ev,Gv
+EVEX.M4 4B NP66 /r ND0 NF1 : cfcmovnp Ev,Gv
+EVEX.M4 4C NP66 /r ND0 NF1 : cfcmovl Ev,Gv
+EVEX.M4 4D NP66 /r ND0 NF1 : cfcmovge Ev,Gv
+EVEX.M4 4E NP66 /r ND0 NF1 : cfcmovle Ev,Gv
+EVEX.M4 4F NP66 /r ND0 NF1 : cfcmovg Ev,Gv
+EVEX.M4 40 NP66 /r ND1 NF1 : cfcmovo Bv,Gv,Ev
+EVEX.M4 41 NP66 /r ND1 NF1 : cfcmovno Bv,Gv,Ev
+EVEX.M4 42 NP66 /r ND1 NF1 : cfcmovb Bv,Gv,Ev
+EVEX.M4 43 NP66 /r ND1 NF1 : cfcmovae Bv,Gv,Ev
+EVEX.M4 44 NP66 /r ND1 NF1 : cfcmove Bv,Gv,Ev
+EVEX.M4 45 NP66 /r ND1 NF1 : cfcmovne Bv,Gv,Ev
+EVEX.M4 46 NP66 /r ND1 NF1 : cfcmovbe Bv,Gv,Ev
+EVEX.M4 47 NP66 /r ND1 NF1 : cfcmova Bv,Gv,Ev
+EVEX.M4 48 NP66 /r ND1 NF1 : cfcmovs Bv,Gv,Ev
+EVEX.M4 49 NP66 /r ND1 NF1 : cfcmovns Bv,Gv,Ev
+EVEX.M4 4A NP66 /r ND1 NF1 : cfcmovp Bv,Gv,Ev
+EVEX.M4 4B NP66 /r ND1 NF1 : cfcmovnp Bv,Gv,Ev
+EVEX.M4 4C NP66 /r ND1 NF1 : cfcmovl Bv,Gv,Ev
+EVEX.M4 4D NP66 /r ND1 NF1 : cfcmovge Bv,Gv,Ev
+EVEX.M4 4E NP66 /r ND1 NF1 : cfcmovle Bv,Gv,Ev
+EVEX.M4 4F NP66 /r ND1 NF1 : cfcmovg Bv,Gv,Ev
+EVEX.M4 40 F2 /r ND0 : seto Eb ; evex
+EVEX.M4 41 F2 /r ND0 : setno Eb ; evex
+EVEX.M4 42 F2 /r ND0 : setb Eb ; evex
+EVEX.M4 43 F2 /r ND0 : setae Eb ; evex
+EVEX.M4 44 F2 /r ND0 : sete Eb ; evex
+EVEX.M4 45 F2 /r ND0 : setne Eb ; evex
+EVEX.M4 46 F2 /r ND0 : setbe Eb ; evex
+EVEX.M4 47 F2 /r ND0 : seta Eb ; evex
+EVEX.M4 48 F2 /r ND0 : sets Eb ; evex
+EVEX.M4 49 F2 /r ND0 : setns Eb ; evex
+EVEX.M4 4A F2 /r ND0 : setp Eb ; evex
+EVEX.M4 4B F2 /r ND0 : setnp Eb ; evex
+EVEX.M4 4C F2 /r ND0 : setl Eb ; evex
+EVEX.M4 4D F2 /r ND0 : setge Eb ; evex
+EVEX.M4 4E F2 /r ND0 : setle Eb ; evex
+EVEX.M4 4F F2 /r ND0 : setg Eb ; evex
+EVEX.M4 40 F2 /r ND1 : setzuo Eb
+EVEX.M4 41 F2 /r ND1 : setzuno Eb
+EVEX.M4 42 F2 /r ND1 : setzub Eb
+EVEX.M4 43 F2 /r ND1 : setzuae Eb
+EVEX.M4 44 F2 /r ND1 : setzue Eb
+EVEX.M4 45 F2 /r ND1 : setzune Eb
+EVEX.M4 46 F2 /r ND1 : setzube Eb
+EVEX.M4 47 F2 /r ND1 : setzua Eb
+EVEX.M4 48 F2 /r ND1 : setzus Eb
+EVEX.M4 49 F2 /r ND1 : setzuns Eb
+EVEX.M4 4A F2 /r ND1 : setzup Eb
+EVEX.M4 4B F2 /r ND1 : setzunp Eb
+EVEX.M4 4C F2 /r ND1 : setzul Eb
+EVEX.M4 4D F2 /r ND1 : setzuge Eb
+EVEX.M4 4E F2 /r ND1 : setzule Eb
+EVEX.M4 4F F2 /r ND1 : setzug Eb
+
+# --- 60-6B ---------------------------------------------------------------------
+EVEX.M4 60 NP66 /r : movbe Gv,Ev ; evexv
+EVEX.M4 61 NP66 /r : movbe Ev,Gv ; evexv
+EVEX.M4 65 66 mem W0 : wrussd Md,Gd ; evexv
+EVEX.M4 65 66 mem W1 : wrussq Mq,Gq ; evexv
+EVEX.M4 66 NP mem W0 : wrssd Md,Gd ; evexv
+EVEX.M4 66 NP mem W1 : wrssq Mq,Gq ; evexv
+EVEX.M4 66 66 /r : adcx Gy,Ey ; ndd evexv
+EVEX.M4 66 F3 /r : adox Gy,Ey ; ndd evexv
+EVEX.M4 69 NP66 /r ND0 : imul Gv,Ev,Izs ; nf evex
+EVEX.M4 69 NP66 /r ND1 : imulzu Gv,Ev,Izs ; nf
+EVEX.M4 6B NP66 /r ND0 : imul Gv,Ev,Ibs ; nf evex
+EVEX.M4 6B NP66 /r ND1 : imulzu Gv,Ev,Ibs ; nf
+
+# --- Group 1 ---------------------------------------------------------------------
+EVEX.M4 80 NP /0 : add Eb,Ib ; nf ndd evex
+EVEX.M4 80 NP /1 : or Eb,Ib ; nf ndd evex
+EVEX.M4 80 NP /2 : adc Eb,Ib ; ndd evex
+EVEX.M4 80 NP /3 : sbb Eb,Ib ; ndd evex
+EVEX.M4 80 NP /4 : and Eb,Ib ; nf ndd evex
+EVEX.M4 80 NP /5 : sub Eb,Ib ; nf ndd evex
+EVEX.M4 80 NP /6 : xor Eb,Ib ; nf ndd evex
+EVEX.M4 81 NP66 /0 : add Ev,Izs ; nf ndd evex
+EVEX.M4 81 NP66 /1 : or Ev,Izs ; nf ndd evex
+EVEX.M4 81 NP66 /2 : adc Ev,Izs ; ndd evex
+EVEX.M4 81 NP66 /3 : sbb Ev,Izs ; ndd evex
+EVEX.M4 81 NP66 /4 : and Ev,Izs ; nf ndd evex
+EVEX.M4 81 NP66 /5 : sub Ev,Izs ; nf ndd evex
+EVEX.M4 81 NP66 /6 : xor Ev,Izs ; nf ndd evex
+EVEX.M4 83 NP66 /0 : add Ev,Ibs ; nf ndd evex
+EVEX.M4 83 NP66 /1 : or Ev,Ibs ; nf ndd evex
+EVEX.M4 83 NP66 /2 : adc Ev,Ibs ; ndd evex
+EVEX.M4 83 NP66 /3 : sbb Ev,Ibs ; ndd evex
+EVEX.M4 83 NP66 /4 : and Ev,Ibs ; nf ndd evex
+EVEX.M4 83 NP66 /5 : sub Ev,Ibs ; nf ndd evex
+EVEX.M4 83 NP66 /6 : xor Ev,Ibs ; nf ndd evex
+
+# --- 88-8F ---------------------------------------------------------------------
+EVEX.M4 88 NP66 /r : popcnt Gv,Ev ; nf evex
+EVEX.M4 8A NP mem W0 : movrs Gb,Mb ; evexv
+EVEX.M4 8B NP66 mem : movrs Gv,Mv ; evexv
+EVEX.M4 8F NP /0 reg ND1 W0 : pop2 Bq,Rq ; norsp
+EVEX.M4 8F NP /0 reg ND1 W1 : pop2p Bq,Rq ; norsp
+EVEX.M4 FF NP /6 reg ND1 W0 : push2 Bq,Rq ; norsp
+EVEX.M4 FF NP /6 reg ND1 W1 : push2p Bq,Rq ; norsp
+
+# --- Double shifts, IMUL ---------------------------------------------------------
+EVEX.M4 A5 NP66 /r : shld Ev,Gv,cl ; nf ndd evex
+EVEX.M4 AD NP66 /r : shrd Ev,Gv,cl ; nf ndd evex
+EVEX.M4 AF NP66 /r : imul Gv,Ev ; nf ndd evex
+
+# --- Group 2 (shifts and rotates) ----------------------------------------------
+EVEX.M4 C0 NP /0 : rol Eb,Ib ; nf ndd evex
+EVEX.M4 C0 NP /1 : ror Eb,Ib ; nf ndd evex
+EVEX.M4 C0 NP /2 : rcl Eb,Ib ; ndd evex
+EVEX.M4 C0 NP /3 : rcr Eb,Ib ; ndd evex
+EVEX.M4 C0 NP /4 : shl Eb,Ib ; nf ndd evex
+EVEX.M4 C0 NP /5 : shr Eb,Ib ; nf ndd evex
+EVEX.M4 C0 NP /6 : sal Eb,Ib ; nf ndd evex
+EVEX.M4 C0 NP /7 : sar Eb,Ib ; nf ndd evex
+EVEX.M4 C1 NP66 /0 : rol Ev,Ib ; nf ndd evex
+EVEX.M4 C1 NP66 /1 : ror Ev,Ib ; nf ndd evex
+EVEX.M4 C1 NP66 /2 : rcl Ev,Ib ; ndd evex
+EVEX.M4 C1 NP66 /3 : rcr Ev,Ib ; ndd evex
+EVEX.M4 C1 NP66 /4 : shl Ev,Ib ; nf ndd evex
+EVEX.M4 C1 NP66 /5 : shr Ev,Ib ; nf ndd evex
+EVEX.M4 C1 NP66 /6 : sal Ev,Ib ; nf ndd evex
+EVEX.M4 C1 NP66 /7 : sar Ev,Ib ; nf ndd evex
+EVEX.M4 D0 NP /0 : rol Eb,1 ; nf ndd evex
+EVEX.M4 D0 NP /1 : ror Eb,1 ; nf ndd evex
+EVEX.M4 D0 NP /2 : rcl Eb,1 ; ndd evex
+EVEX.M4 D0 NP /3 : rcr Eb,1 ; ndd evex
+EVEX.M4 D0 NP /4 : shl Eb,1 ; nf ndd evex
+EVEX.M4 D0 NP /5 : shr Eb,1 ; nf ndd evex
+EVEX.M4 D0 NP /6 : sal Eb,1 ; nf ndd evex
+EVEX.M4 D0 NP /7 : sar Eb,1 ; nf ndd evex
+EVEX.M4 D1 NP66 /0 : rol Ev,1 ; nf ndd evex
+EVEX.M4 D1 NP66 /1 : ror Ev,1 ; nf ndd evex
+EVEX.M4 D1 NP66 /2 : rcl Ev,1 ; ndd evex
+EVEX.M4 D1 NP66 /3 : rcr Ev,1 ; ndd evex
+EVEX.M4 D1 NP66 /4 : shl Ev,1 ; nf ndd evex
+EVEX.M4 D1 NP66 /5 : shr Ev,1 ; nf ndd evex
+EVEX.M4 D1 NP66 /6 : sal Ev,1 ; nf ndd evex
+EVEX.M4 D1 NP66 /7 : sar Ev,1 ; nf ndd evex
+EVEX.M4 D2 NP /0 : rol Eb,cl ; nf ndd evex
+EVEX.M4 D2 NP /1 : ror Eb,cl ; nf ndd evex
+EVEX.M4 D2 NP /2 : rcl Eb,cl ; ndd evex
+EVEX.M4 D2 NP /3 : rcr Eb,cl ; ndd evex
+EVEX.M4 D2 NP /4 : shl Eb,cl ; nf ndd evex
+EVEX.M4 D2 NP /5 : shr Eb,cl ; nf ndd evex
+EVEX.M4 D2 NP /6 : sal Eb,cl ; nf ndd evex
+EVEX.M4 D2 NP /7 : sar Eb,cl ; nf ndd evex
+EVEX.M4 D3 NP66 /0 : rol Ev,cl ; nf ndd evex
+EVEX.M4 D3 NP66 /1 : ror Ev,cl ; nf ndd evex
+EVEX.M4 D3 NP66 /2 : rcl Ev,cl ; ndd evex
+EVEX.M4 D3 NP66 /3 : rcr Ev,cl ; ndd evex
+EVEX.M4 D3 NP66 /4 : shl Ev,cl ; nf ndd evex
+EVEX.M4 D3 NP66 /5 : shr Ev,cl ; nf ndd evex
+EVEX.M4 D3 NP66 /6 : sal Ev,cl ; nf ndd evex
+EVEX.M4 D3 NP66 /7 : sar Ev,cl ; nf ndd evex
+
+# --- F0-FF -------------------------------------------------------------------------
+EVEX.M4 F0 NP /r : crc32 Gy,Eb ; evexv
+EVEX.M4 F1 NP66 /r : crc32 Gy,Ev ; evexv
+EVEX.M4 F0 F3 mem : invept Gq,Mo ; evexv
+EVEX.M4 F1 F3 mem : invvpid Gq,Mo ; evexv
+EVEX.M4 F2 F3 mem : invpcid Gq,Mo ; evexv
+EVEX.M4 F4 NP66 /r : tzcnt Gv,Ev ; nf evex
+EVEX.M4 F5 NP66 /r : lzcnt Gv,Ev ; nf evex
+EVEX.M4 F6 NP /2 : not Eb ; ndd evex
+EVEX.M4 F6 NP /3 : neg Eb ; nf ndd evex
+EVEX.M4 F6 NP /4 : mul al,Eb ; nf evex
+EVEX.M4 F6 NP /5 : imul Eb ; nf evex
+EVEX.M4 F6 NP /6 : div al,Eb ; nf evex
+EVEX.M4 F6 NP /7 : idiv Eb ; nf evex
+EVEX.M4 F7 NP66 /2 : not Ev ; ndd evex
+EVEX.M4 F7 NP66 /3 : neg Ev ; nf ndd evex
+EVEX.M4 F7 NP66 /4 : mul rAX,Ev ; nf evex
+EVEX.M4 F7 NP66 /5 : imul Ev ; nf evex
+EVEX.M4 F7 NP66 /6 : div rAX,Ev ; nf evex
+EVEX.M4 F7 NP66 /7 : idiv rAX,Ev ; nf evex
+EVEX.M4 F8 66 mem : movdir64b Ga,Mzz ; evexv
+EVEX.M4 F8 F2 mem : enqcmd Ga,Mzz ; evexv
+EVEX.M4 F8 F3 mem : enqcmds Ga,Mzz ; evexv
+EVEX.M4 F8 F2 reg W0 : urdmsr Rq,Gq ; evexv
+EVEX.M4 F8 F3 reg W0 : uwrmsr Gq,Rq ; evexv
+EVEX.M4 F9 NP mem : movdiri My,Gy ; evexv
+EVEX.M4 FC NP mem : aadd My,Gy ; evexv
+EVEX.M4 FC 66 mem : aand My,Gy ; evexv
+EVEX.M4 FC F2 mem : aor My,Gy ; evexv
+EVEX.M4 FC F3 mem : axor My,Gy ; evexv
+EVEX.M4 FE NP /0 : inc Eb ; nf ndd evex
+EVEX.M4 FE NP /1 : dec Eb ; nf ndd evex
+EVEX.M4 FF NP66 /0 : inc Ev ; nf ndd evex
+EVEX.M4 FF NP66 /1 : dec Ev ; nf ndd evex
+
+# --- EVEX map 7: MSR access with a 32-bit immediate MSR index ----------------
+EVEX.M7 F6 F3 /0 reg W0 : wrmsrns Id,Rq ; evexv
+EVEX.M7 F6 F2 /0 reg W0 : rdmsr Rq,Id ; evexv
+EVEX.M7 F8 F3 /0 reg W0 : uwrmsr Id,Rq ; evexv
+EVEX.M7 F8 F2 /0 reg W0 : urdmsr Rq,Id ; evexv
+
+# --- Promotions of VEX instructions (EVEX maps 2 and 3) -------------------------
+EVEX.0F38 F2 NP /r : andn Gy,By,Ey ; apx nf evexv
+EVEX.0F38 F3 NP /1 : blsr By,Ey ; apx nf evexv
+EVEX.0F38 F3 NP /2 : blsmsk By,Ey ; apx nf evexv
+EVEX.0F38 F3 NP /3 : blsi By,Ey ; apx nf evexv
+EVEX.0F38 F5 NP /r : bzhi Gy,Ey,By ; apx nf evexv
+EVEX.0F38 F5 F3 /r : pext Gy,By,Ey ; apx evexv
+EVEX.0F38 F5 F2 /r : pdep Gy,By,Ey ; apx evexv
+EVEX.0F38 F6 F2 /r : mulx Gy,By,Ey ; apx evexv
+EVEX.0F38 F7 NP /r : bextr Gy,Ey,By ; apx nf evexv
+EVEX.0F38 F7 66 /r : shlx Gy,Ey,By ; apx evexv
+EVEX.0F38 F7 F3 /r : sarx Gy,Ey,By ; apx evexv
+EVEX.0F38 F7 F2 /r : shrx Gy,Ey,By ; apx evexv
+EVEX.0F3A F0 F2 /r : rorx Gy,Ey,Ib ; apx evexv
+EVEX.0F38 E0 66 mem : cmpoxadd My,Gy,By ; apx evexv
+EVEX.0F38 E1 66 mem : cmpnoxadd My,Gy,By ; apx evexv
+EVEX.0F38 E2 66 mem : cmpbxadd My,Gy,By ; apx evexv
+EVEX.0F38 E3 66 mem : cmpnbxadd My,Gy,By ; apx evexv
+EVEX.0F38 E4 66 mem : cmpzxadd My,Gy,By ; apx evexv
+EVEX.0F38 E5 66 mem : cmpnzxadd My,Gy,By ; apx evexv
+EVEX.0F38 E6 66 mem : cmpbexadd My,Gy,By ; apx evexv
+EVEX.0F38 E7 66 mem : cmpnbexadd My,Gy,By ; apx evexv
+EVEX.0F38 E8 66 mem : cmpsxadd My,Gy,By ; apx evexv
+EVEX.0F38 E9 66 mem : cmpnsxadd My,Gy,By ; apx evexv
+EVEX.0F38 EA 66 mem : cmppxadd My,Gy,By ; apx evexv
+EVEX.0F38 EB 66 mem : cmpnpxadd My,Gy,By ; apx evexv
+EVEX.0F38 EC 66 mem : cmplxadd My,Gy,By ; apx evexv
+EVEX.0F38 ED 66 mem : cmpnlxadd My,Gy,By ; apx evexv
+EVEX.0F38 EE 66 mem : cmplexadd My,Gy,By ; apx evexv
+EVEX.0F38 EF 66 mem : cmpnlexadd My,Gy,By ; apx evexv
+EVEX.0F38 49 NP /0 mem W0 : ldtilecfg Mzw ; apx evexv
+EVEX.0F38 49 66 /0 mem W0 : sttilecfg Mzw ; apx evexv
+EVEX.0F38 4B F2 mem W0 : tileloadd TG,Mtile ; apx evexv
+EVEX.0F38 4B 66 mem W0 : tileloaddt1 TG,Mtile ; apx evexv
+EVEX.0F38 4B F3 mem W0 : tilestored Mtile,TG ; apx evexv
+EVEX.0F38 4A F2 mem W0 : tileloaddrs TG,Mtile ; apx evexv
+EVEX.0F38 4A 66 mem W0 : tileloaddrst1 TG,Mtile ; apx evexv
+
+# --- VEX map 7: MSR access with a 32-bit immediate MSR index -----------------
+VEX.M7 F6 F3 /0 reg L0 W0 : wrmsrns Id,Rq
+VEX.M7 F6 F2 /0 reg L0 W0 : rdmsr Rq,Id
+VEX.M7 F8 F3 /0 reg L0 W0 : uwrmsr Id,Rq
+VEX.M7 F8 F2 /0 reg L0 W0 : urdmsr Rq,Id

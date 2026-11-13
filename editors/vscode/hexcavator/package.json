@@ -1,0 +1,779 @@
+{
+  "name": "hexcavator",
+  "displayName": "Hexcavator",
+  "description": "Explore executables, objects, libraries, and WebAssembly modules with their debug information: headers, symbols, types, source files, data, and disassembly; why each function and datum is there and what refers to it; builds compared; and size treemaps with measured recommendations. PE, ELF, Mach-O, and WebAssembly, with PDBs or DWARF, on any platform.",
+  "version": "0.0.1",
+  "publisher": "hexcavator",
+  "icon": "media/icon.png",
+  "license": "Apache-2.0",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Visualization",
+    "Other"
+  ],
+  "keywords": [
+    "binary",
+    "executable",
+    "disassembly",
+    "pdb",
+    "dwarf",
+    "pe",
+    "elf",
+    "mach-o",
+    "webassembly",
+    "symbols",
+    "dumpbin",
+    "binary size"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "hexcavator.open",
+        "title": "Open Binary…",
+        "category": "Hexcavator",
+        "icon": "$(add)"
+      },
+      {
+        "command": "hexcavator.openInPane",
+        "title": "Open in Hexcavator"
+      },
+      {
+        "command": "hexcavator.openDiff",
+        "title": "Diff Binaries…",
+        "category": "Hexcavator",
+        "icon": "$(diff)"
+      },
+      {
+        "command": "hexcavator.clear",
+        "title": "Close All",
+        "category": "Hexcavator",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "hexcavator.refresh",
+        "title": "Refresh",
+        "category": "Hexcavator",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "hexcavator.remove",
+        "title": "Close",
+        "category": "Hexcavator",
+        "icon": "$(close)"
+      },
+      {
+        "command": "hexcavator.revealFile",
+        "title": "Reveal in File Explorer",
+        "category": "Hexcavator",
+        "icon": "$(folder-opened)"
+      },
+      {
+        "command": "hexcavator.showReport",
+        "title": "Show in Treemap",
+        "category": "Hexcavator",
+        "icon": "$(graph)"
+      },
+      {
+        "command": "hexcavator.runTool",
+        "title": "Run",
+        "category": "Hexcavator",
+        "icon": "$(play)"
+      },
+      {
+        "command": "hexcavator.copyCommand",
+        "title": "Copy Command Line",
+        "category": "Hexcavator",
+        "icon": "$(copy)"
+      },
+      {
+        "command": "hexcavator.runInTerminal",
+        "title": "Run in Terminal",
+        "category": "Hexcavator",
+        "icon": "$(terminal)"
+      },
+      {
+        "command": "hexcavator.removeResult",
+        "title": "Close",
+        "category": "Hexcavator",
+        "icon": "$(close)"
+      },
+      {
+        "command": "hexcavator.symbol.why",
+        "title": "Why Is This Here?",
+        "category": "Hexcavator",
+        "icon": "$(debug-step-into)"
+      },
+      {
+        "command": "hexcavator.symbol.refs",
+        "title": "References",
+        "category": "Hexcavator",
+        "icon": "$(references)"
+      },
+      {
+        "command": "hexcavator.symbol.disassemble",
+        "title": "Disassemble",
+        "category": "Hexcavator",
+        "icon": "$(code)"
+      },
+      {
+        "command": "hexcavator.symbol.goToSource",
+        "title": "View Definition",
+        "category": "Hexcavator",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "hexcavator.symbol.copyName",
+        "title": "Copy Name",
+        "category": "Hexcavator",
+        "icon": "$(copy)"
+      },
+      {
+        "command": "hexcavator.pickFunction",
+        "title": "Disassemble a Function Here…",
+        "category": "Hexcavator"
+      },
+      {
+        "command": "hexcavator.row.disassemble",
+        "title": "Disassemble",
+        "category": "Hexcavator",
+        "icon": "$(code)"
+      },
+      {
+        "command": "hexcavator.row.disassemblyDiff",
+        "title": "Compare Disassembly",
+        "category": "Hexcavator",
+        "icon": "$(diff)"
+      },
+      {
+        "command": "hexcavator.row.viewData",
+        "title": "View Data",
+        "category": "Hexcavator",
+        "icon": "$(symbol-array)"
+      },
+      {
+        "command": "hexcavator.row.why",
+        "title": "Why Is This Here?",
+        "category": "Hexcavator",
+        "icon": "$(debug-step-into)"
+      },
+      {
+        "command": "hexcavator.row.refs",
+        "title": "References",
+        "category": "Hexcavator",
+        "icon": "$(references)"
+      },
+      {
+        "command": "hexcavator.row.goToSource",
+        "title": "View Definition",
+        "category": "Hexcavator",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "hexcavator.row.copyName",
+        "title": "Copy Name",
+        "category": "Hexcavator",
+        "icon": "$(copy)"
+      },
+      {
+        "command": "hexcavator.symbol.open",
+        "title": "Open (Code or Data)",
+        "category": "Hexcavator",
+        "icon": "$(eye)"
+      },
+      {
+        "command": "hexcavator.symbol.viewData",
+        "title": "View Data",
+        "category": "Hexcavator",
+        "icon": "$(symbol-array)"
+      },
+      {
+        "command": "hexcavator.type.layout",
+        "title": "View Layout",
+        "category": "Hexcavator",
+        "icon": "$(symbol-structure)"
+      },
+      {
+        "command": "hexcavator.type.refs",
+        "title": "References",
+        "category": "Hexcavator",
+        "icon": "$(references)"
+      },
+      {
+        "command": "hexcavator.type.definition",
+        "title": "View Definition",
+        "category": "Hexcavator",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "hexcavator.showLog",
+        "title": "Show hexc's Log",
+        "category": "Hexcavator"
+      },
+      {
+        "command": "hexcavator.restartServer",
+        "title": "Restart hexc",
+        "category": "Hexcavator"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "hexcavator.openInPane",
+          "when": "resourceExtname =~ /^\\.(exe|dll|sys|efi|obj|lib|so|o|a|ko|elf|axf|out|dylib|bundle|wasm)$/i || resourceExtname == '' && !explorerResourceIsFolder",
+          "group": "hexc@0"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "hexcavator.open",
+          "when": "view == hexcavator.binaries",
+          "group": "navigation@1"
+        },
+        {
+          "command": "hexcavator.openDiff",
+          "when": "view == hexcavator.binaries",
+          "group": "navigation@2"
+        },
+        {
+          "command": "hexcavator.refresh",
+          "when": "view == hexcavator.binaries",
+          "group": "navigation@3"
+        },
+        {
+          "command": "hexcavator.clear",
+          "when": "view == hexcavator.binaries",
+          "group": "z@1"
+        },
+        {
+          "command": "hexcavator.showLog",
+          "when": "view == hexcavator.binaries",
+          "group": "z_hexc@1"
+        },
+        {
+          "command": "hexcavator.restartServer",
+          "when": "view == hexcavator.binaries",
+          "group": "z_hexc@2"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "hexcavator.showReport",
+          "when": "view == hexcavator.binaries && viewItem =~ /^hexc\\.(binary|diff)$/",
+          "group": "inline@1"
+        },
+        {
+          "command": "hexcavator.remove",
+          "when": "view == hexcavator.binaries && viewItem =~ /^hexc\\.(binary|diff)$/",
+          "group": "inline@2"
+        },
+        {
+          "command": "hexcavator.showReport",
+          "when": "view == hexcavator.binaries && viewItem =~ /^hexc\\.(binary|diff)$/",
+          "group": "1@1"
+        },
+        {
+          "command": "hexcavator.refresh",
+          "when": "view == hexcavator.binaries && viewItem =~ /^hexc\\.(binary|diff)$/",
+          "group": "1@2"
+        },
+        {
+          "command": "hexcavator.revealFile",
+          "when": "view == hexcavator.binaries && viewItem =~ /^hexc\\.(binary|diff)$/",
+          "group": "1@3"
+        },
+        {
+          "command": "hexcavator.remove",
+          "when": "view == hexcavator.binaries && viewItem =~ /^hexc\\.(binary|diff)$/",
+          "group": "2@1"
+        },
+        {
+          "command": "hexcavator.showReport",
+          "when": "view == hexcavator.binaries && viewItem =~ /^hexc\\.(row|size)/",
+          "group": "inline@1"
+        },
+        {
+          "command": "hexcavator.showReport",
+          "when": "view == hexcavator.binaries && viewItem =~ /^hexc\\.(row|size)/",
+          "group": "1@1"
+        },
+        {
+          "command": "hexcavator.symbol.open",
+          "when": "view == hexcavator.binaries && viewItem =~ /symbol\\.pe/",
+          "group": "inline@2"
+        },
+        {
+          "command": "hexcavator.symbol.why",
+          "when": "view == hexcavator.binaries && viewItem =~ /symbol\\.pe/",
+          "group": "inline@3"
+        },
+        {
+          "command": "hexcavator.symbol.why",
+          "when": "view == hexcavator.binaries && viewItem =~ /symbol\\.pe/",
+          "group": "2@1"
+        },
+        {
+          "command": "hexcavator.symbol.refs",
+          "when": "view == hexcavator.binaries && viewItem =~ /symbol\\.pe/",
+          "group": "2@2"
+        },
+        {
+          "command": "hexcavator.symbol.disassemble",
+          "when": "view == hexcavator.binaries && viewItem =~ /symbol/",
+          "group": "2@3"
+        },
+        {
+          "command": "hexcavator.symbol.goToSource",
+          "when": "view == hexcavator.binaries && viewItem =~ /symbol\\.pe/",
+          "group": "2@4"
+        },
+        {
+          "command": "hexcavator.symbol.copyName",
+          "when": "view == hexcavator.binaries && viewItem =~ /symbol/",
+          "group": "3@1"
+        },
+        {
+          "command": "hexcavator.copyCommand",
+          "when": "view == hexcavator.binaries && viewItem =~ /^hexc\\.tool/",
+          "group": "inline@1"
+        },
+        {
+          "command": "hexcavator.runTool",
+          "when": "view == hexcavator.binaries && viewItem =~ /^hexc\\.tool/",
+          "group": "1@1"
+        },
+        {
+          "command": "hexcavator.copyCommand",
+          "when": "view == hexcavator.binaries && viewItem =~ /^hexc\\.tool/",
+          "group": "1@2"
+        },
+        {
+          "command": "hexcavator.runInTerminal",
+          "when": "view == hexcavator.binaries && viewItem == hexc.tool.command",
+          "group": "1@3"
+        },
+        {
+          "command": "hexcavator.removeResult",
+          "when": "view == hexcavator.binaries && viewItem == hexc.result",
+          "group": "inline@1"
+        },
+        {
+          "command": "hexcavator.symbol.disassemble",
+          "when": "view == hexcavator.binaries && viewItem =~ /symbol$/",
+          "group": "inline@2"
+        },
+        {
+          "command": "hexcavator.symbol.viewData",
+          "when": "view == hexcavator.binaries && viewItem =~ /symbol\\.pe/",
+          "group": "2@3"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "hexcavator.remove",
+          "when": "false"
+        },
+        {
+          "command": "hexcavator.revealFile",
+          "when": "false"
+        },
+        {
+          "command": "hexcavator.showReport",
+          "when": "false"
+        },
+        {
+          "command": "hexcavator.runTool",
+          "when": "false"
+        },
+        {
+          "command": "hexcavator.copyCommand",
+          "when": "false"
+        },
+        {
+          "command": "hexcavator.runInTerminal",
+          "when": "false"
+        },
+        {
+          "command": "hexcavator.removeResult",
+          "when": "false"
+        },
+        {
+          "command": "hexcavator.symbol.why",
+          "when": "false"
+        },
+        {
+          "command": "hexcavator.symbol.refs",
+          "when": "false"
+        },
+        {
+          "command": "hexcavator.symbol.disassemble",
+          "when": "false"
+        },
+        {
+          "command": "hexcavator.symbol.goToSource",
+          "when": "false"
+        },
+        {
+          "command": "hexcavator.symbol.copyName",
+          "when": "false"
+        },
+        {
+          "command": "hexcavator.pickFunction",
+          "when": "false"
+        },
+        {
+          "command": "hexcavator.row.disassemble",
+          "when": "false"
+        },
+        {
+          "command": "hexcavator.row.viewData",
+          "when": "false"
+        },
+        {
+          "command": "hexcavator.row.why",
+          "when": "false"
+        },
+        {
+          "command": "hexcavator.row.refs",
+          "when": "false"
+        },
+        {
+          "command": "hexcavator.row.goToSource",
+          "when": "false"
+        },
+        {
+          "command": "hexcavator.row.copyName",
+          "when": "false"
+        },
+        {
+          "command": "hexcavator.symbol.open",
+          "when": "false"
+        },
+        {
+          "command": "hexcavator.symbol.viewData",
+          "when": "false"
+        },
+        {
+          "command": "hexcavator.type.layout",
+          "when": "false"
+        },
+        {
+          "command": "hexcavator.type.refs",
+          "when": "false"
+        },
+        {
+          "command": "hexcavator.type.definition",
+          "when": "false"
+        },
+        {
+          "command": "hexcavator.row.disassemblyDiff",
+          "when": "false"
+        },
+        {
+          "command": "hexcavator.openInPane",
+          "when": "false"
+        },
+        {
+          "command": "hexcavator.clear",
+          "when": "false"
+        },
+        {
+          "command": "hexcavator.refresh",
+          "when": "false"
+        },
+        {
+          "command": "hexcavator.showLog",
+          "when": "false"
+        },
+        {
+          "command": "hexcavator.restartServer",
+          "when": "false"
+        }
+      ],
+      "webview/context": [
+        {
+          "command": "hexcavator.row.disassemble",
+          "when": "(webviewId == 'hexcSize' || webviewId == 'hexcavator.sizeEditor' || webviewId == 'hexcTable') && webviewSection == 'symbol' && symbolKind != 'data'",
+          "group": "1@1"
+        },
+        {
+          "command": "hexcavator.row.disassemblyDiff",
+          "when": "(webviewId == 'hexcSize' || webviewId == 'hexcavator.sizeEditor') && webviewSection == 'diffSymbol' && symbolKind != 'data' && (symbolChange == 'grew' || symbolChange == 'shrank' || symbolChange == 'same')",
+          "group": "1@0"
+        },
+        {
+          "command": "hexcavator.row.viewData",
+          "when": "(webviewId == 'hexcSize' || webviewId == 'hexcavator.sizeEditor' || webviewId == 'hexcTable') && webviewSection == 'symbol' && symbolKind != 'code' && canData",
+          "group": "1@2"
+        },
+        {
+          "command": "hexcavator.row.why",
+          "when": "(webviewId == 'hexcSize' || webviewId == 'hexcavator.sizeEditor' || webviewId == 'hexcTable') && webviewSection == 'symbol' && canQuery",
+          "group": "2@1"
+        },
+        {
+          "command": "hexcavator.row.refs",
+          "when": "(webviewId == 'hexcSize' || webviewId == 'hexcavator.sizeEditor' || webviewId == 'hexcTable') && webviewSection == 'symbol' && canQuery",
+          "group": "2@2"
+        },
+        {
+          "command": "hexcavator.row.goToSource",
+          "when": "(webviewId == 'hexcSize' || webviewId == 'hexcavator.sizeEditor' || webviewId == 'hexcTable') && webviewSection == 'symbol' && symbolKind != 'data'",
+          "group": "1@3"
+        },
+        {
+          "command": "hexcavator.row.copyName",
+          "when": "(webviewId == 'hexcSize' || webviewId == 'hexcavator.sizeEditor' || webviewId == 'hexcTable') && (webviewSection == 'symbol' || webviewSection == 'row' || webviewSection == 'diffSymbol')",
+          "group": "3@1"
+        },
+        {
+          "command": "hexcavator.type.layout",
+          "when": "webviewId == 'hexcTypes' && webviewSection == 'type'",
+          "group": "1@1"
+        },
+        {
+          "command": "hexcavator.type.refs",
+          "when": "webviewId == 'hexcTypes' && webviewSection == 'type'",
+          "group": "1@2"
+        },
+        {
+          "command": "hexcavator.type.definition",
+          "when": "webviewId == 'hexcTypes' && webviewSection == 'type'",
+          "group": "1@3"
+        },
+        {
+          "command": "hexcavator.row.copyName",
+          "when": "webviewId == 'hexcTypes' && webviewSection == 'type'",
+          "group": "3@1"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Hexcavator",
+      "properties": {
+        "hexcavator.symbolPath": {
+          "type": "string",
+          "default": "",
+          "description": "Directories to look for debug information in (PDBs, .debug files, dSYMs, symbol caches), separated as PATH's are (HEXC_SYMBOL_PATH). hexc also looks beside the binary, in _NT_SYMBOL_PATH's local directories, and in debuginfod's cache."
+        },
+        "hexcavator.symbolServers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Symbol servers with Microsoft's layout to ask for debug information hexc doesn't find (such as https://msdl.microsoft.com/download/symbols). Nothing is asked of a server unless one is set."
+        },
+        "hexcavator.debuginfod": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "debuginfod servers to ask for ELF debug files by build ID. Nothing is asked of a server unless one is set (DEBUGINFOD_URLS isn't followed)."
+        },
+        "hexcavator.symbolCache": {
+          "type": "string",
+          "default": "",
+          "description": "Where to keep what the symbol servers send (else it is kept in memory only)."
+        },
+        "hexcavator.arch": {
+          "type": "string",
+          "default": "",
+          "description": "The image of universal (fat) Mach-O files to read: arm64, x86_64, ... (empty: this machine's, else the first)."
+        },
+        "hexcavator.sourcePathMap": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {},
+          "description": "Source paths a build recorded, mapped to where the files are here, by prefix: {\"/build/src/\": \"/home/me/src/\"}. Without a mapping, a recorded file that isn't on this machine is looked for by its last directories under the workspace's folders and the binary's directories."
+        },
+        "hexcavator.path": {
+          "type": "string",
+          "default": "",
+          "description": "The hexc executable (a full path, or a name on PATH). Empty: the hexc this extension comes with; else, when it runs from a clone of the repository, its build (target/release, then target/debug); else hexc on PATH."
+        },
+        "hexcavator.sources": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "sections",
+              "segments",
+              "groups",
+              "symbols",
+              "rawsymbols",
+              "fullsymbols",
+              "compileunits",
+              "inlines",
+              "armembers",
+              "libraries",
+              "inputfiles",
+              "archs"
+            ]
+          },
+          "default": [
+            "sections",
+            "compileunits",
+            "symbols"
+          ],
+          "description": "The data sources to report by, outermost first: one treemap level each."
+        },
+        "hexcavator.rows": {
+          "type": "integer",
+          "default": 100,
+          "minimum": 0,
+          "description": "Rows per level before the rest are shown as [N Others] (0: all; large values make big reports slow)."
+        },
+        "hexcavator.treeSources": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "sections",
+              "segments",
+              "groups",
+              "symbols",
+              "rawsymbols",
+              "fullsymbols",
+              "compileunits",
+              "inlines",
+              "armembers",
+              "libraries",
+              "inputfiles",
+              "archs"
+            ]
+          },
+          "default": [],
+          "description": "The data sources of the sidebar's Size tree, outermost first (empty: those of hexcavator.sources)."
+        },
+        "hexcavator.disassemblyView": {
+          "type": "string",
+          "enum": [
+            "raw",
+            "blocks",
+            "source",
+            "graph"
+          ],
+          "enumDescriptions": [
+            "A line per instruction, with its address and label",
+            "By basic block: each set apart, its label above it and where it goes below",
+            "With the source line each instruction came from (and its text, if the file is here)",
+            "A graph of the basic blocks and the branches between them"
+          ],
+          "default": "blocks",
+          "description": "How a function's code is first shown (the view remembers the last one picked)."
+        },
+        "hexcavator.codeLens": {
+          "type": "boolean",
+          "default": true,
+          "description": "Above each function in a source file, its size in each binary open in the Hexcavator sidebar (from the PDB's line tables), with links to its code and why it is there."
+        }
+      }
+    },
+    "customEditors": [
+      {
+        "viewType": "hexcavator.sizeEditor",
+        "displayName": "Hexcavator Size",
+        "selector": [
+          {
+            "filenamePattern": "*.exe"
+          },
+          {
+            "filenamePattern": "*.dll"
+          },
+          {
+            "filenamePattern": "*.sys"
+          },
+          {
+            "filenamePattern": "*.efi"
+          },
+          {
+            "filenamePattern": "*.obj"
+          },
+          {
+            "filenamePattern": "*.lib"
+          },
+          {
+            "filenamePattern": "*.so"
+          },
+          {
+            "filenamePattern": "*.o"
+          },
+          {
+            "filenamePattern": "*.a"
+          },
+          {
+            "filenamePattern": "*.ko"
+          },
+          {
+            "filenamePattern": "*.elf"
+          },
+          {
+            "filenamePattern": "*.axf"
+          },
+          {
+            "filenamePattern": "*.out"
+          },
+          {
+            "filenamePattern": "*.dylib"
+          },
+          {
+            "filenamePattern": "*.bundle"
+          },
+          {
+            "filenamePattern": "*.wasm"
+          }
+        ],
+        "priority": "option"
+      }
+    ],
+    "languages": [
+      {
+        "id": "hexc-disasm",
+        "aliases": [
+          "Hexcavator Disassembly"
+        ],
+        "extensions": [
+          ".disasm"
+        ]
+      }
+    ],
+    "grammars": [
+      {
+        "language": "hexc-disasm",
+        "scopeName": "source.hexc-disasm",
+        "path": "./syntaxes/hexc-disasm.tmLanguage.json"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "hexcavator",
+          "title": "Hexcavator",
+          "icon": "media/activity.svg"
+        }
+      ]
+    },
+    "views": {
+      "hexcavator": [
+        {
+          "id": "hexcavator.binaries",
+          "name": "Binaries",
+          "icon": "media/activity.svg",
+          "contextualTitle": "Hexcavator"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "hexcavator.binaries",
+        "contents": "Explore an executable, object, library, or WebAssembly module with its debug information: its headers, symbols, types, sources, data, and disassembly, why each function is there, and where its bytes go.\n[Open Binary…](command:hexcavator.open)\n[Diff Binaries…](command:hexcavator.openDiff)\nOr right-click a binary in the Explorer. Everything here runs [hexc](command:workbench.action.openSettings?%5B%22hexcavator.path%22%5D), whose command lines each tool shows."
+      }
+    ]
+  }
+}

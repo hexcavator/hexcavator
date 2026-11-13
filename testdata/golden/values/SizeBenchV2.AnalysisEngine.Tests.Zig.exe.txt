@@ -1,0 +1,18 @@
+## _tls_used @0x21080
+struct "" "start_windows_tls.IMAGE_TLS_DIRECTORY" @0x0+40
+  pointer "StartAddressOfRawData" "<no type>*" @0x0+8 = "0x140026000" -> 0x140026000
+  pointer "EndAddressOfRawData" "<no type>*" @0x8+8 = "0x140026001" -> 0x140026001
+  pointer "AddressOfIndex" "<no type>*" @0x10+8 = "0x140022000" -> 0x140022000
+  pointer "AddressOfCallBacks" "<no type>*" @0x18+8 = "0x140025000" -> 0x140025000
+  integer "SizeOfZeroFill" "unsigned int" @0x20+4 = "0"
+  integer "Characteristics" "unsigned int" @0x24+4 = "1048576"
+## _tls_index @0x22000
+integer "" "unsigned int" @0x0+4 = "4294967295"
+## __xl_a @0x25000
+pointer "" "<no type>*" @0x0+8 = "nullptr"
+## __xl_z @0x25008
+pointer "" "<no type>*" @0x0+8 = "nullptr"
+## _tls_start @0x26000
+integer "" "unsigned char" @0x0+1 = "0"
+## _tls_end @0x26001
+integer "" "unsigned char" @0x0+1 = "0"

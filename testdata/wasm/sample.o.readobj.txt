@@ -1,0 +1,250 @@
+
+File: sample.o
+Format: WASM
+Arch: wasm32
+AddressSize: 32bit
+Version: 0x1
+Sections [
+  Section {
+    Type: TYPE (0x1)
+    Size: 46
+    Offset: 14
+  }
+  Section {
+    Type: IMPORT (0x2)
+    Size: 81
+    Offset: 66
+  }
+  Section {
+    Type: FUNCTION (0x3)
+    Size: 18
+    Offset: 153
+  }
+  Section {
+    Type: DATACOUNT (0xC)
+    Size: 1
+    Offset: 177
+  }
+  Section {
+    Type: CODE (0xA)
+    Size: 891
+    Offset: 184
+  }
+  Section {
+    Type: DATA (0xB)
+    Size: 12
+    Offset: 1081
+    Segments [
+      Segment {
+        Name: .rodata..Lswitch.table.classify
+        Size: 6
+        Offset: 0
+      }
+    ]
+  }
+  Section {
+    Type: CUSTOM (0x0)
+    Size: 931
+    Offset: 1099
+    Name: linking
+  }
+  Section {
+    Type: CUSTOM (0x0)
+    Size: 76
+    Offset: 2044
+    Name: reloc.CODE
+  }
+  Section {
+    Type: CUSTOM (0x0)
+    Size: 51
+    Offset: 2137
+    Name: producers
+  }
+  Section {
+    Type: CUSTOM (0x0)
+    Size: 141
+    Offset: 2204
+    Name: target_features
+  }
+]
+Relocations [
+  Section (5) CODE {
+    0xD3 R_WASM_TYPE_INDEX_LEB 1
+    0xD8 R_WASM_TABLE_NUMBER_LEB __indirect_function_table
+    0xEC R_WASM_MEMORY_ADDR_LEB .Lswitch.table.classify 0
+    0x155 R_WASM_MEMORY_ADDR_LEB .Lswitch.table.classify 0
+    0x168 R_WASM_GLOBAL_INDEX_LEB __stack_pointer
+    0x173 R_WASM_GLOBAL_INDEX_LEB __stack_pointer
+    0x180 R_WASM_FUNCTION_INDEX_LEB _RNvNtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd1289v128_load
+    0x18D R_WASM_FUNCTION_INDEX_LEB _RNvNtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd1289v128_load
+    0x19F R_WASM_FUNCTION_INDEX_LEB _RNvNtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd1289i32x4_mul
+    0x1BD R_WASM_FUNCTION_INDEX_LEB _RINvNtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd12813i32x4_shuffleKj2_Kj3_Kj0_Kj1_ECsigjfd5Cify6_6sample
+    0x1D7 R_WASM_FUNCTION_INDEX_LEB _RNvNtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd1289i32x4_add
+    0x1E2 R_WASM_FUNCTION_INDEX_LEB _RNvNtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd1285i32x4
+    0x1F4 R_WASM_FUNCTION_INDEX_LEB _RNvNtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd1289i32x4_add
+    0x20D R_WASM_FUNCTION_INDEX_LEB _RINvNtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd12818i32x4_extract_laneKj0_ECsigjfd5Cify6_6sample
+    0x21A R_WASM_FUNCTION_INDEX_LEB _RNvNtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd12811u8x16_splat
+    0x234 R_WASM_FUNCTION_INDEX_LEB _RNvNtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd12813i8x16_swizzle
+    0x23F R_WASM_FUNCTION_INDEX_LEB _RINvNtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd12818i32x4_extract_laneKj1_ECsigjfd5Cify6_6sample
+    0x24C R_WASM_GLOBAL_INDEX_LEB __stack_pointer
+  }
+]
+Symbols [
+  Symbol {
+    Name: _RINvNtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd12813i32x4_shuffleKj2_Kj3_Kj0_Kj1_ECsigjfd5Cify6_6sample
+    Type: FUNCTION (0x0)
+    Flags [ (0x2)
+      BINDING_LOCAL (0x2)
+    ]
+    ElementIndex: 0x0
+  }
+  Symbol {
+    Name: _RINvNtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd12818i32x4_extract_laneKj0_ECsigjfd5Cify6_6sample
+    Type: FUNCTION (0x0)
+    Flags [ (0x2)
+      BINDING_LOCAL (0x2)
+    ]
+    ElementIndex: 0x1
+  }
+  Symbol {
+    Name: _RINvNtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd12818i32x4_extract_laneKj1_ECsigjfd5Cify6_6sample
+    Type: FUNCTION (0x0)
+    Flags [ (0x2)
+      BINDING_LOCAL (0x2)
+    ]
+    ElementIndex: 0x2
+  }
+  Symbol {
+    Name: _RNvCs5fGHjzWXRav_7___rustc17rust_begin_unwind
+    Type: FUNCTION (0x0)
+    Flags [ (0x4)
+      VISIBILITY_HIDDEN (0x4)
+    ]
+    ElementIndex: 0x3
+  }
+  Symbol {
+    Name: _RNvNtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd12811u8x16_splat
+    Type: FUNCTION (0x0)
+    Flags [ (0x2)
+      BINDING_LOCAL (0x2)
+    ]
+    ElementIndex: 0x4
+  }
+  Symbol {
+    Name: _RNvNtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd12813i8x16_swizzle
+    Type: FUNCTION (0x0)
+    Flags [ (0x2)
+      BINDING_LOCAL (0x2)
+    ]
+    ElementIndex: 0x5
+  }
+  Symbol {
+    Name: _RNvNtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd1285i32x4
+    Type: FUNCTION (0x0)
+    Flags [ (0x2)
+      BINDING_LOCAL (0x2)
+    ]
+    ElementIndex: 0x6
+  }
+  Symbol {
+    Name: _RNvNtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd1289i32x4_add
+    Type: FUNCTION (0x0)
+    Flags [ (0x2)
+      BINDING_LOCAL (0x2)
+    ]
+    ElementIndex: 0x7
+  }
+  Symbol {
+    Name: _RNvNtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd1289i32x4_mul
+    Type: FUNCTION (0x0)
+    Flags [ (0x2)
+      BINDING_LOCAL (0x2)
+    ]
+    ElementIndex: 0x8
+  }
+  Symbol {
+    Name: _RNvNtNtNtCsjyCYk6C1TV_4core9core_arch6wasm327simd1289v128_load
+    Type: FUNCTION (0x0)
+    Flags [ (0x2)
+      BINDING_LOCAL (0x2)
+    ]
+    ElementIndex: 0x9
+  }
+  Symbol {
+    Name: apply
+    Type: FUNCTION (0x0)
+    Flags [ (0x0)
+    ]
+    ElementIndex: 0xA
+  }
+  Symbol {
+    Name: __indirect_function_table
+    Type: TABLE (0x5)
+    Flags [ (0x10)
+      UNDEFINED (0x10)
+    ]
+    ImportModule: env
+    ElementIndex: 0x0
+  }
+  Symbol {
+    Name: .Lswitch.table.classify
+    Type: DATA (0x1)
+    Flags [ (0x2)
+      BINDING_LOCAL (0x2)
+    ]
+    Offset: 0x0
+    Segment: 0x0
+    Size: 0x6
+  }
+  Symbol {
+    Name: blend
+    Type: FUNCTION (0x0)
+    Flags [ (0x0)
+    ]
+    ElementIndex: 0xB
+  }
+  Symbol {
+    Name: classify
+    Type: FUNCTION (0x0)
+    Flags [ (0x0)
+    ]
+    ElementIndex: 0xC
+  }
+  Symbol {
+    Name: dot
+    Type: FUNCTION (0x0)
+    Flags [ (0x0)
+    ]
+    ElementIndex: 0xD
+  }
+  Symbol {
+    Name: __stack_pointer
+    Type: GLOBAL (0x2)
+    Flags [ (0x10)
+      UNDEFINED (0x10)
+    ]
+    ImportModule: env
+    ElementIndex: 0x0
+  }
+  Symbol {
+    Name: move_and_clear
+    Type: FUNCTION (0x0)
+    Flags [ (0x0)
+    ]
+    ElementIndex: 0xE
+  }
+  Symbol {
+    Name: narrow
+    Type: FUNCTION (0x0)
+    Flags [ (0x0)
+    ]
+    ElementIndex: 0xF
+  }
+  Symbol {
+    Name: sum
+    Type: FUNCTION (0x0)
+    Flags [ (0x0)
+    ]
+    ElementIndex: 0x10
+  }
+]

@@ -1,0 +1,21 @@
+[package]
+name = "hexcavator-trace-analysis"
+description = "Queries over traces: stack trees, callers and callees, CPU and wait analysis"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+hexcavator-symbolize.workspace = true
+hexcavator-trace.workspace = true
+hexcavator-mmap.workspace = true
+rustc-hash.workspace = true
+
+[dev-dependencies]
+hexcavator-etl.workspace = true
+
+[lints]
+workspace = true

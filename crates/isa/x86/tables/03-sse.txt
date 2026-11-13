@@ -1,0 +1,471 @@
+# Legacy-encoded SIMD: MMX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2, SSE4a,
+# AES, PCLMUL, SHA, GFNI, and 3DNow!.
+#
+# V/W/U = xmm from ModRM.reg / ModRM.rm (or memory) / ModRM.rm register.
+# P/Q/N = the same for MMX. "dq" = 128 bits (xmmword); W<w>:<m> gives a
+# memory size that differs from the register width.
+
+0F 10 NP /r : movups Vdq,Wdq
+0F 10 66 /r : movupd Vdq,Wdq
+0F 10 F3 /r : movss Vdq,Wdq:d
+0F 10 F2 /r : movsd Vdq,Wdq:mm
+0F 11 NP /r : movups Wdq,Vdq
+0F 11 66 /r : movupd Wdq,Vdq
+0F 11 F3 /r : movss Wdq:d,Vdq
+0F 11 F2 /r : movsd Wdq:mm,Vdq
+0F 12 NP mem : movlps Vdq,Mq
+0F 12 NP reg : movhlps Vdq,Udq
+0F 12 66 mem : movlpd Vdq,Mq
+0F 12 F3 /r : movsldup Vdq,Wdq
+0F 12 F2 /r : movddup Vdq,Wdq:mm
+0F 13 NP mem : movlps Mq,Vdq
+0F 13 66 mem : movlpd Mq,Vdq
+0F 14 NP /r : unpcklps Vdq,Wdq
+0F 14 66 /r : unpcklpd Vdq,Wdq
+0F 15 NP /r : unpckhps Vdq,Wdq
+0F 15 66 /r : unpckhpd Vdq,Wdq
+0F 16 NP mem : movhps Vdq,Mq
+0F 16 NP reg : movlhps Vdq,Udq
+0F 16 66 mem : movhpd Vdq,Mq
+0F 16 F3 /r : movshdup Vdq,Wdq
+0F 17 NP mem : movhps Mq,Vdq
+0F 17 66 mem : movhpd Mq,Vdq
+
+0F 28 NP /r : movaps Vdq,Wdq
+0F 28 66 /r : movapd Vdq,Wdq
+0F 29 NP /r : movaps Wdq,Vdq
+0F 29 66 /r : movapd Wdq,Vdq
+0F 2A NP /r : cvtpi2ps Vdq,Q
+0F 2A 66 /r : cvtpi2pd Vdq,Q
+0F 2A F3 /r : cvtsi2ss Vdq,Ey
+0F 2A F2 /r : cvtsi2sd Vdq,Ey
+0F 2B NP mem : movntps Mdq,Vdq
+0F 2B 66 mem : movntpd Mdq,Vdq
+0F 2B F3 mem : movntss Md,Vdq
+0F 2B F2 mem : movntsd Mq,Vdq
+0F 2C NP /r : cvttps2pi P,Wdq:mm
+0F 2C 66 /r : cvttpd2pi P,Wdq
+0F 2C F3 /r : cvttss2si Gy,Wdq:d
+0F 2C F2 /r : cvttsd2si Gy,Wdq:mm
+0F 2D NP /r : cvtps2pi P,Wdq:mm
+0F 2D 66 /r : cvtpd2pi P,Wdq
+0F 2D F3 /r : cvtss2si Gy,Wdq:d
+0F 2D F2 /r : cvtsd2si Gy,Wdq:mm
+0F 2E NP /r : ucomiss Vdq,Wdq:d
+0F 2E 66 /r : ucomisd Vdq,Wdq:mm
+0F 2F NP /r : comiss Vdq,Wdq:d
+0F 2F 66 /r : comisd Vdq,Wdq:mm
+
+0F 50 NP reg : movmskps Gd,Udq
+0F 50 66 reg : movmskpd Gd,Udq
+0F 51 NP /r : sqrtps Vdq,Wdq
+0F 51 66 /r : sqrtpd Vdq,Wdq
+0F 51 F3 /r : sqrtss Vdq,Wdq:d
+0F 51 F2 /r : sqrtsd Vdq,Wdq:mm
+0F 52 NP /r : rsqrtps Vdq,Wdq
+0F 52 F3 /r : rsqrtss Vdq,Wdq:d
+0F 53 NP /r : rcpps Vdq,Wdq
+0F 53 F3 /r : rcpss Vdq,Wdq:d
+0F 54 NP /r : andps Vdq,Wdq
+0F 54 66 /r : andpd Vdq,Wdq
+0F 55 NP /r : andnps Vdq,Wdq
+0F 55 66 /r : andnpd Vdq,Wdq
+0F 56 NP /r : orps Vdq,Wdq
+0F 56 66 /r : orpd Vdq,Wdq
+0F 57 NP /r : xorps Vdq,Wdq
+0F 57 66 /r : xorpd Vdq,Wdq
+0F 58 NP /r : addps Vdq,Wdq
+0F 58 66 /r : addpd Vdq,Wdq
+0F 58 F3 /r : addss Vdq,Wdq:d
+0F 58 F2 /r : addsd Vdq,Wdq:mm
+0F 59 NP /r : mulps Vdq,Wdq
+0F 59 66 /r : mulpd Vdq,Wdq
+0F 59 F3 /r : mulss Vdq,Wdq:d
+0F 59 F2 /r : mulsd Vdq,Wdq:mm
+0F 5A NP /r : cvtps2pd Vdq,Wdq:mm
+0F 5A 66 /r : cvtpd2ps Vdq,Wdq
+0F 5A F3 /r : cvtss2sd Vdq,Wdq:d
+0F 5A F2 /r : cvtsd2ss Vdq,Wdq:mm
+0F 5B NP /r : cvtdq2ps Vdq,Wdq
+0F 5B 66 /r : cvtps2dq Vdq,Wdq
+0F 5B F3 /r : cvttps2dq Vdq,Wdq
+0F 5C NP /r : subps Vdq,Wdq
+0F 5C 66 /r : subpd Vdq,Wdq
+0F 5C F3 /r : subss Vdq,Wdq:d
+0F 5C F2 /r : subsd Vdq,Wdq:mm
+0F 5D NP /r : minps Vdq,Wdq
+0F 5D 66 /r : minpd Vdq,Wdq
+0F 5D F3 /r : minss Vdq,Wdq:d
+0F 5D F2 /r : minsd Vdq,Wdq:mm
+0F 5E NP /r : divps Vdq,Wdq
+0F 5E 66 /r : divpd Vdq,Wdq
+0F 5E F3 /r : divss Vdq,Wdq:d
+0F 5E F2 /r : divsd Vdq,Wdq:mm
+0F 5F NP /r : maxps Vdq,Wdq
+0F 5F 66 /r : maxpd Vdq,Wdq
+0F 5F F3 /r : maxss Vdq,Wdq:d
+0F 5F F2 /r : maxsd Vdq,Wdq:mm
+
+0F 60 NP /r : punpcklbw P,Q:d
+0F 60 66 /r : punpcklbw Vdq,Wdq
+0F 61 NP /r : punpcklwd P,Q:d
+0F 61 66 /r : punpcklwd Vdq,Wdq
+0F 62 NP /r : punpckldq P,Q:d
+0F 62 66 /r : punpckldq Vdq,Wdq
+0F 63 NP /r : packsswb P,Q
+0F 63 66 /r : packsswb Vdq,Wdq
+0F 64 NP /r : pcmpgtb P,Q
+0F 64 66 /r : pcmpgtb Vdq,Wdq
+0F 65 NP /r : pcmpgtw P,Q
+0F 65 66 /r : pcmpgtw Vdq,Wdq
+0F 66 NP /r : pcmpgtd P,Q
+0F 66 66 /r : pcmpgtd Vdq,Wdq
+0F 67 NP /r : packuswb P,Q
+0F 67 66 /r : packuswb Vdq,Wdq
+0F 68 NP /r : punpckhbw P,Q
+0F 68 66 /r : punpckhbw Vdq,Wdq
+0F 69 NP /r : punpckhwd P,Q
+0F 69 66 /r : punpckhwd Vdq,Wdq
+0F 6A NP /r : punpckhdq P,Q
+0F 6A 66 /r : punpckhdq Vdq,Wdq
+0F 6B NP /r : packssdw P,Q
+0F 6B 66 /r : packssdw Vdq,Wdq
+0F 6C 66 /r : punpcklqdq Vdq,Wdq
+0F 6D 66 /r : punpckhqdq Vdq,Wdq
+0F 6E NP W0 /r : movd P,Ed
+0F 6E NP W1 /r : movq P,Eq
+0F 6E 66 W0 /r : movd Vdq,Ed
+0F 6E 66 W1 /r : movq Vdq,Eq
+0F 6F NP /r : movq P,Q
+0F 6F 66 /r : movdqa Vdq,Wdq
+0F 6F F3 /r : movdqu Vdq,Wdq
+0F 70 NP /r : pshufw P,Q,Ib
+0F 70 66 /r : pshufd Vdq,Wdq,Ib
+0F 70 F3 /r : pshufhw Vdq,Wdq,Ib
+0F 70 F2 /r : pshuflw Vdq,Wdq,Ib
+0F 71 /2 reg NP : psrlw N,Ib
+0F 71 /2 reg 66 : psrlw Udq,Ib
+0F 71 /4 reg NP : psraw N,Ib
+0F 71 /4 reg 66 : psraw Udq,Ib
+0F 71 /6 reg NP : psllw N,Ib
+0F 71 /6 reg 66 : psllw Udq,Ib
+0F 72 /2 reg NP : psrld N,Ib
+0F 72 /2 reg 66 : psrld Udq,Ib
+0F 72 /4 reg NP : psrad N,Ib
+0F 72 /4 reg 66 : psrad Udq,Ib
+0F 72 /6 reg NP : pslld N,Ib
+0F 72 /6 reg 66 : pslld Udq,Ib
+0F 73 /2 reg NP : psrlq N,Ib
+0F 73 /2 reg 66 : psrlq Udq,Ib
+0F 73 /3 reg 66 : psrldq Udq,Ib
+0F 73 /6 reg NP : psllq N,Ib
+0F 73 /6 reg 66 : psllq Udq,Ib
+0F 73 /7 reg 66 : pslldq Udq,Ib
+0F 74 NP /r : pcmpeqb P,Q
+0F 74 66 /r : pcmpeqb Vdq,Wdq
+0F 75 NP /r : pcmpeqw P,Q
+0F 75 66 /r : pcmpeqw Vdq,Wdq
+0F 76 NP /r : pcmpeqd P,Q
+0F 76 66 /r : pcmpeqd Vdq,Wdq
+0F 77 NP : emms
+0F 78 NP /r : vmread Ev,Gv ; f64 noos16
+0F 78 66 /0 reg : extrq Udq,Ib,Ib
+0F 78 F2 reg : insertq Vdq,Udq,Ib,Ib
+0F 79 NP /r : vmwrite Gv,Ev ; f64 noos16
+0F 79 66 reg : extrq Vdq,Udq
+0F 79 F2 reg : insertq Vdq,Udq
+0F 7C 66 /r : haddpd Vdq,Wdq
+0F 7C F2 /r : haddps Vdq,Wdq
+0F 7D 66 /r : hsubpd Vdq,Wdq
+0F 7D F2 /r : hsubps Vdq,Wdq
+0F 7E NP W0 /r : movd Ed,P
+0F 7E NP W1 /r : movq Eq,P
+0F 7E 66 W0 /r : movd Ed,Vdq
+0F 7E 66 W1 /r : movq Eq,Vdq
+0F 7E F3 /r : movq Vdq,Wdq:mm
+0F 7F NP /r : movq Q,P
+0F 7F 66 /r : movdqa Wdq,Vdq
+0F 7F F3 /r : movdqu Wdq,Vdq
+
+0F C2 NP /r : cmpps Vdq,Wdq,Ib ; cmp
+0F C2 66 /r : cmppd Vdq,Wdq,Ib ; cmp
+0F C2 F3 /r : cmpss Vdq,Wdq:d,Ib ; cmp
+0F C2 F2 /r : cmpsd Vdq,Wdq:mm,Ib ; cmp
+0F C4 NP /r : pinsrw P,Ed:w,Ib
+0F C4 66 /r : pinsrw Vdq,Ed:w,Ib
+0F C5 NP reg : pextrw Gy,N,Ib
+0F C5 66 reg : pextrw Gy,Udq,Ib
+0F C6 NP /r : shufps Vdq,Wdq,Ib
+0F C6 66 /r : shufpd Vdq,Wdq,Ib
+
+0F D0 66 /r : addsubpd Vdq,Wdq
+0F D0 F2 /r : addsubps Vdq,Wdq
+0F D1 NP /r : psrlw P,Q
+0F D1 66 /r : psrlw Vdq,Wdq
+0F D2 NP /r : psrld P,Q
+0F D2 66 /r : psrld Vdq,Wdq
+0F D3 NP /r : psrlq P,Q
+0F D3 66 /r : psrlq Vdq,Wdq
+0F D4 NP /r : paddq P,Q
+0F D4 66 /r : paddq Vdq,Wdq
+0F D5 NP /r : pmullw P,Q
+0F D5 66 /r : pmullw Vdq,Wdq
+0F D6 66 /r : movq Wdq:mm,Vdq
+0F D6 F3 reg : movq2dq Vdq,N
+0F D6 F2 reg : movdq2q P,Udq
+0F D7 NP reg : pmovmskb Gy,N
+0F D7 66 reg : pmovmskb Gy,Udq
+0F D8 NP /r : psubusb P,Q
+0F D8 66 /r : psubusb Vdq,Wdq
+0F D9 NP /r : psubusw P,Q
+0F D9 66 /r : psubusw Vdq,Wdq
+0F DA NP /r : pminub P,Q
+0F DA 66 /r : pminub Vdq,Wdq
+0F DB NP /r : pand P,Q
+0F DB 66 /r : pand Vdq,Wdq
+0F DC NP /r : paddusb P,Q
+0F DC 66 /r : paddusb Vdq,Wdq
+0F DD NP /r : paddusw P,Q
+0F DD 66 /r : paddusw Vdq,Wdq
+0F DE NP /r : pmaxub P,Q
+0F DE 66 /r : pmaxub Vdq,Wdq
+0F DF NP /r : pandn P,Q
+0F DF 66 /r : pandn Vdq,Wdq
+0F E0 NP /r : pavgb P,Q
+0F E0 66 /r : pavgb Vdq,Wdq
+0F E1 NP /r : psraw P,Q
+0F E1 66 /r : psraw Vdq,Wdq
+0F E2 NP /r : psrad P,Q
+0F E2 66 /r : psrad Vdq,Wdq
+0F E3 NP /r : pavgw P,Q
+0F E3 66 /r : pavgw Vdq,Wdq
+0F E4 NP /r : pmulhuw P,Q
+0F E4 66 /r : pmulhuw Vdq,Wdq
+0F E5 NP /r : pmulhw P,Q
+0F E5 66 /r : pmulhw Vdq,Wdq
+0F E6 66 /r : cvttpd2dq Vdq,Wdq
+0F E6 F3 /r : cvtdq2pd Vdq,Wdq:mm
+0F E6 F2 /r : cvtpd2dq Vdq,Wdq
+0F E7 NP mem : movntq Mmm,P
+0F E7 66 mem : movntdq Mdq,Vdq
+0F E8 NP /r : psubsb P,Q
+0F E8 66 /r : psubsb Vdq,Wdq
+0F E9 NP /r : psubsw P,Q
+0F E9 66 /r : psubsw Vdq,Wdq
+0F EA NP /r : pminsw P,Q
+0F EA 66 /r : pminsw Vdq,Wdq
+0F EB NP /r : por P,Q
+0F EB 66 /r : por Vdq,Wdq
+0F EC NP /r : paddsb P,Q
+0F EC 66 /r : paddsb Vdq,Wdq
+0F ED NP /r : paddsw P,Q
+0F ED 66 /r : paddsw Vdq,Wdq
+0F EE NP /r : pmaxsw P,Q
+0F EE 66 /r : pmaxsw Vdq,Wdq
+0F EF NP /r : pxor P,Q
+0F EF 66 /r : pxor Vdq,Wdq
+0F F0 F2 mem : lddqu Vdq,Mdq
+0F F1 NP /r : psllw P,Q
+0F F1 66 /r : psllw Vdq,Wdq
+0F F2 NP /r : pslld P,Q
+0F F2 66 /r : pslld Vdq,Wdq
+0F F3 NP /r : psllq P,Q
+0F F3 66 /r : psllq Vdq,Wdq
+0F F4 NP /r : pmuludq P,Q
+0F F4 66 /r : pmuludq Vdq,Wdq
+0F F5 NP /r : pmaddwd P,Q
+0F F5 66 /r : pmaddwd Vdq,Wdq
+0F F6 NP /r : psadbw P,Q
+0F F6 66 /r : psadbw Vdq,Wdq
+0F F7 NP reg : maskmovq P,N
+0F F7 66 reg : maskmovdqu Vdq,Udq
+0F F8 NP /r : psubb P,Q
+0F F8 66 /r : psubb Vdq,Wdq
+0F F9 NP /r : psubw P,Q
+0F F9 66 /r : psubw Vdq,Wdq
+0F FA NP /r : psubd P,Q
+0F FA 66 /r : psubd Vdq,Wdq
+0F FB NP /r : psubq P,Q
+0F FB 66 /r : psubq Vdq,Wdq
+0F FC NP /r : paddb P,Q
+0F FC 66 /r : paddb Vdq,Wdq
+0F FD NP /r : paddw P,Q
+0F FD 66 /r : paddw Vdq,Wdq
+0F FE NP /r : paddd P,Q
+0F FE 66 /r : paddd Vdq,Wdq
+
+# Three-byte map 0F 38.
+0F38 00 NP /r : pshufb P,Q
+0F38 00 66 /r : pshufb Vdq,Wdq
+0F38 01 NP /r : phaddw P,Q
+0F38 01 66 /r : phaddw Vdq,Wdq
+0F38 02 NP /r : phaddd P,Q
+0F38 02 66 /r : phaddd Vdq,Wdq
+0F38 03 NP /r : phaddsw P,Q
+0F38 03 66 /r : phaddsw Vdq,Wdq
+0F38 04 NP /r : pmaddubsw P,Q
+0F38 04 66 /r : pmaddubsw Vdq,Wdq
+0F38 05 NP /r : phsubw P,Q
+0F38 05 66 /r : phsubw Vdq,Wdq
+0F38 06 NP /r : phsubd P,Q
+0F38 06 66 /r : phsubd Vdq,Wdq
+0F38 07 NP /r : phsubsw P,Q
+0F38 07 66 /r : phsubsw Vdq,Wdq
+0F38 08 NP /r : psignb P,Q
+0F38 08 66 /r : psignb Vdq,Wdq
+0F38 09 NP /r : psignw P,Q
+0F38 09 66 /r : psignw Vdq,Wdq
+0F38 0A NP /r : psignd P,Q
+0F38 0A 66 /r : psignd Vdq,Wdq
+0F38 0B NP /r : pmulhrsw P,Q
+0F38 0B 66 /r : pmulhrsw Vdq,Wdq
+0F38 10 66 /r : pblendvb Vdq,Wdq,xmm0
+0F38 14 66 /r : blendvps Vdq,Wdq,xmm0
+0F38 15 66 /r : blendvpd Vdq,Wdq,xmm0
+0F38 17 66 /r : ptest Vdq,Wdq
+0F38 1C NP /r : pabsb P,Q
+0F38 1C 66 /r : pabsb Vdq,Wdq
+0F38 1D NP /r : pabsw P,Q
+0F38 1D 66 /r : pabsw Vdq,Wdq
+0F38 1E NP /r : pabsd P,Q
+0F38 1E 66 /r : pabsd Vdq,Wdq
+0F38 20 66 /r : pmovsxbw Vdq,Wdq:mm
+0F38 21 66 /r : pmovsxbd Vdq,Wdq:d
+0F38 22 66 /r : pmovsxbq Vdq,Wdq:w
+0F38 23 66 /r : pmovsxwd Vdq,Wdq:mm
+0F38 24 66 /r : pmovsxwq Vdq,Wdq:d
+0F38 25 66 /r : pmovsxdq Vdq,Wdq:mm
+0F38 28 66 /r : pmuldq Vdq,Wdq
+0F38 29 66 /r : pcmpeqq Vdq,Wdq
+0F38 2A 66 mem : movntdqa Vdq,Mdq
+0F38 2B 66 /r : packusdw Vdq,Wdq
+0F38 30 66 /r : pmovzxbw Vdq,Wdq:mm
+0F38 31 66 /r : pmovzxbd Vdq,Wdq:d
+0F38 32 66 /r : pmovzxbq Vdq,Wdq:w
+0F38 33 66 /r : pmovzxwd Vdq,Wdq:mm
+0F38 34 66 /r : pmovzxwq Vdq,Wdq:d
+0F38 35 66 /r : pmovzxdq Vdq,Wdq:mm
+0F38 37 66 /r : pcmpgtq Vdq,Wdq
+0F38 38 66 /r : pminsb Vdq,Wdq
+0F38 39 66 /r : pminsd Vdq,Wdq
+0F38 3A 66 /r : pminuw Vdq,Wdq
+0F38 3B 66 /r : pminud Vdq,Wdq
+0F38 3C 66 /r : pmaxsb Vdq,Wdq
+0F38 3D 66 /r : pmaxsd Vdq,Wdq
+0F38 3E 66 /r : pmaxuw Vdq,Wdq
+0F38 3F 66 /r : pmaxud Vdq,Wdq
+0F38 40 66 /r : pmulld Vdq,Wdq
+0F38 41 66 /r : phminposuw Vdq,Wdq
+0F38 80 66 mem : invept Gv,Mo ; f64 noos16
+0F38 81 66 mem : invvpid Gv,Mo ; f64 noos16
+0F38 82 66 mem : invpcid Gv,Mo ; f64 noos16
+0F38 C8 /r : sha1nexte Vdq,Wdq
+0F38 C9 /r : sha1msg1 Vdq,Wdq
+0F38 CA /r : sha1msg2 Vdq,Wdq
+0F38 CB /r : sha256rnds2 Vdq,Wdq,xmm0
+0F38 CC /r : sha256msg1 Vdq,Wdq
+0F38 CD /r : sha256msg2 Vdq,Wdq
+0F38 CF 66 /r : gf2p8mulb Vdq,Wdq
+0F38 DB 66 /r : aesimc Vdq,Wdq
+0F38 DC 66 /r : aesenc Vdq,Wdq
+0F38 DD 66 /r : aesenclast Vdq,Wdq
+0F38 DE 66 /r : aesdec Vdq,Wdq
+0F38 DF 66 /r : aesdeclast Vdq,Wdq
+0F38 F0 NP mem : movbe Gv,Mv
+0F38 F0 66 mem : movbe Gv,Mv ; os66
+0F38 F0 F2 /r : crc32 Gy,Eb
+0F38 F1 NP mem : movbe Mv,Gv
+0F38 F1 66 mem : movbe Mv,Gv ; os66
+0F38 F1 F2 /r : crc32 Gy,Ev
+0F38 F5 66 mem W0 : wrussd Md,Gd
+0F38 F5 66 mem W1 : wrussq Mq,Gq
+0F38 F6 66 /r : adcx Gy,Ey
+0F38 F6 F3 /r : adox Gy,Ey
+0F38 F6 NP mem W0 : wrssd Md,Gd
+0F38 F6 NP mem W1 : wrssq Mq,Gq
+0F38 F8 66 mem : movdir64b Ga,Mzz
+0F38 F8 F2 mem : enqcmd Ga,Mzz
+0F38 F8 F3 mem : enqcmds Ga,Mzz
+0F38 F9 mem : movdiri My,Gy
+
+# Three-byte map 0F 3A.
+0F3A 08 66 /r : roundps Vdq,Wdq,Ib
+0F3A 09 66 /r : roundpd Vdq,Wdq,Ib
+0F3A 0A 66 /r : roundss Vdq,Wdq:d,Ib
+0F3A 0B 66 /r : roundsd Vdq,Wdq:mm,Ib
+0F3A 0C 66 /r : blendps Vdq,Wdq,Ib
+0F3A 0D 66 /r : blendpd Vdq,Wdq,Ib
+0F3A 0E 66 /r : pblendw Vdq,Wdq,Ib
+0F3A 0F NP /r : palignr P,Q,Ib
+0F3A 0F 66 /r : palignr Vdq,Wdq,Ib
+0F3A 14 66 /r : pextrb Ey:b,Vdq,Ib
+0F3A 15 66 /r : pextrw Ey:w,Vdq,Ib
+0F3A 16 66 W0 /r : pextrd Ed,Vdq,Ib
+0F3A 16 66 W1 /r : pextrq Eq,Vdq,Ib
+0F3A 17 66 /r : extractps Ey,Vdq,Ib
+0F3A 20 66 /r : pinsrb Vdq,Ed:b,Ib
+0F3A 21 66 /r : insertps Vdq,Wdq:d,Ib
+0F3A 22 66 W0 /r : pinsrd Vdq,Ed,Ib
+0F3A 22 66 W1 /r : pinsrq Vdq,Eq,Ib
+0F3A 40 66 /r : dpps Vdq,Wdq,Ib
+0F3A 41 66 /r : dppd Vdq,Wdq,Ib
+0F3A 42 66 /r : mpsadbw Vdq,Wdq,Ib
+0F3A 44 66 /r : pclmulqdq Vdq,Wdq,Ib
+0F3A 60 66 /r : pcmpestrm Vdq,Wdq,Ib
+0F3A 61 66 /r : pcmpestri Vdq,Wdq,Ib
+0F3A 62 66 /r : pcmpistrm Vdq,Wdq,Ib
+0F3A 63 66 /r : pcmpistri Vdq,Wdq,Ib
+0F3A CC /r : sha1rnds4 Vdq,Wdq,Ib
+0F3A CE 66 /r : gf2p8affineqb Vdq,Wdq,Ib
+0F3A CF 66 /r : gf2p8affineinvqb Vdq,Wdq,Ib
+0F3A DF 66 /r : aeskeygenassist Vdq,Wdq,Ib
+
+# 3DNow! (0F 0F /r ib, where ib is the opcode).
+3DNOW 0C : pi2fw P,Q
+3DNOW 0D : pi2fd P,Q
+3DNOW 1C : pf2iw P,Q
+3DNOW 1D : pf2id P,Q
+3DNOW 8A : pfnacc P,Q
+3DNOW 8E : pfpnacc P,Q
+3DNOW 90 : pfcmpge P,Q
+3DNOW 94 : pfmin P,Q
+3DNOW 96 : pfrcp P,Q
+3DNOW 97 : pfrsqrt P,Q
+3DNOW 9A : pfsub P,Q
+3DNOW 9E : pfadd P,Q
+3DNOW A0 : pfcmpgt P,Q
+3DNOW A4 : pfmax P,Q
+3DNOW A6 : pfrcpit1 P,Q
+3DNOW A7 : pfrsqit1 P,Q
+3DNOW AA : pfsubr P,Q
+3DNOW AE : pfacc P,Q
+3DNOW B0 : pfcmpeq P,Q
+3DNOW B4 : pfmul P,Q
+3DNOW B6 : pfrcpit2 P,Q
+3DNOW B7 : pmulhrw P,Q
+3DNOW BB : pswapd P,Q
+3DNOW BF : pavgusb P,Q
+
+# Newer general-purpose instructions in the 0F 38 / 0F 3A maps.
+0F38 8A mem : movrs Gb,Mb
+0F38 8B mem : movrs Gv,Mv
+0F38 FC NP mem : aadd My,Gy
+0F38 FC 66 mem : aand My,Gy
+0F38 FC F2 mem : aor My,Gy
+0F38 FC F3 mem : axor My,Gy
+0F38 F8 F2 reg : urdmsr Rq,Gq
+0F38 F8 F3 reg : uwrmsr Gq,Rq
+0F3A F0 F3 !C0 : hreset Ib,rAX ; noos16
+
+# Key Locker.
+0F38 FA F3 reg : encodekey128 Gd,Rd
+0F38 FB F3 reg : encodekey256 Gd,Rd
+0F38 DC F3 mem : aesenc128kl Vdq,M
+0F38 DC F3 reg : loadiwkey Vdq,Udq
+0F38 DD F3 mem : aesdec128kl Vdq,M
+0F38 DE F3 mem : aesenc256kl Vdq,M
+0F38 DF F3 mem : aesdec256kl Vdq,M
+0F38 D8 F3 /0 mem : aesencwide128kl M
+0F38 D8 F3 /1 mem : aesdecwide128kl M
+0F38 D8 F3 /2 mem : aesencwide256kl M
+0F38 D8 F3 /3 mem : aesdecwide256kl M

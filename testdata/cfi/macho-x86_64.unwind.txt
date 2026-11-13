@@ -1,0 +1,33 @@
+
+macho-x86_64:	file format mach-o 64-bit x86-64
+Unwind info:
+
+Contents of __unwind_info section:
+  Version:                                   0x1
+  Common encodings array section offset:     0x1c
+  Number of common encodings in array:       0x5
+  Personality function array section offset: 0x30
+  Number of personality functions in array:  0x0
+  Index array section offset:                0x30
+  Number of indices in array:                0x2
+  Common encodings: (count = 5)
+    encoding[0]: 0x01000000
+    encoding[1]: 0x04000068
+    encoding[2]: 0x04000038
+    encoding[3]: 0x01020021
+    encoding[4]: 0x01010001
+  Personality functions: (count = 0)
+  Top level indices: (count = 2)
+    [0]: function offset=0x00000460, 2nd level page offset=0x00000058, LSDA offset=0x00000048
+    [1]: function offset=0x0000063a, 2nd level page offset=0x00000000, LSDA offset=0x00000058
+  LSDA descriptors:
+    [0]: function offset=0x00000590, LSDA offset=0x00000648
+    [1]: function offset=0x000005f0, LSDA offset=0x00000654
+  Second level indices:
+    Second level index[0]: offset in section=0x00000058, base function offset=0x00000460
+      [0]: function offset=0x00000460, encoding[4]=0x01010001
+      [1]: function offset=0x000004d0, encoding[0]=0x01000000
+      [2]: function offset=0x00000550, encoding[3]=0x01020021
+      [3]: function offset=0x00000590, encoding[2]=0x04000038
+      [4]: function offset=0x000005c0, encoding[0]=0x01000000
+      [5]: function offset=0x000005f0, encoding[1]=0x04000068

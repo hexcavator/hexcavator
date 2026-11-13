@@ -1,0 +1,16 @@
+[package]
+name = "hexcavator-pe"
+description = "Zero-copy PE/COFF image and object reader"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+hexcavator-core.workspace = true
+hexcavator-mz.workspace = true
+
+[lints]
+workspace = true

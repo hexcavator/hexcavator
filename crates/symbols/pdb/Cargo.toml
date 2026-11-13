@@ -1,0 +1,16 @@
+[package]
+name = "hexcavator-pdb"
+description = "Zero-copy PDB reader: the MSF container and its streams (the CodeView records in them are hexcavator-codeview's)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+hexcavator-codeview.workspace = true
+hexcavator-core.workspace = true
+
+[lints]
+workspace = true
