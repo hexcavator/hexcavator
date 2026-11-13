@@ -208,8 +208,13 @@ jobs:
   # App Store Connect API key's .p8 file, as text), APPLE_API_KEY_ID, and
   # APPLE_API_ISSUER_ID, for notarytool. (A bare program can't have its
   # notarization ticket stapled to it; Gatekeeper looks the ticket up.)
+  #
+  # Off for now (`false &&`), until Apple's notarization of our first
+  # submissions settles; macOS is built and tested but not released. To
+  # turn it back on, drop `false &&` here and restore macos-arm64 in
+  # package's matrix.
   sign-macos:
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: false && startsWith(github.ref, 'refs/tags/v')
     needs: build
     runs-on: macos-15
     environment: release
@@ -311,7 +316,9 @@ jobs:
         include:
           - { name: windows-x64, vscode: win32-x64 }
           - { name: windows-arm64, vscode: win32-arm64 }
-          - { name: macos-arm64, vscode: darwin-arm64 }
+          # (macos-arm64 left out while sign-macos is off: an unsigned
+          # hexc isn't released.)
+          # - { name: macos-arm64, vscode: darwin-arm64 }
           - { name: linux-x64, vscode: linux-x64 }
           - { name: linux-arm64, vscode: linux-arm64 }
     runs-on: ubuntu-latest
