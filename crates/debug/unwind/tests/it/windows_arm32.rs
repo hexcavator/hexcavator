@@ -129,8 +129,8 @@ fn context(pc_rva: u32, sp: u32) -> Context {
     c.r[reg::PC] = BASE + pc_rva;
     c.r[reg::SP] = sp;
     c.r[reg::LR] = LR;
-    for n in 4..12 {
-        c.r[n] = 0x1000 + n as u32;
+    for (n, r) in c.r.iter_mut().enumerate().take(12).skip(4) {
+        *r = 0x1000 + n as u32;
     }
     c
 }

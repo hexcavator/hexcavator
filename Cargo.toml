@@ -60,7 +60,6 @@ hexcavator-demangle = { path = "crates/symbols/demangle" }
 hexcavator-xref = { path = "crates/analysis/xref" }
 hexcavator-fingerprint = { path = "crates/analysis/fingerprint" }
 hexcavator-query = { path = "crates/analysis/query" }
-hexcavator-unwind = { path = "crates/debug/unwind" }
 hexcavator-code = { path = "crates/analysis/code" }
 hexcavator-program = { path = "crates/analysis/program" }
 hexcavator-etl = { path = "crates/formats/etl" }
