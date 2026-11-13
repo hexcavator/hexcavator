@@ -34,11 +34,18 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CARGO_TARGET_S390X_UNKNOWN_LINUX_GNU_LINKER: s390x-linux-gnu-gcc
-      CARGO_TARGET_S390X_UNKNOWN_LINUX_GNU_RUNNER: qemu-s390x -L /usr/s390x-linux-gnu
+      CARGO_TARGET_S390X_UNKNOWN_LINUX_GNU_RUNNER: qemu-s390x
+      # Where QEMU finds s390x's loader and libraries, for every s390x
+      # program: the tests, and the hexc they start (which the kernel hands
+      # to QEMU itself, without the runner's options).
+      QEMU_LD_PREFIX: /usr/s390x-linux-gnu
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - run: sudo apt-get update && sudo apt-get install -y gcc-s390x-linux-gnu libc6-dev-s390x-cross qemu-user
       - run: rustup target add s390x-unknown-linux-gnu
+      # Every platform's dependencies, not only s390x's: the licenses test
+      # lists them all (cargo metadata --offline).
+      - run: cargo fetch
       - run: cargo test --target s390x-unknown-linux-gnu
 
   # Hosts without memory mapping (WebAssembly) read files into memory
