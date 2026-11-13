@@ -17,7 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-      - run: cargo test --release -p hexcavator-arm64 --test it -- --ignored --nocapture exhaustive::
+      # (Quoted: a plain YAML value can't end in a colon.)
+      - run: "cargo test --release -p hexcavator-arm64 --test it -- --ignored --nocapture exhaustive::"
 
   fuzz:
     # (Coverage from LLVM's profiling counters; proven on Windows.)

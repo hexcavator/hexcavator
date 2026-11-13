@@ -25,6 +25,9 @@ jobs:
       - run: rustup toolchain install stable --profile minimal --component clippy,rustfmt
       - run: cargo fmt --all --check
       - run: cargo clippy --all-targets
+      # Every platform's dependencies, not only this host's: the licenses
+      # test lists them all (cargo metadata --offline).
+      - run: cargo fetch
       # (Every test binary at once: see apps/xtask.)
       - run: cargo xtask test
 
@@ -39,6 +42,9 @@ jobs:
       # program: the tests, and the hexc they start (which the kernel hands
       # to QEMU itself, without the runner's options).
       QEMU_LD_PREFIX: /usr/s390x-linux-gnu
+      # How much slower QEMU runs them, for the tests with time limits
+      # (about 18 times, measured).
+      HEXC_TEST_SLOWDOWN: 25
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - run: sudo apt-get update && sudo apt-get install -y gcc-s390x-linux-gnu libc6-dev-s390x-cross qemu-user
