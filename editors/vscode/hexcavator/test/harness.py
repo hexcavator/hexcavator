@@ -17,6 +17,8 @@ import sys
 import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+# The repository: test/ is in editors/vscode/hexcavator.
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(HERE))))
 MEDIA = os.path.join(os.path.dirname(HERE), "media")
 EDGE = r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
 
@@ -149,7 +151,9 @@ def hexc(*args):
 
 
 def main():
-    exe, image, other = sys.argv[1], sys.argv[2], sys.argv[3]
+    # (A full path: Windows can't start `target/release/hexc.exe`, a relative
+    # path with forward slashes, as given in CI.)
+    exe, image, other = os.path.abspath(sys.argv[1]), sys.argv[2], sys.argv[3]
     shots = sys.argv[4] if len(sys.argv) > 4 else None
     shot = (lambda name: os.path.join(shots, name + ".png")) if shots else (lambda name: None)
     report = hexc(exe, "size", "-d", "sections,symbols", "-n", "20", "-json", image)
@@ -206,7 +210,7 @@ def main():
         "setTimeout(function () { var code = Array.from(document.querySelectorAll('.box.zoomable')).find(function (b) { return /^Code/.test(b.textContent); }) || document.querySelector('.box.zoomable');"
         " code.click(); setTimeout(function () { var b = document.querySelector('td.acts .act'); if (b) b.click(); }, 600); }, 100);"
     )
-    module = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(HERE)))), "testdata", "wasm", "module.wasm")
+    module = os.path.join(REPO, "testdata", "wasm", "module.wasm")
     wasm = hexc(exe, "size", "-d", "sections,symbols", "-json", module)
     dom = render({"kind": "report", "file": module, "report": wasm}, zoom_then_click, vscode=True)
     assert 'class="act"' in dom, "disassemble buttons"
@@ -480,7 +484,7 @@ def types_checks(exe, image, shot):
 def diff_checks(exe, shot):
     """A diff's tree (testdata/diff): each row marked added, removed, grew,
     or shrank; sorted by the change in file size, either way, or by name."""
-    repo = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+    repo = REPO
     new = os.path.join(repo, "testdata", "diff", "diff-v2.exe")
     old = os.path.join(repo, "testdata", "diff", "diff-v1.exe")
     report = hexc(exe, "size", "-d", "symbols", "-n", "0", "-json", new, "--", old)
@@ -547,7 +551,7 @@ def diff_checks(exe, shot):
     assert t["webviewSection"] == "diffSymbol" and t["symbolKind"] != "data", t
     assert t["symbolChange"] == "grew" and t["base"] == old
     assert ctx["added_fn(int)"]["symbolChange"] == "added"
-    menu = json.load(open(os.path.join(repo, "editors", "vscode", "package.json"), encoding="utf-8"))["contributes"]["menus"]["webview/context"]
+    menu = json.load(open(os.path.join(os.path.dirname(HERE), "package.json"), encoding="utf-8"))["contributes"]["menus"]["webview/context"]
     when = next(m["when"] for m in menu if m["command"] == "hexcavator.row.disassemblyDiff")
     for key in ("webviewSection == 'diffSymbol'", "symbolChange == 'grew'"):
         assert key in when, when
@@ -557,7 +561,7 @@ def build_checks(exe, shot):
     """The Build Information page: the security options, the options that
     differ (a value's objects shown at a click), the linker's command line,
     and the objects, grouped by library and filtered as typed."""
-    repo = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+    repo = REPO
     image = os.path.join(repo, "testdata", "types", "types.exe")
     report = hexc(exe, "checksec", "-audit", "-json", image)
     builds = report["audit"]["builds"]
@@ -668,7 +672,7 @@ def table_checks(exe, image, shot):
 def data_checks(exe, shot):
     """The data view of a structure of the types test program: its tree
     and its bytes, linked."""
-    repo = os.path.dirname(os.path.dirname(os.path.dirname(HERE)))
+    repo = REPO
     image = os.path.join(repo, "testdata", "types", "types.exe")
     data = hexc(exe, "data", "-json", image, "g_sample")
     message = {"kind": "data", "file": image, "data": data}
@@ -696,7 +700,7 @@ def data_checks(exe, shot):
 def disasm_checks(exe, shot):
     """The disassembly view, in each mode, of a function of the xref test
     image (with branches, a loop, calls, and source lines)."""
-    repo = os.path.dirname(os.path.dirname(os.path.dirname(HERE)))
+    repo = REPO
     image = os.path.join(repo, "testdata", "xref", "xref-x64.exe")
     name = "__scrt_common_main_seh()"
     listing = hexc(exe, "size", "-disassemble", name, "-json", image)

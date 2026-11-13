@@ -31,11 +31,10 @@ const DERIVED: &[(&str, &str, &str)] = &[
 ];
 
 fn derived(file: &str) -> (&'static str, &'static str) {
-    DERIVED
-        .iter()
-        .find(|(f, _, _)| *f == file)
-        .map(|&(_, who, term)| (who, term))
-        .unwrap_or_else(|| panic!("{file}: not a license file we know (see DERIVED)"))
+    DERIVED.iter().find(|(f, _, _)| *f == file).map_or_else(
+        || panic!("{file}: not a license file we know (see DERIVED)"),
+        |&(_, who, term)| (who, term),
+    )
 }
 
 fn package_dir(p: &Value) -> PathBuf {
@@ -196,8 +195,12 @@ fn our_crates_licenses() {
         "LICENSE is the Apache License 2.0"
     );
     assert!(read("NOTICE").starts_with("Hexcavator\n"), "NOTICE");
-    let package: Value = serde_json::from_str(&read("editors/vscode/hexcavator/package.json")).unwrap();
-    assert_eq!(package["license"], "Apache-2.0", "editors/vscode/hexcavator");
+    let package: Value =
+        serde_json::from_str(&read("editors/vscode/hexcavator/package.json")).unwrap();
+    assert_eq!(
+        package["license"], "Apache-2.0",
+        "editors/vscode/hexcavator"
+    );
 }
 
 #[test]
