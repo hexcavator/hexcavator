@@ -402,6 +402,23 @@ fn main() {
     // The rules, by ID.
     rules.sort_by(|a, b| a.id.cmp(&b.id));
     rules.dedup_by(|a, b| a.id == b.id);
+    // An index of the rules by a hash of their IDs (open addressing,
+    // twice as many slots as rules): `rule` finds one in a step or two
+    // rather than a binary search of string comparisons.
+    let slots = (rules.len() * 2).next_power_of_two().max(16);
+    let mut index = vec![u16::MAX; slots];
+    for (i, r) in rules.iter().enumerate() {
+        let mut s = rule_hash(&r.id) as usize & (slots - 1);
+        while index[s] != u16::MAX {
+            s = (s + 1) & (slots - 1);
+        }
+        index[s] = u16::try_from(i).unwrap();
+    }
+    writeln!(
+        out,
+        "pub(crate) static RULE_INDEX: [u16; {slots}] = {index:?};"
+    )
+    .unwrap();
     writeln!(out, "pub(crate) static RULES: [Rule; {}] = [", rules.len()).unwrap();
     for r in &rules {
         let alts: Vec<String> = r
@@ -422,4 +439,11 @@ fn main() {
     writeln!(out, "];").unwrap();
     let path = PathBuf::from(std::env::var("OUT_DIR").unwrap()).join("tables.rs");
     std::fs::write(path, out).unwrap();
+}
+
+/// The hash `rule` indexes rule IDs by (FNV-1a; src/lib.rs's `rule_hash`).
+fn rule_hash(id: &str) -> u32 {
+    id.bytes().fold(0x811c_9dc5u32, |h, b| {
+        (h ^ u32::from(b)).wrapping_mul(0x0100_0193)
+    })
 }
