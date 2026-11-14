@@ -50,6 +50,10 @@ pod! {
 /// The most records `TypeStream::record` walks from an index entry before
 /// finding every record's offset instead (MSVC indexes every 8 KB).
 const MAX_WALK: u32 = 4096;
+
+/// How many lookups walk from the hash stream's index before every
+/// record's offset is found (4 bytes a record) for the rest.
+const MAX_WALKS: u32 = 256;
 /// The most hash buckets indexed (MSVC uses 0x3FFFF).
 const MAX_BUCKETS: usize = 1 << 20;
 
@@ -61,6 +65,9 @@ pub struct TypeStream<'s> {
     hash: StreamData<'s>,
     /// Lazily built: offset of every record.
     offsets: OnceCell<Vec<u32>>,
+    /// How many lookups have walked from the hash stream's index (after
+    /// [`MAX_WALKS`] of them, every record's offset is found once).
+    walks: std::cell::Cell<u32>,
     /// Lazily built: records by hash bucket (CSR layout).
     buckets: OnceCell<(Vec<u32>, Vec<u32>)>,
 }
@@ -83,6 +90,7 @@ impl<'s> TypeStream<'s> {
                 records: StreamData::Borrowed(&[]),
                 hash,
                 offsets: OnceCell::new(),
+                walks: std::cell::Cell::new(0),
                 buckets: OnceCell::new(),
             });
         }
@@ -101,6 +109,7 @@ impl<'s> TypeStream<'s> {
             records,
             hash,
             offsets: OnceCell::new(),
+            walks: std::cell::Cell::new(0),
             buckets: OnceCell::new(),
         })
     }
@@ -164,9 +173,10 @@ impl<'s> TypeStream<'s> {
             None => (self.begin().0, 0),
         };
         // Far from the nearest index entry (a stream whose index is sparse,
-        // or missing): every record's offset, found once, rather than a
-        // long walk per lookup.
-        if ti.0 - cur.min(ti.0) > MAX_WALK {
+        // or missing), or after many lookups (dumping every type): every
+        // record's offset, found once, rather than a walk per lookup.
+        self.walks.set(self.walks.get().saturating_add(1));
+        if ti.0 - cur.min(ti.0) > MAX_WALK || self.walks.get() > MAX_WALKS {
             let off = *self.build_offsets().get((ti.0 - self.begin().0) as usize)?;
             return TypeRecord::read(&mut Reader::new(self.records.get(off as usize..)?)).ok();
         }

@@ -136,11 +136,24 @@ pub fn compile_units(
         base,
         file_len,
     };
+    // Each abbreviation table, parsed once (a unit's is read for its name,
+    // then for its DIEs).
+    let abbrev_tables: std::cell::RefCell<HashMap<u64, std::rc::Rc<Abbrevs>>> = Default::default();
+    let abbrevs_at = |offset: u64| -> Option<std::rc::Rc<Abbrevs>> {
+        if let Some(a) = abbrev_tables.borrow().get(&offset) {
+            return Some(std::rc::Rc::clone(a));
+        }
+        let a = std::rc::Rc::new(Abbrevs::parse(s.abbrev, offset, s.endian)?);
+        abbrev_tables
+            .borrow_mut()
+            .insert(offset, std::rc::Rc::clone(&a));
+        Some(a)
+    };
     let mut names: HashMap<u64, Label> = HashMap::new();
     let mut unit_name = |labels: &mut Labels, info_offset: u64| -> Label {
         *names.entry(info_offset).or_insert_with(|| {
             let name = Unit::at(s, info_offset)
-                .and_then(|u| top_name(&u))
+                .and_then(|u| top_name(&u, &abbrevs_at))
                 .unwrap_or_else(|| MISSING_FILENAME.into());
             labels.intern(&name)
         })
@@ -170,7 +183,7 @@ pub fn compile_units(
         (UnitSection::Types, off.types),
     ] {
         for mut unit in Unit::iter(s, section, 0) {
-            let Some(abbrevs) = Abbrevs::parse(s.abbrev, unit.abbrev_offset, s.endian) else {
+            let Some(abbrevs) = abbrevs_at(unit.abbrev_offset) else {
                 continue;
             };
             let mut dies = unit.dies();
@@ -275,7 +288,9 @@ pub fn compile_units(
             let Some(u) = Unit::at(s, set.info_offset) else {
                 continue;
             };
-            let Some(name) = top_name(&u) else { continue };
+            let Some(name) = top_name(&u, &abbrevs_at) else {
+                continue;
+            };
             let l = labels.intern(&name);
             c.file(at, set.offset, set.size, l);
         }
@@ -365,10 +380,13 @@ fn line_spans(
     }
 }
 
-/// A unit's `DW_AT_name`.
-fn top_name(u: &Unit<'_>) -> Option<String> {
-    let s = u.sections();
-    let abbrevs = Abbrevs::parse(s.abbrev, u.abbrev_offset, s.endian)?;
+/// A unit's `DW_AT_name` (its abbreviations from `abbrevs_at`, by their
+/// offset).
+fn top_name(
+    u: &Unit<'_>,
+    abbrevs_at: &dyn Fn(u64) -> Option<std::rc::Rc<Abbrevs>>,
+) -> Option<String> {
+    let abbrevs = abbrevs_at(u.abbrev_offset)?;
     let mut u = *u;
     let mut dies = u.dies();
     let a = dies.next(&abbrevs)?;
