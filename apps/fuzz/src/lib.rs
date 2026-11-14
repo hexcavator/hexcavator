@@ -227,6 +227,8 @@ fn unix(name: &str, data: &[u8], s: &Scratch) {
         "0x100000f00",
         "0x10",
     ]);
+    hexc(&["init", "-json", &f]);
+    hexc(&["init", "-depth", "8", &f]);
     // Each function's code, by the names its symbols give.
     for name in ["main", "compute", "jumps", "_main", "add", "square"] {
         hexc(&["size", "-disassemble", name, &f]);

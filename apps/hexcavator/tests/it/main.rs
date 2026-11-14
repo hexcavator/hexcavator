@@ -9,6 +9,7 @@ mod data;
 mod debugmap;
 mod dwarf;
 mod info;
+mod init;
 mod layers;
 mod licenses;
 mod lines;

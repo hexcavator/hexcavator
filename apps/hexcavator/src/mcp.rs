@@ -656,6 +656,7 @@ impl Server {
             "size_report" => self.size_report(args),
             "symbols" => self.symbols(args),
             "lookup" => self.lookup(args),
+            "initialization" => initialization(args),
             "symbolize" => symbolize(args),
             "query" => self.query(args),
             "why" => self.why(args),
@@ -835,6 +836,31 @@ fn symbolize(args: &Value) -> ToolResult {
     let text = run(false)?;
     let structured = serde_json::from_str(&run(true)?).map_err(|e| e.to_string())?;
     Ok((text, object([("addresses", structured)])))
+}
+
+/// The `initialization` tool: what runs when an image loads (`hexc init`).
+fn initialization(args: &Value) -> ToolResult {
+    let path = arg_str(args, "path").ok_or("`path` is required")?;
+    let mut command = vec!["init".to_string()];
+    if let Some(p) = arg_str(args, "pdb") {
+        command.extend(["-pdb".into(), p.to_string()]);
+    }
+    let depth = args
+        .get("depth")
+        .and_then(Value::as_u64)
+        .unwrap_or(2)
+        .min(16);
+    command.extend(["-depth".into(), depth.to_string(), path.to_string()]);
+    let (code, out) = crate::out::capture(|| crate::command(&command));
+    if code != std::process::ExitCode::SUCCESS {
+        return Err(String::from_utf8_lossy(&out.stderr).trim().to_string());
+    }
+    let text = String::from_utf8_lossy(&out.stdout).into_owned();
+    command.insert(1, "-json".into());
+    let (_, json) = crate::out::capture(|| crate::command(&command));
+    let structured =
+        serde_json::from_str(&String::from_utf8_lossy(&json.stdout)).map_err(|e| e.to_string())?;
+    Ok((text, structured))
 }
 
 fn tools() -> Value {
@@ -1130,6 +1156,27 @@ fn tools() -> Value {
                 ),
             ),
             tool(
+                "initialization",
+                "What runs when an executable or library (PE, ELF, Mach-O, with its debug information) is loaded, before its main: TLS callbacks, the entry point, the CRT's initializer lists (C initializers, global objects' constructors), .preinit_array, DT_INIT, .ctors, .init_array, __mod_init_func; each phase's functions in the order they run, with what each calls (`depth` levels down), and then main (or DllMain).",
+                schema(
+                    vec![
+                        ("path", prop("string", "The executable or library.")),
+                        (
+                            "pdb",
+                            prop(
+                                "string",
+                                "Its debug information, if it isn't found from the image.",
+                            ),
+                        ),
+                        (
+                            "depth",
+                            prop("integer", "How many levels of callees to show (default 2)."),
+                        ),
+                    ],
+                    &["path"],
+                ),
+            ),
+            tool(
                 "lookup",
                 "What is at an address of a binary, by every data source: section, COFF group, symbol (with every name folded there), compiland, and library.",
                 schema(
@@ -1258,6 +1305,7 @@ mod tests {
                 "why",
                 "recommend",
                 "symbolize",
+                "initialization",
                 "lookup"
             ]
         );

@@ -358,12 +358,12 @@ async function treeTests(exe) {
 
   // A binary: what it is, its pages, Compare; then the other queries.
   const top = await kids(roots[0]);
-  assert.deepStrictEqual(top.map((n) => n.type), ["tool", "tool", "tool", "tool", "tool", "tool", "tool", "tool", "tool", "group"]);
+  assert.deepStrictEqual(top.map((n) => n.type), ["tool", "tool", "tool", "tool", "tool", "tool", "tool", "tool", "tool", "tool", "group"]);
   assert.deepStrictEqual(
     await Promise.all(top.map(async (n) => (await item(n)).label)),
-    ["Headers", "File Format", "Build Information", "Debug Information", "Symbols", "Types", "Sources", "Size Reduction Opportunities", "Compare With Another Build…", "Miscellaneous Queries"]
+    ["Headers", "File Format", "Build Information", "Debug Information", "Initialization", "Symbols", "Types", "Sources", "Size Reduction Opportunities", "Compare With Another Build…", "Miscellaneous Queries"]
   );
-  assert.strictEqual(top[7].tool.id, "findings");
+  assert.strictEqual(top[8].tool.id, "findings");
   // Build Information: a page of its own.
   assert.strictEqual(top[2].tool.run, "buildinfo");
   assert.ok(sidebar.commandFor(top[2]).includes(`checksec -audit ${image}`));
@@ -371,12 +371,14 @@ async function treeTests(exe) {
   const debugTool = top[3].tool;
   assert.deepStrictEqual(debugTool.args.slice(0, 2), ["pdb", "-summary"]);
   assert.ok(debugTool.args[2].endsWith("xref-x64.pdb"), debugTool.args[2]);
-  assert.strictEqual(top[4].tool.run, "panel");
-  assert.strictEqual(top[5].tool.run, "types");
+  // Initialization: a page of its own.
+  assert.strictEqual(top[4].tool.run, "init");
+  assert.strictEqual(top[5].tool.run, "panel");
+  assert.strictEqual(top[6].tool.run, "types");
   // Sources: the Symbols page, grouped by source file.
-  assert.strictEqual(top[6].tool.run, "sources");
-  assert.ok(sidebar.commandFor(top[6]).includes(`size -d "sourcefiles,symbols" -n 0 ${image}`));
-  const misc = top[9];
+  assert.strictEqual(top[7].tool.run, "sources");
+  assert.ok(sidebar.commandFor(top[7]).includes(`size -d "sourcefiles,symbols" -n 0 ${image}`));
+  const misc = top[10];
   assert.strictEqual((await item(misc)).collapsibleState, 1, "collapsed");
   const miscKids = await kids(misc);
   // (Findings is a page of its own now; Recommendations is in it.)

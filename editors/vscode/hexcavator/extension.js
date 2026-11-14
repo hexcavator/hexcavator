@@ -1195,6 +1195,63 @@ function openBuildInfo(context, file) {
   load();
 }
 
+/** Open Initialization pages, by file. */
+const initPanels = new Map();
+
+/**
+ * Opens (or shows) the Initialization page of the binary at `file`: what
+ * runs when it's loaded, before its main, in order (hexc init -json), each
+ * function opening to what it calls (hexc init -callees, asked as opened).
+ */
+function openInit(context, file) {
+  const existing = initPanels.get(file);
+  if (existing) {
+    existing.reveal();
+    return;
+  }
+  const name = path.basename(file);
+  const panel = panelFor(context, "hexcInit", `Initialization: ${name}`, "init-view.js");
+  initPanels.set(file, panel);
+  panel.onDidDispose(() => initPanels.delete(file));
+  const load = async () => {
+    try {
+      const out = await paneRun(panel.webview, `Finding what runs before ${name}'s main…`, ["init", "-json", file]);
+      panel.webview.postMessage({ kind: "init", file, data: JSON.parse(out) });
+    } catch (e) {
+      if (!e.cancelled) {
+        vscode.window.showErrorMessage(`hexc: ${e.message}`);
+      }
+      panel.webview.postMessage({ kind: "failed", message: e.message });
+    }
+  };
+  panel.webview.onDidReceiveMessage(async (m) => {
+    switch (m && m.command) {
+      case "ready":
+      case "refresh":
+        await load();
+        break;
+      case "callees":
+        if (Number.isSafeInteger(m.node)) {
+          try {
+            const out = await runHexc(["init", "-json", "-callees", String(m.node), file]);
+            panel.webview.postMessage(Object.assign({ kind: "callees" }, JSON.parse(out)));
+          } catch (e) {
+            panel.webview.postMessage({ kind: "callees", node: m.node, callees: [] });
+          }
+        }
+        break;
+      case "openSource":
+        if (typeof m.file === "string" && fs.existsSync(m.file)) {
+          const line = Math.max(0, (Number(m.line) || 1) - 1);
+          vscode.window.showTextDocument(vscode.Uri.file(m.file), { preview: true, selection: new vscode.Range(line, 0, line, 0) });
+        } else {
+          vscode.window.showInformationMessage(`${m.file} is not on this machine`);
+        }
+        break;
+    }
+  }, undefined, context.subscriptions);
+}
+
 /** A type's layout. */
 function typeLayout(file, name) {
   return openLayout(extension, file, name);
@@ -1286,6 +1343,7 @@ function activate(context) {
     findings: (file) => findings(context, vscode.Uri.file(file)),
     openTypes: (file) => openTypes(context, file),
     openBuildInfo: (file) => openBuildInfo(context, file),
+    openInit: (file) => openInit(context, file),
     openDisassembly,
     openData,
     openTable,
