@@ -64,6 +64,38 @@ pub(crate) struct Encoding {
     /// Whether Microsoft keeps a space before the register of a
     /// post-indexed structure load or store ("[x2], x0").
     pub post_index: bool,
+    /// Which of Microsoft's formatting rules applies (a [`rule`] constant).
+    pub rule: u8,
+}
+
+/// Microsoft's formatting rules for particular encodings (build.rs's
+/// `ms_rule`; see format.rs's `render_parts`).
+pub(crate) mod rule {
+    /// None.
+    pub const NONE: u8 = 0;
+    /// MOV (bitmask immediate): MOV or MOVI.
+    pub const MOV_ORR: u8 = 1;
+    /// ORR (immediate): MOV or MOVI from the zero register.
+    pub const ORR_IMM: u8 = 2;
+    /// LSR (immediate): `lsl #0` when the shift is zero.
+    pub const LSR_UBFM: u8 = 3;
+    /// UBFX (64-bit): UXTB, UXTH, UXTW.
+    pub const UBFX_64: u8 = 4;
+    /// ADD/SUB (shifted register): a zero LSL kept with the zero register.
+    pub const ADD_SUB_SHIFT: u8 = 5;
+    /// EXT: Microsoft's `ext8`.
+    pub const EXT8: u8 = 6;
+    /// MOVPRFX: Microsoft's `moveprfx`.
+    pub const MOVEPRFX: u8 = 7;
+}
+
+/// Microsoft's own mnemonic for an encoding, where it has one.
+pub(crate) fn ms_mnemonic(e: &Encoding) -> Option<&'static str> {
+    match e.rule {
+        rule::EXT8 => Some("ext8"),
+        rule::MOVEPRFX => Some("moveprfx"),
+        _ => None,
+    }
 }
 
 /// Where Microsoft's disassembler prefers an alias differently from ARM
@@ -94,9 +126,18 @@ pub(crate) enum Tok {
 }
 
 /// A table row: the mask and value it matches over the table's key, the
-/// result text, and for computed results ("UInt(H:L:M)"), the bits and
-/// `mul * bits + add`.
-pub(crate) type Row = (u64, u64, &'static str, &'static [Piece], i64, i64);
+/// result text, for computed results ("UInt(H:L:M)") the bits and
+/// `mul * bits + add`, and for results shown as they are, the text shown
+/// and whether it is a default (see build.rs's `shown_as_is`).
+pub(crate) type Row = (
+    u64,
+    u64,
+    &'static str,
+    &'static [Piece],
+    i64,
+    i64,
+    Option<(&'static str, bool)>,
+);
 
 /// A table mapping field values to text: the first row matching the key
 /// (the table's columns side by side).

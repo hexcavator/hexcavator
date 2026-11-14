@@ -11,7 +11,7 @@ use alloc::{format, string::String, string::ToString, vec::Vec};
 use core::fmt::Write as _;
 
 use crate::Instruction;
-use crate::tables::{Kind, NONE, Symbol, Tok, attr, symbol, value};
+use crate::tables::{Kind, NONE, Symbol, Tok, attr, ms_mnemonic, rule, symbol, value};
 
 /// Names for addresses, for showing branch targets symbolically.
 pub trait Symbols {
@@ -66,6 +66,8 @@ fn number(sym: &Symbol, w: u32) -> i64 {
 /// Finds the table row matching the word.
 /// A table row's result: its text, or a computed number.
 enum TableResult {
+    /// Text shown as it is, and whether it is a default.
+    Shown(&'static str, bool),
     Text(&'static str),
     Number(i64),
 }
@@ -73,8 +75,10 @@ enum TableResult {
 fn table_lookup(sym: &Symbol, w: u32) -> Option<TableResult> {
     let t = sym.table?;
     let key = value(t.key, w);
-    let &(_, _, result, expr, mul, add) = t.rows.iter().find(|r| key & r.0 == r.1)?;
-    Some(if expr.is_empty() {
+    let &(_, _, result, expr, mul, add, shown) = t.rows.iter().find(|r| key & r.0 == r.1)?;
+    Some(if let Some((text, default)) = shown {
+        TableResult::Shown(text, default)
+    } else if expr.is_empty() {
         TableResult::Text(result)
     } else {
         TableResult::Number(mul * value(expr, w) as i64 + add)
@@ -146,9 +150,13 @@ fn render_symbol(
             return Some(false);
         }
         let result = match lookup? {
+            TableResult::Shown(text, default) => {
+                out.push_str(text);
+                return Some(default);
+            }
             TableResult::Text(t) => t,
             TableResult::Number(n) => {
-                let _ = write!(out, "{n}");
+                push_decimal(out, n);
                 return Some(n == 0);
             }
         };
@@ -305,7 +313,7 @@ fn render_symbol(
             match symbols.name_at(target) {
                 Some(s) => out.push_str(s),
                 None => {
-                    let _ = write!(out, "{target:016X}");
+                    push_hex(out, target, 16);
                 }
             }
             return Some(false);
@@ -443,9 +451,8 @@ fn render_parts(
     start: usize,
 ) -> Option<()> {
     let e = inst.encoding();
-    let name = e.name;
     let w = inst.word;
-    match ms_mnemonic(name) {
+    match ms_mnemonic(e) {
         Some(m) => out.push_str(m),
         None => {
             render(inst, e.mnem, symbols, out, start)?;
@@ -473,20 +480,18 @@ fn render_parts(
         out.push_str(m);
     };
     // ORR (immediate) from the zero register: Microsoft's MOV or MOVI.
-    let orr_from_zr =
-        (name == "ORR_32_log_imm" || name == "ORR_64_log_imm") && (w >> 5) & 0x1F == 31;
-    if (name.starts_with("MOV_ORR_") && name.ends_with("_log_imm")) || orr_from_zr {
+    let orr_from_zr = e.rule == rule::ORR_IMM && (w >> 5) & 0x1F == 31;
+    if e.rule == rule::MOV_ORR || orr_from_zr {
         set_mnemonic(out, ms_mov_or_movi(w));
     }
     // A zero LSR is Microsoft's "lsl #0".
-    if name.starts_with("LSR_UBFM") && (w >> 16) & 0x3F == 0 {
+    if e.rule == rule::LSR_UBFM && (w >> 16) & 0x3F == 0 {
         set_mnemonic(out, "lsl");
     }
     // Microsoft's UXTB/UXTH for 64-bit UBFM: "uxtb x0,w1".
     let imms = (w >> 10) & 0x3F;
-    let uxt = name == "UBFX_UBFM_64M_bitfield"
-        && (w >> 16) & 0x3F == 0
-        && (imms == 7 || imms == 15 || imms == 31);
+    let uxt =
+        e.rule == rule::UBFX_64 && (w >> 16) & 0x3F == 0 && (imms == 7 || imms == 15 || imms == 31);
     if uxt {
         set_mnemonic(
             out,
@@ -542,10 +547,7 @@ fn render_parts(
     // Microsoft leaves out a zero LSL, except in ADD/SUB (shifted
     // register) with the zero register.
     let zr = w & 0x1F == 31 || (w >> 5) & 0x1F == 31;
-    let base_add_sub = ["ADD_", "ADDS_", "SUB_", "SUBS_"]
-        .iter()
-        .any(|p| name.starts_with(p));
-    if !(zr && base_add_sub && name.ends_with("_addsub_shift")) {
+    if !(zr && e.rule == rule::ADD_SUB_SHIFT) {
         step(out, trigger::LSL, &drop_zero_lsl);
     }
     step(out, trigger::INDEX, &decimal_indexes);
@@ -565,7 +567,8 @@ fn render_parts(
 
 /// What [`triggers`] finds: text a rewrite in `render_parts` may change.
 mod trigger {
-    /// `x16`, `w30`, ...: a register token put together from parts.
+    /// `x16`, `w30`, ...: a register Microsoft names (`xip0`, `wlr`), put
+    /// together from parts.
     pub const REGISTER: u8 = 1;
     /// `xt`: an extend (`uxtw`) that may need its amount.
     pub const EXTEND: u8 = 2;
@@ -573,7 +576,7 @@ mod trigger {
     pub const SPACING: u8 = 4;
     /// `,#0]`.
     pub const ZERO_OFFSET: u8 = 8;
-    /// `,lsl`.
+    /// `,lsl #0` or `,lsl#0` (before spacing), not `,lsl #0x10`.
     pub const LSL: u8 = 16;
     /// `[0x`.
     pub const INDEX: u8 = 32;
@@ -588,9 +591,14 @@ fn triggers(s: &[u8]) -> u8 {
     for (i, &c) in s.iter().enumerate() {
         match c {
             b'x' | b'w' => {
-                let prev = if i == 0 { 0 } else { s[i - 1] };
-                let token_start = !(prev.is_ascii_alphanumeric() || prev == b'_');
-                if token_start && matches!(at(i + 1), b'1'..=b'3') {
+                let in_token = |c: u8| c.is_ascii_alphanumeric() || c == b'_';
+                let whole = (i == 0 || !in_token(s[i - 1])) && !in_token(at(i + 3));
+                if whole
+                    && matches!(
+                        (at(i + 1), at(i + 2)),
+                        (b'1', b'6'..=b'8') | (b'2', b'9') | (b'3', b'0')
+                    )
+                {
                     t |= trigger::REGISTER;
                 }
                 if c == b'x' && at(i + 1) == b't' {
@@ -601,8 +609,14 @@ fn triggers(s: &[u8]) -> u8 {
             b',' if at(i + 1) == b'#' && at(i + 2) == b'0' && at(i + 3) == b']' => {
                 t |= trigger::ZERO_OFFSET;
             }
-            b',' if at(i + 1) == b'l' && at(i + 2) == b's' && at(i + 3) == b'l' => {
-                t |= trigger::LSL;
+            b',' if s[i + 1..].starts_with(b"lsl") => {
+                let amount = if at(i + 4) == b' ' { i + 5 } else { i + 4 };
+                if at(amount) == b'#'
+                    && at(amount + 1) == b'0'
+                    && !at(amount + 2).is_ascii_alphanumeric()
+                {
+                    t |= trigger::LSL;
+                }
             }
             b'[' if at(i + 1) == b'0' && at(i + 2) == b'x' => t |= trigger::INDEX,
             _ => {}
@@ -636,7 +650,7 @@ pub(crate) fn is_valid(inst: &Instruction) -> bool {
     if e.cond != NONE && !symbol_renders(inst, symbol(usize::from(e.cond))) {
         return false;
     }
-    (ms_mnemonic(e.name).is_some() || renders(inst, e.mnem)) && renders(inst, e.ops)
+    (ms_mnemonic(e).is_some() || renders(inst, e.mnem)) && renders(inst, e.ops)
 }
 
 /// Whether [`render_symbol`] of `sym` is `Some`: it fails only where its
@@ -653,7 +667,7 @@ fn symbol_renders(inst: &Instruction, sym: &Symbol) -> bool {
     if sym.table.is_some() {
         return match table_lookup(sym, w) {
             Some(TableResult::Text(t)) => t != "RESERVED",
-            Some(TableResult::Number(_)) => true,
+            Some(TableResult::Number(_) | TableResult::Shown(..)) => true,
             None => matches!(sym.display, "<cond>" | "<invcond>") || sym.has(attr::ORIMM),
         };
     }
@@ -885,19 +899,40 @@ fn push_imm(out: &mut String, v: i64) {
     if m < 10 {
         out.push(char::from(b'0' + m as u8));
     } else {
-        let _ = write!(out, "0x{m:X}");
+        out.push_str("0x");
+        push_hex(out, m, 1);
     }
 }
 
 /// Writes a number in decimal.
 fn push_decimal(out: &mut String, v: i64) {
-    if (0..10).contains(&v) {
-        out.push(char::from(b'0' + v as u8));
-    } else if (10..100).contains(&v) {
-        out.push(char::from(b'0' + (v / 10) as u8));
-        out.push(char::from(b'0' + (v % 10) as u8));
-    } else {
-        let _ = write!(out, "{v}");
+    if v < 0 {
+        out.push('-');
+    }
+    push_unsigned(out, v.unsigned_abs());
+}
+
+/// Writes an unsigned number in decimal.
+fn push_unsigned(out: &mut String, mut v: u64) {
+    let mut digits = [0u8; 20];
+    let mut i = digits.len();
+    loop {
+        i -= 1;
+        digits[i] = b'0' + (v % 10) as u8;
+        v /= 10;
+        if v == 0 {
+            break;
+        }
+    }
+    out.extend(digits[i..].iter().map(|&d| char::from(d)));
+}
+
+/// Writes a number in upper-case hex, with at least `min` digits.
+fn push_hex(out: &mut String, v: u64, min: u32) {
+    let digits = (64 - v.leading_zeros()).div_ceil(4).max(min);
+    for k in (0..digits).rev() {
+        let d = (v >> (4 * k)) & 0xF;
+        out.push(char::from(b"0123456789ABCDEF"[d as usize]));
     }
 }
 
@@ -978,14 +1013,6 @@ fn ms_registers(s: &str, out: &mut String) -> bool {
 }
 
 /// Microsoft's own mnemonics for some encodings.
-fn ms_mnemonic(encoding: &str) -> Option<&'static str> {
-    Some(match encoding {
-        "EXT_asimdext_only" => "ext8",
-        "movprfx_z_p_z_" => "moveprfx",
-        "movprfx_z_z_" => "moveprfx",
-        _ => return None,
-    })
-}
 
 /// The value of a symbol's precise encoding (its `source=`), unscaled.
 fn raw_value(sym: &Symbol, w: u32) -> u64 {
@@ -1167,7 +1194,7 @@ fn decimal_indexes(s: &str, out: &mut String) -> bool {
         if rest[2 + n..].starts_with(']')
             && let Ok(v) = u64::from_str_radix(&rest[2..2 + n], 16)
         {
-            let _ = write!(out, "{v}");
+            push_unsigned(out, v);
             rest = &rest[2 + n..];
         }
     }

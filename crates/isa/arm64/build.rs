@@ -927,8 +927,14 @@ fn main() {
                             let (mask, value) = row_pattern(vals, &cols)?;
                             // Results such as "UInt(H :: L :: M)" are computed.
                             let (expr, mul, add) = table_expr(r, fields).unwrap_or_default();
+                            let shown = if expr.is_empty() {
+                                shown_as_is(s, r)
+                                    .map_or("None".into(), |(t, d)| format!("Some(({t:?}, {d}))"))
+                            } else {
+                                "None".into()
+                            };
                             Some(format!(
-                                "({mask:#x}, {value:#x}, {r:?}, {}, {mul}, {add})",
+                                "({mask:#x}, {value:#x}, {r:?}, {}, {mul}, {add}, {shown})",
                                 pieces_code(&expr)
                             ))
                         })
@@ -1122,12 +1128,13 @@ fn cond_{n_fns}(w: u32) -> bool {{ {c} }}"
         // one per operand layout, all with its name).
         let group = by_first_name[e.name.as_str()];
         let ms = ms_preference(&e.name);
+        let rule = ms_rule(&e.name);
         // Microsoft keeps a space before the register of a post-indexed
         // structure load or store: "[x2], x0".
         let post_index = e.name.contains("_asisdlsop_") || e.name.contains("_asisdlsep_");
         let _ = writeln!(
             enc_out,
-            "    Encoding {{ name: {:?}, class: {:?}, feature: {:?}, mask: {:#010x}, value: {:#010x}, should: ({:#010x}, {:#010x}), ne: &[{}], undef: {undef_fn}, unpred: {unpred_fn}, alias_of: {alias_of}, prefer: {prefer}, asm: {asm:?}, mnem: {mnem}, ops: {ops}, cond: {cond}, checked: {checked}, group: {group}, ms: {ms}, post_index: {post_index} }},",
+            "    Encoding {{ name: {:?}, class: {:?}, feature: {:?}, mask: {:#010x}, value: {:#010x}, should: ({:#010x}, {:#010x}), ne: &[{}], undef: {undef_fn}, unpred: {unpred_fn}, alias_of: {alias_of}, prefer: {prefer}, asm: {asm:?}, mnem: {mnem}, ops: {ops}, cond: {cond}, checked: {checked}, group: {group}, ms: {ms}, post_index: {post_index}, rule: {rule} }},",
             e.name,
             e.class,
             e.feature,
@@ -1616,5 +1623,56 @@ fn ms_preference(alias: &str) -> &'static str {
         "CNEG" => "ms::CNEG",
         "CSET" | "CSETM" => "ms::CSET",
         _ => "ms::ARM",
+    }
+}
+
+/// A table result format.rs's `render_symbol` shows as it is (lower case,
+/// its numbers Microsoft's way), with no rule of its own for the symbol or
+/// the result: the text, and whether it is the default an optional group
+/// leaves out. `None` for the others, which the formatter works out.
+fn shown_as_is(s: &Sym, result: &str) -> Option<(String, bool)> {
+    let has = |a: &str| attr_flags(&[a.to_string()]) & attr_flags(&s.attrs) != 0;
+    let d = s.display.as_str();
+    let special_symbol = matches!(d, "<cond>" | "<invcond>" | "<prfop>" | "<pattern>")
+        || d.ends_with("_op>")
+        || has("lslsp")
+        || has("orimm");
+    let special_result = matches!(result, "RESERVED" | "[absent]" | "[present]")
+        || result.starts_with("#u")
+        || result.starts_with("#imm")
+        || result.contains('|');
+    if special_symbol || special_result {
+        return None;
+    }
+    let default = result.ends_with(" #0")
+        || result == "#0"
+        || result.is_empty()
+        || (result == "LSL" && d == "<extend>");
+    Some((fix_numbers(&result.to_ascii_lowercase()), default))
+}
+
+/// The Microsoft formatting rule for an encoding (a src/tables.rs `rule`
+/// constant).
+fn ms_rule(name: &str) -> &'static str {
+    if matches!(name, "EXT_asimdext_only") {
+        "rule::EXT8"
+    } else if matches!(name, "movprfx_z_p_z_" | "movprfx_z_z_") {
+        "rule::MOVEPRFX"
+    } else if name.starts_with("MOV_ORR_") && name.ends_with("_log_imm") {
+        "rule::MOV_ORR"
+    } else if name == "ORR_32_log_imm" || name == "ORR_64_log_imm" {
+        "rule::ORR_IMM"
+    } else if name.starts_with("LSR_UBFM") {
+        "rule::LSR_UBFM"
+    } else if name == "UBFX_UBFM_64M_bitfield" {
+        "rule::UBFX_64"
+    } else if ["ADD_", "ADDS_", "SUB_", "SUBS_"]
+        .iter()
+        .any(|p| name.starts_with(p))
+        && name.ends_with("_addsub_shift")
+    {
+        "rule::ADD_SUB_SHIFT"
+    } else {
+        "rule::NONE"
     }
 }
