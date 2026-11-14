@@ -208,13 +208,8 @@ jobs:
   # App Store Connect API key's .p8 file, as text), APPLE_API_KEY_ID, and
   # APPLE_API_ISSUER_ID, for notarytool. (A bare program can't have its
   # notarization ticket stapled to it; Gatekeeper looks the ticket up.)
-  #
-  # Off for now (`false &&`), until Apple's notarization of our first
-  # submissions settles; macOS is built and tested but not released. To
-  # turn it back on, drop `false &&` here and restore macos-arm64 in
-  # package's matrix.
   sign-macos:
-    if: false && startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v')
     needs: build
     runs-on: macos-15
     environment: release
@@ -270,10 +265,13 @@ jobs:
           printf '%s\n' "$API_KEY" > "$key"
           auth=(--key "$key" --key-id "$API_KEY_ID" --issuer "$API_ISSUER_ID")
           ditto -c -k --keepParent arm64/bin/hexc "$RUNNER_TEMP/hexc.zip"
+          # (Three hours: a new team's first submissions can take over an
+          # hour; usually it's minutes.)
           xcrun notarytool submit "$RUNNER_TEMP/hexc.zip" "${auth[@]}" \
-            --wait --timeout 1h --output-format json | tee "$RUNNER_TEMP/notary.json"
+            --wait --timeout 3h --output-format json | tee "$RUNNER_TEMP/notary.json"
           id=$(jq -r .id "$RUNNER_TEMP/notary.json")
-          status=$(jq -r .status "$RUNNER_TEMP/notary.json")
+          # (No status when the wait times out; then Apple's message.)
+          status=$(jq -r '.status // .message' "$RUNNER_TEMP/notary.json")
           # Apple's log says what it found, accepted or not.
           if [[ -n "$id" && "$id" != null ]]; then
             xcrun notarytool log "$id" "${auth[@]}" || true
@@ -316,9 +314,7 @@ jobs:
         include:
           - { name: windows-x64, vscode: win32-x64 }
           - { name: windows-arm64, vscode: win32-arm64 }
-          # (macos-arm64 left out while sign-macos is off: an unsigned
-          # hexc isn't released.)
-          # - { name: macos-arm64, vscode: darwin-arm64 }
+          - { name: macos-arm64, vscode: darwin-arm64 }
           - { name: linux-x64, vscode: linux-x64 }
           - { name: linux-arm64, vscode: linux-arm64 }
     runs-on: ubuntu-latest
@@ -423,4 +419,44 @@ jobs:
           pattern: dist-*
           path: dist
           merge-multiple: true
-      - run: npx --yes "$VSCE" publish --oidc --packagePath dist/*.vsix
+      # One VSIX, then (once the Marketplace has the extension) the rest,
+      # then wait until it serves this version for every platform. vsce
+      # creates the extension when the Marketplace doesn't have it yet, as
+      # for a new extension's first release until the first VSIX passes
+      # validation: published together, every VSIX after the first was
+      # another create, reported as published, and never served.
+      - name: Publish
+        run: |
+          vsixes=(dist/*.vsix)
+          # The extension's ID and version, and the platforms, from the VSIXs.
+          id=$(unzip -p "${vsixes[0]}" extension/package.json | jq -r '.publisher + "." + .name')
+          version=$(unzip -p "${vsixes[0]}" extension/package.json | jq -r .version)
+          want=$(for v in "${vsixes[@]}"; do
+            unzip -p "$v" extension.vsixmanifest | sed -n 's/.*TargetPlatform="\([^"]*\)".*/\1/p'
+          done | sort | tr '\n' ' ')
+          echo "$id $version for: $want"
+          query() {
+            curl -fsS https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery \
+              -H 'Content-Type: application/json' -H 'Accept: application/json;api-version=7.2-preview.1' \
+              -d "{\"filters\":[{\"criteria\":[{\"filterType\":7,\"value\":\"$id\"}]}],\"flags\":1}"
+          }
+          exists() { query | jq -e '.results[0].extensions | length > 0' >/dev/null; }
+          served() {
+            query | jq -r --arg v "$version" \
+              '.results[0].extensions[0].versions[]? | select(.version == $v) | .targetPlatform' \
+              | sort -u | tr '\n' ' '
+          }
+          publish() { npx --yes "$VSCE" publish --oidc --skip-duplicate --packagePath "$1"; }
+          publish "${vsixes[0]}"
+          for _ in $(seq 60); do exists && break; sleep 30; done
+          if ! exists; then
+            echo "::error::$id isn't on the Marketplace 30 minutes after its first VSIX"
+            exit 1
+          fi
+          for v in "${vsixes[@]:1}"; do publish "$v"; done
+          for _ in $(seq 60); do [[ "$(served)" == "$want" ]] && break; sleep 30; done
+          if [[ "$(served)" != "$want" ]]; then
+            echo "::error::the Marketplace serves $id $version for: $(served) (published: $want)"
+            exit 1
+          fi
+          echo "served for: $(served)"
