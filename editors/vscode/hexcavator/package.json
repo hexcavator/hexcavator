@@ -2,8 +2,8 @@
   "name": "hexcavator",
   "displayName": "Hexcavator",
   "description": "Explore executables, objects, libraries, and WebAssembly modules with their debug information: headers, symbols, types, source files, data, and disassembly; why each function and datum is there and what refers to it; builds compared; and size treemaps with measured recommendations. PE, ELF, Mach-O, and WebAssembly, with PDBs or DWARF, on any platform.",
-  "version": "0.0.4",
-  "publisher": "JamesMcNellis",
+  "version": "0.0.5",
+  "publisher": "hexcavator",
   "icon": "media/icon.png",
   "license": "Apache-2.0",
   "engines": {
