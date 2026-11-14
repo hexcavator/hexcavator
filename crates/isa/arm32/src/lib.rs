@@ -46,11 +46,26 @@ pub struct Rule {
 }
 
 /// The rule `id`.
+#[inline(never)]
 pub fn rule(id: &str) -> Option<&'static Rule> {
-    tables::RULES
-        .binary_search_by(|r| r.id.cmp(id))
-        .ok()
-        .map(|i| &tables::RULES[i])
+    // (By build.rs's index of the rules by a hash of their IDs.)
+    let slots = tables::RULE_INDEX.len();
+    let mut s = rule_hash(id) as usize & (slots - 1);
+    for _ in 0..slots {
+        let r = tables::RULES.get(usize::from(tables::RULE_INDEX[s]))?;
+        if r.id == id {
+            return Some(r);
+        }
+        s = (s + 1) & (slots - 1);
+    }
+    None
+}
+
+/// The hash rule IDs are indexed by (FNV-1a; build.rs's `rule_hash`).
+fn rule_hash(id: &str) -> u32 {
+    id.bytes().fold(0x811c_9dc5u32, |h, b| {
+        (h ^ u32::from(b)).wrapping_mul(0x0100_0193)
+    })
 }
 
 impl Encoding {

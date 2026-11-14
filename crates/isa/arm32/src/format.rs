@@ -88,7 +88,8 @@ pub fn format_in_it(
     if c.alias(out) {
         return;
     }
-    let t = i.encoding.asm.as_bytes();
+    let template = i.encoding.asm;
+    let t = template.as_bytes();
     // The mnemonic: its leading letters and digits, lowercased (LLVM's,
     // where it differs).
     let end = t
@@ -115,11 +116,11 @@ pub fn format_in_it(
     let before = out.len();
     if wide {
         // The condition (if any), `.w`, then the rest.
-        let rest = &t[end..];
-        let close = if rest.starts_with(b"{%{") {
-            rest.iter().position(|&b| b == b'}').map(|p| p + 2)
-        } else if rest.starts_with(b"%{") {
-            rest.iter().position(|&b| b == b'}').map(|p| p + 1)
+        let rest = &template[end..];
+        let close = if rest.starts_with("{%{") {
+            rest.find('}').map(|p| p + 2)
+        } else if rest.starts_with("%{") {
+            rest.find('}').map(|p| p + 1)
         } else {
             None
         };
@@ -135,7 +136,7 @@ pub fn format_in_it(
             out.push_str(".w");
         }
     }
-    c.seq(t, &mut pos, out, 0);
+    c.seq(template, &mut pos, out, 0);
     // (LLVM writes comparisons with zero `#0`.)
     if i.encoding.name.starts_with("VCMP") && out[before..].ends_with("#0.0") {
         out.truncate(out.len() - 2);
@@ -805,7 +806,8 @@ impl Ctx<'_> {
     /// The text of the template `t` from `pos` to its end (or a closing
     /// brace), into `out`; whether something in it is not its default
     /// (an optional part is shown if so).
-    fn seq(&self, t: &[u8], pos: &mut usize, out: &mut String, depth: u32) -> bool {
+    fn seq(&self, text: &str, pos: &mut usize, out: &mut String, depth: u32) -> bool {
+        let t = text.as_bytes();
         let mut shown = false;
         while *pos < t.len() {
             match t[*pos] {
@@ -816,7 +818,8 @@ impl Ctx<'_> {
                         .iter()
                         .position(|&b| b == b'}')
                         .map_or(t.len(), |e| start + e);
-                    let id = core::str::from_utf8(&t[start..end]).unwrap_or("");
+                    // (Its braces are ASCII: char boundaries.)
+                    let id = text.get(start..end).unwrap_or("");
                     *pos = (end + 1).min(t.len());
                     shown |= self.reference(id, out);
                 }
@@ -840,21 +843,23 @@ impl Ctx<'_> {
                 }
                 b'{' if depth < 8 => {
                     *pos += 1;
-                    let mut inner = String::new();
+                    // (Written in place, and taken back if not shown.)
+                    let start = out.len();
                     let has_ref = t[*pos..].starts_with(b"%{");
-                    let inner_shown = self.seq(t, pos, &mut inner, depth + 1);
+                    let inner_shown = self.seq(text, pos, out, depth + 1);
                     if *pos < t.len() {
                         *pos += 1;
                     }
+                    let inner = &out[start..];
                     // (An optional space shows unless another optional
                     // part follows it.)
                     let space = inner == " " && !matches!(t.get(*pos), Some(b'{' | b','));
                     if space || inner == "#" {
                         // (Shown, but not something shown.)
-                        out.push_str(&inner);
-                    } else if inner_shown || (!has_ref && self.literal_shown(&inner)) {
-                        out.push_str(&inner);
+                    } else if inner_shown || (!has_ref && self.literal_shown(inner)) {
                         shown = true;
+                    } else {
+                        out.truncate(start);
                     }
                 }
                 b => {
@@ -1032,13 +1037,12 @@ impl Ctx<'_> {
         };
         // (An alternative's text can name rules of its own.)
         let mut pos = 0;
-        let mut s = String::new();
-        self.seq(text.as_bytes(), &mut pos, &mut s, 1);
-        if r.display == "<banked_reg>" && s.starts_with("spsr") {
-            s.replace_range(..4, "SPSR");
+        let start = out.len();
+        self.seq(text, &mut pos, out, 1);
+        if r.display == "<banked_reg>" && out[start..].starts_with("spsr") {
+            out.replace_range(start..start + 4, "SPSR");
         }
-        out.push_str(&s);
-        !s.is_empty()
+        out.len() > start
     }
 
     /// An operand rule with text (`R%{UInteger}`).
@@ -1149,10 +1153,9 @@ impl Ctx<'_> {
         }
         // Other text: as it is.
         let mut pos = 0;
-        let mut s = String::new();
-        self.seq(text.as_bytes(), &mut pos, &mut s, 1);
-        out.push_str(&s);
-        !s.is_empty()
+        let start = out.len();
+        self.seq(text, &mut pos, out, 1);
+        out.len() > start
     }
 
     /// A bitfield's lsb: `lsb`, or T32's `imm3:imm2`.
