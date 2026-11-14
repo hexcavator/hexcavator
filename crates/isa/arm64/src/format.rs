@@ -1012,8 +1012,6 @@ fn ms_registers(s: &str, out: &mut String) -> bool {
     true
 }
 
-/// Microsoft's own mnemonics for some encodings.
-
 /// The value of a symbol's precise encoding (its `source=`), unscaled.
 fn raw_value(sym: &Symbol, w: u32) -> u64 {
     match &sym.value {

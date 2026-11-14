@@ -869,6 +869,8 @@ fn main() {
     let mut displays: Vec<String> = Vec::new();
     // Whether each symbol may fail to render, by number.
     let mut may_fail: Vec<bool> = Vec::new();
+    // Symbols by their code, to emit each only once.
+    let mut distinct_syms: HashMap<String, usize> = HashMap::new();
     // Symbols are compiled per encoding (their fields differ by class), so
     // index them by (file, link) and compile with the first encoding's
     // fields that uses them.
@@ -892,9 +894,6 @@ fn main() {
         };
         let fields = fields.as_slice();
         {
-            sym_by_use.insert((*fi, link.clone(), key.clone()), n_syms);
-            n_syms += 1;
-            displays.push(s.display.clone());
             // The source bits.
             let value = if s.table.is_none() {
                 attr_value(s, fields)
@@ -952,7 +951,7 @@ fn main() {
             let kind = symbol_kind(&s.display, s.has("bitmask"));
             // (What can keep a symbol from rendering: see format.rs's
             // `symbol_renders`.)
-            may_fail.push(s.table.is_some() || s.attr("when").is_some() || kind == "Kind::Bitmask");
+            let fails = s.table.is_some() || s.attr("when").is_some() || kind == "Kind::Bitmask";
             let may_special = may_special(s, encoded.is_empty() && value.is_none());
             let value = match value {
                 Some(v) => format!(
@@ -978,8 +977,7 @@ fn main() {
                     Some(format!("Some(({}, {value}))", pieces_code(&p)))
                 })
                 .unwrap_or_else(|| "None".to_string());
-            let _ = writeln!(
-                sym_out,
+            let line = format!(
                 "    Symbol {{ display: {:?}, encoded: {}, table: {table}, value: {value}, when: {when}, attrs: {:?}, flags: {:#x}, kind: {kind} }},",
                 s.display,
                 pieces_code(&encoded),
@@ -991,6 +989,17 @@ fn main() {
                         0
                     }
             );
+            // One symbol for each that is the same (most are: the same
+            // operand in many encodings).
+            let n = *distinct_syms.entry(line.clone()).or_insert_with(|| {
+                sym_out.push_str(&line);
+                sym_out.push('\n');
+                displays.push(s.display.clone());
+                may_fail.push(fails);
+                n_syms += 1;
+                n_syms - 1
+            });
+            sym_by_use.insert((*fi, link.clone(), key.clone()), n);
         }
     }
 
