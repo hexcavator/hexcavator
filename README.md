@@ -304,8 +304,30 @@ annotations (`hexcavator-pdb`'s `annotations`), which give each inlined
 copy's code ranges. A copy's bytes are its own: a site nested in another
 claims its bytes first, and the copies of one function that identical code
 folding merged count once. Source files come from the line tables; inlined
-code counts where it was inlined. On clang: 4.4 million inline sites of
-361,000 functions, 38.8 MB of its 82 MB of code, in about 5 seconds.
+code counts where it was inlined. On clang: 4.3 million inline sites of
+361,000 functions, 40.0 MB of its 82 MB of code, in about 5 seconds.
+
+### Symbolizing addresses and crash logs
+
+```
+hexc symbolize app.exe 0x140001043                   # function, file:line, and inlined functions, innermost first
+hexc symbolize app.exe@0x7ff6a1b20000 0x7ff6a1b21043 # an address as loaded at a base
+hexc symbolize libfoo.so libfoo.so+0x1a2b            # an offset from the image's start
+hexc symbolize app.exe@0x7ff6a1b20000 helper.dll@0x7ffb10c40000 < crash.txt   # a log, each address annotated
+```
+
+A lookup reads only what holds the address: a PDB's module (by the section
+contributions; type and id records a few KB at a time, not a 350 MB type
+stream), or a DWARF compile unit (by its ranges; then only the function's
+DIEs). Inline frames come from `S_INLINESITE` annotations or
+`DW_TAG_inlined_subroutine`s, each frame's line where the call inlined into
+it is. Without debug information, the image's own symbols name addresses
+(exports, ELF and Mach-O symbol tables). On every byte of the source lines
+test program's code, hexc answers as DIA does (the PE image) and as
+llvm-symbolizer does (ELF, plain and split DWARF); see
+`tools/lines/symbolize-oracle.py`. On clang's 1.4 GB PDB, three addresses
+take about 90 ms; 1,000 random addresses in .NET's `libcoreclr.so` about
+0.3 s.
 
 ### Annotations, batches, and findings compared
 

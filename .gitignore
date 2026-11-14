@@ -43,3 +43,9 @@ fuzz-corpus/
 *.hxtrace
 !/testdata/etl/*.hxtrace
 tools/etwdump/*.exe
+tools/diadump/*.exe
+tools/diadump/*.obj
+tools/diadump/*.dll
+tools/diasymbolize/*.exe
+tools/diasymbolize/*.obj
+tools/diasymbolize/*.dll

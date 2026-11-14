@@ -145,6 +145,52 @@ pub fn parse_lines<'a>(body: &'a [u8], out: &mut Vec<LineBlock<'a>>) -> Result<(
     Ok(())
 }
 
+/// An inlined function's source (`InlineeSourceLine`): the file (an offset
+/// in the file checksums subsection) and line its definition starts at,
+/// which its inline sites' annotations count lines from.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct InlineeLine {
+    /// The inlined function's id (an IPI index).
+    pub inlinee: u32,
+    /// Its file's offset in the file checksums subsection.
+    pub file: u32,
+    /// The line its definition starts at.
+    pub line: u32,
+}
+
+/// `DEBUG_S_INLINEELINES`'s signatures: entries without extra files, and
+/// with (`CV_INLINEE_SOURCE_LINE_SIGNATURE`, `..._EX`).
+const INLINEE_SOURCE_LINE_SIGNATURE: u32 = 0;
+const INLINEE_SOURCE_LINE_SIGNATURE_EX: u32 = 1;
+
+/// The entries of a `DEBUG_S_INLINEELINES` subsection's contents, to the
+/// first that doesn't read (an unknown signature: none).
+pub fn inlinee_lines(body: &[u8]) -> impl Iterator<Item = InlineeLine> + '_ {
+    let mut r = Reader::new(body);
+    let signature = r.u32_le().ok();
+    std::iter::from_fn(move || {
+        let ex = match signature? {
+            INLINEE_SOURCE_LINE_SIGNATURE => false,
+            INLINEE_SOURCE_LINE_SIGNATURE_EX => true,
+            _ => return None,
+        };
+        let inlinee = r.u32_le().ok()?;
+        let file = r.u32_le().ok()?;
+        let line = r.u32_le().ok()?;
+        if ex {
+            // (The other files its code comes from: not needed, as the
+            // annotations name the file they change to.)
+            let extra = r.u32_le().ok()? as usize;
+            r.skip(extra.checked_mul(4)?).ok()?;
+        }
+        Some(InlineeLine {
+            inlinee,
+            file,
+            line,
+        })
+    })
+}
+
 /// The entry at `offset` in a `DEBUG_S_FILECHKSMS` subsection's contents.
 pub fn file_checksum(body: &[u8], offset: u32) -> Option<FileChecksum<'_>> {
     let mut r = Reader::new(body.get(offset as usize..)?);
@@ -156,4 +202,62 @@ pub fn file_checksum(body: &[u8], offset: u32) -> Option<FileChecksum<'_>> {
         kind,
         checksum: r.bytes(len).ok()?,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn words(w: &[u32]) -> Vec<u8> {
+        w.iter().flat_map(|w| w.to_le_bytes()).collect()
+    }
+
+    #[test]
+    fn inlinee_lines_plain_and_extended() {
+        let plain = words(&[0, 0x1050, 0x18, 8, 0x104D, 0, 5]);
+        assert_eq!(
+            inlinee_lines(&plain).collect::<Vec<_>>(),
+            [
+                InlineeLine {
+                    inlinee: 0x1050,
+                    file: 0x18,
+                    line: 8
+                },
+                InlineeLine {
+                    inlinee: 0x104D,
+                    file: 0,
+                    line: 5
+                },
+            ]
+        );
+        // Extended: each entry's extra files are skipped.
+        let ex = words(&[1, 0x1000, 0x30, 12, 2, 0x48, 0x60, 0x1001, 0, 3, 0]);
+        assert_eq!(
+            inlinee_lines(&ex).collect::<Vec<_>>(),
+            [
+                InlineeLine {
+                    inlinee: 0x1000,
+                    file: 0x30,
+                    line: 12
+                },
+                InlineeLine {
+                    inlinee: 0x1001,
+                    file: 0,
+                    line: 3
+                },
+            ]
+        );
+    }
+
+    /// Hostile input: an unknown signature, truncation, and a count of
+    /// extra files past the end stop the entries, never panic.
+    #[test]
+    fn inlinee_lines_hostile() {
+        assert_eq!(inlinee_lines(&[]).count(), 0);
+        assert_eq!(inlinee_lines(&words(&[7, 1, 2, 3])).count(), 0);
+        assert_eq!(inlinee_lines(&words(&[0, 1, 2])).count(), 0);
+        let truncated = &words(&[0, 1, 2, 3, 4, 5])[..22];
+        assert_eq!(inlinee_lines(truncated).count(), 1);
+        assert_eq!(inlinee_lines(&words(&[1, 1, 2, 3, u32::MAX])).count(), 0);
+    }
 }

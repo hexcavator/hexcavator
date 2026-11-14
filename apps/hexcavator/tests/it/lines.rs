@@ -30,13 +30,13 @@ fn ok(command: &str, args: &[&str]) -> String {
 }
 
 /// square is inlined into first, and into third through sum_of_squares
-/// (twice): three copies in two functions; sum_of_squares's own code is
-/// apart from square's within it.
+/// (twice): three copies in two functions; square's two copies in
+/// sum_of_squares are all of its code (DIA's bytes: 395 of inline sites).
 #[test]
 fn inlines() {
     let out = ok("inlines", &["-n", "0"]);
     assert!(
-        out.starts_with("17 inline sites of 15 functions: 363 bytes of code, most first:\n"),
+        out.starts_with("17 inline sites of 15 functions: 395 bytes of code, most first:\n"),
         "{out}"
     );
     assert!(
@@ -44,14 +44,14 @@ fn inlines() {
         "{out}"
     );
     assert!(
-        out.contains("\n         3       1          1  sum_of_squares\n"),
+        out.contains("\n         0       1          1  sum_of_squares\n"),
         "{out}"
     );
     assert_eq!(
         ok("inlines", &["-inlinee", "sum_of_squares"]),
-        "sum_of_squares: 3 bytes inlined into 1 function, most first:\n\
+        "sum_of_squares: 0 bytes inlined into 1 function, most first:\n\
          \x20    bytes  copies  function\n\
-         \x20        3       1  third(int, int)\n"
+         \x20        0       1  third(int, int)\n"
     );
     let out = ok("inlines", &["-inlinee", "^square$"]);
     assert!(
@@ -62,7 +62,7 @@ fn inlines() {
     assert!(out.contains("       1  first(int)\n"), "{out}");
     let v: serde_json::Value = serde_json::from_str(&ok("inlines", &["-json", "-n", "3"])).unwrap();
     assert_eq!(v["sites"], 17);
-    assert_eq!(v["bytes"], 363);
+    assert_eq!(v["bytes"], 395);
     assert_eq!(v["list"].as_array().unwrap().len(), 3);
     let v: serde_json::Value =
         serde_json::from_str(&ok("inlines", &["-json", "-inlinee", "square"])).unwrap();

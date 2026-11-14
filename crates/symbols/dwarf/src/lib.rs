@@ -485,6 +485,22 @@ impl<'d> Unit<'d> {
         &self.s
     }
 
+    /// A reader of the unit's DIEs from the one at `offset` (an offset as
+    /// [`DieReader::offset`] gives them), its depth counted from 0 there:
+    /// the DIE and its subtree, then (at depths below 0) what follows.
+    pub fn dies_at(&self, offset: u64) -> DieReader<'d> {
+        let at = offset.clamp(self.dies, self.end.max(self.dies));
+        DieReader {
+            r: Reader::new(
+                self.data,
+                usize::try_from(at).unwrap_or(usize::MAX),
+                self.s.endian,
+            ),
+            depth: 0,
+            offset: 0,
+        }
+    }
+
     /// A reader of the unit's DIEs.
     pub fn dies(&self) -> DieReader<'d> {
         DieReader {

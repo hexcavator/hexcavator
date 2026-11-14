@@ -48,6 +48,15 @@ impl<'s> ModuleStream<'s> {
         SymbolIter::new(self.data.get(offset as usize..end)?, offset).next()
     }
 
+    /// The module's symbols from the one at `offset` on (an offset as
+    /// [`ModuleStream::symbols`] gives them); none if it is out of range.
+    pub fn symbols_from(&self, offset: u32) -> SymbolIter<'_> {
+        let end = self.symbols_len.min(self.data.len());
+        let at = (offset as usize).max(SIGNATURE_SIZE);
+        let data = self.data.get(at..end).unwrap_or(&[]);
+        SymbolIter::new(data, u32::try_from(at).unwrap_or(u32::MAX))
+    }
+
     fn c13(&self) -> &[u8] {
         let start = self.symbols_len + self.c11_len;
         self.data.get(start..start + self.c13_len).unwrap_or(&[])

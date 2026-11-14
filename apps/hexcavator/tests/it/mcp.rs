@@ -391,3 +391,48 @@ fn why_and_recommend_tools() {
     assert_eq!(e["isError"], true, "{e}");
     assert!(e.to_string().contains("nothing named 'nope'"), "{e}");
 }
+
+/// symbolize: frames at addresses (structured as `hexc symbolize -json`
+/// gives them), and a log's text annotated; an image missing is an error.
+#[test]
+fn symbolize_session() {
+    let exe = testdata("lines/lines.exe").to_string_lossy().into_owned();
+    let r = session(&[
+        (
+            "symbolize",
+            object([
+                ("path", Value::from(exe.clone())),
+                (
+                    "addresses",
+                    Value::from(vec!["0x140001043", "lines+0x1062"]),
+                ),
+            ]),
+        ),
+        (
+            "symbolize",
+            object([
+                ("path", Value::from(exe.clone())),
+                ("text", Value::from("crashed at 0x140001062\n")),
+            ]),
+        ),
+        (
+            "symbolize",
+            object([("addresses", Value::from(vec!["0x1"]))]),
+        ),
+    ]);
+    let a = result(&r[0]).get("addresses").unwrap().as_array().unwrap();
+    assert_eq!(a.len(), 2);
+    assert_eq!(a[0]["frames"][0]["function"], "square");
+    assert_eq!(a[0]["frames"][2]["function"], "third");
+    assert_eq!(a[1]["frames"][0]["function"], "main");
+    assert_eq!(
+        result(&r[1]).get("text").unwrap(),
+        "crashed at 0x140001062 [main+0x2 (R:\\tools\\lines\\lines.cpp:13)]\n"
+    );
+    let failed = r[2].get("result").unwrap();
+    assert_eq!(
+        failed.get("isError").and_then(Value::as_bool),
+        Some(true),
+        "{failed}"
+    );
+}
