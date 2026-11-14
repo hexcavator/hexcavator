@@ -17,7 +17,7 @@ jobs:
   arm64-exhaustive:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # (Quoted: a plain YAML value can't end in a colon.)
       - run: "cargo test --release -p hexcavator-arm64 --test it -- --ignored --nocapture exhaustive::"
 
@@ -36,7 +36,7 @@ jobs:
       # (about 18 times, measured).
       HEXC_TEST_SLOWDOWN: 25
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: sudo apt-get update && sudo apt-get install -y gcc-s390x-linux-gnu libc6-dev-s390x-cross qemu-user
       - run: rustup target add s390x-unknown-linux-gnu
       # Every platform's dependencies, not only s390x's: the licenses test
@@ -48,7 +48,7 @@ jobs:
     # (Coverage from LLVM's profiling counters; proven on Windows.)
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: fuzz-corpus
@@ -60,7 +60,7 @@ jobs:
       - run: target/fuzz-cov/release/hexcavator-fuzz.exe selftest
       - run: target/fuzz-cov/release/hexcavator-fuzz.exe run all -seconds 3600 -batch 3000
       - if: failure()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: fuzz-findings
           path: fuzz-findings/
