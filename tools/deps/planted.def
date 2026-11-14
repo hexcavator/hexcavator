@@ -1,0 +1,5 @@
+; A kernel32.dll planted in the application's directory: known DLLs are the
+; system's, so it is never loaded.
+LIBRARY kernel32
+EXPORTS
+  Planted = stub

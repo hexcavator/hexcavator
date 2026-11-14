@@ -22,6 +22,7 @@ whether its debug information was found, not by its name: an ELF or
 Mach-O file with DWARF gets what a PE image with its PDB does):
 
 - **Headers** and **File Format**: `hexc`'s output, as text.
+- **Dependencies**: the Dependencies page (below).
 - **Build Information**: the Build Information page (below).
 - **Debug Information** (its PDB's summary, or its DWARF's units, lines,
   and frames; a Mach-O image without a dSYM, each object's of its debug
@@ -66,6 +67,23 @@ mapped drive) are found here by `hexcavator.sourcePathMap` (prefixes, from
 the build's to yours), else by their last directories under the
 workspace's folders and the binary's directories; lenses match them the
 same way.
+
+## The Dependencies page
+
+What the binary loads (`hexc deps -json`): each library it names, where
+its platform's loader would find it (a known DLL, the application's
+directory, `System32`, an API set's host, a side-by-side assembly in
+`WinSxS`; rpath, runpath, `ld.so.conf`; `@rpath`, `@loader_path`), what
+that loads, and what's missing: libraries not found (or only for another
+architecture), and symbols imported that a library doesn't export. The
+problems come first; click one to show its library in the tree. Each
+library is shown once (later, "(above)": double-click to go there); select
+one to see what's imported from it, the missing marked. **System
+libraries' own** reads what system libraries load too (by default they're
+leaves). **Explore it** adds a library to the sidebar, to look inside it.
+On Windows, the system searched is this machine's; for other platforms'
+binaries, give `hexc deps -sysroot` a copy of their system (or their
+system libraries are listed as not searched).
 
 ## The Build Information page
 

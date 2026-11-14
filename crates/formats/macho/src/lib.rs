@@ -286,6 +286,17 @@ pub struct LoadCommand<'d> {
     pub data: &'d [u8],
 }
 
+/// A library an image links (a `dylib_command`).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Dylib<'d> {
+    /// The load command (`LC_LOAD_DYLIB`, `LC_LOAD_WEAK_DYLIB`, ...).
+    pub cmd: u32,
+    /// Its install name.
+    pub name: &'d [u8],
+    pub current_version: u32,
+    pub compatibility_version: u32,
+}
+
 /// A section, normalized.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Section<'d> {
@@ -488,6 +499,62 @@ impl<'d> MachO<'d> {
 
     /// The load commands, in order. Iteration stops at a command whose
     /// size is too small or runs past the command area or file.
+    /// The string a load command's `lc_str` field (at `field`) names: from
+    /// its offset in the command to the first NUL, or the command's end.
+    fn lc_str(&self, lc: &LoadCommand<'d>, field: usize) -> Option<&'d [u8]> {
+        let b: [u8; 4] = lc.data.get(field..field + 4)?.try_into().ok()?;
+        let off = match self.header.endian {
+            Endian::Big => u32::from_be_bytes(b),
+            Endian::Little => u32::from_le_bytes(b),
+        };
+        let rest = lc.data.get(usize::try_from(off).ok()?..)?;
+        let end = rest.iter().position(|&c| c == 0).unwrap_or(rest.len());
+        Some(&rest[..end])
+    }
+
+    /// The libraries the image links: `LC_LOAD_DYLIB`, `LC_LOAD_WEAK_DYLIB`,
+    /// `LC_REEXPORT_DYLIB`, `LC_LAZY_LOAD_DYLIB`, and `LC_LOAD_UPWARD_DYLIB`,
+    /// in order (a bind's library ordinal is its index here, from 1).
+    pub fn dylibs(&self) -> Vec<Dylib<'d>> {
+        self.load_commands()
+            .iter()
+            .filter(|lc| {
+                matches!(
+                    lc.cmd,
+                    LC_LOAD_DYLIB
+                        | LC_LOAD_WEAK_DYLIB
+                        | LC_REEXPORT_DYLIB
+                        | LC_LAZY_LOAD_DYLIB
+                        | LC_LOAD_UPWARD_DYLIB
+                )
+            })
+            .map(|lc| Dylib {
+                cmd: lc.cmd,
+                name: self.lc_str(lc, 8).unwrap_or_default(),
+                current_version: self.u32(lc.offset + 16).unwrap_or(0),
+                compatibility_version: self.u32(lc.offset + 20).unwrap_or(0),
+            })
+            .collect()
+    }
+
+    /// The image's own install name (`LC_ID_DYLIB`), for a library.
+    pub fn install_name(&self) -> Option<&'d [u8]> {
+        let lc = self
+            .load_commands()
+            .into_iter()
+            .find(|lc| lc.cmd == LC_ID_DYLIB)?;
+        self.lc_str(&lc, 8)
+    }
+
+    /// The run paths (`LC_RPATH`), in order.
+    pub fn rpaths(&self) -> Vec<&'d [u8]> {
+        self.load_commands()
+            .iter()
+            .filter(|lc| lc.cmd == LC_RPATH)
+            .filter_map(|lc| self.lc_str(lc, 8))
+            .collect()
+    }
+
     pub fn load_commands(&self) -> Vec<LoadCommand<'d>> {
         let mut out = Vec::new();
         let mut at = self.header.size;

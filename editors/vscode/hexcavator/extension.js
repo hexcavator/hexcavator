@@ -1195,6 +1195,62 @@ function openBuildInfo(context, file) {
   load();
 }
 
+/** Open Dependencies pages, by file. */
+const depsPanels = new Map();
+
+/**
+ * Opens (or shows) the Dependencies page of the binary at `file`: what it
+ * loads, where its loader finds each library, and what's missing (hexc
+ * deps -json; with -system, system libraries' own too).
+ */
+function openDeps(context, file) {
+  const existing = depsPanels.get(file);
+  if (existing) {
+    existing.reveal();
+    return;
+  }
+  const name = path.basename(file);
+  const panel = panelFor(context, "hexcDeps", `Dependencies: ${name}`, "deps-view.js");
+  depsPanels.set(file, panel);
+  panel.onDidDispose(() => depsPanels.delete(file));
+  const load = async (system) => {
+    const args = ["deps", "-json", ...(system ? ["-system"] : []), file];
+    try {
+      let out;
+      try {
+        out = await paneRun(panel.webview, `Finding what ${name} loads…`, args);
+      } catch (e) {
+        // (Something missing: hexc says so, and exits 1, with the graph.)
+        if (e.code === 1 && e.stdout) {
+          out = e.stdout;
+        } else {
+          throw e;
+        }
+      }
+      panel.webview.postMessage({ kind: "deps", file, graph: JSON.parse(out) });
+    } catch (e) {
+      if (!e.cancelled) {
+        vscode.window.showErrorMessage(`hexc: ${e.message}`);
+      }
+      panel.webview.postMessage({ kind: "failed", message: e.message });
+    }
+  };
+  panel.webview.onDidReceiveMessage(async (m) => {
+    switch (m && m.command) {
+      case "ready":
+      case "refresh":
+        await load(!!m.system);
+        break;
+      case "openBinary":
+        // (A library it loads, to look inside: in the sidebar.)
+        if (typeof m.path === "string" && fs.existsSync(m.path) && sidebar) {
+          sidebar.add(m.path);
+        }
+        break;
+    }
+  }, undefined, context.subscriptions);
+}
+
 /** A type's layout. */
 function typeLayout(file, name) {
   return openLayout(extension, file, name);
@@ -1286,6 +1342,7 @@ function activate(context) {
     findings: (file) => findings(context, vscode.Uri.file(file)),
     openTypes: (file) => openTypes(context, file),
     openBuildInfo: (file) => openBuildInfo(context, file),
+    openDeps: (file) => openDeps(context, file),
     openDisassembly,
     openData,
     openTable,

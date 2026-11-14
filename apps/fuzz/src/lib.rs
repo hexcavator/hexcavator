@@ -179,6 +179,7 @@ fn pe(data: &[u8], s: &Scratch) {
     hexc(&["checksec", "-json", &f]);
     hexc(&["signature", "-json", &f]);
     hexc(&["signature", &f]);
+    hexc(&["deps", "-json", "-imports", &f]);
 }
 
 fn coff(data: &[u8], s: &Scratch) {
@@ -209,6 +210,7 @@ fn unix(name: &str, data: &[u8], s: &Scratch) {
     hexc(&["dwarf", "-all", &f]);
     hexc(&["dwarf", "-lookup", "0x1000", &f]);
     hexc(&["dwarf", "-find", "main", &f]);
+    hexc(&["deps", "-json", &f]);
     // Each function's code, by the names its symbols give.
     for name in ["main", "compute", "jumps", "_main", "add", "square"] {
         hexc(&["size", "-disassemble", name, &f]);

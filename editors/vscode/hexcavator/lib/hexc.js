@@ -104,7 +104,7 @@ function capsFallback(file) {
   if (kind === "pe") {
     return {
       format: "pe",
-      tools: ["report", "compare", "info", "dump", "disassemble", "findings", "recommend", "why", "refs", "xref", "unreachable", "vtables", "identical", "query", "types", "layout", "inlines", "sourcefiles", "annotations", "data", "functionsDiff", "findingsDiff", "typesDiff", "lenses"],
+      tools: ["report", "compare", "info", "dump", "deps", "disassemble", "findings", "recommend", "why", "refs", "xref", "unreachable", "vtables", "identical", "query", "types", "layout", "inlines", "sourcefiles", "annotations", "data", "functionsDiff", "findingsDiff", "typesDiff", "lenses"],
     };
   }
   if (kind === "coff") {
@@ -237,6 +237,9 @@ function sidebarFor(entry, caps) {
   }
   if (tool("info")) {
     items.push(Object.assign({}, tool("info"), { label: "File Format", detail: "what kind of file it is, and its debug information" }));
+  }
+  if (can(caps, "deps")) {
+    items.push(t("dependencies", "Dependencies", "library", "what it loads: where its loader finds each library, and what's missing", { run: "deps" }));
   }
   if (tool("checksec")) {
     items.push(t("buildinfo", "Build Information", "tools", "how it was built: its security options, the options its parts differ in, and each object's command line", { run: "buildinfo" }));

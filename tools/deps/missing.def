@@ -1,0 +1,4 @@
+; A DLL the application delay-loads, which isn't shipped.
+LIBRARY missing
+EXPORTS
+  MissingFn = stub

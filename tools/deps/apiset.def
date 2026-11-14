@@ -1,0 +1,4 @@
+; What the application links against: an API set's import library.
+LIBRARY api-ms-win-test-l1-1-0
+EXPORTS
+  ApiFunc = stub

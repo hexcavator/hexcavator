@@ -1,0 +1,4 @@
+LIBRARY comctl32
+EXPORTS
+  InitCommonControls = stub
+  TaskDialogIndirect = stub
