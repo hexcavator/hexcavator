@@ -867,6 +867,8 @@ fn main() {
     let mut n_syms = 0usize;
     // Each symbol's display name, by number.
     let mut displays: Vec<String> = Vec::new();
+    // Whether each symbol may fail to render, by number.
+    let mut may_fail: Vec<bool> = Vec::new();
     // Symbols are compiled per encoding (their fields differ by class), so
     // index them by (file, link) and compile with the first encoding's
     // fields that uses them.
@@ -942,6 +944,9 @@ fn main() {
             // How the formatter shows the symbol (see src/tables.rs's `Kind`),
             // and whether its `special` may apply.
             let kind = symbol_kind(&s.display, s.has("bitmask"));
+            // (What can keep a symbol from rendering: see format.rs's
+            // `symbol_renders`.)
+            may_fail.push(s.table.is_some() || s.attr("when").is_some() || kind == "Kind::Bitmask");
             let may_special = may_special(s, encoded.is_empty() && value.is_none());
             let value = match value {
                 Some(v) => format!(
@@ -989,6 +994,10 @@ fn main() {
         .enumerate()
         .map(|(i, e)| (e.name.as_str(), i))
         .collect();
+    let mut by_first_name: HashMap<&str, usize> = HashMap::new();
+    for (i, e) in encs.iter().enumerate() {
+        by_first_name.entry(e.name.as_str()).or_insert(i);
+    }
     let mut fns = String::new();
     let mut enc_out = String::new();
     let mut n_fns = 0;
@@ -1101,9 +1110,21 @@ fn cond_{n_fns}(w: u32) -> bool {{ {c} }}"
         // prints them literally.
         let asm = mark_list_braces(&asm);
         let (mnem, ops, cond) = template_code(&asm, &displays);
+        // Whether a word can fail to render: whether any of the template's
+        // symbols can.
+        let checked = asm
+            .split('%')
+            .skip(1)
+            .step_by(2)
+            .filter_map(|n| n.parse::<usize>().ok())
+            .any(|n| may_fail.get(n).copied().unwrap_or(true));
+        // The first encoding of the same name (an encoding can be in parts,
+        // one per operand layout, all with its name).
+        let group = by_first_name[e.name.as_str()];
+        let ms = ms_preference(&e.name);
         let _ = writeln!(
             enc_out,
-            "    Encoding {{ name: {:?}, class: {:?}, feature: {:?}, mask: {:#010x}, value: {:#010x}, should: ({:#010x}, {:#010x}), ne: &[{}], undef: {undef_fn}, unpred: {unpred_fn}, alias_of: {alias_of}, prefer: {prefer}, asm: {asm:?}, mnem: {mnem}, ops: {ops}, cond: {cond} }},",
+            "    Encoding {{ name: {:?}, class: {:?}, feature: {:?}, mask: {:#010x}, value: {:#010x}, should: ({:#010x}, {:#010x}), ne: &[{}], undef: {undef_fn}, unpred: {unpred_fn}, alias_of: {alias_of}, prefer: {prefer}, asm: {asm:?}, mnem: {mnem}, ops: {ops}, cond: {cond}, checked: {checked}, group: {group}, ms: {ms} }},",
             e.name,
             e.class,
             e.feature,
@@ -1553,4 +1574,28 @@ fn may_special(s: &Sym, unencoded: bool) -> bool {
             s.display.as_str(),
             "<imm>" | "<lsb>" | "<width>" | "<shift>"
         )
+}
+
+/// Where Microsoft's disassembler prefers an alias differently from ARM
+/// (code for src/tables.rs's `ms` constants).
+fn ms_preference(alias: &str) -> &'static str {
+    // Aliases that ARM's description prefers but Microsoft's disassembler
+    // does not use.
+    const NOT_PREFERRED: &[&str] = &[
+        "MOV_INS_asimdins_IV_v",
+        "MOV_INS_asimdins_IR_r",
+        "MOV_DUP_asisdone_only",
+        "UXTL_USHLL_asimdshf_L",
+    ];
+    if NOT_PREFERRED.contains(&alias) {
+        return "ms::NOT_PREFERRED";
+    }
+    // CINC, CINV, CNEG, CSET, and CSETM: Microsoft uses them even with the
+    // conditions AL and NV, which ARM excludes.
+    match alias.split('_').next().unwrap_or("") {
+        "CINC" | "CINV" => "ms::CINC",
+        "CNEG" => "ms::CNEG",
+        "CSET" | "CSETM" => "ms::CSET",
+        _ => "ms::ARM",
+    }
 }

@@ -578,6 +578,9 @@ pub(crate) fn renders_fully(inst: &Instruction) -> bool {
 /// alternations, walked here the same way; the text is not built).
 pub(crate) fn is_valid(inst: &Instruction) -> bool {
     let e = inst.encoding();
+    if !e.checked {
+        return true;
+    }
     if e.cond != NONE && !symbol_renders(inst, symbol(usize::from(e.cond))) {
         return false;
     }

@@ -51,6 +51,31 @@ pub(crate) struct Encoding {
     pub mnem: &'static [Tok],
     pub ops: &'static [Tok],
     pub cond: u16,
+    /// Whether a word can fail to render (some symbol of the template has
+    /// a table, a condition, or a logical immediate): if not, every word
+    /// that matches renders.
+    pub checked: bool,
+    /// The first encoding with this one's name (an encoding can be in
+    /// parts, one per operand layout).
+    pub group: u16,
+    /// For aliases: where Microsoft's preference differs from ARM's (an
+    /// [`ms`] constant).
+    pub ms: u8,
+}
+
+/// Where Microsoft's disassembler prefers an alias differently from ARM
+/// (build.rs's `ms_preference`).
+pub(crate) mod ms {
+    /// As ARM's description says.
+    pub const ARM: u8 = 0;
+    /// Never (ARM prefers it; Microsoft does not use it).
+    pub const NOT_PREFERRED: u8 = 1;
+    /// CINC and CINV: where Rn is Rm, and not the zero register.
+    pub const CINC: u8 = 2;
+    /// CNEG: where Rn is Rm.
+    pub const CNEG: u8 = 3;
+    /// CSET and CSETM: where Rn and Rm are the zero register.
+    pub const CSET: u8 = 4;
 }
 
 /// A piece of a compiled template.
