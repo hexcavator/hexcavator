@@ -1122,9 +1122,12 @@ fn cond_{n_fns}(w: u32) -> bool {{ {c} }}"
         // one per operand layout, all with its name).
         let group = by_first_name[e.name.as_str()];
         let ms = ms_preference(&e.name);
+        // Microsoft keeps a space before the register of a post-indexed
+        // structure load or store: "[x2], x0".
+        let post_index = e.name.contains("_asisdlsop_") || e.name.contains("_asisdlsep_");
         let _ = writeln!(
             enc_out,
-            "    Encoding {{ name: {:?}, class: {:?}, feature: {:?}, mask: {:#010x}, value: {:#010x}, should: ({:#010x}, {:#010x}), ne: &[{}], undef: {undef_fn}, unpred: {unpred_fn}, alias_of: {alias_of}, prefer: {prefer}, asm: {asm:?}, mnem: {mnem}, ops: {ops}, cond: {cond}, checked: {checked}, group: {group}, ms: {ms} }},",
+            "    Encoding {{ name: {:?}, class: {:?}, feature: {:?}, mask: {:#010x}, value: {:#010x}, should: ({:#010x}, {:#010x}), ne: &[{}], undef: {undef_fn}, unpred: {unpred_fn}, alias_of: {alias_of}, prefer: {prefer}, asm: {asm:?}, mnem: {mnem}, ops: {ops}, cond: {cond}, checked: {checked}, group: {group}, ms: {ms}, post_index: {post_index} }},",
             e.name,
             e.class,
             e.feature,
@@ -1309,8 +1312,9 @@ fn comma_lists(asm: &str, syms: &[Sym], name: &str) -> String {
 // Templates, compiled to tokens (what src/format.rs's `render` walks): the
 // same reading of the template text the formatter made at run time.
 
-/// Code for `Tok`s of the template text `t`.
-fn tokens(t: &str, displays: &[String]) -> String {
+/// Code for `Tok`s of the template text `t` (`ops`: the operands, not
+/// the mnemonic).
+fn tokens(t: &str, displays: &[String], ops: bool) -> String {
     let mut out = Vec::new();
     let mut rest = t;
     while !rest.is_empty() {
@@ -1345,7 +1349,7 @@ fn tokens(t: &str, displays: &[String]) -> String {
             let optional = inner.contains('%') || inner.trim() == ", #0";
             out.push(format!(
                 "Tok::Group({}, {optional})",
-                tokens(inner, displays)
+                tokens(inner, displays, ops)
             ));
             rest = &after[end + 1..];
         } else if let Some(after) = rest.strip_prefix('%') {
@@ -1364,7 +1368,10 @@ fn tokens(t: &str, displays: &[String]) -> String {
                 .find(['{', '%', '('])
                 .map_or(rest.len(), |i| i + 1);
             let next = &rest[end..];
-            out.push(format!("Tok::Lit({:?})", literal_text(&rest[..end], next)));
+            out.push(format!(
+                "Tok::Lit({:?})",
+                literal_text(&rest[..end], next, ops)
+            ));
             rest = next;
         }
     }
@@ -1372,8 +1379,8 @@ fn tokens(t: &str, displays: &[String]) -> String {
 }
 
 /// A template's literal text as the formatter shows it (`next` is the
-/// template after it).
-fn literal_text(raw: &str, next: &str) -> String {
+/// template after it; `ops`: in the operands).
+fn literal_text(raw: &str, next: &str, ops: bool) -> String {
     // mark_list_braces marks register-list braces as \u{1} and \u{2}.
     let literal = raw.replace('\u{1}', "{").replace('\u{2}', "}");
     // Lower case, except for MUL VL and MUL #.
@@ -1391,7 +1398,15 @@ fn literal_text(raw: &str, next: &str) -> String {
         lower.pop();
         lower.push('S');
     }
-    fix_numbers(&lower)
+    let text = fix_numbers(&lower);
+    if !ops {
+        return text;
+    }
+    // Microsoft's operands have no space after a comma. (No symbol's text
+    // has a comma or starts with a space, so the literals hold them all.)
+    assert!(!text.contains(",  "), "a comma and two spaces in {raw:?}");
+    // Comparisons with zero are "#0", not "#0.0".
+    text.replace(", ", ",").replace("#0.0", "#0")
 }
 
 /// src/format.rs's `fix_numbers`, for literal text (which has no
@@ -1469,7 +1484,11 @@ fn template_code(asm: &str, displays: &[String]) -> (String, String, String) {
             operands = &operands[..i];
         }
     }
-    (tokens(mnemonic, displays), tokens(operands, displays), cond)
+    (
+        tokens(mnemonic, displays, false),
+        tokens(operands, displays, true),
+        cond,
+    )
 }
 
 /// The attributes the formatter tests as flags, in the order of

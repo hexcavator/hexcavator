@@ -61,6 +61,9 @@ pub(crate) struct Encoding {
     /// For aliases: where Microsoft's preference differs from ARM's (an
     /// [`ms`] constant).
     pub ms: u8,
+    /// Whether Microsoft keeps a space before the register of a
+    /// post-indexed structure load or store ("[x2], x0").
+    pub post_index: bool,
 }
 
 /// Where Microsoft's disassembler prefers an alias differently from ARM

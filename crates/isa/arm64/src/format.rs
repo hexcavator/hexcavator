@@ -104,9 +104,8 @@ fn fix_numbers_into(s: &str, out: &mut String) -> bool {
         let body = &rest[usize::from(neg)..];
         let n = body.bytes().take_while(u8::is_ascii_digit).count();
         let after = &body[n..];
-        // Leave fractions, numbers already in hex, and verbatim text alone.
-        if n == 0 || after.starts_with('.') || after.starts_with('x') || after.starts_with(VERBATIM)
-        {
+        // Leave fractions and numbers already in hex alone.
+        if n == 0 || after.starts_with('.') || after.starts_with('x') {
             continue;
         }
         let v: i64 = body[..n].parse().unwrap_or(0);
@@ -252,7 +251,7 @@ fn render_symbol(
         return Some(d);
     }
     // Floating-point immediates: imm8 expands to +-n/16 * 2^r.
-    if sym.has(attr::FP8) && sym.value.as_ref().is_some_and(|v| v.width == 8) {
+    if is_fp_imm8(sym) {
         push_fp_imm8(out, raw_value(sym, w));
         return Some(false);
     }
@@ -389,7 +388,24 @@ fn render(
         match *t {
             Tok::Lit(text) => out.push_str(text),
             Tok::Sym(i) => {
-                all_default &= render_symbol(inst, symbol(usize::from(i)), symbols, out)?;
+                let sym = symbol(usize::from(i));
+                let at = out.len();
+                all_default &= render_symbol(inst, sym, symbols, out)?;
+                // A number after a `#` (the literal's, which build.rs has
+                // already put in Microsoft's form) is an immediate: hex from
+                // 10 on. (Not a floating-point immediate, `#1.5` or `#31`.)
+                let hash = if out[..at].ends_with('#') {
+                    Some(at - 1)
+                } else if out[..at].ends_with("#-") {
+                    Some(at - 2)
+                } else {
+                    None
+                };
+                if let Some(h) = hash
+                    && !is_fp_imm8(sym)
+                {
+                    fix_numbers_from(out, h);
+                }
             }
             Tok::Group(inner, optional) => {
                 let start = out.len();
@@ -490,49 +506,39 @@ fn render_parts(
     if uxt {
         out.truncate(ops);
         push_gpr(out, u64::from(w & 0x1F), true, false);
-        out.push_str(", ");
+        out.push(',');
         push_gpr(out, u64::from((w >> 5) & 0x1F), false, false);
     }
     if orr_from_zr {
-        for zr in [", wzr", ", xzr"] {
+        for zr in [",wzr", ",xzr"] {
             if let Some(i) = find(&out[ops..], zr) {
                 out.replace_range(ops + i..ops + i + zr.len(), "");
             }
         }
     }
-    // Microsoft's conventions, rewrite by rewrite. Most instructions need
-    // few: each looks for what it changes first, and only then copies the
-    // operands (through `scratch`).
+    // The rest of Microsoft's conventions, where text from different
+    // symbols and literals meets: one look at the operands says which of
+    // the rewrites can apply (most instructions need none), and each copies
+    // the operands (through `scratch`) only where it changes them.
+    let t = triggers(&out.as_bytes()[ops..]);
     let mut scratch = String::new();
-    let mut step = |out: &mut String, f: &dyn Fn(&str, &mut String) -> bool| {
+    let mut step = |out: &mut String, trigger: u8, f: &dyn Fn(&str, &mut String) -> bool| {
+        if t & trigger == 0 {
+            return;
+        }
         scratch.clear();
         if f(&out[ops..], &mut scratch) {
             out.truncate(ops);
             out.push_str(&scratch);
         }
     };
-    // `, ` is `,`.
-    if find(&out[ops..], ", ").is_some() {
-        let (mut i, mut after_comma) = (0, false);
-        out.retain(|c| {
-            i += c.len_utf8();
-            let keep = i <= ops || !(after_comma && c == ' ');
-            after_comma = c == ',';
-            keep
-        });
-    }
-    step(out, &fix_numbers_into);
-    step(out, &ms_registers);
-    step(out, &extend_amounts);
-    step(out, &ms_spacing);
-    step(out, &|s, d| replace_into(s, d, ",#0]", "]"));
-    if out.as_bytes()[ops..].contains(&(VERBATIM as u8)) {
-        let mut i = 0;
-        out.retain(|c| {
-            i += c.len_utf8();
-            i <= ops || c != VERBATIM
-        });
-    }
+    step(out, trigger::REGISTER, &ms_registers);
+    step(out, trigger::EXTEND, &extend_amounts);
+    step(out, trigger::SPACING, &ms_spacing);
+    // No `#0` offset in an addressing form (`[x0]!`).
+    step(out, trigger::ZERO_OFFSET, &|s, d| {
+        replace_into(s, d, ",#0]", "]")
+    });
     // Microsoft leaves out a zero LSL, except in ADD/SUB (shifted
     // register) with the zero register.
     let zr = w & 0x1F == 31 || (w >> 5) & 0x1F == 31;
@@ -540,14 +546,12 @@ fn render_parts(
         .iter()
         .any(|p| name.starts_with(p));
     if !(zr && base_add_sub && name.ends_with("_addsub_shift")) {
-        step(out, &drop_zero_lsl);
+        step(out, trigger::LSL, &drop_zero_lsl);
     }
-    // Comparisons with zero are "#0", not "#0.0".
-    step(out, &|s, d| replace_into(s, d, "#0.0", "#0"));
-    step(out, &decimal_indexes);
+    step(out, trigger::INDEX, &decimal_indexes);
     // Microsoft keeps a space before the register of a post-indexed
     // structure load or store: "[x2], x0".
-    if (find(name, "_asisdlsop_").is_some() || find(name, "_asisdlsep_").is_some())
+    if e.post_index
         && let Some(i) = out[ops..].rfind("],")
         && !out[ops + i + 2..].starts_with('#')
     {
@@ -557,6 +561,54 @@ fn render_parts(
         out.truncate(pad_start);
     }
     Some(())
+}
+
+/// What [`triggers`] finds: text a rewrite in `render_parts` may change.
+mod trigger {
+    /// `x16`, `w30`, ...: a register token put together from parts.
+    pub const REGISTER: u8 = 1;
+    /// `xt`: an extend (`uxtw`) that may need its amount.
+    pub const EXTEND: u8 = 2;
+    /// A `#` after a letter: a shift or extend and its amount.
+    pub const SPACING: u8 = 4;
+    /// `,#0]`.
+    pub const ZERO_OFFSET: u8 = 8;
+    /// `,lsl`.
+    pub const LSL: u8 = 16;
+    /// `[0x`.
+    pub const INDEX: u8 = 32;
+}
+
+/// Which rewrites may apply to operands `s`: [`trigger`] flags, each for
+/// text the rewrite changes, or that an earlier one can turn into it
+/// (`,lsl#0` becomes `,lsl #0`).
+fn triggers(s: &[u8]) -> u8 {
+    let mut t = 0;
+    let at = |i: usize| s.get(i).copied().unwrap_or(0);
+    for (i, &c) in s.iter().enumerate() {
+        match c {
+            b'x' | b'w' => {
+                let prev = if i == 0 { 0 } else { s[i - 1] };
+                let token_start = !(prev.is_ascii_alphanumeric() || prev == b'_');
+                if token_start && matches!(at(i + 1), b'1'..=b'3') {
+                    t |= trigger::REGISTER;
+                }
+                if c == b'x' && at(i + 1) == b't' {
+                    t |= trigger::EXTEND;
+                }
+            }
+            b'#' if i > 0 && s[i - 1].is_ascii_alphabetic() => t |= trigger::SPACING,
+            b',' if at(i + 1) == b'#' && at(i + 2) == b'0' && at(i + 3) == b']' => {
+                t |= trigger::ZERO_OFFSET;
+            }
+            b',' if at(i + 1) == b'l' && at(i + 2) == b's' && at(i + 3) == b'l' => {
+                t |= trigger::LSL;
+            }
+            b'[' if at(i + 1) == b'0' && at(i + 2) == b'x' => t |= trigger::INDEX,
+            _ => {}
+        }
+    }
+    t
 }
 
 /// Where `pat` is in `s`: for the short patterns and strings here, cheaper
@@ -943,6 +995,11 @@ fn raw_value(sym: &Symbol, w: u32) -> u64 {
     }
 }
 
+/// Whether `sym` is an 8-bit floating-point immediate.
+fn is_fp_imm8(sym: &Symbol) -> bool {
+    sym.has(attr::FP8) && sym.value.as_ref().is_some_and(|v| v.width == 8)
+}
+
 /// `VFPExpandImm`: an 8-bit floating-point immediate, as Microsoft shows
 /// it (the shortest decimal).
 fn push_fp_imm8(out: &mut String, imm8: u64) {
@@ -951,7 +1008,7 @@ fn push_fp_imm8(out: &mut String, imm8: u64) {
     let mantissa = (16 + (imm8 & 0xF)) as f64 / 16.0;
     // 2^exp, exactly (exp is -3..=4), without libm's powi.
     let scale = f64::from_bits(((1023 + exp) as u64) << 52);
-    let _ = write!(out, "{}{VERBATIM}", sign * mantissa * scale);
+    let _ = write!(out, "{}", sign * mantissa * scale);
 }
 
 /// Microsoft always shows the amount of an extend other than LSL:
@@ -994,10 +1051,6 @@ fn extend_amounts(s: &str, out: &mut String) -> bool {
     out.push_str(rest);
     changed
 }
-
-/// Marks text that `fix_numbers` must leave alone (floating-point values
-/// that happen to be integers, such as `#27`).
-const VERBATIM: char = '\u{3}';
 
 /// Microsoft's spacing: a space between a shift or extend and its amount
 /// (`sxtw #1`). (Into `out`, or `false` where nothing changes.)
