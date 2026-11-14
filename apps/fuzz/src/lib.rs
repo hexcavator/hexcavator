@@ -209,6 +209,8 @@ fn unix(name: &str, data: &[u8], s: &Scratch) {
     hexc(&["dwarf", "-all", &f]);
     hexc(&["dwarf", "-lookup", "0x1000", &f]);
     hexc(&["dwarf", "-find", "main", &f]);
+    hexc(&["resources", "-all", &f]);
+    hexc(&["resources", "-all", "-json", &f]);
     // Each function's code, by the names its symbols give.
     for name in ["main", "compute", "jumps", "_main", "add", "square"] {
         hexc(&["size", "-disassemble", name, &f]);

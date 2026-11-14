@@ -656,6 +656,7 @@ impl Server {
             "size_report" => self.size_report(args),
             "symbols" => self.symbols(args),
             "lookup" => self.lookup(args),
+            "resources" => resources(args),
             "query" => self.query(args),
             "why" => self.why(args),
             "recommend" => self.recommend(args),
@@ -771,6 +772,32 @@ fn prop(kind: &str, description: &str) -> Value {
         ("type", Value::from(kind)),
         ("description", Value::from(description)),
     ])
+}
+
+/// The `resources` tool: a binary's resources and metadata, or one of
+/// them decoded (`hexc resources`).
+fn resources(args: &Value) -> ToolResult {
+    let path = arg_str(args, "path").ok_or("`path` is required")?;
+    let mut command = vec!["resources".to_string()];
+    if let Some(id) = arg_str(args, "id") {
+        command.extend(["-show".into(), id.to_string()]);
+    }
+    command.push(path.to_string());
+    let (code, out) = crate::out::capture(|| crate::command(&command));
+    if code != std::process::ExitCode::SUCCESS {
+        return Err(String::from_utf8_lossy(&out.stderr).trim().to_string());
+    }
+    let text = String::from_utf8_lossy(&out.stdout).into_owned();
+    command.insert(1, "-json".into());
+    let (_, json) = crate::out::capture(|| crate::command(&command));
+    let mut structured: Value =
+        serde_json::from_str(&String::from_utf8_lossy(&json.stdout)).map_err(|e| e.to_string())?;
+    // (An image's bytes are no use to a model: what they are is.)
+    if let Some(o) = structured.as_object_mut() {
+        o.remove("file");
+        o.remove("hex");
+    }
+    Ok((text, structured))
 }
 
 fn tools() -> Value {
@@ -996,6 +1023,20 @@ fn tools() -> Value {
                 ),
             ),
             tool(
+                "resources",
+                "A binary's resources and what it says of itself: a PE image's resources (version information, manifest, string and message tables, dialogs, menus, accelerators, icons, cursors, bitmaps, raw data) by type, name, and language; a Mach-O image's Info.plist, entitlements, and versions; an ELF image's notes (build ID, ABI tag, package metadata, properties) and .comment; a WebAssembly module's producers and custom sections. Without `id`, the list, each in a line; with `id` (as listed, like \"VERSION/#1/1033\" or \"Info.plist\"), that one decoded in full.",
+                schema(
+                    vec![
+                        ("path", prop("string", "The binary.")),
+                        (
+                            "id",
+                            prop("string", "One of them, as listed, to decode in full."),
+                        ),
+                    ],
+                    &["path"],
+                ),
+            ),
+            tool(
                 "lookup",
                 "What is at an address of a binary, by every data source: section, COFF group, symbol (with every name folded there), compiland, and library.",
                 schema(
@@ -1123,6 +1164,7 @@ mod tests {
                 "query",
                 "why",
                 "recommend",
+                "resources",
                 "lookup"
             ]
         );

@@ -1,0 +1,112 @@
+// The resources of Hexcavator's resource test program: one of each kind
+// `hexc resources` decodes, some in two languages.
+#include <windows.h>
+
+#define IDM_OPEN 101
+#define IDM_EXIT 102
+#define IDM_ABOUT 103
+#define IDM_COPY 201
+
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+
+1 ICON "icon.ico"
+2 CURSOR "arrow.cur"
+STRIPES BITMAP "stripes.bmp"
+
+1 MENU
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&Open...\tCtrl+O", IDM_OPEN
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit", IDM_EXIT
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&About", IDM_ABOUT
+    END
+END
+
+2 MENUEX
+BEGIN
+    POPUP "", 0, MFT_STRING, MFS_ENABLED
+    BEGIN
+        MENUITEM "&Copy", IDM_COPY, MFT_STRING, MFS_DEFAULT
+        MENUITEM "", 0, MFT_SEPARATOR
+        MENUITEM "&Open", IDM_OPEN
+    END
+END
+
+1 ACCELERATORS
+BEGIN
+    "O", IDM_OPEN, VIRTKEY, CONTROL
+    VK_F1, IDM_ABOUT, VIRTKEY
+    "x", IDM_EXIT, ASCII, ALT
+END
+
+100 DIALOGEX 10, 20, 200, 80
+STYLE DS_MODALFRAME | DS_SHELLFONT | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About Resources"
+FONT 8, "MS Shell Dlg", 400, 0, 1
+BEGIN
+    ICON 1, -1, 10, 10, 20, 20
+    LTEXT "Resources, a test program.", -1, 40, 10, 150, 8
+    EDITTEXT 1000, 40, 25, 150, 12
+    DEFPUSHBUTTON "OK", IDOK, 140, 60, 50, 14
+END
+
+101 DIALOG 0, 0, 120, 40
+STYLE WS_POPUP | WS_CAPTION
+CAPTION "Classic"
+FONT 9, "Segoe UI"
+BEGIN
+    PUSHBUTTON "Cancel", IDCANCEL, 60, 20, 50, 14
+    CONTROL "", 1001, "SysListView32", WS_BORDER, 5, 5, 50, 30
+END
+
+STRINGTABLE
+BEGIN
+    1 "Resources"
+    2 "A test program"
+    17 "Seventeen"
+END
+
+1 VERSIONINFO
+FILEVERSION 1,2,3,4
+PRODUCTVERSION 1,2,0,0
+FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
+FILEFLAGS VS_FF_PRERELEASE
+FILEOS VOS_NT_WINDOWS32
+FILETYPE VFT_APP
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "CompanyName", "Hexcavator"
+            VALUE "FileDescription", "Resource test program"
+            VALUE "FileVersion", "1.2.3.4"
+            VALUE "ProductName", "Hexcavator tests"
+            VALUE "ProductVersion", "1.2"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+1 RT_MANIFEST "app.manifest"
+README 23 "readme.html"
+CONFIG RCDATA { "key=value\r\n", "other=1\r\n" }
+BLOB RCDATA { 0x0201, 0x0403, 0xFFFE }
+CUSTOM DATA { "custom type\0" }
+
+#include "messages.rc"
+
+LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
+
+STRINGTABLE
+BEGIN
+    1 "Ressourcen"
+END

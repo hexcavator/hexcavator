@@ -381,6 +381,7 @@ def main():
     table_checks(exe, image, shot)
     types_checks(exe, image, shot)
     build_checks(exe, shot)
+    resources_checks(exe, shot)
     diff_checks(exe, shot)
     print(f"ok: {outer} sections in the treemap; zoom, search, disassembly actions, sunburst, tree, diff, and findings ({rows} rows) render; disassembly: {modes}")
 
@@ -635,6 +636,50 @@ def build_checks(exe, shot):
     # Ungrouped: a list.
     dom = render(None, html_page=page("document.querySelector('.gchip[data-id=\"library\"]').click();"))
     assert '<tr class="group"' not in dom and re.search(r'<td class="mono cmd"[^>]*>-nologo -c -O1', dom), "a list"
+
+
+def resources_checks(exe, shot):
+    """The Resources page: the list by group (the first selected, asked
+    for), filtered as typed; a dialog drawn from its template; an icon
+    group's images; version information as a table."""
+    image = os.path.join(REPO, "testdata", "resources", "resources.exe")
+    listed = hexc(exe, "resources", "-json", image)
+    message = {"kind": "resources", "file": image, "list": listed}
+
+    def page(id=None):
+        """The page, with `id` clicked and its decoding (as hexc gives it)
+        delivered."""
+        then = ""
+        if id:
+            item = hexc(exe, "resources", "-json", "-show", id, image)
+            then = (f"document.querySelector('tr.res[data-id=\"{id}\"]').click();"
+                    f"window.postMessage({{kind: 'item', item: {json.dumps(item)}}}, '*');")
+        return types_page(message, then, script="resources-view.js")
+
+    dom = render(None, shot=shot("resources"), html_page=page())
+    text = html.unescape(re.sub("<[^>]+>", " ", dom))
+    assert "VERSION" in text and "Hexcavator tests 1.2.3.4 (Hexcavator)" in text, "the list"
+    assert "needs Microsoft.Windows.Common-Controls; runs asInvoker" in text, "a manifest's gist"
+    posted = html.unescape(re.search(r'<pre id="posted">(.*?)</pre>', dom, re.S).group(1))
+    first = listed["items"][0]["id"]
+    assert f'"command":"show","id":"{first}"' in posted, posted
+    # A dialog: its controls where its template puts them.
+    dom = render(None, shot=shot("resources-dialog"), html_page=page("DIALOG/#100/1033"))
+    assert len(re.findall(r'class="dlgctl ', dom)) == 4, "four controls"
+    assert 'class="dlgtitle">About Resources<' in dom, "its title"
+    assert re.search(r'class="dlgctl button"[^>]*>OK<', dom), "its button"
+    # An icon group: each image, as an icon file of its own.
+    dom = render(None, shot=shot("resources-icon"), html_page=page("GROUP_ICON/#1/1033"))
+    assert len(re.findall(r'<img src="data:image/x-icon;base64,', dom)) == 2, "two images"
+    assert "32×32, 32 bits, PNG" in html.unescape(dom), "the PNG's caption"
+    # Version information: the fixed part and the strings.
+    dom = render(None, html_page=page("VERSION/#1/1033"))
+    text = html.unescape(re.sub("<[^>]+>", " ", dom))
+    assert "File version" in text and "1.2.3.4" in text and "Resource test program" in text, "the version"
+    # Filtered: only what matches.
+    dom = render(None, html_page=types_page(message, "var s = document.querySelector('.searchbox input'); s.value = 'ressourcen'; s.dispatchEvent(new Event('input'));", script="resources-view.js"))
+    rows = re.findall(r'<tr class="res[^"]*" data-id="([^"]*)"', dom)
+    assert rows == ["STRING/#1/1031"], rows
 
 
 def table_checks(exe, image, shot):

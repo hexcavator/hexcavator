@@ -264,7 +264,7 @@ function pageHtml(webview, context, title) {
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';${images ? " img-src data:;" : ""}">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="${media("view.css")}">
 <link rel="stylesheet" href="${media("loading.css")}">
@@ -1000,7 +1000,7 @@ class SizeEditor {
 }
 
 /** A page's HTML (the Types and Layout pages): header, toolbar, main. */
-function plainHtml(webview, context, title, script) {
+function plainHtml(webview, context, title, script, images) {
   const media = (name) => webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, "media", name)));
   const nonce = crypto.randomBytes(16).toString("base64");
   const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
@@ -1025,14 +1025,14 @@ function plainHtml(webview, context, title, script) {
 }
 
 /** A webview panel for a page of ours. */
-function panelFor(context, viewType, title, script) {
+function panelFor(context, viewType, title, script, images) {
   const panel = vscode.window.createWebviewPanel(viewType, title, vscode.ViewColumn.Active, {
     enableScripts: true,
     retainContextWhenHidden: true,
     localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, "media"))],
   });
   panel.iconPath = vscode.Uri.file(path.join(context.extensionPath, "media", "icon.svg"));
-  panel.webview.html = plainHtml(panel.webview, context, title, script);
+  panel.webview.html = plainHtml(panel.webview, context, title, script, images);
   return panel;
 }
 
@@ -1195,6 +1195,87 @@ function openBuildInfo(context, file) {
   load();
 }
 
+/** Open Resources pages, by file. */
+const resourcePanels = new Map();
+
+/** What -save writes, by how an item is shown: its file's extension. */
+const SAVED_AS = { group: null, image: null, bitmap: "bmp", text: "txt", table: "txt" };
+
+/**
+ * Opens (or shows) the Resources page of the binary at `file`: what it holds
+ * besides its code, and what it says of itself (hexc resources -json), each
+ * decoded when it's selected (-show), saved (-save) or copied on request.
+ */
+function openResources(context, file) {
+  const existing = resourcePanels.get(file);
+  if (existing) {
+    existing.reveal();
+    return;
+  }
+  const name = path.basename(file);
+  // (Its icons, cursors, and bitmaps are shown as data: URLs.)
+  const panel = panelFor(context, "hexcResources", `Resources: ${name}`, "resources-view.js", true);
+  resourcePanels.set(file, panel);
+  panel.onDidDispose(() => resourcePanels.delete(file));
+  const load = async () => {
+    try {
+      const out = await paneRun(panel.webview, `Reading ${name}'s resources…`, ["resources", "-json", file]);
+      panel.webview.postMessage({ kind: "resources", file, list: JSON.parse(out) });
+    } catch (e) {
+      if (!e.cancelled) {
+        vscode.window.showErrorMessage(`hexc: ${e.message}`);
+      }
+      panel.webview.postMessage({ kind: "failed", message: e.message });
+    }
+  };
+  panel.webview.onDidReceiveMessage(async (m) => {
+    switch (m && m.command) {
+      case "ready":
+      case "refresh":
+        await load();
+        break;
+      case "show":
+        if (typeof m.id === "string") {
+          try {
+            const out = await runHexc(["resources", "-json", "-show", m.id, file]);
+            panel.webview.postMessage({ kind: "item", item: JSON.parse(out) });
+          } catch (e) {
+            panel.webview.postMessage({ kind: "itemFailed", id: m.id, message: e.message });
+          }
+        }
+        break;
+      case "copy":
+        if (typeof m.text === "string") {
+          await vscode.env.clipboard.writeText(m.text);
+          vscode.window.setStatusBarMessage(m.what ? `Copied ${m.what}` : "Copied", 2000);
+        }
+        break;
+      case "save": {
+        if (typeof m.id !== "string") {
+          break;
+        }
+        // (A name for the file: the resource's, and what it'll be.)
+        const ext = m.view === "group" || m.view === "image" ? (/CURSOR/.test(m.id) ? "cur" : "ico") : SAVED_AS[m.view] || "bin";
+        const stem = String(m.name || m.id).replace(/^#/, "").replace(/[^\w.-]+/g, "_") || "resource";
+        const target = await vscode.window.showSaveDialog({
+          defaultUri: vscode.Uri.file(path.join(path.dirname(file), `${stem}.${ext}`)),
+          title: `Save ${m.id}`,
+        });
+        if (!target) {
+          break;
+        }
+        try {
+          await runHexc(["resources", "-save", m.id, target.fsPath, file]);
+          vscode.window.setStatusBarMessage(`Saved ${m.id} to ${path.basename(target.fsPath)}`, 3000);
+        } catch (e) {
+          vscode.window.showErrorMessage(`hexc: ${e.message}`);
+        }
+        break;
+      }
+    }
+  }, undefined, context.subscriptions);
+}
+
 /** A type's layout. */
 function typeLayout(file, name) {
   return openLayout(extension, file, name);
@@ -1286,6 +1367,7 @@ function activate(context) {
     findings: (file) => findings(context, vscode.Uri.file(file)),
     openTypes: (file) => openTypes(context, file),
     openBuildInfo: (file) => openBuildInfo(context, file),
+    openResources: (file) => openResources(context, file),
     openDisassembly,
     openData,
     openTable,

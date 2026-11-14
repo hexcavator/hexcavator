@@ -22,6 +22,7 @@ pub mod imports;
 pub mod load_config;
 pub mod raw;
 pub mod reloc;
+pub mod resource_data;
 pub mod resources;
 mod symbols;
 #[cfg(test)]
