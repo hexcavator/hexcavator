@@ -4,8 +4,6 @@
 
 use alloc::{format, string::String, vec::Vec};
 
-use core::fmt::Write as _;
-
 use crate::instruction::prefix;
 use crate::{Instruction, Memory, Mnemonic, Mode, Operand, Rounding};
 
@@ -76,14 +74,103 @@ pub const MNEMONIC_WIDTH: usize = 12;
 /// Formats `value` the way MASM writes numbers: decimal below 10, otherwise
 /// hex with an `h` suffix and a leading `0` if it starts with a letter.
 pub fn masm_hex(value: u64) -> String {
-    if value < 10 {
-        return format!("{value}");
+    let mut b = Buf::new();
+    b.masm_hex(value);
+    String::from(b.as_str())
+}
+
+/// Text built on the stack: numbers, addresses, and mnemonics are short.
+/// (Writes past its end are dropped and mark it [`Buf::overflowed`].)
+struct Buf {
+    bytes: [u8; 128],
+    len: usize,
+    overflowed: bool,
+}
+
+#[allow(
+    clippy::cast_possible_truncation,
+    reason = "hex and decimal digits, and values below 10"
+)]
+impl Buf {
+    #[inline]
+    fn new() -> Self {
+        Buf {
+            bytes: [0; 128],
+            len: 0,
+            overflowed: false,
+        }
     }
-    let s = format!("{value:X}h");
-    if s.as_bytes()[0].is_ascii_alphabetic() {
-        format!("0{s}")
-    } else {
-        s
+
+    #[inline]
+    fn push_str(&mut self, s: &str) {
+        let end = self.len + s.len();
+        match self.bytes.get_mut(self.len..end) {
+            Some(dest) => {
+                dest.copy_from_slice(s.as_bytes());
+                self.len = end;
+            }
+            None => self.overflowed = true,
+        }
+    }
+
+    #[inline]
+    fn push(&mut self, c: u8) {
+        match self.bytes.get_mut(self.len) {
+            Some(b) => {
+                *b = c;
+                self.len += 1;
+            }
+            None => self.overflowed = true,
+        }
+    }
+
+    /// `value` in upper-case hex, at least `width` digits.
+    fn hex(&mut self, value: u64, width: usize) {
+        let digits = ((64 - value.leading_zeros() as usize).div_ceil(4))
+            .max(width)
+            .max(1);
+        for k in (0..digits).rev() {
+            let d = if k < 16 { (value >> (4 * k)) & 0xF } else { 0 };
+            self.push(b"0123456789ABCDEF"[d as usize]);
+        }
+    }
+
+    /// `value` in decimal.
+    fn decimal(&mut self, mut value: u64) {
+        let mut digits = [0u8; 20];
+        let mut i = digits.len();
+        loop {
+            i -= 1;
+            digits[i] = b'0' + (value % 10) as u8;
+            value /= 10;
+            if value == 0 {
+                break;
+            }
+        }
+        for &d in &digits[i..] {
+            self.push(d);
+        }
+    }
+
+    /// As [`masm_hex`] writes it.
+    fn masm_hex(&mut self, value: u64) {
+        if value < 10 {
+            self.push(b'0' + value as u8);
+            return;
+        }
+        // A leading 0 where the first digit is a letter.
+        let top = value >> ((64 - value.leading_zeros() as usize - 1) / 4 * 4);
+        if top >= 10 {
+            self.push(b'0');
+        }
+        self.hex(value, 0);
+        self.push(b'h');
+    }
+
+    #[inline]
+    fn as_str(&self) -> &str {
+        // (Only ASCII and whole `str`s are written.)
+        core::str::from_utf8(&self.bytes[..self.len]).unwrap_or("")
     }
 }
 
@@ -91,6 +178,41 @@ pub fn masm_hex(value: u64) -> String {
 /// and pseudo-op expansions such as `cmpltps`.
 pub fn mnemonic_text(inst: &Instruction) -> String {
     let mut s = String::new();
+    write_mnemonic(inst, &mut s);
+    s
+}
+
+/// What can take text: a `String`, or a [`Buf`].
+trait Text {
+    fn push_str(&mut self, s: &str);
+    fn push(&mut self, c: char);
+}
+
+impl Text for String {
+    #[inline]
+    fn push_str(&mut self, s: &str) {
+        String::push_str(self, s);
+    }
+    #[inline]
+    fn push(&mut self, c: char) {
+        String::push(self, c);
+    }
+}
+
+impl Text for Buf {
+    #[inline]
+    fn push_str(&mut self, s: &str) {
+        Buf::push_str(self, s);
+    }
+    #[inline]
+    fn push(&mut self, c: char) {
+        let mut b = [0u8; 4];
+        Buf::push_str(self, c.encode_utf8(&mut b));
+    }
+}
+
+/// Writes [`mnemonic_text`] to `s`.
+fn write_mnemonic(inst: &Instruction, s: &mut impl Text) {
     let p = inst.prefixes();
     // In dumpbin's order. A meaningless F3 is shown as `repe` alongside
     // `lock` and as `rep` otherwise.
@@ -146,7 +268,6 @@ pub fn mnemonic_text(inst: &Instruction) -> String {
             }
         }
     }
-    s
 }
 
 /// Formats an instruction: mnemonic, padding, and operands.
@@ -156,14 +277,26 @@ pub fn format(inst: &Instruction, out: &mut dyn TokenSink) {
 
 /// Formats an instruction, naming addresses through `symbols`.
 pub fn format_with(inst: &Instruction, out: &mut dyn TokenSink, symbols: &dyn Symbols) {
-    let mnemonic = mnemonic_text(inst);
+    let mut buf = Buf::new();
+    write_mnemonic(inst, &mut buf);
+    let long;
+    let mnemonic = if buf.overflowed {
+        long = mnemonic_text(inst);
+        long.as_str()
+    } else {
+        buf.as_str()
+    };
     let operands = visible_operands(inst);
-    out.token(TokenKind::Mnemonic, &mnemonic);
+    out.token(TokenKind::Mnemonic, mnemonic);
     if operands.is_empty() {
         return;
     }
     let pad = MNEMONIC_WIDTH.saturating_sub(mnemonic.len()).max(1);
-    out.token(TokenKind::Punctuation, &" ".repeat(pad));
+    const SPACES: &str = "            ";
+    match SPACES.get(..pad) {
+        Some(spaces) => out.token(TokenKind::Punctuation, spaces),
+        None => out.token(TokenKind::Punctuation, &" ".repeat(pad)),
+    }
     if let Some(dfv) = inst.default_flags() {
         out.token(TokenKind::Decorator, &default_flags(dfv));
         out.token(TokenKind::Punctuation, " ");
@@ -174,10 +307,14 @@ pub fn format_with(inst: &Instruction, out: &mut dyn TokenSink, symbols: &dyn Sy
         }
         operand(inst, op, out, symbols);
         if i == 0 && inst.mask().is_some() {
-            out.token(
-                TokenKind::Decorator,
-                &format!("{{k{}}}", inst.mask().unwrap_or(0)),
-            );
+            const MASKS: [&str; 8] = [
+                "{k0}", "{k1}", "{k2}", "{k3}", "{k4}", "{k5}", "{k6}", "{k7}",
+            ];
+            let k = usize::from(inst.mask().unwrap_or(0));
+            match MASKS.get(k) {
+                Some(text) => out.token(TokenKind::Decorator, text),
+                None => out.token(TokenKind::Decorator, &format!("{{k{k}}}")),
+            }
             if inst.zeroing() {
                 out.token(TokenKind::Decorator, "{z}");
             }
@@ -198,7 +335,7 @@ pub fn format_with(inst: &Instruction, out: &mut dyn TokenSink, symbols: &dyn Sy
 
 /// Formats an instruction into a string.
 pub fn to_string(inst: &Instruction) -> String {
-    let mut s = String::new();
+    let mut s = String::with_capacity(48);
     format(inst, &mut s);
     s
 }
@@ -238,34 +375,59 @@ fn operand(inst: &Instruction, op: &Operand, out: &mut dyn TokenSink, symbols: &
                     out.token(TokenKind::Keyword, "offset ");
                     out.token(TokenKind::Address, name);
                 }
-                None => out.token(TokenKind::Number, &masm_hex(i.value)),
+                None => number(out, TokenKind::Number, i.value),
             }
         }
         Operand::Rel(target) => match symbols.name_at(*target) {
             Some(name) => out.token(TokenKind::Address, name),
-            None => out.token(TokenKind::Address, &address(inst.mode(), *target)),
+            None => {
+                let mut b = Buf::new();
+                push_address(&mut b, inst.mode(), *target);
+                out.token(TokenKind::Address, b.as_str());
+            }
         },
         Operand::Far {
             segment,
             offset,
             offset_size,
         } => {
-            let text = if *offset_size == 2 {
-                format!("{segment:04X}:{offset:04X}")
-            } else {
-                format!("{segment:04X}:{offset:08X}")
-            };
-            out.token(TokenKind::Address, &text);
+            let mut b = Buf::new();
+            b.hex(u64::from(*segment), 4);
+            b.push(b':');
+            b.hex(u64::from(*offset), if *offset_size == 2 { 4 } else { 8 });
+            out.token(TokenKind::Address, b.as_str());
         }
         Operand::Mem(m) => memory(inst, m, out, symbols),
     }
 }
 
-fn address(mode: Mode, value: u64) -> String {
+fn push_address(b: &mut Buf, mode: Mode, value: u64) {
     match mode {
-        Mode::Bits64 => format!("{value:016X}"),
-        _ => format!("{:08X}", value & 0xFFFF_FFFF),
+        Mode::Bits64 => b.hex(value, 16),
+        _ => b.hex(value & 0xFFFF_FFFF, 8),
     }
+}
+
+/// A number as MASM writes it, as a token.
+fn number(out: &mut dyn TokenSink, kind: TokenKind, value: u64) {
+    let mut b = Buf::new();
+    b.masm_hex(value);
+    out.token(kind, b.as_str());
+}
+
+/// A number in hex with at least `width` digits and an `h`, as a token.
+fn hex_h(out: &mut dyn TokenSink, kind: TokenKind, value: u64, width: usize) {
+    let mut b = Buf::new();
+    b.hex(value, width);
+    b.push(b'h');
+    out.token(kind, b.as_str());
+}
+
+/// A scale factor, as a token.
+fn scale(out: &mut dyn TokenSink, scale: u8) {
+    let mut b = Buf::new();
+    b.decimal(u64::from(scale));
+    out.token(TokenKind::Number, b.as_str());
 }
 
 fn memory(inst: &Instruction, m: &Memory, out: &mut dyn TokenSink, symbols: &dyn Symbols) {
@@ -309,7 +471,7 @@ fn memory(inst: &Instruction, m: &Memory, out: &mut dyn TokenSink, symbols: &dyn
             out.token(TokenKind::Register, index.name());
             if m.scale > 1 {
                 out.token(TokenKind::Punctuation, "*");
-                out.token(TokenKind::Number, &format!("{}", m.scale));
+                scale(out, m.scale);
             }
             out.token(TokenKind::Punctuation, "]");
             return;
@@ -328,21 +490,17 @@ fn memory(inst: &Instruction, m: &Memory, out: &mut dyn TokenSink, symbols: &dyn
     if m.is_rip_relative() {
         let target = inst.next_address().wrapping_add(m.disp as u64) & mask;
         if symbolic {
-            out.token(TokenKind::Address, &masm_hex(target));
+            number(out, TokenKind::Address, target);
         } else {
-            let mut s = String::new();
-            let _ = write!(s, "{target:0width$X}h");
-            out.token(TokenKind::Address, &s);
+            hex_h(out, TokenKind::Address, target, width);
         }
     } else if absolute {
         let value = m.disp as u64 & mask;
         if symbolic && !m.moffs {
-            out.token(TokenKind::Address, &masm_hex(value));
+            number(out, TokenKind::Address, value);
         } else {
             let width = if m.moffs { width.max(8) } else { width };
-            let mut s = String::new();
-            let _ = write!(s, "{value:0width$X}h");
-            out.token(TokenKind::Address, &s);
+            hex_h(out, TokenKind::Address, value, width);
         }
     } else {
         if let Some(base) = m.base {
@@ -355,7 +513,7 @@ fn memory(inst: &Instruction, m: &Memory, out: &mut dyn TokenSink, symbols: &dyn
             out.token(TokenKind::Register, index.name());
             if m.scale > 1 {
                 out.token(TokenKind::Punctuation, "*");
-                out.token(TokenKind::Number, &format!("{}", m.scale));
+                scale(out, m.scale);
             }
         }
         match m.disp_size {
@@ -363,11 +521,11 @@ fn memory(inst: &Instruction, m: &Memory, out: &mut dyn TokenSink, symbols: &dyn
             1 => {
                 if m.disp < 0 {
                     out.token(TokenKind::Punctuation, "-");
-                    out.token(TokenKind::Number, &masm_hex(m.disp.unsigned_abs()));
+                    number(out, TokenKind::Number, m.disp.unsigned_abs());
                 } else if m.disp > 0 || m.address_size == 2 {
                     // With 16-bit addressing a zero disp8 is still shown.
                     out.token(TokenKind::Punctuation, "+");
-                    out.token(TokenKind::Number, &masm_hex(m.disp as u64));
+                    number(out, TokenKind::Number, m.disp as u64);
                 }
             }
             _ if symbolic => {
@@ -375,17 +533,15 @@ fn memory(inst: &Instruction, m: &Memory, out: &mut dyn TokenSink, symbols: &dyn
                 if m.disp == 0 {
                 } else if m.disp < 0 {
                     out.token(TokenKind::Punctuation, "-");
-                    out.token(TokenKind::Number, &masm_hex(m.disp.unsigned_abs()));
+                    number(out, TokenKind::Number, m.disp.unsigned_abs());
                 } else {
                     out.token(TokenKind::Punctuation, "+");
-                    out.token(TokenKind::Number, &masm_hex(m.disp as u64));
+                    number(out, TokenKind::Number, m.disp as u64);
                 }
             }
             _ => {
                 out.token(TokenKind::Punctuation, "+");
-                let mut s = String::new();
-                let _ = write!(s, "{:0width$X}h", m.disp as u64 & mask);
-                out.token(TokenKind::Number, &s);
+                hex_h(out, TokenKind::Number, m.disp as u64 & mask, width);
             }
         }
     }
@@ -407,29 +563,40 @@ pub fn listing_with(
     inst: Option<&Instruction>,
     symbols: &dyn Symbols,
 ) -> String {
-    let addr = match mode {
-        Mode::Bits64 => format!("{address:016X}"),
-        _ => format!("{:08X}", address & 0xFFFF_FFFF),
+    let mut addr = Buf::new();
+    push_address(&mut addr, mode, address);
+    let addr = addr.as_str();
+    let mut out = String::with_capacity(96);
+    // Bytes in hex, separated by spaces.
+    let push_bytes = |out: &mut String, chunk: &[u8]| {
+        for (i, b) in chunk.iter().enumerate() {
+            if i > 0 {
+                out.push(' ');
+            }
+            out.push(char::from(b"0123456789ABCDEF"[usize::from(b >> 4)]));
+            out.push(char::from(b"0123456789ABCDEF"[usize::from(b & 0xF)]));
+        }
     };
-    let indent = " ".repeat(addr.len() + 4);
-    let mut out = String::new();
     let mut chunks = bytes.chunks(6);
     let first = chunks.next().unwrap_or(&[]);
-    let hex: Vec<String> = first.iter().map(|b| format!("{b:02X}")).collect();
-    let text = inst
-        .map(|i| {
-            let mut s = String::new();
-            format_with(i, &mut s, symbols);
-            s
-        })
-        .unwrap_or_default();
-    let _ = write!(out, "  {addr}: {:<19}{text}", hex.join(" "));
+    out.push_str("  ");
+    out.push_str(addr);
+    out.push_str(": ");
+    let start = out.len();
+    push_bytes(&mut out, first);
+    // (The bytes in a column 19 wide.)
+    let used = out.len() - start;
+    out.extend(core::iter::repeat_n(' ', 19usize.saturating_sub(used)));
+    if let Some(i) = inst {
+        format_with(i, &mut out, symbols);
+    }
     let trimmed = out.trim_end().len();
     out.truncate(trimmed);
     out.push('\n');
     for chunk in chunks {
-        let hex: Vec<String> = chunk.iter().map(|b| format!("{b:02X}")).collect();
-        let _ = writeln!(out, "{indent}{}", hex.join(" "));
+        out.extend(core::iter::repeat_n(' ', addr.len() + 4));
+        push_bytes(&mut out, chunk);
+        out.push('\n');
     }
     out
 }
