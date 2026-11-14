@@ -16,6 +16,7 @@
 //! sections.
 
 use std::fmt::Write as _;
+use std::io::Write as _;
 use std::path::Path;
 use std::process::ExitCode;
 
@@ -136,13 +137,40 @@ pub fn run(args: &[String]) -> ExitCode {
         }
     };
     match dump(&o) {
-        Ok(text) => crate::out::print(text.as_bytes()),
+        Ok((text, None)) => crate::out::print(text.as_bytes()),
+        Ok((text, Some(mut spill))) => {
+            // The rest of what was written as it went: and whether all of
+            // it got there (a closed pipe counts, as for `print`).
+            let rest = spill
+                .out
+                .write_all(text.as_bytes())
+                .and_then(|()| spill.out.flush());
+            match spill.error.map_or(rest, Err) {
+                Ok(()) => ExitCode::SUCCESS,
+                Err(e) if e.kind() == std::io::ErrorKind::BrokenPipe => ExitCode::SUCCESS,
+                Err(e) => {
+                    ereport!("hexc: writing the output: {e}");
+                    ExitCode::FAILURE
+                }
+            }
+        }
         Err(e) => {
             ereport!("hexc dwarf: {e}");
             ExitCode::FAILURE
         }
     }
 }
+
+/// Standard output, written as the dump goes (rather than all at the end:
+/// a large file's DIEs are hundreds of megabytes of text), and the first
+/// error writing it.
+struct Spill {
+    out: crate::out::Out,
+    error: Option<std::io::Error>,
+}
+
+/// How much text a dump holds before writing it out.
+const SPILL_AT: usize = 1 << 20;
 
 /// The file holding the DWARF to show: `-debug`'s, the file itself if it
 /// has DWARF, or its debug file.
@@ -166,12 +194,18 @@ fn open(o: &Options) -> Result<(String, Mmap, Mmap), String> {
     Ok((path.display().to_string(), image, map))
 }
 
-fn dump(o: &Options) -> Result<String, String> {
+/// The dump's text: what is left of it, if some was written as it went
+/// (`Spill`), or all of it.
+fn dump(o: &Options) -> Result<(String, Option<Spill>), String> {
     let (path, image, debug) = match open(o) {
         Ok(found) => found,
-        Err(e) => return debug_map(o, e),
+        Err(e) => return debug_map(o, e).map(|text| (text, None)),
     };
-    dump_one(o, &path, &image, &debug)
+    let spill = Spill {
+        out: crate::out::stdout(),
+        error: None,
+    };
+    dump_one(o, &path, &image, &debug, Some(spill))
 }
 
 /// A Mach-O image without a dSYM: each object file of its debug map,
@@ -189,12 +223,19 @@ fn debug_map(o: &Options, why: String) -> Result<String, String> {
     }
     let mut out = String::new();
     for (name, data) in opened.debug_map_files() {
-        out.push_str(&dump_one(o, &name, data, data)?);
+        // (Each in full: an error in a later file shows nothing.)
+        out.push_str(&dump_one(o, &name, data, data, None)?.0);
     }
     Ok(out)
 }
 
-fn dump_one(o: &Options, path: &str, image: &[u8], debug: &[u8]) -> Result<String, String> {
+fn dump_one(
+    o: &Options,
+    path: &str,
+    image: &[u8],
+    debug: &[u8],
+    spill: Option<Spill>,
+) -> Result<(String, Option<Spill>), String> {
     let info = hexcavator_debuginfo::dwarf_backend::DwarfInfo::parse(debug)
         .map_err(|e| format!("{path}: {e}"))?;
     let s = info.sections();
@@ -202,6 +243,8 @@ fn dump_one(o: &Options, path: &str, image: &[u8], debug: &[u8]) -> Result<Strin
         s,
         arch: info.arch(),
         out: String::new(),
+        spill,
+        paths: std::cell::RefCell::new((usize::MAX, std::collections::HashMap::new())),
         index: std::rc::Rc::new(Index {
             units: Vec::new(),
             parents: Default::default(),
@@ -243,13 +286,18 @@ fn dump_one(o: &Options, path: &str, image: &[u8], debug: &[u8]) -> Result<Strin
             d.frames(debug);
         }
     }
-    Ok(d.out)
+    Ok((d.out, d.spill))
 }
 
 struct Dumper<'d> {
     s: Sections<'d>,
     arch: Arch,
     out: String,
+    /// Where to write `out` as it grows, if anywhere.
+    spill: Option<Spill>,
+    /// The files of a unit's line table that DIEs have named (by index),
+    /// and the unit.
+    paths: std::cell::RefCell<(usize, std::collections::HashMap<u64, Option<String>>)>,
     index: std::rc::Rc<Index<'d>>,
 }
 
@@ -469,6 +517,27 @@ impl<'d> Dumper<'d> {
 
     // --------------------------------------------------------------- info
 
+    /// Writes out what the dump holds, if it is large, but for its last
+    /// bytes (which the dump may look back at: a unit's last null entry).
+    fn spill(&mut self) {
+        if self.out.len() < SPILL_AT {
+            return;
+        }
+        let Some(spill) = &mut self.spill else {
+            return;
+        };
+        let mut cut = self.out.len() - 64;
+        while !self.out.is_char_boundary(cut) {
+            cut -= 1;
+        }
+        if spill.error.is_none()
+            && let Err(e) = spill.out.write_all(&self.out.as_bytes()[..cut])
+        {
+            spill.error = Some(e);
+        }
+        self.out.drain(..cut);
+    }
+
     fn info(&mut self) {
         let index = std::rc::Rc::clone(&self.index);
         let units = &index.units;
@@ -542,6 +611,7 @@ impl<'d> Dumper<'d> {
         // (With `only`: the depth of the DIE being shown, while under it.)
         let mut shown: Option<i64> = None;
         loop {
+            self.spill();
             let before = r.depth;
             let Some(a) = r.next(&u.abbrevs) else { break };
             let offset = r.offset;
@@ -579,11 +649,12 @@ impl<'d> Dumper<'d> {
                 (Some(_), None) => false,
             };
             if show {
+                // (The attributes lent to the DIE, and taken back.)
                 let die = Die {
                     offset,
                     tag: a.tag,
                     children: a.children,
-                    attrs: attrs.clone(),
+                    attrs: std::mem::take(&mut attrs),
                     next: r.position(),
                 };
                 self.die(
@@ -593,6 +664,7 @@ impl<'d> Dumper<'d> {
                     &die,
                     usize::try_from(depth.max(0)).unwrap_or(0),
                 );
+                attrs = die.attrs;
             }
             if let Some(d) = shown
                 && depth <= d
@@ -652,21 +724,32 @@ impl<'d> Dumper<'d> {
         die: &Die<'d>,
         depth: usize,
     ) {
-        let tag = spelling::tag(u64::from(die.tag))
-            .map_or_else(|| format!("DW_TAG_unknown_{:x}", die.tag), str::to_string);
-        let _ = writeln!(
-            self.out,
-            "0x{:08x}: {}{tag}",
-            die.offset,
-            "  ".repeat(depth)
-        );
+        let _ = write!(self.out, "0x{:08x}: ", die.offset);
+        spaces(&mut self.out, 2 * depth);
+        match spelling::tag(u64::from(die.tag)) {
+            Some(tag) => self.out.push_str(tag),
+            None => {
+                let _ = write!(self.out, "DW_TAG_unknown_{:x}", die.tag);
+            }
+        }
+        self.out.push('\n');
         let indent = 12 + 2 * depth + 2;
         let low_pc = die.attr(DW_AT_LOW_PC).and_then(|a| self.address(u, a));
         for a in &die.attrs {
-            let name = spelling::attribute(u64::from(a.name))
-                .map_or_else(|| format!("DW_AT_unknown_{:x}", a.name), str::to_string);
-            let value = self.value(ui, u, types, die, a, low_pc, indent);
-            let _ = writeln!(self.out, "{}{name}\t({value})", " ".repeat(indent));
+            spaces(&mut self.out, indent);
+            match spelling::attribute(u64::from(a.name)) {
+                Some(name) => self.out.push_str(name),
+                None => {
+                    let _ = write!(self.out, "DW_AT_unknown_{:x}", a.name);
+                }
+            }
+            self.out.push_str("\t(");
+            // (The value written straight to the output, which is lent out
+            // for it.)
+            let mut out = std::mem::take(&mut self.out);
+            self.value_into(ui, u, types, die, a, low_pc, indent, &mut out);
+            self.out = out;
+            self.out.push_str(")\n");
         }
         self.out.push('\n');
     }
@@ -679,9 +762,9 @@ impl<'d> Dumper<'d> {
         }
     }
 
-    /// An attribute's value, as llvm-dwarfdump prints it.
+    /// An attribute's value, as llvm-dwarfdump prints it, written to `text`.
     #[allow(clippy::too_many_arguments)]
-    fn value(
+    fn value_into(
         &self,
         ui: usize,
         u: &Ready<'d>,
@@ -690,31 +773,47 @@ impl<'d> Dumper<'d> {
         a: &Attr<'d>,
         low_pc: Option<u64>,
         indent: usize,
-    ) -> String {
+        text: &mut String,
+    ) {
         let unit = &u.unit;
         // Strings.
         if matches!(
             a.value,
             Value::Str(_) | Value::StrOffset(..) | Value::StrIndex(_)
         ) {
-            return match unit.string(&a.value) {
-                Some(s) => format!("\"{}\"", llvm_escaped(s.bytes)),
-                None => "<invalid string>".into(),
-            };
+            match unit.string(&a.value) {
+                Some(s) => {
+                    text.push('"');
+                    llvm_escaped_into(text, s.bytes);
+                    text.push('"');
+                }
+                None => text.push_str("<invalid string>"),
+            }
+            return;
         }
         // References: the offset, and the DIE's name (a type's, as written).
         if is_reference(a.form) {
             let Some((tu, target)) = self.index.resolve(ui, a) else {
-                return match a.value {
-                    Value::Uint(v) if a.form == DW_FORM_REF_SIG8 => format!("0x{v:016x}"),
-                    Value::Uint(v) => format!("0x{v:08x}"),
-                    _ => "<invalid reference>".into(),
+                let _ = match a.value {
+                    Value::Uint(v) if a.form == DW_FORM_REF_SIG8 => write!(text, "0x{v:016x}"),
+                    Value::Uint(v) => write!(text, "0x{v:08x}"),
+                    _ => write!(text, "<invalid reference>"),
                 };
+                return;
+            };
+            // (DW_FORM_ref_addr's offsets, as LLVM prints them: 16 digits.)
+            let _ = if a.form == DW_FORM_REF_ADDR {
+                write!(text, "0x{target:016x}")
+            } else {
+                write!(text, "0x{target:08x}")
             };
             // (As llvm-dwarfdump: types by their qualified names; the DIEs
             // a few attributes name, by their linkage names, else names.)
-            let name = if matches!(a.name, DW_AT_TYPE | DW_AT_CONTAINING_TYPE) {
-                types.name(tu, target).to_string()
+            if matches!(a.name, DW_AT_TYPE | DW_AT_CONTAINING_TYPE) {
+                let name = types.name(tu, target);
+                if !name.is_empty() {
+                    let _ = write!(text, " \"{name}\"");
+                }
             } else if matches!(
                 a.name,
                 DW_AT_SPECIFICATION
@@ -722,62 +821,59 @@ impl<'d> Dumper<'d> {
                     | DW_AT_CALL_ORIGIN
                     | DW_AT_IMPORT
                     | 0x3e14
-            ) {
-                self.linkage_or_name(tu, target, 0).unwrap_or_default()
-            } else {
-                String::new()
-            };
-            // (DW_FORM_ref_addr's offsets, as LLVM prints them: 16 digits.)
-            let at = if a.form == DW_FORM_REF_ADDR {
-                format!("0x{target:016x}")
-            } else {
-                format!("0x{target:08x}")
-            };
-            return if name.is_empty() {
-                at
-            } else {
-                format!("{at} \"{name}\"")
-            };
+            ) && let Some(name) = self.linkage_or_name(tu, target, 0)
+                && !name.is_empty()
+            {
+                let _ = write!(text, " \"{name}\"");
+            }
+            return;
         }
         // Addresses, as wide as the unit's (16 digits, or 8 for 32-bit).
         let width = usize::from(unit.address_size) * 2;
         if let Some(addr) = self.address(u, a) {
             // (A dead function's code, as linkers mark it.)
             if a.name == DW_AT_LOW_PC && addr == unit.max_address() {
-                return "dead code".into();
+                text.push_str("dead code");
+                return;
             }
-            return if matches!(a.value, Value::AddrIndex(_))
+            let _ = if matches!(a.value, Value::AddrIndex(_))
                 && a.name != DW_AT_LOW_PC
                 && a.name != DW_AT_HIGH_PC
                 && a.name != DW_AT_CALL_RETURN_PC
                 && a.name != DW_AT_CALL_PC
                 && a.name != DW_AT_ENTRY_PC
             {
-                format!(
+                write!(
+                    text,
                     "indexed (0x{:08x}) address = 0x{addr:0w$x}",
                     index_of(&a.value),
                     w = width
                 )
             } else {
-                format!("0x{addr:0width$x}")
+                write!(text, "0x{addr:0width$x}")
             };
+            return;
         }
         // DW_AT_high_pc as an offset from DW_AT_low_pc.
         if a.name == DW_AT_HIGH_PC
             && let (Some(lo), Some(off)) = (low_pc, unit.uint(&a.value))
         {
             // (Dead code's: the offset alone.)
-            if lo == unit.max_address() {
-                return format!("0x{off:0width$x}");
-            }
-            return format!("0x{:0width$x}", lo.wrapping_add(off));
+            let _ = if lo == unit.max_address() {
+                write!(text, "0x{off:0width$x}")
+            } else {
+                write!(text, "0x{:0width$x}", lo.wrapping_add(off))
+            };
+            return;
         }
         // Expressions and blocks.
         if let Value::Block(b) = a.value {
             if is_exprloc(a.form) || is_location(a.name) {
-                return self.expression(unit, b);
+                text.push_str(&self.expression(unit, b));
+            } else {
+                text.push_str(&block(b));
             }
-            return block(b);
+            return;
         }
         // Location and range lists.
         if is_location(a.name)
@@ -785,34 +881,46 @@ impl<'d> Dumper<'d> {
                 || a.form == DW_FORM_LOCLISTX
                 || (unit.version < 4 && matches!(a.form, DW_FORM_DATA4 | DW_FORM_DATA8)))
         {
-            return self.location_list(u, a, indent);
+            text.push_str(&self.location_list(u, a, indent));
+            return;
         }
         if matches!(a.name, DW_AT_RANGES | DW_AT_START_SCOPE)
             && (a.form == DW_FORM_SEC_OFFSET || a.form == DW_FORM_RNGLISTX || unit.version < 4)
         {
-            return self.range_list(u, a, indent);
+            text.push_str(&self.range_list(u, a, indent));
+            return;
         }
         if a.form == DW_FORM_FLAG_PRESENT {
-            return "true".into();
+            text.push_str("true");
+            return;
         }
         if a.form == DW_FORM_FLAG {
-            return if unit.uint(&a.value).unwrap_or(0) != 0 {
+            text.push_str(if unit.uint(&a.value).unwrap_or(0) != 0 {
                 "true"
             } else {
                 "false"
-            }
-            .into();
+            });
+            return;
         }
         let v = match a.value {
             Value::Uint(v) => v,
             Value::Data(d) if d.len() <= 8 => match unit.uint(&a.value) {
                 Some(v) => v,
-                None => return block(d),
+                None => {
+                    text.push_str(&block(d));
+                    return;
+                }
             },
             // (Signed forms: their bits, printed signed below.)
             Value::Sint(v) => v as u64,
-            Value::Data(d) => return block(d),
-            _ => return "<unknown>".into(),
+            Value::Data(d) => {
+                text.push_str(&block(d));
+                return;
+            }
+            _ => {
+                text.push_str("<unknown>");
+                return;
+            }
         };
         // Objective-C property attributes: the value, and each bit's name.
         if a.name == 0x3feb && v != 0 {
@@ -833,7 +941,8 @@ impl<'d> Dumper<'d> {
                 DW_FORM_DATA8 => format!("0x{v:016x}"),
                 _ => format!("0x{v:x}"),
             };
-            return format!("{shown} ({})", names.join(", "));
+            let _ = write!(text, "{shown} ({})", names.join(", "));
+            return;
         }
         // Enumerated values, by name.
         let named = match a.name {
@@ -852,38 +961,50 @@ impl<'d> Dumper<'d> {
             _ => None,
         };
         if let Some(n) = named {
-            return n.to_string();
+            text.push_str(n);
+            return;
         }
-        // Files, by the unit's line table.
-        if matches!(a.name, DW_AT_DECL_FILE | DW_AT_CALL_FILE)
-            && let Some(p) = u.line.as_ref().and_then(|l| l.path(v, &u.comp_dir))
-        {
-            return format!("\"{p}\"");
+        // Files, by the unit's line table (each worked out once per unit:
+        // DIEs name the same few).
+        if matches!(a.name, DW_AT_DECL_FILE | DW_AT_CALL_FILE) {
+            let mut paths = self.paths.borrow_mut();
+            if paths.0 != ui {
+                *paths = (ui, std::collections::HashMap::new());
+            }
+            let p = paths
+                .1
+                .entry(v)
+                .or_insert_with(|| u.line.as_ref().and_then(|l| l.path(v, &u.comp_dir)));
+            if let Some(p) = p {
+                let _ = write!(text, "\"{p}\"");
+                return;
+            }
         }
         if matches!(
             a.name,
             DW_AT_DECL_LINE | DW_AT_CALL_LINE | DW_AT_DECL_COLUMN | DW_AT_CALL_COLUMN
         ) {
-            return format!("{v}");
+            let _ = write!(text, "{v}");
+            return;
         }
         let _ = die;
-        match a.form {
-            DW_FORM_DATA1 | DW_FORM_REF1 => format!("0x{v:02x}"),
-            DW_FORM_DATA2 | DW_FORM_REF2 => format!("0x{v:04x}"),
-            DW_FORM_DATA4 | DW_FORM_REF4 => format!("0x{v:08x}"),
-            DW_FORM_DATA8 | DW_FORM_REF8 => format!("0x{v:016x}"),
+        let _ = match a.form {
+            DW_FORM_DATA1 | DW_FORM_REF1 => write!(text, "0x{v:02x}"),
+            DW_FORM_DATA2 | DW_FORM_REF2 => write!(text, "0x{v:04x}"),
+            DW_FORM_DATA4 | DW_FORM_REF4 => write!(text, "0x{v:08x}"),
+            DW_FORM_DATA8 | DW_FORM_REF8 => write!(text, "0x{v:016x}"),
             DW_FORM_SEC_OFFSET | DW_FORM_STRP | DW_FORM_LINE_STRP => {
                 if unit.dwarf64 {
-                    format!("0x{v:016x}")
+                    write!(text, "0x{v:016x}")
                 } else {
-                    format!("0x{v:08x}")
+                    write!(text, "0x{v:08x}")
                 }
             }
-            DW_FORM_SDATA | DW_FORM_IMPLICIT_CONST => format!("{}", v as i64),
+            DW_FORM_SDATA | DW_FORM_IMPLICIT_CONST => write!(text, "{}", v as i64),
             // (As LLVM's DWARFFormValue: udata in decimal.)
-            DW_FORM_UDATA => format!("{v}"),
-            _ => format!("0x{v:x}"),
-        }
+            DW_FORM_UDATA => write!(text, "{v}"),
+            _ => write!(text, "0x{v:x}"),
+        };
     }
 
     /// A DIE's name, if it has one.
@@ -1199,6 +1320,7 @@ impl<'d> Dumper<'d> {
         let units = &index.units;
         let mut seen = Vec::new();
         for u in units {
+            self.spill();
             let Some(l) = &u.line else { continue };
             let mut attrs = Vec::new();
             let mut r = u.unit.dies();
@@ -1319,6 +1441,7 @@ impl<'d> Dumper<'d> {
         let data = self.s.str;
         let mut at = 0usize;
         while at < data.len() {
+            self.spill();
             let end = data[at..]
                 .iter()
                 .position(|&b| b == 0)
@@ -1366,6 +1489,7 @@ impl<'d> Dumper<'d> {
             let _ = writeln!(self.out, "\n{label} contents:\n");
             let mut cies = std::collections::HashMap::new();
             for e in cfi.entries() {
+                self.spill();
                 match e {
                     hexcavator_dwarf::cfi::Entry::Cie(c) => {
                         let _ = writeln!(
@@ -1504,6 +1628,12 @@ fn lossy(b: &[u8]) -> String {
 /// printable ASCII as it is, and every other byte in octal (`\303\251`).
 fn llvm_escaped(b: &[u8]) -> String {
     let mut s = String::with_capacity(b.len());
+    llvm_escaped_into(&mut s, b);
+    s
+}
+
+/// [`llvm_escaped`], written to `s`.
+fn llvm_escaped_into(s: &mut String, b: &[u8]) {
     for &c in b {
         match c {
             b'\\' => s.push_str("\\\\"),
@@ -1516,7 +1646,6 @@ fn llvm_escaped(b: &[u8]) -> String {
             }
         }
     }
-    s
 }
 
 /// Text as our own sections (`-lines`, `-frames`) quote it: printable
@@ -1736,4 +1865,9 @@ fn operands(
         0xfa => hex(r.uint(4)?),
         _ => name.to_string(),
     })
+}
+
+/// Writes `n` spaces.
+fn spaces(out: &mut String, n: usize) {
+    out.extend(std::iter::repeat_n(' ', n));
 }
