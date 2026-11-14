@@ -245,6 +245,48 @@ fn pieces_code(p: &[Piece]) -> String {
     s
 }
 
+/// A table row's patterns, one per column ("1x 0", "x", ""), as a mask and
+/// value over the columns side by side (the first most significant), or
+/// `None` for a row no word matches: a pattern that is not bits (such as
+/// "!= 000"), of another width than its column, or without a column.
+/// (An empty pattern matches anything.)
+fn row_pattern(pats: &[String], cols: &[Vec<Piece>]) -> Option<(u64, u64)> {
+    if pats.len() > cols.len() {
+        return None;
+    }
+    let (mut mask, mut value) = (0u64, 0u64);
+    for (i, col) in cols.iter().enumerate() {
+        let w = width(col);
+        let bits: Vec<u8> = pats
+            .get(i)
+            .map(|p| p.bytes().filter(|&c| c != b' ').collect())
+            .unwrap_or_default();
+        if bits.iter().any(|c| !matches!(c, b'0' | b'1' | b'x')) {
+            return None;
+        }
+        mask <<= w;
+        value <<= w;
+        if bits.is_empty() {
+            continue;
+        }
+        if bits.len() != w as usize {
+            return None;
+        }
+        for (j, c) in bits.iter().enumerate() {
+            let bit = w as usize - 1 - j;
+            match c {
+                b'0' => mask |= 1 << bit,
+                b'1' => {
+                    mask |= 1 << bit;
+                    value |= 1 << bit;
+                }
+                _ => {}
+            }
+        }
+    }
+    Some((mask, value))
+}
+
 fn width(p: &[Piece]) -> u32 {
     p.iter()
         .map(|x| match x {
@@ -823,6 +865,8 @@ fn main() {
     // Symbols, numbered globally.
     let mut sym_out = String::new();
     let mut n_syms = 0usize;
+    // Each symbol's display name, by number.
+    let mut displays: Vec<String> = Vec::new();
     // Symbols are compiled per encoding (their fields differ by class), so
     // index them by (file, link) and compile with the first encoding's
     // fields that uses them.
@@ -848,6 +892,7 @@ fn main() {
         {
             sym_by_use.insert((*fi, link.clone(), key.clone()), n_syms);
             n_syms += 1;
+            displays.push(s.display.clone());
             // The source bits.
             let value = if s.table.is_none() {
                 attr_value(s, fields)
@@ -857,39 +902,47 @@ fn main() {
             let encoded = pieces(&s.encoded_in, fields).unwrap_or_default();
             let table = match &s.table {
                 Some((head, rows)) => {
-                    let cols: Vec<String> = head
+                    let cols: Vec<Vec<Piece>> = head
                         .iter()
                         .map(|c| {
-                            pieces(c, fields).map_or_else(
-                                || {
-                                    warnings.push(format!("table column {c} in {}", s.link));
-                                    "&[]".to_string()
-                                },
-                                |p| pieces_code(&p),
-                            )
+                            pieces(c, fields).unwrap_or_else(|| {
+                                warnings.push(format!("table column {c} in {}", s.link));
+                                Vec::new()
+                            })
                         })
                         .collect();
+                    // The columns side by side, as one key: each row is a
+                    // mask and value over it.
+                    let key: Vec<Piece> = cols.iter().flatten().cloned().collect();
+                    assert!(
+                        width(&key) <= 64,
+                        "table key wider than 64 bits in {}",
+                        s.link
+                    );
                     let rows: Vec<String> = rows
                         .iter()
-                        .map(|(vals, r)| {
-                            let vals: Vec<String> = vals.iter().map(|v| format!("{v:?}")).collect();
+                        .filter_map(|(vals, r)| {
+                            let (mask, value) = row_pattern(vals, &cols)?;
                             // Results such as "UInt(H :: L :: M)" are computed.
                             let (expr, mul, add) = table_expr(r, fields).unwrap_or_default();
-                            format!(
-                                "(&[{}], {r:?}, {}, {mul}, {add})",
-                                vals.join(","),
+                            Some(format!(
+                                "({mask:#x}, {value:#x}, {r:?}, {}, {mul}, {add})",
                                 pieces_code(&expr)
-                            )
+                            ))
                         })
                         .collect();
                     format!(
-                        "Some(&Table {{ cols: &[{}], rows: &[{}] }})",
-                        cols.join(","),
+                        "Some(&Table {{ key: {}, rows: &[{}] }})",
+                        pieces_code(&key),
                         rows.join(",")
                     )
                 }
                 None => "None".into(),
             };
+            // How the formatter shows the symbol (see src/tables.rs's `Kind`),
+            // and whether its `special` may apply.
+            let kind = symbol_kind(&s.display, s.has("bitmask"));
+            let may_special = may_special(s, encoded.is_empty() && value.is_none());
             let value = match value {
                 Some(v) => format!(
                     "Some(Value {{ pieces: {}, width: {}, mul: {}, add: {}, modulo: {}, sub_from: {}, signed: {} }})",
@@ -916,10 +969,16 @@ fn main() {
                 .unwrap_or_else(|| "None".to_string());
             let _ = writeln!(
                 sym_out,
-                "    Symbol {{ display: {:?}, encoded: {}, table: {table}, value: {value}, when: {when}, attrs: {:?} }},",
+                "    Symbol {{ display: {:?}, encoded: {}, table: {table}, value: {value}, when: {when}, attrs: {:?}, flags: {:#x}, kind: {kind} }},",
                 s.display,
                 pieces_code(&encoded),
-                s.attrs.join(" ")
+                s.attrs.join(" "),
+                attr_flags(&s.attrs)
+                    | if may_special {
+                        1 << ATTR_FLAGS.len()
+                    } else {
+                        0
+                    }
             );
         }
     }
@@ -1041,9 +1100,10 @@ fn cond_{n_fns}(w: u32) -> bool {{ {c} }}"
         // optional groups do not. Mark the list braces so the formatter
         // prints them literally.
         let asm = mark_list_braces(&asm);
+        let (mnem, ops, cond) = template_code(&asm, &displays);
         let _ = writeln!(
             enc_out,
-            "    Encoding {{ name: {:?}, class: {:?}, feature: {:?}, mask: {:#010x}, value: {:#010x}, should: ({:#010x}, {:#010x}), ne: &[{}], undef: {undef_fn}, unpred: {unpred_fn}, alias_of: {alias_of}, prefer: {prefer}, asm: {asm:?} }},",
+            "    Encoding {{ name: {:?}, class: {:?}, feature: {:?}, mask: {:#010x}, value: {:#010x}, should: ({:#010x}, {:#010x}), ne: &[{}], undef: {undef_fn}, unpred: {unpred_fn}, alias_of: {alias_of}, prefer: {prefer}, asm: {asm:?}, mnem: {mnem}, ops: {ops}, cond: {cond} }},",
             e.name,
             e.class,
             e.feature,
@@ -1222,4 +1282,275 @@ fn comma_lists(asm: &str, syms: &[Sym], name: &str) -> String {
     }
     out.push_str(rest);
     out
+}
+
+// ---------------------------------------------------------------------------
+// Templates, compiled to tokens (what src/format.rs's `render` walks): the
+// same reading of the template text the formatter made at run time.
+
+/// Code for `Tok`s of the template text `t`.
+fn tokens(t: &str, displays: &[String]) -> String {
+    let mut out = Vec::new();
+    let mut rest = t;
+    while !rest.is_empty() {
+        // (Alternations, "(<prfop>|#<imm5>)", would need the formatter to
+        // try each in turn: no template has one.)
+        assert!(
+            !rest
+                .strip_prefix('(')
+                .is_some_and(|a| alternation_end(a).is_some()),
+            "an alternation in template {t:?}"
+        );
+        if let Some(after) = rest.strip_prefix('{') {
+            let mut depth = 1;
+            let mut end = None;
+            for (i, c) in after.char_indices() {
+                match c {
+                    '{' => depth += 1,
+                    '}' => {
+                        depth -= 1;
+                        if depth == 0 {
+                            end = Some(i);
+                            break;
+                        }
+                    }
+                    _ => {}
+                }
+            }
+            let end = end.unwrap_or_else(|| panic!("an unclosed group in template {t:?}"));
+            let inner = &after[..end];
+            // Groups of plain text ("{, VGx2}") are always shown, except a
+            // zero offset ("{, #0}").
+            let optional = inner.contains('%') || inner.trim() == ", #0";
+            out.push(format!(
+                "Tok::Group({}, {optional})",
+                tokens(inner, displays)
+            ));
+            rest = &after[end + 1..];
+        } else if let Some(after) = rest.strip_prefix('%') {
+            let index = after
+                .find('%')
+                .and_then(|end| Some((after[..end].parse::<usize>().ok()?, end)));
+            let (index, end) = index
+                .filter(|(i, _)| *i < displays.len())
+                .unwrap_or_else(|| panic!("a bad symbol in template {t:?}"));
+            out.push(format!("Tok::Sym({index})"));
+            rest = &after[end + 1..];
+        } else {
+            // Literal text, up to the next group, symbol, or alternation (a
+            // lone parenthesis is literal).
+            let end = rest[1..]
+                .find(['{', '%', '('])
+                .map_or(rest.len(), |i| i + 1);
+            let next = &rest[end..];
+            out.push(format!("Tok::Lit({:?})", literal_text(&rest[..end], next)));
+            rest = next;
+        }
+    }
+    format!("&[{}]", out.join(","))
+}
+
+/// A template's literal text as the formatter shows it (`next` is the
+/// template after it).
+fn literal_text(raw: &str, next: &str) -> String {
+    // mark_list_braces marks register-list braces as \u{1} and \u{2}.
+    let literal = raw.replace('\u{1}', "{").replace('\u{2}', "}");
+    // Lower case, except for MUL VL and MUL #.
+    let mut lower = literal
+        .to_ascii_lowercase()
+        .replace("mul vl", "MUL VL")
+        .replace("mul #", "MUL #")
+        .replace("rctx", "RCTX");
+    // A system register by number: S<op0>_<op1>_C<n>_C<m>_<op2>.
+    let sysreg = next.starts_with('%')
+        && next[1..]
+            .find('%')
+            .is_some_and(|i| next[i + 2..].starts_with('_'));
+    if literal.ends_with('S') && sysreg {
+        lower.pop();
+        lower.push('S');
+    }
+    fix_numbers(&lower)
+}
+
+/// src/format.rs's `fix_numbers`, for literal text (which has no
+/// verbatim marks).
+fn fix_numbers(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    let mut rest = s;
+    while let Some(i) = rest.find('#') {
+        out.push_str(&rest[..=i]);
+        rest = &rest[i + 1..];
+        let neg = rest.starts_with('-');
+        let digits: String = rest[usize::from(neg)..]
+            .chars()
+            .take_while(char::is_ascii_digit)
+            .collect();
+        let after = &rest[usize::from(neg) + digits.len()..];
+        if digits.is_empty()
+            || after.starts_with('.')
+            || after.starts_with('x')
+            || after.starts_with('\u{3}')
+        {
+            continue;
+        }
+        let v: i64 = digits.parse().unwrap_or(0);
+        let v = if neg { -v } else { v };
+        let (sign, m) = if v < 0 {
+            ("-", v.unsigned_abs())
+        } else {
+            ("", v as u64)
+        };
+        if m < 10 {
+            let _ = write!(out, "{sign}{m}");
+        } else {
+            let _ = write!(out, "{sign}0x{m:X}");
+        }
+        rest = after;
+    }
+    out.push_str(rest);
+    out
+}
+
+/// If `s` (just after a `(`) holds a top-level `|` before its closing
+/// parenthesis, the index of that parenthesis.
+fn alternation_end(s: &str) -> Option<usize> {
+    let mut depth = 0;
+    let mut bar = false;
+    for (i, c) in s.char_indices() {
+        match c {
+            '(' | '{' | '[' => depth += 1,
+            ']' | '}' => depth -= 1,
+            ')' if depth == 0 => return bar.then_some(i),
+            ')' => depth -= 1,
+            '|' if depth == 0 => bar = true,
+            _ => {}
+        }
+    }
+    None
+}
+
+/// A template's mnemonic and operand tokens, and the condition operand
+/// Microsoft folds into the mnemonic (`csel x0,x1,x2,eq` is `cseleq
+/// x0,x1,x2`, as `b.eq` is `beq`), if any.
+fn template_code(asm: &str, displays: &[String]) -> (String, String, String) {
+    let (mnemonic, operands) = asm.split_once(' ').unwrap_or((asm, ""));
+    let mut operands = operands;
+    let mut cond = "NONE".to_string();
+    if let Some(i) = operands.rfind(", %") {
+        let tail = &operands[i + 3..];
+        if let Some(index) = tail.strip_suffix('%').and_then(|s| s.parse::<usize>().ok())
+            && displays
+                .get(index)
+                .is_some_and(|d| matches!(d.as_str(), "<cond>" | "<invcond>"))
+        {
+            cond = index.to_string();
+            operands = &operands[..i];
+        }
+    }
+    (tokens(mnemonic, displays), tokens(operands, displays), cond)
+}
+
+/// The attributes the formatter tests as flags, in the order of
+/// src/tables.rs's `attr` module.
+const ATTR_FLAGS: [&str; 15] = [
+    "orimm",
+    "lslsp",
+    "fp8",
+    "x30",
+    "zr31",
+    "pn8",
+    "page",
+    "bitmask",
+    "memext",
+    "present01",
+    "tsz",
+    "bytemask",
+    "mult16",
+    "dupindex",
+    "add",
+];
+
+/// A symbol's attributes (`a` or `a=value`) as flags.
+fn attr_flags(attrs: &[String]) -> u32 {
+    attrs
+        .iter()
+        .filter_map(|a| {
+            let key = a.split_once('=').map_or(a.as_str(), |(k, _)| k);
+            ATTR_FLAGS.iter().position(|f| *f == key)
+        })
+        .fold(0, |flags, i| flags | 1 << i)
+}
+
+/// How src/format.rs's `render_symbol` shows a symbol that has no table
+/// (and that `special` doesn't), from its display name: code for a
+/// `Kind`.
+fn symbol_kind(display: &str, bitmask: bool) -> String {
+    let name = display.trim_start_matches('<').trim_end_matches('>');
+    let first = name.chars().next().unwrap_or(' ');
+    let rest = name.get(1..).unwrap_or("");
+    // "d", "n2", "n+1" (the next register of a list).
+    let is_reg_suffix = |s: &str| {
+        !s.is_empty()
+            && s.chars()
+                .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '+')
+    };
+    if (name.starts_with("W(") || name.starts_with("X(")) && name.ends_with("+1)") {
+        return format!("Kind::Pair({})", first == 'X');
+    }
+    if let Some(base) = name.strip_suffix("|WSP").or(name.strip_suffix("|SP")) {
+        return format!("Kind::GprSp({})", base.starts_with('X'));
+    }
+    if (first == 'W' || first == 'X') && is_reg_suffix(rest) {
+        return format!("Kind::Gpr({})", first == 'X');
+    }
+    if matches!(first, 'B' | 'H' | 'S' | 'D' | 'Q' | 'V') && is_reg_suffix(rest) {
+        return format!("Kind::Reg({:?})", first.to_ascii_lowercase().to_string());
+    }
+    if let Some(r) = name.strip_prefix("ZA")
+        && (is_reg_suffix(r) || r.is_empty())
+    {
+        return "Kind::Reg(\"za\")".into();
+    }
+    if first == 'Z' && is_reg_suffix(rest) {
+        return "Kind::Reg(\"z\")".into();
+    }
+    if let Some(r) = name.strip_prefix("PN")
+        && is_reg_suffix(r)
+    {
+        return "Kind::Pn".into();
+    }
+    if first == 'P' && is_reg_suffix(rest) {
+        return "Kind::Reg(\"p\")".into();
+    }
+    if matches!(name, "d" | "n" | "m" | "t" | "dn" | "a" | "s" | "t2" | "t1") {
+        return "Kind::Num".into();
+    }
+    match name {
+        "index" => "Kind::Reg(\"\")".into(),
+        "label" => "Kind::Label".into(),
+        "const" | "imm" if bitmask => "Kind::Bitmask".into(),
+        "systemreg" => "Kind::SysReg".into(),
+        "Cn" | "Cm" => "Kind::Reg(\"C\")".into(),
+        _ => "Kind::Imm".into(),
+    }
+}
+
+/// Whether src/format.rs's `special` may show the symbol (what it tests
+/// that does not depend on the encoding or the word; `unencoded`: the
+/// symbol has no bits and no value).
+fn may_special(s: &Sym, unencoded: bool) -> bool {
+    // (As format.rs tests attributes: `a` or `a=value`.)
+    let has = |a: &str| attr_flags(&[a.to_string()]) & attr_flags(&s.attrs) != 0;
+    (has("memext") && s.display == "<amount>")
+        || has("present01")
+        || has("tsz")
+        || s.display == "<mask>"
+        || unencoded
+        || has("bytemask")
+        || has("mult16")
+        || matches!(
+            s.display.as_str(),
+            "<imm>" | "<lsb>" | "<width>" | "<shift>"
+        )
 }

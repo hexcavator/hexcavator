@@ -17,7 +17,7 @@ mod alias;
 mod format;
 mod tables;
 
-pub use format::{Symbols, format, format_with};
+pub use format::{Symbols, format, format_into, format_with};
 
 use tables::{BUCKETS, Encoding, NONE, encoding};
 
@@ -84,11 +84,6 @@ impl Instruction {
 
     fn encoding(&self) -> &'static Encoding {
         encoding(usize::from(self.encoding))
-    }
-
-    /// The assembler template (ARM syntax, symbols as `%n%`).
-    pub(crate) fn template(&self) -> &'static str {
-        self.encoding().asm
     }
 }
 
