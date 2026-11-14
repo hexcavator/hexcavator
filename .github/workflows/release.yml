@@ -208,13 +208,8 @@ jobs:
   # App Store Connect API key's .p8 file, as text), APPLE_API_KEY_ID, and
   # APPLE_API_ISSUER_ID, for notarytool. (A bare program can't have its
   # notarization ticket stapled to it; Gatekeeper looks the ticket up.)
-  #
-  # Off for now (`false &&`), until Apple's notarization of our first
-  # submissions settles; macOS is built and tested but not released. To
-  # turn it back on, drop `false &&` here and restore macos-arm64 in
-  # package's matrix.
   sign-macos:
-    if: false && startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v')
     needs: build
     runs-on: macos-15
     environment: release
@@ -270,10 +265,13 @@ jobs:
           printf '%s\n' "$API_KEY" > "$key"
           auth=(--key "$key" --key-id "$API_KEY_ID" --issuer "$API_ISSUER_ID")
           ditto -c -k --keepParent arm64/bin/hexc "$RUNNER_TEMP/hexc.zip"
+          # (Three hours: a new team's first submissions can take over an
+          # hour; usually it's minutes.)
           xcrun notarytool submit "$RUNNER_TEMP/hexc.zip" "${auth[@]}" \
-            --wait --timeout 1h --output-format json | tee "$RUNNER_TEMP/notary.json"
+            --wait --timeout 3h --output-format json | tee "$RUNNER_TEMP/notary.json"
           id=$(jq -r .id "$RUNNER_TEMP/notary.json")
-          status=$(jq -r .status "$RUNNER_TEMP/notary.json")
+          # (No status when the wait times out; then Apple's message.)
+          status=$(jq -r '.status // .message' "$RUNNER_TEMP/notary.json")
           # Apple's log says what it found, accepted or not.
           if [[ -n "$id" && "$id" != null ]]; then
             xcrun notarytool log "$id" "${auth[@]}" || true
@@ -316,9 +314,7 @@ jobs:
         include:
           - { name: windows-x64, vscode: win32-x64 }
           - { name: windows-arm64, vscode: win32-arm64 }
-          # (macos-arm64 left out while sign-macos is off: an unsigned
-          # hexc isn't released.)
-          # - { name: macos-arm64, vscode: darwin-arm64 }
+          - { name: macos-arm64, vscode: darwin-arm64 }
           - { name: linux-x64, vscode: linux-x64 }
           - { name: linux-arm64, vscode: linux-arm64 }
     runs-on: ubuntu-latest
