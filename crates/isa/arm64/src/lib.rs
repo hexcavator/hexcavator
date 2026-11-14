@@ -17,9 +17,9 @@ mod alias;
 mod format;
 mod tables;
 
-pub use format::{Symbols, format, format_with};
+pub use format::{Symbols, format, format_into, format_with};
 
-use tables::{BUCKETS, Encoding, NONE, encoding};
+use tables::{BUCKETS, Encoding, NONE, encoding, ms};
 
 /// A decoded instruction.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -52,14 +52,14 @@ impl Instruction {
     /// The instruction class: `general`, `float`, `advsimd`, `sve`, ...
     #[inline]
     pub fn class(&self) -> &'static str {
-        self.encoding().class
+        tables::CLASSES[usize::from(self.encoding().class)]
     }
 
     /// The architecture feature the instruction needs, such as `FEAT_SVE2`
     /// (empty for the base instruction set).
     #[inline]
     pub fn feature(&self) -> &'static str {
-        self.encoding().feature
+        tables::FEATURES[usize::from(self.encoding().feature)]
     }
 
     /// Whether the encoding is CONSTRAINED UNPREDICTABLE (such as a
@@ -84,11 +84,6 @@ impl Instruction {
 
     fn encoding(&self) -> &'static Encoding {
         encoding(usize::from(self.encoding))
-    }
-
-    /// The assembler template (ARM syntax, symbols as `%n%`).
-    pub(crate) fn template(&self) -> &'static str {
-        self.encoding().asm
     }
 }
 
@@ -135,13 +130,20 @@ pub fn decode(word: u32, address: u64) -> Option<Instruction> {
         // name: an alias is of any of them.)
         let of_base = e.alias_of != NONE
             && (e.alias_of == base
-                || encoding(usize::from(e.alias_of)).name == encoding(usize::from(base)).name);
-        if !of_base || NOT_PREFERRED.contains(&e.name) {
+                || encoding(usize::from(e.alias_of)).group == encoding(usize::from(base)).group);
+        if !of_base || e.ms == ms::NOT_PREFERRED {
             continue;
         }
         // Where Microsoft has its own preference, the alias's "not equal"
         // constraints (such as "cond != 111x") do not apply either.
-        let preferred = match ms_prefer(e.name, word) {
+        let (rn, rm) = ((word >> 5) & 0x1F, (word >> 16) & 0x1F);
+        let ms_prefers = match e.ms {
+            ms::CINC => Some(rn == rm && rn != 31),
+            ms::CNEG => Some(rn == rm),
+            ms::CSET => Some(rn == 31 && rm == 31),
+            _ => None,
+        };
+        let preferred = match ms_prefers {
             Some(p) => p && word & e.mask == e.value,
             None => w_matches_alias(e, word) && e.prefer.is_some_and(|f| f(word)),
         };
@@ -171,30 +173,6 @@ pub fn decode(word: u32, address: u64) -> Option<Instruction> {
 
 fn w_matches_alias(e: &Encoding, w: u32) -> bool {
     w & e.mask == e.value && e.ne.iter().all(|&(m, v)| w & m != v)
-}
-
-/// Aliases that ARM's description prefers but Microsoft's disassembler
-/// does not use.
-const NOT_PREFERRED: &[&str] = &[
-    "MOV_INS_asimdins_IV_v",
-    "MOV_INS_asimdins_IR_r",
-    "MOV_DUP_asisdone_only",
-    "UXTL_USHLL_asimdshf_L",
-];
-
-/// Where Microsoft prefers an alias under different conditions from ARM.
-fn ms_prefer(alias: &str, w: u32) -> Option<bool> {
-    let rn = (w >> 5) & 0x1F;
-    let rm = (w >> 16) & 0x1F;
-    // CINC, CINV, CNEG, CSET, and CSETM: Microsoft uses them even with the
-    // conditions AL and NV, which ARM excludes.
-    let prefix = alias.split('_').next()?;
-    match prefix {
-        "CINC" | "CINV" => Some(rn == rm && rn != 31),
-        "CNEG" => Some(rn == rm),
-        "CSET" | "CSETM" => Some(rn == 31 && rm == 31),
-        _ => None,
-    }
 }
 
 /// For tools: every encoding whose fixed bits match `word`, whether its
