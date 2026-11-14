@@ -26,9 +26,11 @@ pub(crate) fn value(pieces: &[Piece], w: u32) -> u64 {
 
 pub(crate) struct Encoding {
     pub name: &'static str,
-    pub class: &'static str,
-    /// The architecture feature the encoding needs, such as `FEAT_SVE2`.
-    pub feature: &'static str,
+    /// The instruction class (an index into `CLASSES`).
+    pub class: u8,
+    /// The architecture feature the encoding needs, such as `FEAT_SVE2` (an
+    /// index into `FEATURES`).
+    pub feature: u8,
     pub mask: u32,
     pub value: u32,
     /// Should-be bits (Arm's `(0)` and `(1)`): `(mask, value)`. Not
@@ -44,7 +46,6 @@ pub(crate) struct Encoding {
     pub alias_of: u16,
     /// For aliases: when to prefer the alias.
     pub prefer: Option<fn(u32) -> bool>,
-    pub asm: &'static str,
     /// The template compiled (see build.rs's `tokens`): the mnemonic, the
     /// operands, and the condition operand folded into the mnemonic (a
     /// symbol, or `NONE`).

@@ -712,29 +712,37 @@ fn renders(inst: &Instruction, toks: &[Tok]) -> bool {
 #[doc(hidden)]
 pub fn explain_encoding(inst: &Instruction) -> alloc::string::String {
     use core::fmt::Write as _;
+    /// Each symbol of `toks`, and how it renders.
+    fn symbols_of(inst: &Instruction, toks: &[Tok], out: &mut String) {
+        for t in toks {
+            match *t {
+                Tok::Lit(_) => {}
+                Tok::Group(inner, _) => symbols_of(inst, inner, out),
+                Tok::Sym(i) => {
+                    let sym = symbol(usize::from(i));
+                    let mut text = String::new();
+                    let r = render_symbol(inst, sym, &NoSymbols, &mut text).map(|_| text);
+                    let _ = writeln!(
+                        out,
+                        "    {} {:?} attrs {:?} -> {:?}",
+                        sym.display, sym.encoded, sym.attrs, r
+                    );
+                }
+            }
+        }
+    }
     let e = inst.encoding();
     let mut out = alloc::string::String::new();
     let _ = writeln!(
         out,
-        "  {} {:08x}/{:08x} asm {:?}",
-        e.name, e.mask, e.value, e.asm
+        "  {} {:08x}/{:08x} template {:?} {:?}",
+        e.name, e.mask, e.value, e.mnem, e.ops
     );
-    let mut rest = e.asm;
-    while let Some(i) = rest.find('%') {
-        let after = &rest[i + 1..];
-        let Some(end) = after.find('%') else { break };
-        if let Ok(index) = after[..end].parse::<usize>() {
-            let sym = symbol(index);
-            let mut text = String::new();
-            let r = render_symbol(inst, sym, &NoSymbols, &mut text).map(|_| text);
-            let _ = writeln!(
-                out,
-                "    {} {:?} attrs {:?} -> {:?}",
-                sym.display, sym.encoded, sym.attrs, r
-            );
-        }
-        rest = &after[end + 1..];
+    symbols_of(inst, e.mnem, &mut out);
+    if e.cond != NONE {
+        symbols_of(inst, &[Tok::Sym(e.cond)], &mut out);
     }
+    symbols_of(inst, e.ops, &mut out);
     out
 }
 

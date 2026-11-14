@@ -1009,6 +1009,9 @@ fn main() {
         .enumerate()
         .map(|(i, e)| (e.name.as_str(), i))
         .collect();
+    // Instruction classes and features, by number (few of each).
+    let mut classes: Vec<String> = Vec::new();
+    let mut features: Vec<String> = Vec::new();
     let mut by_first_name: HashMap<&str, usize> = HashMap::new();
     for (i, e) in encs.iter().enumerate() {
         by_first_name.entry(e.name.as_str()).or_insert(i);
@@ -1143,10 +1146,10 @@ fn cond_{n_fns}(w: u32) -> bool {{ {c} }}"
         let post_index = e.name.contains("_asisdlsop_") || e.name.contains("_asisdlsep_");
         let _ = writeln!(
             enc_out,
-            "    Encoding {{ name: {:?}, class: {:?}, feature: {:?}, mask: {:#010x}, value: {:#010x}, should: ({:#010x}, {:#010x}), ne: &[{}], undef: {undef_fn}, unpred: {unpred_fn}, alias_of: {alias_of}, prefer: {prefer}, asm: {asm:?}, mnem: {mnem}, ops: {ops}, cond: {cond}, checked: {checked}, group: {group}, ms: {ms}, post_index: {post_index}, rule: {rule} }},",
+            "    Encoding {{ name: {:?}, class: {}, feature: {}, mask: {:#010x}, value: {:#010x}, should: ({:#010x}, {:#010x}), ne: &[{}], undef: {undef_fn}, unpred: {unpred_fn}, alias_of: {alias_of}, prefer: {prefer}, mnem: {mnem}, ops: {ops}, cond: {cond}, checked: {checked}, group: {group}, ms: {ms}, post_index: {post_index}, rule: {rule} }},",
             e.name,
-            e.class,
-            e.feature,
+            index_of(&mut classes, &e.class),
+            index_of(&mut features, &e.feature),
             e.mask,
             e.value,
             e.should_mask,
@@ -1175,6 +1178,14 @@ fn cond_{n_fns}(w: u32) -> bool {{ {c} }}"
 
     let _ = writeln!(code, "pub(crate) const NONE: u16 = u16::MAX;");
     chunked(&mut code, "ENCODINGS", "Encoding", &enc_out, encs.len());
+    assert!(classes.len() <= 256 && features.len() <= 256);
+    for (name, list) in [("CLASSES", &classes), ("FEATURES", &features)] {
+        let _ = writeln!(
+            code,
+            "pub(crate) static {name}: [&str; {}] = {list:?};",
+            list.len()
+        );
+    }
     chunked(&mut code, "SYMBOLS", "Symbol", &sym_out, n_syms);
     let _ = writeln!(
         code,
@@ -1684,4 +1695,12 @@ fn ms_rule(name: &str) -> &'static str {
     } else {
         "rule::NONE"
     }
+}
+
+/// The index of `s` in `list`, added if it is not there.
+fn index_of(list: &mut Vec<String>, s: &str) -> usize {
+    list.iter().position(|x| x == s).unwrap_or_else(|| {
+        list.push(s.to_string());
+        list.len() - 1
+    })
 }

@@ -52,14 +52,14 @@ impl Instruction {
     /// The instruction class: `general`, `float`, `advsimd`, `sve`, ...
     #[inline]
     pub fn class(&self) -> &'static str {
-        self.encoding().class
+        tables::CLASSES[usize::from(self.encoding().class)]
     }
 
     /// The architecture feature the instruction needs, such as `FEAT_SVE2`
     /// (empty for the base instruction set).
     #[inline]
     pub fn feature(&self) -> &'static str {
-        self.encoding().feature
+        tables::FEATURES[usize::from(self.encoding().feature)]
     }
 
     /// Whether the encoding is CONSTRAINED UNPREDICTABLE (such as a
