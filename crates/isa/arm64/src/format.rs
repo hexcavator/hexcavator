@@ -11,7 +11,7 @@ use alloc::{format, string::String, string::ToString, vec::Vec};
 use core::fmt::Write as _;
 
 use crate::Instruction;
-use crate::tables::{Symbol, symbol, value};
+use crate::tables::{Kind, NONE, Symbol, Tok, attr, ms_mnemonic, rule, symbol, value};
 
 /// Names for addresses, for showing branch targets symbolically.
 pub trait Symbols {
@@ -30,23 +30,9 @@ impl Symbols for NoSymbols {
 /// The column operands start at.
 const MNEMONIC_WIDTH: usize = 12;
 
-/// A number as Microsoft writes immediates: decimal below 10, otherwise
-/// `0x` and upper-case hex; negative values with a leading `-`.
-pub(crate) fn imm(v: i64) -> String {
-    let (sign, m) = if v < 0 {
-        ("-", v.unsigned_abs())
-    } else {
-        ("", v as u64)
-    };
-    if m < 10 {
-        format!("{sign}{m}")
-    } else {
-        format!("{sign}0x{m:X}")
-    }
-}
-
-fn gpr(n: u64, wide: bool, sp: bool) -> String {
-    let name = match (n, wide) {
+/// A general-purpose register's name, where it is not `x<n>` or `w<n>`.
+fn gpr_name(n: u64, wide: bool, sp: bool) -> Option<&'static str> {
+    Some(match (n, wide) {
         (31, true) if sp => "sp",
         (31, false) if sp => "wsp",
         (31, true) => "xzr",
@@ -61,16 +47,8 @@ fn gpr(n: u64, wide: bool, sp: bool) -> String {
         (18, false) => "wpr",
         (29, false) => "wfp",
         (30, false) => "wlr",
-        _ => return format!("{}{n}", if wide { 'x' } else { 'w' }),
-    };
-    name.to_string()
-}
-
-/// One rendered symbol.
-struct Rendered {
-    text: String,
-    /// Whether the value is the default an optional group may leave out.
-    default: bool,
+        _ => return None,
+    })
 }
 
 /// The symbol's raw number (before its attributes' scaling).
@@ -88,103 +66,77 @@ fn number(sym: &Symbol, w: u32) -> i64 {
 /// Finds the table row matching the word.
 /// A table row's result: its text, or a computed number.
 enum TableResult {
+    /// Text shown as it is, and whether it is a default.
+    Shown(&'static str, bool),
     Text(&'static str),
     Number(i64),
 }
 
 fn table_lookup(sym: &Symbol, w: u32) -> Option<TableResult> {
     let t = sym.table?;
-    // The columns' values and widths (tables have a few columns; more are
-    // read as they are needed).
-    const COLS: usize = 8;
-    let mut vals = [(0u64, 0u32); COLS];
-    for (slot, c) in vals.iter_mut().zip(t.cols) {
-        *slot = (value(c, w), crate::tables::width(c));
-    }
-    let col = |i: usize| -> Option<(u64, u32)> {
-        let c = t.cols.get(i)?;
-        Some(if i < COLS {
-            vals[i]
-        } else {
-            (value(c, w), crate::tables::width(c))
-        })
-    };
-    'rows: for &(pats, result, expr, mul, add) in t.rows {
-        for (i, pat) in pats.iter().enumerate() {
-            let Some((v, width)) = col(i) else {
-                continue 'rows;
-            };
-            // The pattern's bits, spaces left out ("1x 0" is "1x0").
-            let bits = pat.bytes().filter(|&c| c != b' ');
-            let mut n = 0u32;
-            for c in bits.clone() {
-                if !matches!(c, b'0' | b'1' | b'x') {
-                    // Not a bit pattern (for example "!= 000"): skip the row.
-                    continue 'rows;
-                }
-                n += 1;
-            }
-            if n == 0 {
-                continue;
-            }
-            if n != width {
-                continue 'rows;
-            }
-            for (j, c) in bits.enumerate() {
-                let bit = (v >> (n - 1 - j as u32)) & 1;
-                match c {
-                    b'0' if bit != 0 => continue 'rows,
-                    b'1' if bit != 1 => continue 'rows,
-                    _ => {}
-                }
-            }
-        }
-        if !expr.is_empty() {
-            return Some(TableResult::Number(mul * value(expr, w) as i64 + add));
-        }
-        return Some(TableResult::Text(result));
-    }
-    None
+    let key = value(t.key, w);
+    let &(_, _, result, expr, mul, add, shown) = t.rows.iter().find(|r| key & r.0 == r.1)?;
+    Some(if let Some((text, default)) = shown {
+        TableResult::Shown(text, default)
+    } else if expr.is_empty() {
+        TableResult::Text(result)
+    } else {
+        TableResult::Number(mul * value(expr, w) as i64 + add)
+    })
 }
 
 /// Rewrites `#<decimal>` numbers in ARM text the Microsoft way.
 fn fix_numbers(s: &str) -> String {
-    let mut out = String::with_capacity(s.len());
+    let mut out = String::new();
+    if !fix_numbers_into(s, &mut out) {
+        out.push_str(s);
+    }
+    out
+}
+
+/// [`fix_numbers`] of `s` into `out`, or `false` (nothing written) where
+/// it would not change `s`.
+fn fix_numbers_into(s: &str, out: &mut String) -> bool {
+    if !needs_fix_numbers(s) {
+        return false;
+    }
     let mut rest = s;
     while let Some(i) = rest.find('#') {
         out.push_str(&rest[..=i]);
         rest = &rest[i + 1..];
         let neg = rest.starts_with('-');
-        let digits: String = rest[usize::from(neg)..]
-            .chars()
-            .take_while(char::is_ascii_digit)
-            .collect();
-        let after = &rest[usize::from(neg) + digits.len()..];
-        // Leave fractions, numbers already in hex, and verbatim text alone.
-        if digits.is_empty()
-            || after.starts_with('.')
-            || after.starts_with('x')
-            || after.starts_with(VERBATIM)
-        {
+        let body = &rest[usize::from(neg)..];
+        let n = body.bytes().take_while(u8::is_ascii_digit).count();
+        let after = &body[n..];
+        // Leave fractions and numbers already in hex alone.
+        if n == 0 || after.starts_with('.') || after.starts_with('x') {
             continue;
         }
-        let v: i64 = digits.parse().unwrap_or(0);
-        out.push_str(&imm(if neg { -v } else { v }));
+        let v: i64 = body[..n].parse().unwrap_or(0);
+        push_imm(out, if neg { -v } else { v });
         rest = after;
     }
     out.push_str(rest);
-    out
+    true
 }
 
-fn render_symbol(inst: &Instruction, sym: &Symbol, symbols: &dyn Symbols) -> Option<Rendered> {
+/// Renders a symbol into `out`: whether its value is the default an
+/// optional group may leave out, or `None` (nothing written) if it does not
+/// render.
+fn render_symbol(
+    inst: &Instruction,
+    sym: &Symbol,
+    symbols: &dyn Symbols,
+    out: &mut String,
+) -> Option<bool> {
     let w = inst.word;
     if let Some((p, v)) = sym.when
         && value(p, w) != v
     {
         return None;
     }
-    let name = sym.display.trim_start_matches('<').trim_end_matches('>');
     if sym.table.is_some() {
+        let name = sym.display.trim_start_matches('<').trim_end_matches('>');
         // (A condition with no row, AL or NV for an inverted condition, is
         // not shown.)
         let lookup = table_lookup(sym, w).or_else(|| {
@@ -192,20 +144,20 @@ fn render_symbol(inst: &Instruction, sym: &Symbol, symbols: &dyn Symbols) -> Opt
         });
         // Values a table of names doesn't name (SVE patterns, barrier
         // options, prefetch operations): the number, as LLVM prints them.
-        if lookup.is_none() && sym.has("orimm") {
-            let v = raw(sym, w) as i64;
-            return Some(Rendered {
-                text: format!("#{}", imm(v)),
-                default: false,
-            });
+        if lookup.is_none() && sym.has(attr::ORIMM) {
+            out.push('#');
+            push_imm(out, raw(sym, w) as i64);
+            return Some(false);
         }
         let result = match lookup? {
+            TableResult::Shown(text, default) => {
+                out.push_str(text);
+                return Some(default);
+            }
             TableResult::Text(t) => t,
             TableResult::Number(n) => {
-                return Some(Rendered {
-                    text: format!("{n}"),
-                    default: n == 0,
-                });
+                push_decimal(out, n);
+                return Some(n == 0);
             }
         };
         if result == "RESERVED" {
@@ -217,7 +169,7 @@ fn render_symbol(inst: &Instruction, sym: &Symbol, symbols: &dyn Symbols) -> Opt
         // 011, in the 64-bit forms.)
         let option = (w >> 13) & 7;
         let wide = w >> 31 == 1;
-        let result = if sym.has("lslsp")
+        let result = if sym.has(attr::LSLSP)
             && matches!(result, "LSL" | "UXTW" | "UXTX")
             && option == if wide { 3 } else { 2 }
         {
@@ -234,35 +186,27 @@ fn render_symbol(inst: &Instruction, sym: &Symbol, symbols: &dyn Symbols) -> Opt
         };
         // Optional suffixes and modifiers: "UMULL{2}", "{, <mod>}".
         if result == "[absent]" {
-            return Some(Rendered {
-                text: String::new(),
-                default: true,
-            });
+            return Some(true);
         }
         if result == "[present]" {
-            return Some(Rendered {
-                text: name.to_ascii_lowercase(),
-                default: false,
-            });
+            push_lower(out, name);
+            return Some(false);
         }
         if matches!(sym.display, "<cond>" | "<invcond>") {
             // "CS|HS": Microsoft uses the second name; AL and NV are not
             // shown.
             let c = result.rsplit('|').next().unwrap_or(result);
             let c = if c == "AL" || c == "NV" { "" } else { c };
-            return Some(Rendered {
-                text: c.to_ascii_lowercase(),
-                default: false,
-            });
+            push_lower(out, c);
+            return Some(false);
         }
         // Prefetch operations: Microsoft knows the classic names, in upper
         // case, and shows others as numbers.
         // "#uimm4": the operation has no name; show the number.
         if result.starts_with("#u") || result.starts_with("#imm") {
-            return Some(Rendered {
-                text: format!("#{}", imm(raw(sym, w) as i64)),
-                default: false,
-            });
+            out.push('#');
+            push_imm(out, raw(sym, w) as i64);
+            return Some(false);
         }
         if sym.display == "<prfop>" {
             let classic = result.len() == 9
@@ -270,14 +214,13 @@ fn render_symbol(inst: &Instruction, sym: &Symbol, symbols: &dyn Symbols) -> Opt
                 && ["L1", "L2", "L3"].contains(&&result[3..5])
                 && ["KEEP", "STRM"].contains(&&result[5..]);
             // (Others, such as PLDSLCKEEP, as numbers.)
-            return Some(Rendered {
-                text: if classic {
-                    result.to_string()
-                } else {
-                    format!("#{}", imm(raw(sym, w) as i64))
-                },
-                default: false,
-            });
+            if classic {
+                out.push_str(result);
+            } else {
+                out.push('#');
+                push_imm(out, raw(sym, w) as i64);
+            }
+            return Some(false);
         }
         // "LSL|UXTW": LSL when the stack pointer is involved.
         if let Some((lsl, other)) = result.split_once('|') {
@@ -285,133 +228,97 @@ fn render_symbol(inst: &Instruction, sym: &Symbol, symbols: &dyn Symbols) -> Opt
             let rn = (w >> 5) & 0x1F;
             let sets_flags = w >> 29 & 1 == 1;
             let use_lsl = rn == 31 || (rd == 31 && !sets_flags);
-            let pick = if use_lsl { lsl } else { other };
-            return Some(Rendered {
-                text: pick.to_ascii_lowercase(),
-                // "LSL #0" is left out.
-                default: use_lsl,
-            });
+            push_lower(out, if use_lsl { lsl } else { other });
+            // "LSL #0" is left out.
+            return Some(use_lsl);
         }
         // System operation names (AT, DC, IC, TLBI, ...) stay upper case.
-        if inst.encoding_name().contains("_SYS_") && sym.display.ends_with("_op>") {
-            return Some(Rendered {
-                text: result.to_string(),
-                default: false,
-            });
+        if sym.display.ends_with("_op>") && inst.encoding_name().contains("_SYS_") {
+            out.push_str(result);
+            return Some(false);
         }
         // SVE predicate patterns: upper case, and ALL is the default.
         if sym.display == "<pattern>" {
-            return Some(Rendered {
-                text: fix_numbers(result),
-                default: result == "ALL",
-            });
+            let start = out.len();
+            out.push_str(result);
+            fix_numbers_from(out, start);
+            return Some(result == "ALL");
         }
         let default = result.ends_with(" #0")
             || result == "#0"
             || result.is_empty()
             || (result == "LSL" && sym.display == "<extend>");
-        return Some(Rendered {
-            text: fix_numbers(&result.to_ascii_lowercase()),
-            default,
-        });
+        let start = out.len();
+        push_lower(out, result);
+        fix_numbers_from(out, start);
+        return Some(default);
     }
-    if let Some(r) = special(inst, sym) {
-        return Some(r);
+    if sym.has(attr::MAY_SPECIAL)
+        && let Some(d) = special(inst, sym, out)
+    {
+        return Some(d);
     }
     // Floating-point immediates: imm8 expands to +-n/16 * 2^r.
-    if sym.has("fp8") && sym.value.as_ref().is_some_and(|v| v.width == 8) {
-        let v = raw_value(sym, w);
-        return Some(Rendered {
-            text: fp_imm8(v),
-            default: false,
-        });
+    if is_fp_imm8(sym) {
+        push_fp_imm8(out, raw_value(sym, w));
+        return Some(false);
     }
     let n = number(sym, w);
-    let reg = |t: String| {
-        Some(Rendered {
-            text: t,
-            default: false,
-        })
+    let reg = |out: &mut String, prefix: &str, n: i64| {
+        out.push_str(prefix);
+        push_decimal(out, n);
+        Some(false)
     };
-    let first = name.chars().next().unwrap_or(' ');
-    let rest: &str = name.get(1..).unwrap_or("");
-    // "d", "n2", "n+1" (the next register of a list).
-    let is_reg_suffix = |s: &str| {
-        !s.is_empty()
-            && s.chars()
-                .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '+')
-    };
-    // The second register of a pair: "<W(s+1)>", "<X(t+1)>".
-    if let Some(inner) = name
-        .strip_prefix("W(")
-        .or_else(|| name.strip_prefix("X("))
-        .and_then(|s| s.strip_suffix("+1)"))
-    {
-        let _ = inner;
-        return Some(Rendered {
-            text: gpr((raw(sym, w) + 1) & 31, first == 'X', false),
-            default: false,
-        });
-    }
-    // General-purpose registers.
-    if let Some(base) = name.strip_suffix("|WSP").or(name.strip_suffix("|SP")) {
-        let wide = base.starts_with('X');
-        return reg(gpr(n as u64, wide, true));
-    }
-    if (first == 'W' || first == 'X') && is_reg_suffix(rest) {
-        // The zero register is the default for optional operands.
-        return Some(Rendered {
-            text: gpr(n as u64, first == 'X', false),
+    match sym.kind {
+        Kind::Pair(wide) => {
+            push_gpr(out, (raw(sym, w) + 1) & 31, wide, false);
+            return Some(false);
+        }
+        Kind::GprSp(wide) => {
+            push_gpr(out, n as u64, wide, true);
+            return Some(false);
+        }
+        Kind::Gpr(wide) => {
+            // The zero register is the default for optional operands.
+            push_gpr(out, n as u64, wide, false);
             // (Microsoft shows XZR for first-fault loads.) RET's register
             // "defaults to X30 if absent".
-            default: (n == 31 && !inst.encoding_name().starts_with("ldff1"))
-                || (n == 30 && sym.has("x30")),
-        });
-    }
-    // SIMD&FP and SVE registers.
-    if matches!(first, 'B' | 'H' | 'S' | 'D' | 'Q' | 'V') && is_reg_suffix(rest) {
-        return reg(format!("{}{n}", first.to_ascii_lowercase()));
-    }
-    if let Some(r) = name.strip_prefix("ZA")
-        && (is_reg_suffix(r) || r.is_empty())
-    {
-        return reg(format!("za{n}"));
-    }
-    if first == 'Z' && is_reg_suffix(rest) {
-        return reg(format!("z{n}"));
-    }
-    if let Some(r) = name.strip_prefix("PN")
-        && is_reg_suffix(r)
-    {
-        let n = if sym.has("pn8") && n < 8 { n + 8 } else { n };
-        return reg(format!("pn{n}"));
-    }
-    if first == 'P' && is_reg_suffix(rest) {
-        return reg(format!("p{n}"));
-    }
-    // Register numbers following a <R> or <V> prefix symbol.
-    if matches!(name, "d" | "n" | "m" | "t" | "dn" | "a" | "s" | "t2" | "t1") {
-        if n == 31 && sym.has("zr31") {
-            return reg("zr".into());
+            return Some(
+                (n == 31 && !inst.encoding_name().starts_with("ldff1"))
+                    || (n == 30 && sym.has(attr::X30)),
+            );
         }
-        return reg(format!("{n}"));
-    }
-    match name {
-        // Lane indexes are decimal.
-        "index" => return reg(format!("{n}")),
-        "label" => {
-            let target = if sym.has("page") {
+        Kind::Reg(prefix) => return reg(out, prefix, n),
+        Kind::Pn => {
+            let n = if sym.has(attr::PN8) && n < 8 {
+                n + 8
+            } else {
+                n
+            };
+            return reg(out, "pn", n);
+        }
+        Kind::Num => {
+            if n == 31 && sym.has(attr::ZR31) {
+                out.push_str("zr");
+                return Some(false);
+            }
+            return reg(out, "", n);
+        }
+        Kind::Label => {
+            let target = if sym.has(attr::PAGE) {
                 (inst.address & !0xFFF).wrapping_add(n as u64)
             } else {
                 inst.address.wrapping_add(n as u64)
             };
-            let text = match symbols.name_at(target) {
-                Some(s) => s.to_string(),
-                None => format!("{target:016X}"),
-            };
-            return reg(text);
+            match symbols.name_at(target) {
+                Some(s) => out.push_str(s),
+                None => {
+                    push_hex(out, target, 16);
+                }
+            }
+            return Some(false);
         }
-        "const" | "imm" if sym.has("bitmask") => {
+        Kind::Bitmask => {
             // The fields' positions depend on the class: general forms
             // have N in bit 22, immr in 21:16, and imms in 15:10; SVE
             // forms have N:immr:imms in bits 17:5.
@@ -440,17 +347,14 @@ fn render_symbol(inst: &Instruction, sym: &Symbol, symbols: &dyn Symbols) -> Opt
                 let combined = (n_bit << 6) | (!imms & 0x3F);
                 (1u32 << (63 - combined.leading_zeros())).max(8)
             };
-            let text = if esize >= 64 {
-                imm(mask as i64)
+            if esize >= 64 {
+                push_imm(out, mask as i64);
             } else {
-                imm((mask & ((1u64 << esize) - 1)) as i64)
-            };
-            return Some(Rendered {
-                text,
-                default: false,
-            });
+                push_imm(out, (mask & ((1u64 << esize) - 1)) as i64);
+            }
+            return Some(false);
         }
-        "systemreg" => {
+        Kind::SysReg => {
             let v = raw(sym, w);
             let (o0, op1, crn, crm, op2) = (
                 (v >> 14) & 1,
@@ -462,239 +366,291 @@ fn render_symbol(inst: &Instruction, sym: &Symbol, symbols: &dyn Symbols) -> Opt
             // The register's name, if it has one.
             let key = u32::try_from(v & 0x7FFF).unwrap_or(0) | (1 << 15);
             if let Ok(i) = crate::tables::SYSREGS.binary_search_by_key(&key, |e| e.0) {
-                return reg(crate::tables::SYSREGS[i].1.to_string());
+                out.push_str(crate::tables::SYSREGS[i].1);
+            } else {
+                let _ = write!(out, "S{}_{op1}_C{crn}_C{crm}_{op2}", o0 + 2);
             }
-            return reg(format!("S{}_{op1}_C{crn}_C{crm}_{op2}", o0 + 2));
+            return Some(false);
         }
-        "Cn" | "Cm" => return reg(format!("C{n}")),
-        _ => {}
+        Kind::Imm => {}
     }
     // The default an optional group leaves out is what an all-zero field
     // means: #0, or MUL #1 (`add=1`).
-    Some(Rendered {
-        text: imm(n),
-        default: n == 0 || (sym.attr("add").is_some() && raw_value(sym, w) == 0),
-    })
+    push_imm(out, n);
+    Some(n == 0 || (sym.has(attr::ADD) && raw_value(sym, w) == 0))
 }
 
-/// Renders the operand part of a template (after the mnemonic). Returns
-/// the text and whether every symbol in it was a default.
-fn render(inst: &Instruction, t: &str, symbols: &dyn Symbols, out: &mut String) -> Option<bool> {
+/// Renders template tokens. Returns whether every symbol in them was a
+/// default.
+/// (`floor`: where the text being rendered begins, which a left-out group's
+/// spaces stop at.)
+fn render(
+    inst: &Instruction,
+    toks: &[Tok],
+    symbols: &dyn Symbols,
+    out: &mut String,
+    floor: usize,
+) -> Option<bool> {
     let mut all_default = true;
-    let mut rest = t;
-    while !rest.is_empty() {
-        if let Some(after) = rest
-            .strip_prefix('(')
-            .filter(|a| alternation_end(a).is_some())
-        {
-            // Alternatives, "(<prfop>|#<imm5>)": the first that renders.
-            let end = alternation_end(after)?;
-            let inner = &after[..end];
-            let mut done = false;
-            for alt in split_top(inner, '|') {
-                let mut s = String::new();
-                if let Some(d) = render(inst, alt, symbols, &mut s) {
-                    out.push_str(&s);
-                    all_default &= d;
-                    done = true;
-                    break;
+    for t in toks {
+        match *t {
+            Tok::Lit(text) => out.push_str(text),
+            Tok::Sym(i) => {
+                let sym = symbol(usize::from(i));
+                let at = out.len();
+                all_default &= render_symbol(inst, sym, symbols, out)?;
+                // A number after a `#` (the literal's, which build.rs has
+                // already put in Microsoft's form) is an immediate: hex from
+                // 10 on. (Not a floating-point immediate, `#1.5` or `#31`.)
+                let hash = if out[..at].ends_with('#') {
+                    Some(at - 1)
+                } else if out[..at].ends_with("#-") {
+                    Some(at - 2)
+                } else {
+                    None
+                };
+                if let Some(h) = hash
+                    && !is_fp_imm8(sym)
+                {
+                    fix_numbers_from(out, h);
                 }
             }
-            if !done {
-                return None;
-            }
-            rest = &after[end + 1..];
-        } else if let Some(after) = rest.strip_prefix('{') {
-            // An optional group: find its matching brace.
-            let mut depth = 1;
-            let mut end = None;
-            for (i, c) in after.char_indices() {
-                match c {
-                    '{' => depth += 1,
-                    '}' => {
-                        depth -= 1;
-                        if depth == 0 {
-                            end = Some(i);
-                            break;
-                        }
+            Tok::Group(inner, optional) => {
+                let start = out.len();
+                let defaults = render(inst, inner, symbols, out, floor)? && optional;
+                if defaults {
+                    out.truncate(start);
+                    // The space before a left-out group goes too: "SXTH {#0}".
+                    while out.len() > floor && out.ends_with(' ') {
+                        out.pop();
                     }
-                    _ => {}
+                } else {
+                    all_default = false;
                 }
             }
-            // (An unclosed group: a bad template, shown as nothing.)
-            let end = end?;
-            let inner = &after[..end];
-            let mut s = String::new();
-            // Groups of plain text ("{, VGx2}") are always shown, except a
-            // zero offset ("{, #0}").
-            let defaults = render(inst, inner, symbols, &mut s)?
-                && (inner.contains('%') || inner.trim() == ", #0");
-            if defaults {
-                // The space before a left-out group goes too: "SXTH {#0}".
-                while out.ends_with(' ') {
-                    out.pop();
-                }
-            } else {
-                out.push_str(&s);
-                all_default = false;
-            }
-            rest = &after[end + 1..];
-        } else if let Some(after) = rest.strip_prefix('%') {
-            let end = after.find('%')?;
-            let index: usize = after[..end].parse().ok()?;
-            let r = render_symbol(inst, symbol(index), symbols)?;
-            all_default &= r.default;
-            out.push_str(&r.text);
-            rest = &after[end + 1..];
-        } else {
-            // Literal text, up to the next group, symbol, or alternation (a
-            // lone parenthesis is literal).
-            let end = rest[1..]
-                .find(['{', '%', '('])
-                .map_or(rest.len(), |i| i + 1);
-            // build.rs marks register-list braces as \u{1} and \u{2}.
-            let literal = rest[..end].replace('\u{1}', "{").replace('\u{2}', "}");
-            // Lower case, except for MUL VL and MUL #.
-            let mut lower = literal
-                .to_ascii_lowercase()
-                .replace("mul vl", "MUL VL")
-                .replace("mul #", "MUL #")
-                .replace("rctx", "RCTX");
-            // A system register by number: S<op0>_<op1>_C<n>_C<m>_<op2>.
-            let next = &rest[end..];
-            let sysreg = next.starts_with('%')
-                && next[1..]
-                    .find('%')
-                    .is_some_and(|i| next[i + 2..].starts_with('_'));
-            if literal.ends_with('S') && sysreg {
-                lower.pop();
-                lower.push('S');
-            }
-            out.push_str(&fix_numbers(&lower));
-            rest = &rest[end..];
         }
     }
     Some(all_default)
 }
 
-/// The mnemonic and operands, or `None` if an operand is reserved.
-fn render_all(inst: &Instruction, symbols: &dyn Symbols) -> Option<(String, String)> {
-    let t = inst.template();
-    let (mnemonic, operands) = t.split_once(' ').unwrap_or((t, ""));
-    // Microsoft folds a trailing condition operand into the mnemonic
-    // (`csel x0,x1,x2,eq` is `cseleq x0,x1,x2`), as it does `b.eq`.
-    let mut operands = operands;
-    let mut cond = String::new();
-    if let Some(i) = operands.rfind(", %") {
-        let tail = &operands[i + 3..];
-        if let Some(index) = tail.strip_suffix('%').and_then(|s| s.parse::<usize>().ok())
-            && matches!(symbol(index).display, "<cond>" | "<invcond>")
-        {
-            cond = render_symbol(inst, symbol(index), symbols)?.text;
-            operands = &operands[..i];
-        }
+/// Renders the instruction into `out`: mnemonic, padding, operands. If an
+/// operand is reserved, `None`, and `out` is as it was.
+fn render_all(inst: &Instruction, symbols: &dyn Symbols, out: &mut String) -> Option<()> {
+    let start = out.len();
+    let r = render_parts(inst, symbols, out, start);
+    if r.is_none() {
+        out.truncate(start);
     }
-    let mut m = String::new();
-    match ms_mnemonic(inst.encoding_name()) {
-        Some(name) => m.push_str(name),
+    r
+}
+
+fn render_parts(
+    inst: &Instruction,
+    symbols: &dyn Symbols,
+    out: &mut String,
+    start: usize,
+) -> Option<()> {
+    let e = inst.encoding();
+    let w = inst.word;
+    match ms_mnemonic(e) {
+        Some(m) => out.push_str(m),
         None => {
-            render(inst, mnemonic, symbols, &mut m)?;
+            render(inst, e.mnem, symbols, out, start)?;
         }
     }
     // `b.eq` is `beq`.
-    let mut m = m.replace('.', "");
-    m.push_str(&cond);
-    if inst.is_unpredictable() {
-        m.insert(0, '?');
+    if out.as_bytes()[start..].contains(&b'.') {
+        let mut i = 0;
+        out.retain(|c| {
+            i += c.len_utf8();
+            i <= start || c != '.'
+        });
     }
-    let mut ops = String::new();
-    render(inst, operands, symbols, &mut ops)?;
-    let name = inst.encoding_name();
+    // Microsoft folds a trailing condition operand into the mnemonic
+    // (`csel x0,x1,x2,eq` is `cseleq x0,x1,x2`), as it does `b.eq`.
+    if e.cond != NONE {
+        render_symbol(inst, symbol(usize::from(e.cond)), symbols, out)?;
+    }
+    if inst.is_unpredictable() {
+        out.insert(start, '?');
+    }
+    // Microsoft's own mnemonics for some forms (whatever the operands).
+    let set_mnemonic = |out: &mut String, m: &str| {
+        out.truncate(start);
+        out.push_str(m);
+    };
     // ORR (immediate) from the zero register: Microsoft's MOV or MOVI.
-    if name.starts_with("MOV_ORR_") && name.ends_with("_log_imm") {
-        m = ms_mov_or_movi(inst.word).to_string();
+    let orr_from_zr = e.rule == rule::ORR_IMM && (w >> 5) & 0x1F == 31;
+    if e.rule == rule::MOV_ORR || orr_from_zr {
+        set_mnemonic(out, ms_mov_or_movi(w));
     }
     // A zero LSR is Microsoft's "lsl #0".
-    if name.starts_with("LSR_UBFM") && (inst.word >> 16) & 0x3F == 0 {
-        m = "lsl".to_string();
+    if e.rule == rule::LSR_UBFM && (w >> 16) & 0x3F == 0 {
+        set_mnemonic(out, "lsl");
     }
     // Microsoft's UXTB/UXTH for 64-bit UBFM: "uxtb x0,w1".
-    if name == "UBFX_UBFM_64M_bitfield" && (inst.word >> 16) & 0x3F == 0 {
-        let imms = (inst.word >> 10) & 0x3F;
-        if imms == 7 || imms == 15 || imms == 31 {
-            m = match imms {
+    let imms = (w >> 10) & 0x3F;
+    let uxt =
+        e.rule == rule::UBFX_64 && (w >> 16) & 0x3F == 0 && (imms == 7 || imms == 15 || imms == 31);
+    if uxt {
+        set_mnemonic(
+            out,
+            match imms {
                 7 => "uxtb",
                 15 => "uxth",
                 _ => "uxtw",
+            },
+        );
+    }
+    // The operands, after the padding (taken back if there are none).
+    let pad = MNEMONIC_WIDTH.saturating_sub(out.len() - start).max(1);
+    let pad_start = out.len();
+    out.extend(core::iter::repeat_n(' ', pad));
+    let ops = out.len();
+    render(inst, e.ops, symbols, out, ops)?;
+    if uxt {
+        out.truncate(ops);
+        push_gpr(out, u64::from(w & 0x1F), true, false);
+        out.push(',');
+        push_gpr(out, u64::from((w >> 5) & 0x1F), false, false);
+    }
+    if orr_from_zr {
+        for zr in [",wzr", ",xzr"] {
+            if let Some(i) = find(&out[ops..], zr) {
+                out.replace_range(ops + i..ops + i + zr.len(), "");
             }
-            .to_string();
-            let rd = gpr(u64::from(inst.word & 0x1F), true, false);
-            let rn = gpr(u64::from((inst.word >> 5) & 0x1F), false, false);
-            ops = format!("{rd}, {rn}");
         }
     }
-    if (name == "ORR_32_log_imm" || name == "ORR_64_log_imm") && (inst.word >> 5) & 0x1F == 31 {
-        m = ms_mov_or_movi(inst.word).to_string();
-        ops = ops.replacen(", wzr", "", 1).replacen(", xzr", "", 1);
-    }
-    let ops = ms_registers(&fix_numbers(&ops.replace(", ", ",")));
-    let ops = ms_spacing(&extend_amounts(&ops)).replace(VERBATIM, "");
+    // The rest of Microsoft's conventions, where text from different
+    // symbols and literals meets: one look at the operands says which of
+    // the rewrites can apply (most instructions need none), and each copies
+    // the operands (through `scratch`) only where it changes them.
+    let t = triggers(&out.as_bytes()[ops..]);
+    let mut scratch = String::new();
+    let mut step = |out: &mut String, trigger: u8, f: &dyn Fn(&str, &mut String) -> bool| {
+        if t & trigger == 0 {
+            return;
+        }
+        scratch.clear();
+        if f(&out[ops..], &mut scratch) {
+            out.truncate(ops);
+            out.push_str(&scratch);
+        }
+    };
+    step(out, trigger::REGISTER, &ms_registers);
+    step(out, trigger::EXTEND, &extend_amounts);
+    step(out, trigger::SPACING, &ms_spacing);
+    // No `#0` offset in an addressing form (`[x0]!`).
+    step(out, trigger::ZERO_OFFSET, &|s, d| {
+        replace_into(s, d, ",#0]", "]")
+    });
     // Microsoft leaves out a zero LSL, except in ADD/SUB (shifted
     // register) with the zero register.
-    let zr = inst.word & 0x1F == 31 || (inst.word >> 5) & 0x1F == 31;
-    let base_add_sub = ["ADD_", "ADDS_", "SUB_", "SUBS_"]
-        .iter()
-        .any(|p| name.starts_with(p));
-    let ops = if zr && base_add_sub && name.ends_with("_addsub_shift") {
-        ops
-    } else {
-        drop_zero_lsl(&ops)
-    };
-    // Comparisons with zero are "#0", not "#0.0".
-    let ops = ops.replace("#0.0", "#0");
-    let ops = decimal_indexes(&ops);
+    let zr = w & 0x1F == 31 || (w >> 5) & 0x1F == 31;
+    if !(zr && e.rule == rule::ADD_SUB_SHIFT) {
+        step(out, trigger::LSL, &drop_zero_lsl);
+    }
+    step(out, trigger::INDEX, &decimal_indexes);
     // Microsoft keeps a space before the register of a post-indexed
     // structure load or store: "[x2], x0".
-    let ops = if inst.encoding_name().contains("_asisdlsop_")
-        || inst.encoding_name().contains("_asisdlsep_")
+    if e.post_index
+        && let Some(i) = out[ops..].rfind("],")
+        && !out[ops + i + 2..].starts_with('#')
     {
-        match ops.rfind("],") {
-            Some(i) if !ops[i + 2..].starts_with('#') => {
-                format!("{}], {}", &ops[..i], &ops[i + 2..])
+        out.insert(ops + i + 2, ' ');
+    }
+    if out.len() == ops {
+        out.truncate(pad_start);
+    }
+    Some(())
+}
+
+/// What [`triggers`] finds: text a rewrite in `render_parts` may change.
+mod trigger {
+    /// `x16`, `w30`, ...: a register Microsoft names (`xip0`, `wlr`), put
+    /// together from parts.
+    pub const REGISTER: u8 = 1;
+    /// `xt`: an extend (`uxtw`) that may need its amount.
+    pub const EXTEND: u8 = 2;
+    /// A `#` after a letter: a shift or extend and its amount.
+    pub const SPACING: u8 = 4;
+    /// `,#0]`.
+    pub const ZERO_OFFSET: u8 = 8;
+    /// `,lsl #0` or `,lsl#0` (before spacing), not `,lsl #0x10`.
+    pub const LSL: u8 = 16;
+    /// `[0x`.
+    pub const INDEX: u8 = 32;
+}
+
+/// Which rewrites may apply to operands `s`: [`trigger`] flags, each for
+/// text the rewrite changes, or that an earlier one can turn into it
+/// (`,lsl#0` becomes `,lsl #0`).
+fn triggers(s: &[u8]) -> u8 {
+    let mut t = 0;
+    let at = |i: usize| s.get(i).copied().unwrap_or(0);
+    for (i, &c) in s.iter().enumerate() {
+        match c {
+            b'x' | b'w' => {
+                let in_token = |c: u8| c.is_ascii_alphanumeric() || c == b'_';
+                let whole = (i == 0 || !in_token(s[i - 1])) && !in_token(at(i + 3));
+                if whole
+                    && matches!(
+                        (at(i + 1), at(i + 2)),
+                        (b'1', b'6'..=b'8') | (b'2', b'9') | (b'3', b'0')
+                    )
+                {
+                    t |= trigger::REGISTER;
+                }
+                if c == b'x' && at(i + 1) == b't' {
+                    t |= trigger::EXTEND;
+                }
             }
-            _ => ops,
+            b'#' if i > 0 && s[i - 1].is_ascii_alphabetic() => t |= trigger::SPACING,
+            b',' if at(i + 1) == b'#' && at(i + 2) == b'0' && at(i + 3) == b']' => {
+                t |= trigger::ZERO_OFFSET;
+            }
+            b',' if s[i + 1..].starts_with(b"lsl") => {
+                let amount = if at(i + 4) == b' ' { i + 5 } else { i + 4 };
+                if at(amount) == b'#'
+                    && at(amount + 1) == b'0'
+                    && !at(amount + 2).is_ascii_alphanumeric()
+                {
+                    t |= trigger::LSL;
+                }
+            }
+            b'[' if at(i + 1) == b'0' && at(i + 2) == b'x' => t |= trigger::INDEX,
+            _ => {}
         }
-    } else {
-        ops
-    };
-    Some((m, ops))
+    }
+    t
+}
+
+/// Where `pat` is in `s`: for the short patterns and strings here, cheaper
+/// than `str::find`'s searcher.
+fn find(s: &str, pat: &str) -> Option<usize> {
+    let (s, p) = (s.as_bytes(), pat.as_bytes());
+    let (&first, rest) = p.split_first()?;
+    (0..(s.len() + 1).saturating_sub(p.len()))
+        .find(|&i| s[i] == first && s[i + 1..i + p.len()] == *rest)
 }
 
 /// Whether [`render_all`] is `Some` (what [`is_valid`] answers quickly).
 pub(crate) fn renders_fully(inst: &Instruction) -> bool {
-    render_all(inst, &NoSymbols).is_some()
+    render_all(inst, &NoSymbols, &mut String::new()).is_some()
 }
 
 /// Whether `inst` renders: [`render_all`] is `Some` exactly when this is
 /// true (what can fail there is a template's symbols, groups, and
 /// alternations, walked here the same way; the text is not built).
 pub(crate) fn is_valid(inst: &Instruction) -> bool {
-    let t = inst.template();
-    let (mnemonic, operands) = t.split_once(' ').unwrap_or((t, ""));
-    let mut operands = operands;
-    if let Some(i) = operands.rfind(", %") {
-        let tail = &operands[i + 3..];
-        if let Some(index) = tail.strip_suffix('%').and_then(|s| s.parse::<usize>().ok())
-            && matches!(symbol(index).display, "<cond>" | "<invcond>")
-        {
-            if !symbol_renders(inst, symbol(index)) {
-                return false;
-            }
-            operands = &operands[..i];
-        }
+    let e = inst.encoding();
+    if !e.checked {
+        return true;
     }
-    (ms_mnemonic(inst.encoding_name()).is_some() || renders(inst, mnemonic))
-        && renders(inst, operands)
+    if e.cond != NONE && !symbol_renders(inst, symbol(usize::from(e.cond))) {
+        return false;
+    }
+    (ms_mnemonic(e).is_some() || renders(inst, e.mnem)) && renders(inst, e.ops)
 }
 
 /// Whether [`render_symbol`] of `sym` is `Some`: it fails only where its
@@ -711,16 +667,16 @@ fn symbol_renders(inst: &Instruction, sym: &Symbol) -> bool {
     if sym.table.is_some() {
         return match table_lookup(sym, w) {
             Some(TableResult::Text(t)) => t != "RESERVED",
-            Some(TableResult::Number(_)) => true,
-            None => matches!(sym.display, "<cond>" | "<invcond>") || sym.has("orimm"),
+            Some(TableResult::Number(_) | TableResult::Shown(..)) => true,
+            None => matches!(sym.display, "<cond>" | "<invcond>") || sym.has(attr::ORIMM),
         };
     }
     let name = sym.display.trim_start_matches('<').trim_end_matches('>');
-    if !(matches!(name, "const" | "imm") && sym.has("bitmask")) {
+    if !(matches!(name, "const" | "imm") && sym.has(attr::BITMASK)) {
         return true;
     }
-    if special(inst, sym).is_some()
-        || (sym.has("fp8") && sym.value.as_ref().is_some_and(|v| v.width == 8))
+    if special(inst, sym, &mut String::new()).is_some()
+        || (sym.has(attr::FP8) && sym.value.as_ref().is_some_and(|v| v.width == 8))
     {
         return true;
     }
@@ -742,66 +698,13 @@ fn symbol_renders(inst: &Instruction, sym: &Symbol) -> bool {
     crate::alias::decode_bit_masks(n_bit, imms, immr, true, datasize).is_some()
 }
 
-/// Whether [`render`] of `t` is `Some`.
-fn renders(inst: &Instruction, t: &str) -> bool {
-    let mut rest = t;
-    while !rest.is_empty() {
-        if let Some(after) = rest
-            .strip_prefix('(')
-            .filter(|a| alternation_end(a).is_some())
-        {
-            let Some(end) = alternation_end(after) else {
-                return false;
-            };
-            if !split_top(&after[..end], '|')
-                .into_iter()
-                .any(|alt| renders(inst, alt))
-            {
-                return false;
-            }
-            rest = &after[end + 1..];
-        } else if let Some(after) = rest.strip_prefix('{') {
-            let mut depth = 1;
-            let mut end = None;
-            for (i, c) in after.char_indices() {
-                match c {
-                    '{' => depth += 1,
-                    '}' => {
-                        depth -= 1;
-                        if depth == 0 {
-                            end = Some(i);
-                            break;
-                        }
-                    }
-                    _ => {}
-                }
-            }
-            let Some(end) = end else {
-                return false;
-            };
-            if !renders(inst, &after[..end]) {
-                return false;
-            }
-            rest = &after[end + 1..];
-        } else if let Some(after) = rest.strip_prefix('%') {
-            let Some(end) = after.find('%') else {
-                return false;
-            };
-            let Ok(index) = after[..end].parse::<usize>() else {
-                return false;
-            };
-            if !symbol_renders(inst, symbol(index)) {
-                return false;
-            }
-            rest = &after[end + 1..];
-        } else {
-            let end = rest[1..]
-                .find(['{', '%', '('])
-                .map_or(rest.len(), |i| i + 1);
-            rest = &rest[end..];
-        }
-    }
-    true
+/// Whether [`render`] of `toks` is `Some`.
+fn renders(inst: &Instruction, toks: &[Tok]) -> bool {
+    toks.iter().all(|t| match *t {
+        Tok::Lit(_) => true,
+        Tok::Sym(i) => symbol_renders(inst, symbol(usize::from(i))),
+        Tok::Group(inner, _) => renders(inst, inner),
+    })
 }
 
 /// For tools: how an encoding renders a word, operand by operand (the
@@ -809,31 +712,37 @@ fn renders(inst: &Instruction, t: &str) -> bool {
 #[doc(hidden)]
 pub fn explain_encoding(inst: &Instruction) -> alloc::string::String {
     use core::fmt::Write as _;
+    /// Each symbol of `toks`, and how it renders.
+    fn symbols_of(inst: &Instruction, toks: &[Tok], out: &mut String) {
+        for t in toks {
+            match *t {
+                Tok::Lit(_) => {}
+                Tok::Group(inner, _) => symbols_of(inst, inner, out),
+                Tok::Sym(i) => {
+                    let sym = symbol(usize::from(i));
+                    let mut text = String::new();
+                    let r = render_symbol(inst, sym, &NoSymbols, &mut text).map(|_| text);
+                    let _ = writeln!(
+                        out,
+                        "    {} {:?} attrs {:?} -> {:?}",
+                        sym.display, sym.encoded, sym.attrs, r
+                    );
+                }
+            }
+        }
+    }
     let e = inst.encoding();
     let mut out = alloc::string::String::new();
     let _ = writeln!(
         out,
-        "  {} {:08x}/{:08x} asm {:?}",
-        e.name, e.mask, e.value, e.asm
+        "  {} {:08x}/{:08x} template {:?} {:?}",
+        e.name, e.mask, e.value, e.mnem, e.ops
     );
-    let mut rest = e.asm;
-    while let Some(i) = rest.find('%') {
-        let after = &rest[i + 1..];
-        let Some(end) = after.find('%') else { break };
-        if let Ok(index) = after[..end].parse::<usize>() {
-            let sym = symbol(index);
-            let r = render_symbol(inst, sym, &NoSymbols);
-            let _ = writeln!(
-                out,
-                "    {} {:?} attrs {:?} -> {:?}",
-                sym.display,
-                sym.encoded,
-                sym.attrs,
-                r.map(|r| r.text)
-            );
-        }
-        rest = &after[end + 1..];
+    symbols_of(inst, e.mnem, &mut out);
+    if e.cond != NONE {
+        symbols_of(inst, &[Tok::Sym(e.cond)], &mut out);
     }
+    symbols_of(inst, e.ops, &mut out);
     out
 }
 
@@ -844,60 +753,56 @@ pub fn format(inst: &Instruction) -> String {
 
 /// Formats an instruction, naming addresses through `symbols`.
 pub fn format_with(inst: &Instruction, symbols: &dyn Symbols) -> String {
-    let Some((mnemonic, ops)) = render_all(inst, symbols) else {
-        return String::new();
-    };
-    let mut s = mnemonic;
-    if !ops.is_empty() {
-        let pad = MNEMONIC_WIDTH.saturating_sub(s.len()).max(1);
-        let _ = write!(s, "{:pad$}{ops}", "");
-    }
+    let mut s = String::with_capacity(48);
+    format_into(inst, symbols, &mut s);
     s
 }
 
+/// Formats an instruction into `out` (appended), naming addresses through
+/// `symbols`: [`format_with`] without allocating a string.
+pub fn format_into(inst: &Instruction, symbols: &dyn Symbols, out: &mut String) {
+    let _ = render_all(inst, symbols, out);
+}
 /// Operands whose values the ISA description leaves to the reader: the
-/// bitfield aliases and wide-immediate moves.
-fn special(inst: &Instruction, sym: &Symbol) -> Option<Rendered> {
+/// bitfield aliases and wide-immediate moves. Writes the operand to `out`
+/// and returns whether it is a default, or returns `None` (nothing
+/// written) for other operands.
+fn special(inst: &Instruction, sym: &Symbol, out: &mut String) -> Option<bool> {
     let w = inst.word;
     let name = inst.encoding_name();
     let size: i64 = if w >> 31 == 1 { 64 } else { 32 };
     let immr = i64::from((w >> 16) & 0x3F);
     let imms = i64::from((w >> 10) & 0x3F);
-    let num = |v: i64| {
-        Some(Rendered {
-            text: imm(v),
-            default: v == 0,
-        })
-    };
+    fn num(out: &mut String, v: i64) -> Option<bool> {
+        push_imm(out, v);
+        Some(v == 0)
+    }
     // A register offset's amount (LLVM's printMemExtend): with S set, the
     // log2 of the access size in bytes (#0 for bytes); without, none.
-    if let Some(width) = sym.attr("memext")
+    if sym.has(attr::MEMEXT)
         && sym.display == "<amount>"
+        && let Some(width) = sym.attr("memext")
     {
         let width: u32 = width.parse().unwrap_or(8);
         if raw(sym, w) == 1 {
-            return Some(Rendered {
-                text: format!("#{}", imm(i64::from((width / 8).trailing_zeros()))),
-                default: false,
-            });
+            out.push('#');
+            push_imm(out, i64::from((width / 8).trailing_zeros()));
+            return Some(false);
         }
-        return Some(Rendered {
-            text: String::new(),
-            default: true,
-        });
+        return Some(true);
     }
     // "it must be #0, encoded in "S" as 0 if omitted, or as 1 if present".
-    if sym.has("present01") {
+    if sym.has(attr::PRESENT01) {
         let present = raw_value(sym, w) == 1;
-        return Some(Rendered {
-            text: if present { "#0".into() } else { String::new() },
-            default: !present,
-        });
+        if present {
+            out.push_str("#0");
+        }
+        return Some(!present);
     }
     // SVE shifts by immediate: tsz gives the element size, and the
     // amount is tsz:imm3 minus the element size (left shifts) or twice
     // the element size minus tsz:imm3 (right shifts).
-    if sym.has("tsz")
+    if sym.has(attr::TSZ)
         && let Some(v) = sym.value.as_ref().filter(|v| v.width >= 4)
     {
         let raw = value(v.pieces, w) as i64;
@@ -916,79 +821,65 @@ fn special(inst: &Instruction, sym: &Symbol) -> Option<Rendered> {
             ]
             .contains(&mnemonic);
             let amount = if left { raw - esize } else { 2 * esize - raw };
-            return num(amount);
+            return num(out, amount);
         }
     }
     // ZERO { <mask> }.
-    if sym.display == "<mask>" && inst.encoding_name().starts_with("zero_za_i") {
-        return Some(Rendered {
-            text: za_mask(raw(sym, w)),
-            default: false,
-        });
+    if sym.display == "<mask>" && name.starts_with("zero_za_i") {
+        out.push_str(&za_mask(raw(sym, w)));
+        return Some(false);
     }
     // Symbols with no encoding: "is the destination width specifier, H."
     // and "is the second slice index offset, with implicit value 1."
     if sym.encoded.is_empty() && sym.value.is_none() {
         if let Some(n) = sym.attr("implicit") {
-            return Some(Rendered {
-                text: n.to_string(),
-                default: false,
-            });
+            out.push_str(n);
+            return Some(false);
         }
         if let Some(s) = sym.attr("spec") {
-            return Some(Rendered {
-                text: s.to_ascii_lowercase(),
-                default: false,
-            });
+            push_lower(out, s);
+            return Some(false);
         }
     }
     // AdvSIMD MOVI with 64-bit elements: each bit of a:b:c:d:e:f:g:h is a
     // byte of ones or zeros.
-    if sym.has("bytemask") {
+    if sym.has(attr::BYTEMASK) {
         let v = raw_value(sym, w);
-        let mut out = 0u64;
+        let mut mask = 0u64;
         for i in 0..8 {
             if v >> i & 1 != 0 {
-                out |= 0xFF << (8 * i);
+                mask |= 0xFF << (8 * i);
             }
         }
-        return Some(Rendered {
-            text: imm(out as i64),
-            default: false,
-        });
+        push_imm(out, mask as i64);
+        return Some(false);
     }
     // SVE multipliers: "in the range 1 to 16, defaulting to 1, encoded in
     // the imm4 field" (as the value minus one).
-    if sym.has("mult16") {
+    if sym.has(attr::MULT16) {
         let v = raw_value(sym, w) as i64 + 1;
-        return Some(Rendered {
-            text: imm(v),
-            default: v == 1,
-        });
+        push_imm(out, v);
+        return Some(v == 1);
     }
     // SVE DUP (indexed): the index is above the lowest set bit of tsz.
     if sym.display == "<imm>"
-        && sym.has("dupindex")
+        && sym.has(attr::DUPINDEX)
         && (name.starts_with("dup_z_zi") || name.starts_with("mov_z_zi__dup"))
     {
-        {
-            let v = raw_value(sym, w);
-            let tsz = v & 0x1F;
-            if tsz != 0 {
-                return Some(Rendered {
-                    text: format!("{}", v >> (tsz.trailing_zeros() + 1)),
-                    default: false,
-                });
-            }
+        let v = raw_value(sym, w);
+        let tsz = v & 0x1F;
+        if tsz != 0 {
+            push_decimal(out, (v >> (tsz.trailing_zeros() + 1)) as i64);
+            return Some(false);
         }
     }
     let prefix = name.split('_').next().unwrap_or("");
     match (prefix, sym.display) {
-        ("UBFX" | "SBFX" | "BFXIL", "<lsb>") => num(immr),
-        ("UBFX" | "SBFX" | "BFXIL", "<width>") => num(imms + 1 - immr),
-        ("UBFIZ" | "SBFIZ" | "BFI" | "BFC", "<lsb>") => num((-immr).rem_euclid(size)),
-        ("UBFIZ" | "SBFIZ" | "BFI" | "BFC", "<width>") => num(imms + 1),
-        ("LSL", "<shift>") if name.contains("UBFM") => num((-immr).rem_euclid(size)),
+        ("UBFX" | "SBFX" | "BFXIL", "<lsb>") => num(out, immr),
+        ("UBFX" | "SBFX" | "BFXIL", "<width>") => num(out, imms + 1 - immr),
+        ("UBFIZ" | "SBFIZ" | "BFI" | "BFC", "<lsb>") => num(out, (-immr).rem_euclid(size)),
+        ("UBFIZ" | "SBFIZ" | "BFI" | "BFC", "<width>") => num(out, imms + 1),
+        ("LSL", "<shift>") if name.contains("UBFM") => num(out, (-immr).rem_euclid(size)),
         ("MOV", "<imm>") if name.contains("MOVZ") || name.contains("MOVN") => {
             let imm16 = u64::from((w >> 5) & 0xFFFF);
             let hw = (w >> 21) & 3;
@@ -1000,92 +891,133 @@ fn special(inst: &Instruction, sym: &Symbol) -> Option<Rendered> {
             } else {
                 v as i64
             };
-            num(v)
+            num(out, v)
         }
         _ => None,
     }
 }
 
+/// Writes a number as Microsoft writes immediates: decimal below 10,
+/// otherwise `0x` and upper-case hex; negative values with a leading `-`.
+fn push_imm(out: &mut String, v: i64) {
+    let m = v.unsigned_abs();
+    if v < 0 {
+        out.push('-');
+    }
+    if m < 10 {
+        out.push(char::from(b'0' + m as u8));
+    } else {
+        out.push_str("0x");
+        push_hex(out, m, 1);
+    }
+}
+
+/// Writes a number in decimal.
+fn push_decimal(out: &mut String, v: i64) {
+    if v < 0 {
+        out.push('-');
+    }
+    push_unsigned(out, v.unsigned_abs());
+}
+
+/// Writes an unsigned number in decimal.
+fn push_unsigned(out: &mut String, mut v: u64) {
+    let mut digits = [0u8; 20];
+    let mut i = digits.len();
+    loop {
+        i -= 1;
+        digits[i] = b'0' + (v % 10) as u8;
+        v /= 10;
+        if v == 0 {
+            break;
+        }
+    }
+    out.extend(digits[i..].iter().map(|&d| char::from(d)));
+}
+
+/// Writes a number in upper-case hex, with at least `min` digits.
+fn push_hex(out: &mut String, v: u64, min: u32) {
+    let digits = (64 - v.leading_zeros()).div_ceil(4).max(min);
+    for k in (0..digits).rev() {
+        let d = (v >> (4 * k)) & 0xF;
+        out.push(char::from(b"0123456789ABCDEF"[d as usize]));
+    }
+}
+
+/// Writes `s` in lower case.
+fn push_lower(out: &mut String, s: &str) {
+    out.extend(s.chars().map(|c| c.to_ascii_lowercase()));
+}
+
+/// Writes a general-purpose register's name.
+fn push_gpr(out: &mut String, n: u64, wide: bool, sp: bool) {
+    match gpr_name(n, wide, sp) {
+        Some(name) => out.push_str(name),
+        None => {
+            out.push(if wide { 'x' } else { 'w' });
+            push_decimal(out, n as i64);
+        }
+    }
+}
+
+/// Applies [`fix_numbers`] to what `out` holds from `start` on.
+fn fix_numbers_from(out: &mut String, start: usize) {
+    if needs_fix_numbers(&out[start..]) {
+        let fixed = fix_numbers(&out[start..]);
+        out.truncate(start);
+        out.push_str(&fixed);
+    }
+}
+
 /// Microsoft's names for x16, x17, x18, x29, and x30 (and their W forms),
-/// applied to register tokens put together from parts (`<R><m>`).
-fn ms_registers(s: &str) -> String {
-    let mut out = String::with_capacity(s.len());
-    let mut token = String::new();
-    let flush = |token: &mut String, out: &mut String| {
-        let name = match token.as_str() {
-            "x16" => "xip0",
-            "x17" => "xip1",
-            "x18" => "xpr",
-            "x29" => "fp",
-            "x30" => "lr",
-            "w16" => "wip0",
-            "w17" => "wip1",
-            "w18" => "wpr",
-            "w29" => "wfp",
-            "w30" => "wlr",
-            other => other,
-        };
-        out.push_str(name);
-        token.clear();
+/// applied to register tokens put together from parts (`<R><m>`). (Into
+/// `out`, or `false` where there are none.)
+fn ms_registers(s: &str, out: &mut String) -> bool {
+    let name = |token: &[u8]| {
+        Some(match token {
+            b"x16" => "xip0",
+            b"x17" => "xip1",
+            b"x18" => "xpr",
+            b"x29" => "fp",
+            b"x30" => "lr",
+            b"w16" => "wip0",
+            b"w17" => "wip1",
+            b"w18" => "wpr",
+            b"w29" => "wfp",
+            b"w30" => "wlr",
+            _ => return None,
+        })
     };
-    for c in s.chars() {
-        if c.is_ascii_alphanumeric() || c == '_' {
-            token.push(c);
-        } else {
-            flush(&mut token, &mut out);
-            out.push(c);
+    let in_token = |c: u8| c.is_ascii_alphanumeric() || c == b'_';
+    let b = s.as_bytes();
+    // A whole token of three characters at `i`, one renamed.
+    let renamed = |i: usize| {
+        if !matches!(b[i], b'x' | b'w')
+            || i + 3 > b.len()
+            || (i > 0 && in_token(b[i - 1]))
+            || b.get(i + 3).is_some_and(|&c| in_token(c))
+        {
+            return None;
         }
-    }
-    flush(&mut token, &mut out);
-    out
-}
-
-/// If `s` (just after a `(`) holds a top-level `|` before its closing
-/// parenthesis, the index of that parenthesis.
-fn alternation_end(s: &str) -> Option<usize> {
-    let mut depth = 0;
-    let mut bar = false;
-    for (i, c) in s.char_indices() {
-        match c {
-            '(' | '{' | '[' => depth += 1,
-            ']' | '}' => depth -= 1,
-            ')' if depth == 0 => return bar.then_some(i),
-            ')' => depth -= 1,
-            '|' if depth == 0 => bar = true,
-            _ => {}
+        name(&b[i..i + 3])
+    };
+    let Some(first) = (0..b.len()).find(|&i| renamed(i).is_some()) else {
+        return false;
+    };
+    out.push_str(&s[..first]);
+    let mut i = first;
+    while i < b.len() {
+        if let Some(n) = renamed(i) {
+            out.push_str(n);
+            i += 3;
+            continue;
         }
+        // Up to the next possible register (a whole character at a time).
+        let next = s[i + 1..].find(['x', 'w']).map_or(s.len(), |j| i + 1 + j);
+        out.push_str(&s[i..next]);
+        i = next;
     }
-    None
-}
-
-/// Splits `s` at top-level occurrences of `sep`.
-fn split_top(s: &str, sep: char) -> Vec<&str> {
-    let mut out = Vec::new();
-    let mut depth = 0;
-    let mut start = 0;
-    for (i, c) in s.char_indices() {
-        match c {
-            '(' | '{' | '[' => depth += 1,
-            ')' | '}' | ']' => depth -= 1,
-            _ if c == sep && depth == 0 => {
-                out.push(&s[start..i]);
-                start = i + 1;
-            }
-            _ => {}
-        }
-    }
-    out.push(&s[start..]);
-    out
-}
-
-/// Microsoft's own mnemonics for some encodings.
-fn ms_mnemonic(encoding: &str) -> Option<&'static str> {
-    Some(match encoding {
-        "EXT_asimdext_only" => "ext8",
-        "movprfx_z_p_z_" => "moveprfx",
-        "movprfx_z_z_" => "moveprfx",
-        _ => return None,
-    })
+    true
 }
 
 /// The value of a symbol's precise encoding (its `source=`), unscaled.
@@ -1096,24 +1028,32 @@ fn raw_value(sym: &Symbol, w: u32) -> u64 {
     }
 }
 
+/// Whether `sym` is an 8-bit floating-point immediate.
+fn is_fp_imm8(sym: &Symbol) -> bool {
+    sym.has(attr::FP8) && sym.value.as_ref().is_some_and(|v| v.width == 8)
+}
+
 /// `VFPExpandImm`: an 8-bit floating-point immediate, as Microsoft shows
 /// it (the shortest decimal).
-fn fp_imm8(imm8: u64) -> String {
+fn push_fp_imm8(out: &mut String, imm8: u64) {
     let sign = if imm8 & 0x80 != 0 { -1.0 } else { 1.0 };
     let exp = (((imm8 >> 4) & 7) ^ 4) as i32 - 3;
     let mantissa = (16 + (imm8 & 0xF)) as f64 / 16.0;
     // 2^exp, exactly (exp is -3..=4), without libm's powi.
     let scale = f64::from_bits(((1023 + exp) as u64) << 52);
-    format!("{}{VERBATIM}", sign * mantissa * scale)
+    let _ = write!(out, "{}", sign * mantissa * scale);
 }
 
 /// Microsoft always shows the amount of an extend other than LSL:
-/// `sxtw #0`, not `sxtw`.
-fn extend_amounts(s: &str) -> String {
+/// `sxtw #0`, not `sxtw`. (Into `out`, or `false` where nothing changes.)
+fn extend_amounts(s: &str, out: &mut String) -> bool {
     const EXTENDS: [&str; 8] = [
         "uxtb", "uxth", "uxtw", "uxtx", "sxtb", "sxth", "sxtw", "sxtx",
     ];
-    let mut out = String::with_capacity(s.len() + 4);
+    if find(s, "xt").is_none() {
+        return false;
+    }
+    let mut changed = false;
     let mut rest = s;
     while let Some(i) = rest.find(',') {
         out.push_str(&rest[..=i]);
@@ -1135,37 +1075,81 @@ fn extend_amounts(s: &str) -> String {
                     out.push_str(ext);
                     out.push_str(" #0");
                     rest = tail;
+                    changed = true;
                 }
                 break;
             }
         }
     }
     out.push_str(rest);
-    out
+    changed
 }
-
-/// Marks text that `fix_numbers` must leave alone (floating-point values
-/// that happen to be integers, such as `#27`).
-const VERBATIM: char = '\u{3}';
 
 /// Microsoft's spacing: a space between a shift or extend and its amount
-/// (`sxtw #1`), and no `#0` offset in an addressing form (`[x0]!`).
-fn ms_spacing(s: &str) -> String {
-    let mut out = s.to_string();
-    for kw in [
+/// (`sxtw #1`). (Into `out`, or `false` where nothing changes.)
+fn ms_spacing(s: &str, out: &mut String) -> bool {
+    const KEYWORDS: [&str; 13] = [
         "lsl", "lsr", "asr", "ror", "msl", "uxtb", "uxth", "uxtw", "uxtx", "sxtb", "sxth", "sxtw",
         "sxtx",
-    ] {
-        out = out.replace(&format!("{kw}#"), &format!("{kw} #"));
+    ];
+    let spaced = |i: usize| KEYWORDS.iter().any(|k| s[..i].ends_with(k));
+    let Some(first) = s.match_indices('#').map(|(i, _)| i).find(|&i| spaced(i)) else {
+        return false;
+    };
+    let mut from = 0;
+    for (i, _) in s[first..].match_indices('#') {
+        let i = first + i;
+        out.push_str(&s[from..i]);
+        if spaced(i) {
+            out.push(' ');
+        }
+        from = i;
     }
-    out.replace(",#0]", "]")
+    out.push_str(&s[from..]);
+    true
 }
 
-/// Removes `,lsl #0` (but not `,lsl #0x20`).
-fn drop_zero_lsl(s: &str) -> String {
-    let mut out = String::with_capacity(s.len());
+/// `s` with `from` replaced by `to` into `out`, or `false` (nothing
+/// written) where it has no `from`.
+fn replace_into(s: &str, out: &mut String, from: &str, to: &str) -> bool {
+    let Some(first) = find(s, from) else {
+        return false;
+    };
+    out.push_str(&s[..first]);
+    out.push_str(to);
+    let mut rest = &s[first + from.len()..];
+    while let Some(i) = find(rest, from) {
+        out.push_str(&rest[..i]);
+        out.push_str(to);
+        rest = &rest[i + from.len()..];
+    }
+    out.push_str(rest);
+    true
+}
+
+/// Whether [`fix_numbers`] would change `s`: a `#` number of two digits or
+/// more (or a negative zero).
+fn needs_fix_numbers(s: &str) -> bool {
+    let b = s.as_bytes();
+    b.iter().enumerate().any(|(i, &c)| {
+        if c != b'#' {
+            return false;
+        }
+        let neg = b.get(i + 1) == Some(&b'-');
+        let j = i + 1 + usize::from(neg);
+        let digit = |k: usize| b.get(k).is_some_and(u8::is_ascii_digit);
+        digit(j) && (digit(j + 1) || (neg && b[j] == b'0'))
+    })
+}
+
+/// Removes `,lsl #0` (but not `,lsl #0x20`). (Into `out`, or `false` where
+/// there is none.)
+fn drop_zero_lsl(s: &str, out: &mut String) -> bool {
+    if find(s, ",lsl #0").is_none() {
+        return false;
+    }
     let mut rest = s;
-    while let Some(i) = rest.find(",lsl #0") {
+    while let Some(i) = find(rest, ",lsl #0") {
         let after = &rest[i + 7..];
         out.push_str(&rest[..i]);
         if after.starts_with(|c: char| c.is_ascii_alphanumeric()) {
@@ -1174,7 +1158,7 @@ fn drop_zero_lsl(s: &str) -> String {
         rest = after;
     }
     out.push_str(rest);
-    out
+    true
 }
 
 /// How Microsoft shows ORR (immediate) from the zero register: MOVI when
@@ -1203,25 +1187,25 @@ fn ms_mov_or_movi(w: u32) -> &'static str {
 }
 
 /// Indexes alone in brackets are decimal: `zt0[56]`, not `zt0[0x38]`.
-fn decimal_indexes(s: &str) -> String {
-    let mut out = String::with_capacity(s.len());
+/// (Into `out`, or `false` where there is none.)
+fn decimal_indexes(s: &str, out: &mut String) -> bool {
+    if find(s, "[0x").is_none() {
+        return false;
+    }
     let mut rest = s;
-    while let Some(i) = rest.find("[0x") {
+    while let Some(i) = find(rest, "[0x") {
         out.push_str(&rest[..=i]);
         rest = &rest[i + 1..];
-        let hex: String = rest[2..]
-            .chars()
-            .take_while(char::is_ascii_hexdigit)
-            .collect();
-        if rest[2 + hex.len()..].starts_with(']')
-            && let Ok(v) = u64::from_str_radix(&hex, 16)
+        let n = rest[2..].bytes().take_while(u8::is_ascii_hexdigit).count();
+        if rest[2 + n..].starts_with(']')
+            && let Ok(v) = u64::from_str_radix(&rest[2..2 + n], 16)
         {
-            out.push_str(&v.to_string());
-            rest = &rest[2 + hex.len()..];
+            push_unsigned(out, v);
+            rest = &rest[2 + n..];
         }
     }
     out.push_str(rest);
-    out
+    true
 }
 
 /// `ZERO { <mask> }`: the ZA tiles of an 8-bit mask, in Microsoft's form
