@@ -752,33 +752,9 @@ impl<'a> Decoder<'a> {
                 return Err(DecodeError::Invalid);
             }
         }
-        let mut inst = self.build(entry, self.opcode)?;
-        inst.apx = apx.flags;
-        inst.dfv = apx.dfv;
-        // `{evex}` where another encoding would do: one without NF or ND
-        // (and for VEX's twins, without r16-r31, which VEX can't reach).
-        let plain = entry.attrs & attr::APX == 0 || self.evex_p2 & 0x14 == 0;
-        if self.encoding == Encoding::Evex
-            && plain
-            && (entry.attrs & attr::EVEX_PROMOTED != 0
-                || entry.attrs & attr::EVEX_VEX != 0 && !uses_egpr(&inst))
-        {
-            inst.apx |= crate::instruction::apx::EVEX;
-        }
-        if entry.attrs & attr::NORSP != 0 {
-            let regs = inst.operands();
-            let rsp = regs
-                .iter()
-                .any(|o| matches!(o, Operand::Reg(r) if r.index() == 4));
-            // (POP2 into one register twice is #UD.)
-            let same = regs.first() == regs.get(1)
-                && entry.mnemonic != Mnemonic::Push2
-                && entry.mnemonic != Mnemonic::Push2p;
-            if rsp || same {
-                return Err(DecodeError::Invalid);
-            }
-        }
-        Ok(inst)
+        // (The instruction is built in place: returned as it is, not
+        // copied out and back to finish it.)
+        self.build(entry, self.opcode, apx)
     }
 
     /// Checks an APX EVEX form's payload, which holds ND, NF, and SCC in
@@ -838,7 +814,7 @@ impl<'a> Decoder<'a> {
         }
     }
 
-    fn build(&mut self, e: &Entry, opcode: u8) -> Result<Instruction, DecodeError> {
+    fn build(&mut self, e: &Entry, opcode: u8, apx: Apx) -> Result<Instruction, DecodeError> {
         let os = self.operand_size(e);
         let asz = self.address_size();
         let vl = self.vector_length(e);
@@ -1331,6 +1307,31 @@ impl<'a> Decoder<'a> {
             }
         }
 
+        let operands = &ops[..count];
+        if e.attrs & attr::NORSP != 0 {
+            let rsp = operands
+                .iter()
+                .any(|o| matches!(o, Operand::Reg(r) if r.index() == 4));
+            // (POP2 into one register twice is #UD.)
+            let same = operands.first() == operands.get(1)
+                && e.mnemonic != Mnemonic::Push2
+                && e.mnemonic != Mnemonic::Push2p;
+            if rsp || same {
+                return Err(DecodeError::Invalid);
+            }
+        }
+        // `{evex}` where another encoding would do: one without NF or ND
+        // (and for VEX's twins, without r16-r31, which VEX can't reach).
+        let mut apx_flags = apx.flags;
+        let plain = e.attrs & attr::APX == 0 || self.evex_p2 & 0x14 == 0;
+        if is_evex
+            && plain
+            && (e.attrs & attr::EVEX_PROMOTED != 0
+                || e.attrs & attr::EVEX_VEX != 0 && !uses_egpr(operands))
+        {
+            apx_flags |= crate::instruction::apx::EVEX;
+        }
+
         Ok(Instruction {
             mnemonic: e.mnemonic,
             len: len as u8,
@@ -1354,8 +1355,8 @@ impl<'a> Decoder<'a> {
                 0
             },
             pseudo_imm,
-            apx: 0,
-            dfv: 0,
+            apx: apx_flags,
+            dfv: apx.dfv,
         })
     }
 
@@ -1405,14 +1406,14 @@ impl<'a> Decoder<'a> {
 }
 
 /// Whether an operand is (or addresses through) one of APX's r16-r31.
-fn uses_egpr(inst: &Instruction) -> bool {
+fn uses_egpr(operands: &[Operand]) -> bool {
     let egpr = |r: &Register| {
         matches!(
             r.class(),
             RegClass::Gpr8 | RegClass::Gpr16 | RegClass::Gpr32 | RegClass::Gpr64
         ) && r.index() >= 16
     };
-    inst.operands().iter().any(|o| match o {
+    operands.iter().any(|o| match o {
         Operand::Reg(r) => egpr(r),
         Operand::Mem(m) => m.base.as_ref().is_some_and(egpr) || m.index.as_ref().is_some_and(egpr),
         _ => false,
