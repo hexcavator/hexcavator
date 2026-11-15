@@ -110,8 +110,11 @@ fn words(
     let w: u64 = if wide { 8 } else { 4 };
     let big = image.endian() == hexcavator_core::Endian::Big;
     let mut out = Vec::new();
-    let mut at = start;
-    while at.saturating_add(w) <= end && out.len() < MAX_ENTRIES as usize {
+    // (At most so many words, read or not: a list's size is what its
+    // header says, which a damaged file can make anything.)
+    let count = (end.saturating_sub(start) / w).min(MAX_ENTRIES);
+    for i in 0..count {
+        let at = start + i * w;
         let relocated = slots
             .binary_search_by_key(&at, |p| p.addr)
             .ok()
@@ -129,7 +132,6 @@ fn words(
         if let Some(value) = relocated.or(raw) {
             out.push((at, value));
         }
-        at += w;
     }
     out
 }

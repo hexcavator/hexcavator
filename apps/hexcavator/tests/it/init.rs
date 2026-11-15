@@ -268,3 +268,58 @@ fn bad_arguments() {
     let (code, _, err) = hexc(&["no-such-file.exe"]);
     assert_eq!(code, 1, "{err}");
 }
+
+/// A damaged image whose data sections claim far more than the file holds
+/// (as fuzzing found): what's read stops at the file's end, so it ends
+/// quickly rather than walking the claimed sizes a word at a time. One
+/// image with relocations (its lists read through them), one without (its
+/// data scanned for addresses).
+#[test]
+fn sections_larger_than_the_file() {
+    for image in ["init/init-x86_64-linux-gnu", "elf/program-x86_64-linux-gnu"] {
+        let path = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../testdata")
+            .join(image);
+        let mut data = std::fs::read(&path).unwrap();
+        let u16_at = |d: &[u8], at: usize| usize::from(u16::from_le_bytes([d[at], d[at + 1]]));
+        let shoff =
+            usize::try_from(u64::from_le_bytes(data[0x28..0x30].try_into().unwrap())).unwrap();
+        let (size, count) = (u16_at(&data, 0x3A), u16_at(&data, 0x3C));
+        let mut damaged = 0;
+        for i in 0..count {
+            let h = shoff + i * size;
+            let kind = u32::from_le_bytes(data[h + 4..h + 8].try_into().unwrap());
+            let flags = u64::from_le_bytes(data[h + 8..h + 16].try_into().unwrap());
+            // Allocated data (not code): PROGBITS and the loader's lists.
+            if flags & 2 != 0 && flags & 4 == 0 && matches!(kind, 1 | 14 | 15 | 16) {
+                data[h + 0x20..h + 0x28].copy_from_slice(&(1u64 << 40).to_le_bytes());
+                damaged += 1;
+            }
+        }
+        assert!(damaged > 0, "{image}");
+        let dir = std::env::temp_dir().join(format!("hexc-init-damaged-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let file = dir.join(path.file_name().unwrap());
+        std::fs::write(&file, &data).unwrap();
+        let mut child = Command::new(env!("CARGO_BIN_EXE_hexc"))
+            .args(["init", "-json", file.to_str().unwrap()])
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .spawn()
+            .unwrap();
+        let started = std::time::Instant::now();
+        let finished = loop {
+            if child.try_wait().unwrap().is_some() {
+                break true;
+            }
+            if started.elapsed() > std::time::Duration::from_secs(20) {
+                let _ = child.kill();
+                let _ = child.wait();
+                break false;
+            }
+            std::thread::sleep(std::time::Duration::from_millis(20));
+        };
+        let _ = std::fs::remove_dir_all(&dir);
+        assert!(finished, "{image}: hexc init still running after 20 s");
+    }
+}
