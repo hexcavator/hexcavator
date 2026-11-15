@@ -62,6 +62,12 @@ fn captured(data: &[u8], stderr: bool) -> bool {
     })
 }
 
+/// Whether this thread is capturing what it writes (it runs a request of
+/// `hexc serve`, whose standard input is its requests).
+pub fn capturing() -> bool {
+    CAPTURE.with(|c| c.borrow().is_some())
+}
+
 /// Standard output (see the module): locked, cleaned if it is a terminal;
 /// or this thread's capture.
 pub fn stdout() -> Out {

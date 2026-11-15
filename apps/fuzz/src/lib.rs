@@ -161,6 +161,8 @@ fn image(data: &[u8]) {
         image.kind(),
         image.hybrid(),
         image.debug_ids(),
+        image.symbols(),
+        image.extent(),
     );
     for s in image.sections() {
         // Its start, its whole extent, and one past it.
@@ -179,6 +181,13 @@ fn pe(data: &[u8], s: &Scratch) {
     hexc(&["checksec", "-json", &f]);
     hexc(&["signature", "-json", &f]);
     hexc(&["signature", &f]);
+    hexc(&[
+        "symbolize",
+        &f,
+        "0x1000",
+        "0x140001000",
+        &format!("{}+0x10", "input-pe"),
+    ]);
 }
 
 fn coff(data: &[u8], s: &Scratch) {
@@ -209,6 +218,15 @@ fn unix(name: &str, data: &[u8], s: &Scratch) {
     hexc(&["dwarf", "-all", &f]);
     hexc(&["dwarf", "-lookup", "0x1000", &f]);
     hexc(&["dwarf", "-find", "main", &f]);
+    hexc(&[
+        "symbolize",
+        "-json",
+        &f,
+        "0x1000",
+        "0x401000",
+        "0x100000f00",
+        "0x10",
+    ]);
     // Each function's code, by the names its symbols give.
     for name in ["main", "compute", "jumps", "_main", "add", "square"] {
         hexc(&["size", "-disassemble", name, &f]);
@@ -349,6 +367,17 @@ fn queries(debug: &hexcavator_debuginfo::DebugInfo<'_>) {
     let _ = debug.groups();
     let _ = debug.classes();
     let _ = debug.linker_info();
+    // Frames: at symbols' addresses and inside them, and anywhere.
+    let mut locator = debug.locator();
+    for addr in [0, 1, 0x1000, 0x1_0000, u64::from(u32::MAX), u64::MAX] {
+        let _ = locator.frames(addr);
+    }
+    if let Ok(symbols) = debug.symbols() {
+        for sym in symbols.iter().take(256) {
+            let _ = locator.frames(sym.addr);
+            let _ = locator.frames(sym.addr.saturating_add(sym.size.unwrap_or(1) / 2));
+        }
+    }
     if let Ok(symbols) = debug.symbols() {
         for sym in symbols.iter().take(64) {
             let _ = debug.variables(sym.compiland, sym.addr);

@@ -22,6 +22,7 @@ mod serve;
 mod signature;
 mod size;
 mod snapshot;
+mod symbolize;
 mod targets;
 mod types;
 mod xref;
