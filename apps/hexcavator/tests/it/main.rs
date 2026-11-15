@@ -7,6 +7,7 @@ mod batch;
 mod checksec;
 mod data;
 mod debugmap;
+mod deps;
 mod dwarf;
 mod info;
 mod init;

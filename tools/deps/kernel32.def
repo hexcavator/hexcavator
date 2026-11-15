@@ -1,0 +1,9 @@
+; The system's kernel32.dll, as the test's Windows directory has it (its
+; forwarders, FwdTarget to apihost.Target and FwdMissing to apihost.NotThere,
+; are forwards.c's).
+LIBRARY kernel32
+EXPORTS
+  Sleep = stub
+  GetTickCount = stub
+  LoadLibraryExA = stub
+  GetProcAddress = stub

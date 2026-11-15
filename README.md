@@ -83,6 +83,7 @@ compared.
 | `crates/analysis/program` (`hexcavator-program`) | Loading a program once: an image, its debug information, its model and symbols, for every analysis and front end |
 | `crates/analysis/query` (`hexcavator-query`) | A small query language over tables of an image's facts: filters, grouping with counts and summed sizes, sorting, limits; shared by `hexc query` and the MCP server |
 | `crates/analysis/size` (`hexcavator-size`) | Size attribution: which sections, COFF groups, libraries, compilands, and symbols account for each byte (a SizeBench replacement), and bloaty-style reports by data source for images, objects, and libraries |
+| `crates/analysis/deps` (`hexcavator-deps`) | What an executable or library loads: its libraries, found as each platform's loader would find them (PE, ELF, Mach-O), and the imports they lack |
 | `crates/analysis/xref` (`hexcavator-xref`) | Cross-references: a graph of what each function and datum refers to (calls, branches, addresses code uses, pointers in data), found by disassembly, and why each is reachable from the image's roots |
 | `crates/trace/etw` (`hexcavator-etw`) | Decoders for Windows kernel and trace-control events in ETL files |
 | `crates/trace/trace` (`hexcavator-trace`) | A platform-neutral model of performance traces, and importers that build it |
@@ -247,6 +248,26 @@ A query is a filter (`column op value`, joined by `and` or a space, `or`,
 `G`), then any of `group by`, `sort by ... [desc]`, `select`, and `limit`.
 Output is a table, `-csv`, or `-json`; the MCP server's `query` tool takes
 the same language.
+
+### Dependencies
+
+```
+hexc deps app.exe                          # what it loads, as a tree, and what's missing
+hexc deps -imports app.exe                 # each library's imported symbols, the missing marked
+hexc deps -problems app.exe                # only what's missing (exit 1 if it won't load)
+hexc deps -sysroot /mnt/linux-root prog    # another system's libraries (an ELF or Mach-O image on Windows)
+```
+
+Like Dependency Walker, for PE, ELF, and Mach-O, from the files alone:
+each platform's loader search (known DLLs, the application's directory,
+`System32` or `SysWOW64`, API sets by the system's API set schema,
+side-by-side assemblies in `WinSxS`; rpath, runpath, `ld.so.conf`, the
+default directories; `@rpath`, `@loader_path`, `@executable_path`, the
+dyld shared cache), each library's architecture checked, and imports
+against exports (PE functions by name and ordinal, forwarders followed; ELF
+symbols with their versions; Mach-O binds, re-exports followed). System
+libraries are leaves unless `-system`. `tools/deps` builds the test's
+images, each platform's with a system of stand-ins.
 
 ### Signatures
 

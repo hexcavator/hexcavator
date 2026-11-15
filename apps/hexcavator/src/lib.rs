@@ -7,6 +7,7 @@ mod out;
 mod batch;
 mod checksec;
 mod data;
+mod deps;
 mod detect;
 mod dump;
 mod dwarfdump;
@@ -42,6 +43,7 @@ commands:
   batch <files or dirs>...   a JSON line summarizing each image (sections, libraries, ...)
   checksec [-audit] <image>  its exploit mitigations; -audit: its objects' compilers and options
   data [options] <image> <name>  a datum's bytes, and its value read as its type
+  deps [options] <image>     what it loads (as its loader finds it), and what's missing
   dump [options] <file>...   dumpbin-style dump (see `hexc dump` for options)
   dwarf [options] <file>     dump a file's DWARF, as llvm-dwarfdump does (see `hexc dwarf`)
   info <file>...             identify the format of each file
@@ -215,6 +217,7 @@ fn command(args: &[String]) -> ExitCode {
     };
     match command.as_str() {
         "data" => data::run(rest),
+        "deps" => deps::run(rest),
         "dump" => dump::run(rest),
         "pdb" => pdbdump::run(rest),
         "dwarf" => dwarfdump::run(rest),
@@ -667,6 +670,7 @@ fn tools_for(format: &str, kind: &str, debug: bool, dwarf: bool) -> Vec<&'static
         t.push("disassemble");
     }
     if kind == "linked" && ["pe", "elf", "macho"].contains(&format) {
+        t.push("deps");
         t.push("checksec");
         if debug {
             t.push("audit");

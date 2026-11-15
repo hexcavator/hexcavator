@@ -1,0 +1,4 @@
+; A DLL the helper needs, which isn't shipped.
+LIBRARY gone
+EXPORTS
+  GoneFn = stub

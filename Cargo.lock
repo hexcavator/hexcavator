@@ -258,6 +258,7 @@ dependencies = [
  "hexcavator-core",
  "hexcavator-debuginfo",
  "hexcavator-demangle",
+ "hexcavator-deps",
  "hexcavator-dwarf",
  "hexcavator-elf",
  "hexcavator-image",
@@ -343,6 +344,18 @@ version = "0.0.5"
 dependencies = [
  "bumpalo",
  "hexcavator-core",
+]
+
+[[package]]
+name = "hexcavator-deps"
+version = "0.0.5"
+dependencies = [
+ "hexcavator-core",
+ "hexcavator-elf",
+ "hexcavator-image",
+ "hexcavator-macho",
+ "hexcavator-mmap",
+ "hexcavator-pe",
 ]
 
 [[package]]

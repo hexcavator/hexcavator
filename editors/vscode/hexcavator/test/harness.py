@@ -381,6 +381,7 @@ def main():
     table_checks(exe, image, shot)
     types_checks(exe, image, shot)
     build_checks(exe, shot)
+    deps_checks(exe, shot)
     init_checks(exe, shot)
     diff_checks(exe, shot)
     print(f"ok: {outer} sections in the treemap; zoom, search, disassembly actions, sunburst, tree, diff, and findings ({rows} rows) render; disassembly: {modes}")
@@ -636,6 +637,39 @@ def build_checks(exe, shot):
     # Ungrouped: a list.
     dom = render(None, html_page=page("document.querySelector('.gchip[data-id=\"library\"]').click();"))
     assert '<tr class="group"' not in dom and re.search(r'<td class="mono cmd"[^>]*>-nologo -c -O1', dom), "a list"
+
+
+def deps_checks(exe, shot):
+    """The Dependencies page: the tree (each library once, then above), the
+    problems (one opens its library in the tree), the selected library's
+    imports, and the filter."""
+    pe = os.path.join(REPO, "testdata", "deps", "pe")
+    image = os.path.join(pe, "app", "app.exe")
+    out = subprocess.run([exe, "deps", "-json", "-sysroot", os.path.join(pe, "windows"), image], capture_output=True, text=True)
+    graph = json.loads(out.stdout)
+    message = {"kind": "deps", "file": image, "graph": graph}
+    page = lambda then="": types_page(message, then, script="deps-view.js")
+    dom = render(None, shot=shot("deps"), html_page=page())
+    text = html.unescape(re.sub("<[^>]+>", " ", dom))
+    assert "1 warning" in text and "2 errors" in text, "the counts"
+    assert "helper.dll" in text and "api-ms-win-test-l1-1-0.dll → apihost.dll" in text, "the tree"
+    assert "(above)" in text, "a library again: above"
+    assert "gone.dll (loaded by helper.dll): not found" in text, "a problem"
+    # A problem clicked: its library shown and selected, its imports below.
+    dom = render(None, shot=shot("deps-problem"), html_page=page("document.querySelectorAll('.problem')[1].click();"))
+    sel = re.search(r'<tr data-key="[^"]*" class="selected[^"]*">(.*?)</tr>', dom, re.S)
+    assert sel and "gone.dll" in sel.group(1), "the problem's library selected"
+    details = html.unescape(dom.split('id="depdetails"')[1].split("</div></div>")[0])
+    assert "GoneFn" in details and "null" not in details, "its imports"
+    # Filtered: only the rows to what matches.
+    dom = render(None, html_page=page("var s = document.querySelector('.searchbox input'); s.value = 'apihost'; s.dispatchEvent(new Event('input'));"))
+    rows = re.findall(r'<tr data-key="[^"]*"[^>]*>.*?<span class="label">([^<]*)</span>', dom, re.S)
+    assert rows and all("apihost" in html.unescape(r) or r in ("kernel32.dll", "helper.dll") for r in rows), rows
+    assert not any("gone" in r for r in rows), rows
+    # A library's own: asked for again with -system.
+    dom = render(None, html_page=page("document.getElementById('system').click();"))
+    posted = html.unescape(re.search(r'<pre id="posted">(.*?)</pre>', dom, re.S).group(1))
+    assert '"command":"refresh","system":true' in posted, posted
 
 
 def init_page(message, answers, then=""):

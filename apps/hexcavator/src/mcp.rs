@@ -656,6 +656,7 @@ impl Server {
             "size_report" => self.size_report(args),
             "symbols" => self.symbols(args),
             "lookup" => self.lookup(args),
+            "dependencies" => dependencies(args),
             "initialization" => initialization(args),
             "symbolize" => symbolize(args),
             "query" => self.query(args),
@@ -773,6 +774,32 @@ fn prop(kind: &str, description: &str) -> Value {
         ("type", Value::from(kind)),
         ("description", Value::from(description)),
     ])
+}
+
+/// The `dependencies` tool: what an image loads (`hexc deps -json`).
+fn dependencies(args: &Value) -> ToolResult {
+    let path = arg_str(args, "path").ok_or("`path` is required")?;
+    let mut command = vec!["deps".to_string(), "-json".to_string()];
+    if let Some(s) = arg_str(args, "sysroot") {
+        command.extend(["-sysroot".into(), s.to_string()]);
+    }
+    if args.get("system").and_then(Value::as_bool) == Some(true) {
+        command.push("-system".into());
+    }
+    command.push(path.to_string());
+    let (_, out) = crate::out::capture(|| crate::command(&command));
+    let json = String::from_utf8_lossy(&out.stdout).into_owned();
+    if json.is_empty() {
+        return Err(String::from_utf8_lossy(&out.stderr).trim().to_string());
+    }
+    let structured: Value = serde_json::from_str(&json).map_err(|e| e.to_string())?;
+    let mut text = command.clone();
+    text[1] = "-problems".into();
+    let (_, summary) = crate::out::capture(|| crate::command(&text));
+    Ok((
+        String::from_utf8_lossy(&summary.stdout).into_owned(),
+        structured,
+    ))
 }
 
 /// The `symbolize` tool: the frames at addresses (as `hexc symbolize`
@@ -1086,6 +1113,30 @@ fn tools() -> Value {
                 ),
             ),
             tool(
+                "dependencies",
+                "What an executable or library (PE, ELF, Mach-O) loads, found as its platform's loader would find each library (known DLLs, the application's directory, System32, API sets, side-by-side assemblies; rpath, runpath, ld.so.conf; @rpath, @loader_path, the dyld shared cache), and what's missing: libraries not found or for another architecture, and imported symbols a library doesn't export. Text: the problems; structured: the whole graph (modules, each with its dependencies and imports).",
+                schema(
+                    vec![
+                        ("path", prop("string", "The executable or library.")),
+                        (
+                            "sysroot",
+                            prop(
+                                "string",
+                                "The system the libraries are looked for in: a Windows directory, or the root of a Linux or macOS file system (default: this machine's, for its own format).",
+                            ),
+                        ),
+                        (
+                            "system",
+                            prop(
+                                "boolean",
+                                "Read what system libraries load too (default: they're leaves).",
+                            ),
+                        ),
+                    ],
+                    &["path"],
+                ),
+            ),
+            tool(
                 "symbolize",
                 "The function, source file and line, and inlined functions (innermost first) at addresses of executables or libraries (PE with its PDB; ELF, Mach-O, WebAssembly with DWARF; or, without debug information, their own symbol tables), as a symbolizer for crash reports and stack traces. Or, given `text` (a log, a stack trace), that text with where each address in it is added after it.",
                 schema(
@@ -1304,6 +1355,7 @@ mod tests {
                 "query",
                 "why",
                 "recommend",
+                "dependencies",
                 "symbolize",
                 "initialization",
                 "lookup"
