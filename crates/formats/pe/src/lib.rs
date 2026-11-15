@@ -9,6 +9,7 @@
 
 extern crate alloc;
 
+pub mod apiset;
 pub mod consts;
 mod debug;
 pub mod eh;

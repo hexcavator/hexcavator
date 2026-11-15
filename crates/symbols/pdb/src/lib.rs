@@ -37,7 +37,7 @@ pub use info::InfoStream;
 pub use module::ModuleStream;
 pub use msf::{Msf, StreamData};
 pub use names::StringTable;
-pub use tpi::TypeStream;
+pub use tpi::{LazyTypeStream, TypeStream};
 
 /// Fixed stream indexes.
 pub mod stream {
@@ -147,6 +147,17 @@ impl<'data> Pdb<'data> {
         }
         let t = self.type_stream(stream::IPI)?;
         Ok(self.ipi.get_or_init(|| t))
+    }
+
+    /// The type stream (TPI), read a record at a time (see
+    /// [`LazyTypeStream`]).
+    pub fn lazy_types(&self) -> Result<LazyTypeStream<'_, 'data>> {
+        LazyTypeStream::new(&self.msf, stream::TPI)
+    }
+
+    /// The id stream (IPI), read a record at a time.
+    pub fn lazy_ids(&self) -> Result<LazyTypeStream<'_, 'data>> {
+        LazyTypeStream::new(&self.msf, stream::IPI)
     }
 
     /// A module's symbol and line stream.

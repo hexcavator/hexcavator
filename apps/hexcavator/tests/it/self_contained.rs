@@ -86,6 +86,11 @@ fn tests_read_nothing_outside_the_repository() {
         r#"|SWIFT_DEMANGLE|HEXC_CORPUS|HEXC_DUMPBIN|HEXC_SIZEBENCH_DIR|HEXC_LLVM_BUILD)""#,
     ))
     .unwrap();
+    // The dependency test's Windows directory of stand-ins
+    // (testdata/deps/pe/windows) has a System32 and a SysWOW64 of its own:
+    // its tests name those, and give hexc that directory, never the
+    // system's.
+    let stand_ins = Regex::new(r"System32|SysWOW64").unwrap();
     let mut found = Vec::new();
     for (rel, path) in files() {
         if !is_cargo_target(&rel) || rel == "apps/hexcavator/tests/it/self_contained.rs" {
@@ -94,6 +99,9 @@ fn tests_read_nothing_outside_the_repository() {
         let text = std::fs::read_to_string(&path).unwrap();
         for (n, line) in text.lines().enumerate() {
             if let Some(m) = outside.find(line) {
+                if rel == "apps/hexcavator/tests/it/deps.rs" && stand_ins.is_match(m.as_str()) {
+                    continue;
+                }
                 found.push(format!("{rel}:{}: {}", n + 1, m.as_str()));
             }
         }

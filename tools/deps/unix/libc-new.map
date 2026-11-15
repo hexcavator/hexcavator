@@ -1,0 +1,2 @@
+GLIBC_2.2.5 { global: puts; local: *; };
+GLIBC_2.99 { global: vers_fn; } GLIBC_2.2.5;

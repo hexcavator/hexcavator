@@ -83,6 +83,7 @@ compared.
 | `crates/analysis/program` (`hexcavator-program`) | Loading a program once: an image, its debug information, its model and symbols, for every analysis and front end |
 | `crates/analysis/query` (`hexcavator-query`) | A small query language over tables of an image's facts: filters, grouping with counts and summed sizes, sorting, limits; shared by `hexc query` and the MCP server |
 | `crates/analysis/size` (`hexcavator-size`) | Size attribution: which sections, COFF groups, libraries, compilands, and symbols account for each byte (a SizeBench replacement), and bloaty-style reports by data source for images, objects, and libraries |
+| `crates/analysis/deps` (`hexcavator-deps`) | What an executable or library loads: its libraries, found as each platform's loader would find them (PE, ELF, Mach-O), and the imports they lack |
 | `crates/analysis/xref` (`hexcavator-xref`) | Cross-references: a graph of what each function and datum refers to (calls, branches, addresses code uses, pointers in data), found by disassembly, and why each is reachable from the image's roots |
 | `crates/trace/etw` (`hexcavator-etw`) | Decoders for Windows kernel and trace-control events in ETL files |
 | `crates/trace/trace` (`hexcavator-trace`) | A platform-neutral model of performance traces, and importers that build it |
@@ -248,6 +249,26 @@ A query is a filter (`column op value`, joined by `and` or a space, `or`,
 Output is a table, `-csv`, or `-json`; the MCP server's `query` tool takes
 the same language.
 
+### Dependencies
+
+```
+hexc deps app.exe                          # what it loads, as a tree, and what's missing
+hexc deps -imports app.exe                 # each library's imported symbols, the missing marked
+hexc deps -problems app.exe                # only what's missing (exit 1 if it won't load)
+hexc deps -sysroot /mnt/linux-root prog    # another system's libraries (an ELF or Mach-O image on Windows)
+```
+
+Like Dependency Walker, for PE, ELF, and Mach-O, from the files alone:
+each platform's loader search (known DLLs, the application's directory,
+`System32` or `SysWOW64`, API sets by the system's API set schema,
+side-by-side assemblies in `WinSxS`; rpath, runpath, `ld.so.conf`, the
+default directories; `@rpath`, `@loader_path`, `@executable_path`, the
+dyld shared cache), each library's architecture checked, and imports
+against exports (PE functions by name and ordinal, forwarders followed; ELF
+symbols with their versions; Mach-O binds, re-exports followed). System
+libraries are leaves unless `-system`. `tools/deps` builds the test's
+images, each platform's with a system of stand-ins.
+
 ### Signatures
 
 ```
@@ -327,8 +348,48 @@ annotations (`hexcavator-pdb`'s `annotations`), which give each inlined
 copy's code ranges. A copy's bytes are its own: a site nested in another
 claims its bytes first, and the copies of one function that identical code
 folding merged count once. Source files come from the line tables; inlined
-code counts where it was inlined. On clang: 4.4 million inline sites of
-361,000 functions, 38.8 MB of its 82 MB of code, in about 5 seconds.
+code counts where it was inlined. On clang: 4.3 million inline sites of
+361,000 functions, 40.0 MB of its 82 MB of code, in about 5 seconds.
+
+### What runs before main
+
+```
+hexc init app.exe                          # what runs when it loads, before main, in order, with what each calls
+hexc init -depth 4 libfoo.so               # a library: what runs when it's loaded, callees four levels down
+hexc init -json app.exe                    # as JSON (hexc init -json -callees <node>: what a function calls)
+```
+
+The phases in the order they run, from the image and its debug
+information: a PE image's TLS callbacks, its entry point, and the CRT's
+lists (`.rtc$I*`, `.CRT$XI*`, `.CRT$XC*`: global objects' constructors),
+each group's entries in order, then `main` (or `DllMain`); an ELF image's
+`.preinit_array`, `DT_INIT`, `.ctors`, `.init_array` (through the loader's
+relocations, in a position-independent image), and entry point; a Mach-O
+image's `__mod_init_func` (or `__init_offsets`) and entry point. What each
+function calls comes from the cross-reference graph, in the order its code
+calls them (a tail call marked). `tools/init` builds the test's images.
+
+### Symbolizing addresses and crash logs
+
+```
+hexc symbolize app.exe 0x140001043                   # function, file:line, and inlined functions, innermost first
+hexc symbolize app.exe@0x7ff6a1b20000 0x7ff6a1b21043 # an address as loaded at a base
+hexc symbolize libfoo.so libfoo.so+0x1a2b            # an offset from the image's start
+hexc symbolize app.exe@0x7ff6a1b20000 helper.dll@0x7ffb10c40000 < crash.txt   # a log, each address annotated
+```
+
+A lookup reads only what holds the address: a PDB's module (by the section
+contributions; type and id records a few KB at a time, not a 350 MB type
+stream), or a DWARF compile unit (by its ranges; then only the function's
+DIEs). Inline frames come from `S_INLINESITE` annotations or
+`DW_TAG_inlined_subroutine`s, each frame's line where the call inlined into
+it is. Without debug information, the image's own symbols name addresses
+(exports, ELF and Mach-O symbol tables). On every byte of the source lines
+test program's code, hexc answers as DIA does (the PE image) and as
+llvm-symbolizer does (ELF, plain and split DWARF); see
+`tools/lines/symbolize-oracle.py`. On clang's 1.4 GB PDB, three addresses
+take about 90 ms; 1,000 random addresses in .NET's `libcoreclr.so` about
+0.3 s.
 
 ### Annotations, batches, and findings compared
 

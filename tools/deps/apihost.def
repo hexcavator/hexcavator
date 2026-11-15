@@ -1,0 +1,4 @@
+LIBRARY apihost
+EXPORTS
+  Target = stub
+  ApiFunc = stub

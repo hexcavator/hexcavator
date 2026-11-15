@@ -1,0 +1,7 @@
+; An older kernel32.dll the helper was linked against: it had NoSuchFunction.
+LIBRARY kernel32
+EXPORTS
+  Sleep = stub
+  NoSuchFunction = stub
+  FwdTarget = stub
+  FwdMissing = stub

@@ -1040,12 +1040,22 @@ pub fn elf(
             .iter()
             .filter(|s| !s.executable() && s.size.file > 0)
         {
-            let mut at = s.addr.next_multiple_of(width);
-            while at + width <= s.addr + s.size.file {
-                if let Some(v) = word(at).filter(|v| starts.contains(v)) {
-                    pointer_edge(&mut b, at, v);
+            // (The bytes the file has: a section's size is what its header
+            // says, which a damaged file can make anything.)
+            let first = s.addr.checked_next_multiple_of(width).unwrap_or(u64::MAX);
+            let data = bytes(first, s.size.file.saturating_sub(first - s.addr));
+            for (i, w) in data.chunks_exact(width as usize).enumerate() {
+                let v = match file.endian() {
+                    hexcavator_core::Endian::Little => {
+                        w.iter().rev().fold(0u64, |v, &x| (v << 8) | u64::from(x))
+                    }
+                    hexcavator_core::Endian::Big => {
+                        w.iter().fold(0u64, |v, &x| (v << 8) | u64::from(x))
+                    }
+                };
+                if starts.contains(&v) {
+                    pointer_edge(&mut b, first + i as u64 * width, v);
                 }
-                at += width;
             }
         }
     }

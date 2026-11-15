@@ -58,6 +58,7 @@ hexcavator-codeview = { path = "crates/symbols/codeview" }
 hexcavator-pdb = { path = "crates/symbols/pdb" }
 hexcavator-demangle = { path = "crates/symbols/demangle" }
 hexcavator-xref = { path = "crates/analysis/xref" }
+hexcavator-deps = { path = "crates/analysis/deps" }
 hexcavator-fingerprint = { path = "crates/analysis/fingerprint" }
 hexcavator-query = { path = "crates/analysis/query" }
 hexcavator-code = { path = "crates/analysis/code" }

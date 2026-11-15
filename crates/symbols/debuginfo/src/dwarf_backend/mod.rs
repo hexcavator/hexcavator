@@ -19,6 +19,7 @@
 //! chains of references are bounded (see the `MAX_*` constants).
 
 mod debugmap;
+pub(crate) mod frames;
 mod layouts;
 mod types;
 mod vars;
@@ -993,8 +994,18 @@ impl<'data> DwarfInfo<'data> {
     /// is a copy of): its scopes' names and its own, joined by `::`.
     pub fn qualified_name(&self, r: TypeRef) -> String {
         let (decl, name) = self.origin(r);
+        self.qualified_in(decl, name, self.parents())
+    }
+
+    /// The qualified name of the DIE `decl` (named `name`, if it is), by
+    /// the enclosing scopes `parents` gives.
+    fn qualified_in(
+        &self,
+        decl: TypeRef,
+        name: Option<String>,
+        parents: &HashMap<u64, u64>,
+    ) -> String {
         let mut parts = vec![name.unwrap_or_else(|| self.anonymous(decl))];
-        let parents = self.parents();
         let mut at = decl.0;
         while let Some(&p) = parents.get(&at) {
             if parts.len() >= MAX_SCOPES || p == at {
@@ -1267,70 +1278,84 @@ impl<'data> DwarfInfo<'data> {
             let Some(compiland) = m.compiland.filter(|_| !m.split) else {
                 continue;
             };
-            let Some((u, a)) = self.unit(m) else { continue };
-            let Some(d) = u.entry(a, u.dies) else {
+            let Some(lines) = self.unit_lines(m) else {
                 continue;
             };
-            let Some(offset) = Self::uint(&u, &d, DW_AT_STMT_LIST) else {
-                continue;
-            };
-            let s = self.sections_of(m.file);
-            let map = self.object_map(m.file);
-            let mut moved = Vec::new();
-            // An object's rows run on over the padding between its
-            // functions: they are kept to the unit's code (as dsymutil
-            // keeps them).
-            let mut code = match map {
-                Some(_) => self.function_ranges(&u, a),
-                None => Vec::new(),
-            };
-            code.sort_unstable();
-            let Some(program) = line_program(&s, offset, u.address_size) else {
-                continue;
-            };
-            let comp_dir = Self::string(&u, &d, DW_AT_COMP_DIR).unwrap_or_default();
             let mut local: HashMap<u64, u32> = HashMap::new();
-            let mut file = |index: u64| -> u32 {
-                *local.entry(index).or_insert_with(|| {
-                    let name = program.path(index, comp_dir.as_bytes()).unwrap_or_default();
+            for &(addr, size, index, line) in &lines.rows {
+                let file = *local.entry(index).or_insert_with(|| {
+                    let name = lines.path(index).unwrap_or_default();
                     *by_name.entry(name.clone()).or_insert_with(|| {
                         files.push(name);
                         u32::try_from(files.len() - 1).unwrap_or(u32::MAX)
                     })
-                })
-            };
-            for w in program.rows.windows(2) {
-                let (row, next) = (&w[0], &w[1]);
-                // (An object file's code starts at 0: not discarded.)
-                let discarded = row.discarded && map.is_none();
-                if row.end_sequence || discarded || next.address <= row.address {
-                    continue;
-                }
-                let size = next.address - row.address;
-                moved.clear();
-                match map {
-                    Some(map) => {
-                        map.range(row.address, size, &mut moved);
-                        clip(&mut moved, &code);
-                    }
-                    None => moved.push((row.address, size)),
-                }
-                for &(addr, size) in &moved {
-                    if self.linked && !u.is_valid_address(addr) {
-                        continue;
-                    }
-                    spans.push(LineSpan {
-                        addr,
-                        size,
-                        file: file(row.file),
-                        line: u32::try_from(row.line).unwrap_or(u32::MAX),
-                        compiland,
-                    });
-                }
+                });
+                spans.push(LineSpan {
+                    addr,
+                    size,
+                    file,
+                    line,
+                    compiland,
+                });
             }
         }
         spans.sort_unstable_by_key(|l| (l.addr, l.size));
         Ok(SourceLines { files, spans })
+    }
+
+    /// The line table of the unit `m` (a compile or skeleton unit), its
+    /// addresses as the image has them, in the program's order.
+    fn unit_lines(&self, m: &UnitMeta) -> Option<UnitLines<'_>> {
+        let (u, a) = self.unit(m)?;
+        let d = u.entry(a, u.dies)?;
+        let offset = Self::uint(&u, &d, DW_AT_STMT_LIST)?;
+        let s = self.sections_of(m.file);
+        let map = self.object_map(m.file);
+        let mut moved = Vec::new();
+        // An object's rows run on over the padding between its
+        // functions: they are kept to the unit's code (as dsymutil
+        // keeps them).
+        let mut code = match map {
+            Some(_) => self.function_ranges(&u, a),
+            None => Vec::new(),
+        };
+        code.sort_unstable();
+        let program = line_program(&s, offset, u.address_size)?;
+        let comp_dir = Self::string(&u, &d, DW_AT_COMP_DIR).unwrap_or_default();
+        let mut rows = Vec::new();
+        for w in program.rows.windows(2) {
+            let (row, next) = (&w[0], &w[1]);
+            // (An object file's code starts at 0: not discarded.)
+            let discarded = row.discarded && map.is_none();
+            if row.end_sequence || discarded || next.address <= row.address {
+                continue;
+            }
+            let size = next.address - row.address;
+            moved.clear();
+            match map {
+                Some(map) => {
+                    map.range(row.address, size, &mut moved);
+                    clip(&mut moved, &code);
+                }
+                None => moved.push((row.address, size)),
+            }
+            for &(addr, size) in &moved {
+                if self.linked && !u.is_valid_address(addr) {
+                    continue;
+                }
+                rows.push((
+                    addr,
+                    size,
+                    row.file,
+                    u32::try_from(row.line).unwrap_or(u32::MAX),
+                ));
+            }
+        }
+        Some(UnitLines {
+            rows,
+            program,
+            comp_dir,
+        })
     }
 
     /// The functions, blocks, and variables (see [`crate::DebugInfo::symbols`]).
@@ -1574,6 +1599,21 @@ fn clip(spans: &mut Vec<(u64, u64)>, code: &[(u64, u64)]) {
 }
 
 /// A DIE being walked, and those enclosing it.
+/// A unit's line table: its rows, as (address, size, file index, line),
+/// and its file table.
+struct UnitLines<'a> {
+    rows: Vec<(u64, u64, u64, u32)>,
+    program: hexcavator_dwarf::LineProgram<'a>,
+    comp_dir: String,
+}
+
+impl UnitLines<'_> {
+    /// The path of the file the program numbers `index`.
+    fn path(&self, index: u64) -> Option<String> {
+        self.program.path(index, self.comp_dir.as_bytes())
+    }
+}
+
 struct Walked<'a, 'u> {
     unit: &'a Unit<'u>,
     meta: &'a UnitMeta,

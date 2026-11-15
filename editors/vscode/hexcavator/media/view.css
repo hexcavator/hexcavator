@@ -1411,3 +1411,130 @@ table.restable td.num {
   margin: 3px 0;
   width: 200px;
 }
+
+/* The Initialization page (init-view.js). */
+table.init tr.phase td {
+  padding-top: 10px;
+  height: auto;
+  line-height: 18px;
+  white-space: normal;
+}
+
+table.init .phasename {
+  font-weight: 600;
+}
+
+table.init td.where {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 0;
+  width: 30%;
+}
+
+table.init td.tname {
+  width: 70%;
+}
+
+/* The Dependencies page (deps-view.js). */
+.problems {
+  margin: 6px 0 8px;
+  max-height: 30vh;
+  overflow: auto;
+}
+
+.problems.none {
+  color: var(--vscode-descriptionForeground);
+}
+
+.problem {
+  cursor: pointer;
+  padding: 1px 4px;
+}
+
+.problem:hover {
+  background: var(--vscode-list-hoverBackground);
+}
+
+.problem.error .sev {
+  color: var(--vscode-errorForeground);
+}
+
+.problem.warning .sev {
+  color: var(--vscode-editorWarning-foreground);
+}
+
+.bad {
+  color: var(--vscode-errorForeground);
+}
+
+.note {
+  margin: 0 0 6px;
+}
+
+table.deps tr.system td.tname .label {
+  color: var(--vscode-descriptionForeground);
+}
+
+/* The page: the problems, the tree (filling what's left), the selected
+   library's details. */
+.depspage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.depspage .problems {
+  flex: none;
+  max-height: 25%;
+}
+
+.depspage .treewrap {
+  position: relative;
+  inset: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+table.deps td.where {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 0;
+  width: 45%;
+}
+
+table.deps td.how {
+  white-space: nowrap;
+  width: 12%;
+}
+
+table.deps td.tname {
+  width: 43%;
+}
+
+#depdetails {
+  flex: none;
+  max-height: 35%;
+  overflow: auto;
+  border-top: 1px solid var(--vscode-panel-border);
+  padding: 6px 4px 4px;
+}
+
+#depdetails:empty {
+  display: none;
+}
+
+#depdetails .detailhead {
+  margin-bottom: 4px;
+}
+
+#depdetails table.imports {
+  margin-top: 6px;
+}
+
+label.toggle {
+  margin: 0 10px;
+  white-space: nowrap;
+}

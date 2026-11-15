@@ -69,6 +69,12 @@ impl<'data> PdbInfo<'data> {
         &self.pdb
     }
 
+    /// The sections' (virtual address, virtual size); section `n` is at
+    /// index `n - 1`.
+    pub(crate) fn section_table(&self) -> &[(u32, u32)] {
+        &self.sections
+    }
+
     /// The RVA of `section:offset` (1-based section).
     fn rva(&self, section: u16, offset: u32) -> Option<u64> {
         let (va, _) = *self.sections.get(usize::from(section).checked_sub(1)?)?;
@@ -338,39 +344,41 @@ impl<'data> PdbInfo<'data> {
             let compiland = u32::try_from(module.index).unwrap_or(u32::MAX);
             // A module's checksum offsets name its files: look each up once.
             let mut by_offset: HashMap<u32, u32> = HashMap::new();
-            for block in stream.line_blocks() {
+            let mut entries = Vec::new();
+            for group in &function_line_blocks(&stream) {
+                let Some(block) = group.first() else { continue };
                 let Some(start) = rva_in(&self.sections, block.segment, block.offset) else {
                     continue;
                 };
-                let file = *by_offset.entry(block.file).or_insert_with(|| {
-                    let path = stream
-                        .file_checksum(block.file)
-                        .and_then(|c| names.get_str(c.name))
-                        .unwrap_or("")
-                        .to_string();
-                    *file_index.entry(path.clone()).or_insert_with(|| {
-                        files.push(path);
-                        u32::try_from(files.len() - 1).unwrap_or(u32::MAX)
-                    })
-                });
-                for (i, line) in block.lines.iter().enumerate() {
-                    let at = line.offset.get();
-                    let end = block
-                        .lines
-                        .get(i + 1)
-                        .map_or(block.code_size, |n| n.offset.get())
-                        .min(block.code_size);
-                    if end <= at {
-                        continue;
-                    }
-                    spans.push(crate::LineSpan {
-                        addr: start + u64::from(at),
-                        size: u64::from(end - at),
-                        file,
-                        line: line.line(),
-                        compiland,
+                entries.clear();
+                for b in group {
+                    let file = *by_offset.entry(b.file).or_insert_with(|| {
+                        let path = stream
+                            .file_checksum(b.file)
+                            .and_then(|c| names.get_str(c.name))
+                            .unwrap_or("")
+                            .to_string();
+                        *file_index.entry(path.clone()).or_insert_with(|| {
+                            files.push(path);
+                            u32::try_from(files.len() - 1).unwrap_or(u32::MAX)
+                        })
                     });
+                    entries.extend(b.lines.iter().map(|l| (l.offset.get(), file, l.line())));
                 }
+                line_spans(
+                    &mut entries,
+                    block.code_size,
+                    false,
+                    |at, end, file, line| {
+                        spans.push(crate::LineSpan {
+                            addr: start + u64::from(at),
+                            size: u64::from(end - at),
+                            file,
+                            line,
+                            compiland,
+                        });
+                    },
+                );
             }
         }
         spans.sort_by_key(|s| (s.addr, s.size));
@@ -923,9 +931,70 @@ fn record_shape(
     })
 }
 
+/// A module's line blocks, by function: each lines subsection's (its
+/// blocks, one per source file, share a function's code). Of subsections
+/// for the same code (functions folded into one), the first's (as DIA has
+/// it).
+pub(crate) fn function_line_blocks<'s>(
+    stream: &'s hexcavator_pdb::ModuleStream<'_>,
+) -> Vec<Vec<hexcavator_codeview::lines::LineBlock<'s>>> {
+    use hexcavator_codeview::lines::{parse_lines, subsection};
+    let mut seen = std::collections::HashSet::new();
+    let mut out = Vec::new();
+    for (kind, body) in stream.subsections() {
+        if kind != subsection::DEBUG_S_LINES {
+            continue;
+        }
+        let mut blocks = Vec::new();
+        let _ = parse_lines(body, &mut blocks);
+        if let Some(b) = blocks.first()
+            && seen.insert((b.segment, b.offset, b.code_size))
+        {
+            out.push(blocks);
+        }
+    }
+    out
+}
+
+/// A function's line entries, from all its blocks (one per source file),
+/// as spans: `entries` are (offset, file, line), in their blocks' order;
+/// each runs to the next entry at a greater offset (or `code_size`). Of
+/// entries at one offset (MSVC puts a function's opening line and its
+/// first statement's at its first byte) the last has the code; with
+/// `exact`, the first has the byte at the offset itself, as DIA has it.
+pub(crate) fn line_spans(
+    entries: &mut [(u32, u32, u32)],
+    code_size: u32,
+    exact: bool,
+    mut f: impl FnMut(u32, u32, u32, u32),
+) {
+    // (Stable: of entries at an offset, in their blocks' order.)
+    entries.sort_by_key(|e| e.0);
+    let mut i = 0;
+    while let Some(&(at, file, line)) = entries.get(i) {
+        let mut j = i + 1;
+        while entries.get(j).is_some_and(|e| e.0 == at) {
+            j += 1;
+        }
+        let end = entries.get(j).map_or(code_size, |e| e.0).min(code_size);
+        let (_, last_file, last_line) = entries[j - 1];
+        if end > at {
+            if exact && j - i > 1 {
+                f(at, at + 1, file, line);
+                if end > at + 1 {
+                    f(at + 1, end, last_file, last_line);
+                }
+            } else {
+                f(at, end, last_file, last_line);
+            }
+        }
+        i = j;
+    }
+}
+
 /// The RVA of `section:offset` (1-based section), given the sections'
 /// virtual addresses.
-fn rva_in(sections: &[(u32, u32)], section: u16, offset: u32) -> Option<u64> {
+pub(crate) fn rva_in(sections: &[(u32, u32)], section: u16, offset: u32) -> Option<u64> {
     let (va, _) = *sections.get(usize::from(section).checked_sub(1)?)?;
     Some(u64::from(va) + u64::from(offset))
 }
@@ -1475,7 +1544,7 @@ struct Proc<'a> {
 const INLINEE_PENDING: u32 = 1 << 31;
 
 /// An inlined function's qualified name, from its id record.
-fn inlinee_name(
+pub(crate) fn inlinee_name(
     ids: &hexcavator_pdb::TypeStream<'_>,
     formatter: &TypeFormatter<'_>,
     id: u32,
@@ -1510,9 +1579,11 @@ fn inlinee(
             let class = formatter.name(TypeIndex(scope));
             // Id records name constructors and destructors `{ctor}` and
             // `{dtor}`; procedures, by the class's own name.
-            let name = match name.as_str() {
-                "{ctor}" => last_component(&class).to_string(),
-                "{dtor}" => format!("~{}", last_component(&class)),
+            // (A lambda's class, `<lambda_1>`, has no name of its own to
+            // give them: they keep the id record's.)
+            let name = match (name.as_str(), last_component(&class)) {
+                ("{ctor}", own) if !own.is_empty() => own.to_string(),
+                ("{dtor}", own) if !own.is_empty() => format!("~{own}"),
                 _ => name,
             };
             format!("{class}::{name}")
@@ -1524,7 +1595,7 @@ fn inlinee(
 
 /// The last `::`-separated component of a qualified name, ignoring `::`
 /// within template arguments, without its template arguments.
-fn last_component(name: &str) -> &str {
+pub(crate) fn last_component(name: &str) -> &str {
     let bytes = name.as_bytes();
     let mut depth = 0i32;
     let mut start = 0;
@@ -1822,6 +1893,8 @@ mod tests {
         assert_eq!(last_component("ns::A<x::y, z>"), "A");
         assert_eq!(last_component("a::B<c::D>::E<f::G>"), "E");
         assert_eq!(last_component(""), "");
+        // A lambda's class: nothing outside its brackets.
+        assert_eq!(last_component("`f'::`2'::<lambda_1>"), "");
     }
 
     #[test]

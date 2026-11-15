@@ -104,7 +104,7 @@ function capsFallback(file) {
   if (kind === "pe") {
     return {
       format: "pe",
-      tools: ["report", "compare", "info", "dump", "resources", "disassemble", "findings", "recommend", "why", "refs", "xref", "unreachable", "vtables", "identical", "query", "types", "layout", "inlines", "sourcefiles", "annotations", "data", "functionsDiff", "findingsDiff", "typesDiff", "lenses"],
+      tools: ["report", "compare", "info", "dump", "deps", "resources", "disassemble", "init", "findings", "recommend", "why", "refs", "xref", "unreachable", "vtables", "identical", "query", "types", "layout", "inlines", "sourcefiles", "annotations", "data", "functionsDiff", "findingsDiff", "typesDiff", "lenses"],
     };
   }
   if (kind === "coff") {
@@ -238,6 +238,9 @@ function sidebarFor(entry, caps) {
   if (tool("info")) {
     items.push(Object.assign({}, tool("info"), { label: "File Format", detail: "what kind of file it is, and its debug information" }));
   }
+  if (can(caps, "deps")) {
+    items.push(t("dependencies", "Dependencies", "library", "what it loads: where its loader finds each library, and what's missing", { run: "deps" }));
+  }
   if (can(caps, "resources")) {
     items.push(t("resources", "Resources", "file-media", "what it holds besides its code: version, manifest, icons, dialogs, strings; Info.plist, entitlements; notes", { run: "resources" }));
   }
@@ -249,6 +252,9 @@ function sidebarFor(entry, caps) {
     items.push(t("debuginfo", "Debug Information", "symbol-namespace", `its PDB: ${debug.path}`, { run: "text", args: ["pdb", "-summary", debug.path] }));
   } else if (can(caps, "dwarf")) {
     items.push(t("debuginfo", "Debug Information", "symbol-namespace", "its DWARF: units, lines, and frames, as llvm-dwarfdump shows them", { run: "text", args: ["dwarf", "-summary", file] }));
+  }
+  if (can(caps, "init")) {
+    items.push(t("initialization", "Initialization", "rocket", "what runs before main (or when it's loaded), in order, and what each function calls", { run: "init" }));
   }
   if (tool("report")) {
     items.push(t("symbols", "Symbols", "symbol-method", "every symbol, by size: grouped, filtered, as a tree or a map", { run: "panel" }));

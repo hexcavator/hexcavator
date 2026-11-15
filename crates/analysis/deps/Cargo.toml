@@ -1,0 +1,20 @@
+[package]
+name = "hexcavator-deps"
+description = "What an executable or library loads: its libraries, found as each platform's loader would find them, and the imports they lack"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+hexcavator-core.workspace = true
+hexcavator-elf.workspace = true
+hexcavator-image.workspace = true
+hexcavator-macho.workspace = true
+hexcavator-mmap.workspace = true
+hexcavator-pe.workspace = true
+
+[lints]
+workspace = true

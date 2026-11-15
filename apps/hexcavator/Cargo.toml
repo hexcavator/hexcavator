@@ -33,6 +33,7 @@ hexcavator-macho.workspace = true
 hexcavator-ne.workspace = true
 hexcavator-lx.workspace = true
 hexcavator-debuginfo.workspace = true
+hexcavator-deps.workspace = true
 hexcavator-wasm.workspace = true
 hexcavator-elf.workspace = true
 rustc-hash.workspace = true

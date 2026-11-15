@@ -20,12 +20,15 @@
 pub mod decompress;
 pub mod dwarf_backend;
 pub mod layout;
+mod locate;
 mod pdb_backend;
+mod pdb_locate;
 pub mod value;
 
 use hexcavator_core::Result;
 use hexcavator_image::DebugId;
 
+pub use locate::{Frame, Locator};
 pub use pdb_backend::{LINKER_MODULE, LinkerInfo};
 
 /// A translation unit linked into an image.
@@ -957,6 +960,12 @@ impl<'data> DebugInfo<'data> {
             DebugInfo::Pdb(p) => p.inline_sites(),
             DebugInfo::Dwarf(d) => d.inline_sites(),
         }
+    }
+
+    /// A finder of the frames at addresses: the function, and the
+    /// functions inlined there, with their source lines (see [`Locator`]).
+    pub fn locator(&self) -> Locator<'_, 'data> {
+        Locator::new(self)
     }
 
     /// The line tables: each piece of code's source file and line.

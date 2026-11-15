@@ -4,6 +4,7 @@
 mod dwarf;
 mod hostile_dwarf;
 mod hostile_pdb;
+mod locate;
 mod pdb;
 mod split_dwarf;
 mod values;

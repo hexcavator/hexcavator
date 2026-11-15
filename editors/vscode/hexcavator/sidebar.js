@@ -707,6 +707,10 @@ async function runTool(sidebar, provider, node) {
       return sidebar.deps.openTypes(entry.file);
     case "buildinfo":
       return sidebar.deps.openBuildInfo(entry.file);
+    case "deps":
+      return sidebar.deps.openDeps(entry.file);
+    case "init":
+      return sidebar.deps.openInit(entry.file);
     case "resources":
       return sidebar.deps.openResources(entry.file);
     case "sources":

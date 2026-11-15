@@ -264,7 +264,7 @@ function pageHtml(webview, context, title) {
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';${images ? " img-src data:;" : ""}">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="${media("view.css")}">
 <link rel="stylesheet" href="${media("loading.css")}">
@@ -1008,7 +1008,7 @@ function plainHtml(webview, context, title, script, images) {
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';${images ? " img-src data:;" : ""}">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="${media("view.css")}">
 <link rel="stylesheet" href="${media("loading.css")}">
@@ -1195,6 +1195,119 @@ function openBuildInfo(context, file) {
   load();
 }
 
+/** Open Dependencies pages, by file. */
+const depsPanels = new Map();
+
+/**
+ * Opens (or shows) the Dependencies page of the binary at `file`: what it
+ * loads, where its loader finds each library, and what's missing (hexc
+ * deps -json; with -system, system libraries' own too).
+ */
+function openDeps(context, file) {
+  const existing = depsPanels.get(file);
+  if (existing) {
+    existing.reveal();
+    return;
+  }
+  const name = path.basename(file);
+  const panel = panelFor(context, "hexcDeps", `Dependencies: ${name}`, "deps-view.js");
+  depsPanels.set(file, panel);
+  panel.onDidDispose(() => depsPanels.delete(file));
+  const load = async (system) => {
+    const args = ["deps", "-json", ...(system ? ["-system"] : []), file];
+    try {
+      let out;
+      try {
+        out = await paneRun(panel.webview, `Finding what ${name} loads…`, args);
+      } catch (e) {
+        // (Something missing: hexc says so, and exits 1, with the graph.)
+        if (e.code === 1 && e.stdout) {
+          out = e.stdout;
+        } else {
+          throw e;
+        }
+      }
+      panel.webview.postMessage({ kind: "deps", file, graph: JSON.parse(out) });
+    } catch (e) {
+      if (!e.cancelled) {
+        vscode.window.showErrorMessage(`hexc: ${e.message}`);
+      }
+      panel.webview.postMessage({ kind: "failed", message: e.message });
+    }
+  };
+  panel.webview.onDidReceiveMessage(async (m) => {
+    switch (m && m.command) {
+      case "ready":
+      case "refresh":
+        await load(!!m.system);
+        break;
+      case "openBinary":
+        // (A library it loads, to look inside: in the sidebar.)
+        if (typeof m.path === "string" && fs.existsSync(m.path) && sidebar) {
+          sidebar.add(m.path);
+        }
+        break;
+    }
+  }, undefined, context.subscriptions);
+}
+
+/** Open Initialization pages, by file. */
+const initPanels = new Map();
+
+/**
+ * Opens (or shows) the Initialization page of the binary at `file`: what
+ * runs when it's loaded, before its main, in order (hexc init -json), each
+ * function opening to what it calls (hexc init -callees, asked as opened).
+ */
+function openInit(context, file) {
+  const existing = initPanels.get(file);
+  if (existing) {
+    existing.reveal();
+    return;
+  }
+  const name = path.basename(file);
+  const panel = panelFor(context, "hexcInit", `Initialization: ${name}`, "init-view.js");
+  initPanels.set(file, panel);
+  panel.onDidDispose(() => initPanels.delete(file));
+  const load = async () => {
+    try {
+      const out = await paneRun(panel.webview, `Finding what runs before ${name}'s main…`, ["init", "-json", file]);
+      panel.webview.postMessage({ kind: "init", file, data: JSON.parse(out) });
+    } catch (e) {
+      if (!e.cancelled) {
+        vscode.window.showErrorMessage(`hexc: ${e.message}`);
+      }
+      panel.webview.postMessage({ kind: "failed", message: e.message });
+    }
+  };
+  panel.webview.onDidReceiveMessage(async (m) => {
+    switch (m && m.command) {
+      case "ready":
+      case "refresh":
+        await load();
+        break;
+      case "callees":
+        if (Number.isSafeInteger(m.node)) {
+          try {
+            const out = await runHexc(["init", "-json", "-callees", String(m.node), file]);
+            panel.webview.postMessage(Object.assign({ kind: "callees" }, JSON.parse(out)));
+          } catch (e) {
+            panel.webview.postMessage({ kind: "callees", node: m.node, callees: [] });
+          }
+        }
+        break;
+      case "openSource":
+        if (typeof m.file === "string" && fs.existsSync(m.file)) {
+          const line = Math.max(0, (Number(m.line) || 1) - 1);
+          vscode.window.showTextDocument(vscode.Uri.file(m.file), { preview: true, selection: new vscode.Range(line, 0, line, 0) });
+        } else {
+          vscode.window.showInformationMessage(`${m.file} is not on this machine`);
+        }
+        break;
+    }
+  }, undefined, context.subscriptions);
+}
+
 /** Open Resources pages, by file. */
 const resourcePanels = new Map();
 
@@ -1367,6 +1480,8 @@ function activate(context) {
     findings: (file) => findings(context, vscode.Uri.file(file)),
     openTypes: (file) => openTypes(context, file),
     openBuildInfo: (file) => openBuildInfo(context, file),
+    openDeps: (file) => openDeps(context, file),
+    openInit: (file) => openInit(context, file),
     openResources: (file) => openResources(context, file),
     openDisassembly,
     openData,

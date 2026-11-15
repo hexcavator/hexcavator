@@ -656,6 +656,9 @@ impl Server {
             "size_report" => self.size_report(args),
             "symbols" => self.symbols(args),
             "lookup" => self.lookup(args),
+            "dependencies" => dependencies(args),
+            "initialization" => initialization(args),
+            "symbolize" => symbolize(args),
             "resources" => resources(args),
             "query" => self.query(args),
             "why" => self.why(args),
@@ -740,7 +743,7 @@ impl Server {
     }
 }
 
-const INSTRUCTIONS: &str = "hexc reports what the bytes of a Windows executable (PE, with its PDB), COFF object, or library are. Start with size_report on the file (sources: sections; then symbols, compileunits, libraries, or groups, or several for a breakdown). Use symbols to find the largest or a named symbol, findings for what wastes space and how to fix it, and lookup to ask what is at an address. Give `base` to size_report to diff two builds. Sizes are in bytes; `file` is bytes on disk, `vm` bytes in memory.";
+const INSTRUCTIONS: &str = "hexc reports what the bytes of a Windows executable (PE, with its PDB), COFF object, or library are. Start with size_report on the file (sources: sections; then symbols, compileunits, libraries, or groups, or several for a breakdown). Use symbols to find the largest or a named symbol, findings for what wastes space and how to fix it, and lookup to ask what is at an address. Give `base` to size_report to diff two builds. Sizes are in bytes; `file` is bytes on disk, `vm` bytes in memory. For crash reports and stack traces of any executable (PE, ELF, Mach-O, WebAssembly), symbolize gives each address's function, source line, and inlined functions, or annotates a log's text.";
 
 fn error(id: Value, code: i64, message: &str) -> Value {
     object([
@@ -772,6 +775,120 @@ fn prop(kind: &str, description: &str) -> Value {
         ("type", Value::from(kind)),
         ("description", Value::from(description)),
     ])
+}
+
+/// The `dependencies` tool: what an image loads (`hexc deps -json`).
+fn dependencies(args: &Value) -> ToolResult {
+    let path = arg_str(args, "path").ok_or("`path` is required")?;
+    let mut command = vec!["deps".to_string(), "-json".to_string()];
+    if let Some(s) = arg_str(args, "sysroot") {
+        command.extend(["-sysroot".into(), s.to_string()]);
+    }
+    if args.get("system").and_then(Value::as_bool) == Some(true) {
+        command.push("-system".into());
+    }
+    command.push(path.to_string());
+    let (_, out) = crate::out::capture(|| crate::command(&command));
+    let json = String::from_utf8_lossy(&out.stdout).into_owned();
+    if json.is_empty() {
+        return Err(String::from_utf8_lossy(&out.stderr).trim().to_string());
+    }
+    let structured: Value = serde_json::from_str(&json).map_err(|e| e.to_string())?;
+    let mut text = command.clone();
+    text[1] = "-problems".into();
+    let (_, summary) = crate::out::capture(|| crate::command(&text));
+    Ok((
+        String::from_utf8_lossy(&summary.stdout).into_owned(),
+        structured,
+    ))
+}
+
+/// The `symbolize` tool: the frames at addresses (as `hexc symbolize`
+/// gives them), or text with where each address in it is added.
+fn symbolize(args: &Value) -> ToolResult {
+    let mut images: Vec<String> = match args.get("images") {
+        Some(Value::Array(a)) => a
+            .iter()
+            .filter_map(Value::as_str)
+            .map(str::to_string)
+            .collect(),
+        _ => Vec::new(),
+    };
+    if let Some(p) = arg_str(args, "path") {
+        images.insert(0, p.to_string());
+    }
+    if images.is_empty() {
+        return Err("`path` (or `images`) is required".into());
+    }
+    if let Some(text) = arg_str(args, "text") {
+        let out = crate::symbolize::annotate_text(&images, text)?;
+        let structured = object([("text", Value::from(out.clone()))]);
+        return Ok((out, structured));
+    }
+    let addresses: Vec<String> = match args.get("addresses") {
+        Some(Value::Array(a)) => a
+            .iter()
+            .map(|v| v.as_str().map_or_else(|| v.to_string(), str::to_string))
+            .collect(),
+        Some(Value::String(s)) => s
+            .split([',', ' '])
+            .filter(|s| !s.is_empty())
+            .map(str::to_string)
+            .collect(),
+        _ => return Err("`addresses` or `text` is required".into()),
+    };
+    let mut command = vec!["symbolize".to_string()];
+    if args.get("offset").and_then(Value::as_bool) == Some(true) {
+        command.push("-offset".into());
+    }
+    if args.get("return").and_then(Value::as_bool) == Some(true) {
+        command.push("-return".into());
+    }
+    if let Some(p) = arg_str(args, "pdb") {
+        command.extend(["-pdb".into(), p.to_string()]);
+    }
+    command.extend(images);
+    command.extend(addresses);
+    let run = |json: bool| {
+        let mut c = command.clone();
+        if json {
+            c.insert(1, "-json".into());
+        }
+        let (code, out) = crate::out::capture(|| crate::command(&c));
+        let stdout = String::from_utf8_lossy(&out.stdout).into_owned();
+        if code != std::process::ExitCode::SUCCESS && stdout.is_empty() {
+            return Err(String::from_utf8_lossy(&out.stderr).trim().to_string());
+        }
+        Ok(stdout)
+    };
+    let text = run(false)?;
+    let structured = serde_json::from_str(&run(true)?).map_err(|e| e.to_string())?;
+    Ok((text, object([("addresses", structured)])))
+}
+
+/// The `initialization` tool: what runs when an image loads (`hexc init`).
+fn initialization(args: &Value) -> ToolResult {
+    let path = arg_str(args, "path").ok_or("`path` is required")?;
+    let mut command = vec!["init".to_string()];
+    if let Some(p) = arg_str(args, "pdb") {
+        command.extend(["-pdb".into(), p.to_string()]);
+    }
+    let depth = args
+        .get("depth")
+        .and_then(Value::as_u64)
+        .unwrap_or(2)
+        .min(16);
+    command.extend(["-depth".into(), depth.to_string(), path.to_string()]);
+    let (code, out) = crate::out::capture(|| crate::command(&command));
+    if code != std::process::ExitCode::SUCCESS {
+        return Err(String::from_utf8_lossy(&out.stderr).trim().to_string());
+    }
+    let text = String::from_utf8_lossy(&out.stdout).into_owned();
+    command.insert(1, "-json".into());
+    let (_, json) = crate::out::capture(|| crate::command(&command));
+    let structured =
+        serde_json::from_str(&String::from_utf8_lossy(&json.stdout)).map_err(|e| e.to_string())?;
+    Ok((text, structured))
 }
 
 /// The `resources` tool: a binary's resources and metadata, or one of
@@ -1023,6 +1140,121 @@ fn tools() -> Value {
                 ),
             ),
             tool(
+                "dependencies",
+                "What an executable or library (PE, ELF, Mach-O) loads, found as its platform's loader would find each library (known DLLs, the application's directory, System32, API sets, side-by-side assemblies; rpath, runpath, ld.so.conf; @rpath, @loader_path, the dyld shared cache), and what's missing: libraries not found or for another architecture, and imported symbols a library doesn't export. Text: the problems; structured: the whole graph (modules, each with its dependencies and imports).",
+                schema(
+                    vec![
+                        ("path", prop("string", "The executable or library.")),
+                        (
+                            "sysroot",
+                            prop(
+                                "string",
+                                "The system the libraries are looked for in: a Windows directory, or the root of a Linux or macOS file system (default: this machine's, for its own format).",
+                            ),
+                        ),
+                        (
+                            "system",
+                            prop(
+                                "boolean",
+                                "Read what system libraries load too (default: they're leaves).",
+                            ),
+                        ),
+                    ],
+                    &["path"],
+                ),
+            ),
+            tool(
+                "symbolize",
+                "The function, source file and line, and inlined functions (innermost first) at addresses of executables or libraries (PE with its PDB; ELF, Mach-O, WebAssembly with DWARF; or, without debug information, their own symbol tables), as a symbolizer for crash reports and stack traces. Or, given `text` (a log, a stack trace), that text with where each address in it is added after it.",
+                schema(
+                    vec![
+                        (
+                            "path",
+                            prop(
+                                "string",
+                                "The image the addresses are in; `path@base` if it was loaded at `base` (then addresses are as loaded).",
+                            ),
+                        ),
+                        (
+                            "images",
+                            object([
+                                ("type", Value::from("array")),
+                                ("items", object([("type", Value::from("string"))])),
+                                (
+                                    "description",
+                                    Value::from(
+                                        "More images (each `path` or `path@base`), for text or addresses of several modules.",
+                                    ),
+                                ),
+                            ]),
+                        ),
+                        (
+                            "addresses",
+                            object([
+                                ("type", Value::from("array")),
+                                ("items", object([("type", Value::from("string"))])),
+                                (
+                                    "description",
+                                    Value::from(
+                                        "Addresses: hex (\"0x140001043\"), as the image's tools show them (a PE image's with its preferred base) unless a base is given; or `name+0xoffset` (an offset from the start of the image named name).",
+                                    ),
+                                ),
+                            ]),
+                        ),
+                        (
+                            "text",
+                            prop(
+                                "string",
+                                "Text to annotate instead (a crash log, a stack trace).",
+                            ),
+                        ),
+                        (
+                            "offset",
+                            prop(
+                                "boolean",
+                                "The addresses are offsets from the image's start.",
+                            ),
+                        ),
+                        (
+                            "return",
+                            prop(
+                                "boolean",
+                                "The addresses are return addresses (stack frames' but the first): the call before each is looked up.",
+                            ),
+                        ),
+                        (
+                            "pdb",
+                            prop(
+                                "string",
+                                "The first image's debug information, if it isn't found from the image.",
+                            ),
+                        ),
+                    ],
+                    &[],
+                ),
+            ),
+            tool(
+                "initialization",
+                "What runs when an executable or library (PE, ELF, Mach-O, with its debug information) is loaded, before its main: TLS callbacks, the entry point, the CRT's initializer lists (C initializers, global objects' constructors), .preinit_array, DT_INIT, .ctors, .init_array, __mod_init_func; each phase's functions in the order they run, with what each calls (`depth` levels down), and then main (or DllMain).",
+                schema(
+                    vec![
+                        ("path", prop("string", "The executable or library.")),
+                        (
+                            "pdb",
+                            prop(
+                                "string",
+                                "Its debug information, if it isn't found from the image.",
+                            ),
+                        ),
+                        (
+                            "depth",
+                            prop("integer", "How many levels of callees to show (default 2)."),
+                        ),
+                    ],
+                    &["path"],
+                ),
+            ),
+            tool(
                 "resources",
                 "A binary's resources and what it says of itself: a PE image's resources (version information, manifest, string and message tables, dialogs, menus, accelerators, icons, cursors, bitmaps, raw data) by type, name, and language; a Mach-O image's Info.plist, entitlements, and versions; an ELF image's notes (build ID, ABI tag, package metadata, properties) and .comment; a WebAssembly module's producers and custom sections. Without `id`, the list, each in a line; with `id` (as listed, like \"VERSION/#1/1033\" or \"Info.plist\"), that one decoded in full.",
                 schema(
@@ -1164,6 +1396,9 @@ mod tests {
                 "query",
                 "why",
                 "recommend",
+                "dependencies",
+                "symbolize",
+                "initialization",
                 "resources",
                 "lookup"
             ]

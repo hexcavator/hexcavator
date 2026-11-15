@@ -1,0 +1,4 @@
+LIBRARY helper
+EXPORTS
+  helper_add
+  helper_ordinal @5 NONAME

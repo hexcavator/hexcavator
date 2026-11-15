@@ -31,6 +31,7 @@ mod elf;
 mod macho;
 mod pe;
 mod section;
+mod symbols;
 mod wasm;
 
 use alloc::vec::Vec;
@@ -45,6 +46,7 @@ pub use arch::{Arch, Hybrid, coff_machine_name, is_known_coff_machine};
 /// A COFF section's characteristics, as [`SectionFlags`].
 pub use pe::flags as coff_section_flags;
 pub use section::{Section, SectionFlags};
+pub use symbols::{ImageSymbol, SymbolKind, SymbolSource};
 
 /// The container format of a file.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]

@@ -2,6 +2,7 @@
 //! each module was a file of its own.
 
 mod debugmap;
+mod dylibs;
 mod fixups;
 mod objc;
 mod readobj;
