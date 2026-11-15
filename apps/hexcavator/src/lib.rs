@@ -20,6 +20,7 @@ mod recommend;
 mod serve;
 mod signature;
 mod size;
+mod symbolize;
 mod symbols;
 mod time;
 mod types;
@@ -56,6 +57,8 @@ commands:
   signature [-json] <image>  its code signatures (Authenticode, Apple), verified on any platform
   size [options] <image>     where the bytes go, by section, library, and compiland
   sourcefiles <image>        its code by source file (and line)
+  symbolize <image> [<address>...]  the function, line, and inlined functions at
+                             each address; or, without, added to a log's addresses
   types [options] <image>    the layouts of its classes and structures, and their padding
   xref [options] <image>     what refers to what, and why each function and datum is there
   help                       show this message
@@ -226,6 +229,7 @@ fn command(args: &[String]) -> ExitCode {
         "types" => types::run(rest),
         "inlines" => lines::run_inlines(rest),
         "sourcefiles" => lines::run_sourcefiles(rest),
+        "symbolize" => symbolize::run(rest),
         "annotations" => lines::run_annotations(rest),
         "batch" => batch::run(rest),
         "info" => info(rest),

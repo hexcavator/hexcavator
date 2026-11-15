@@ -4,10 +4,13 @@
 //!
 //! Each annotation is an opcode and one or two compressed integers (one to
 //! four bytes, by their first byte's top bits; signed ones keep their sign
-//! in the low bit). The code offset starts at 0 and moves by them; a range
-//! opens where the code offset first changes and closes at an explicit
-//! length. The compiler closes an inline site's range where a nested site's
-//! code (or its caller's) begins, so ranges don't overlap their children's.
+//! in the low bit). The code offset starts at 0 and moves by them, and each
+//! move starts a line entry: its code runs to the next entry's start, or
+//! for a length an annotation gives (cvinfo.h: "length of code, default
+//! next start"). A length given after an entry moves the code offset to its
+//! end; one given with a jump (`BA_OP_ChangeCodeLengthAndCodeOffset`, which
+//! MSVC emits) leaves it at the entry's start. A site's code is its
+//! entries'; a nested site's code is within its caller's (DIA's reading).
 
 use hexcavator_core::Reader;
 
@@ -96,58 +99,64 @@ pub struct Site {
 pub fn decode(annotations: &[u8]) -> Site {
     let mut r = Reader::new(annotations);
     let mut site = Site::default();
+    // Each line entry's start, and its length if one is given (else it
+    // runs to the next entry's start).
+    let mut entries: Vec<(u32, Option<u32>)> = Vec::new();
     let mut offset: u32 = 0;
-    let mut open: Option<u32> = None;
     let mut line: i32 = 0;
     let mut file: Option<u32> = None;
-    // (A range never wraps: a hostile offset is clamped.)
-    let close = |site: &mut Site, start: u32, end: u32| {
-        if end > start {
-            site.ranges.push((start, end - start));
-        }
-    };
+    // (Offsets never wrap: a hostile one is clamped.)
+    fn entry(
+        site: &mut Site,
+        entries: &mut Vec<(u32, Option<u32>)>,
+        at: u32,
+        len: Option<u32>,
+        (line, file): (i32, Option<u32>),
+    ) {
+        entries.push((at, len));
+        site.lines.push((at, line, file));
+    }
     while let Some(code) = uncompress(&mut r) {
         match code {
             op::BA_OP_INVALID => break,
             op::BA_OP_CODE_OFFSET => {
                 let Some(v) = uncompress(&mut r) else { break };
                 offset = v;
-                open.get_or_insert(offset);
-                site.lines.push((offset, line, file));
+                entry(&mut site, &mut entries, offset, None, (line, file));
             }
             op::BA_OP_CHANGE_CODE_OFFSET => {
                 let Some(d) = uncompress(&mut r) else { break };
                 offset = offset.saturating_add(d);
-                open.get_or_insert(offset);
-                site.lines.push((offset, line, file));
+                entry(&mut site, &mut entries, offset, None, (line, file));
             }
             op::BA_OP_CHANGE_CODE_OFFSET_AND_LINE_OFFSET => {
                 let Some(v) = uncompress(&mut r) else { break };
                 offset = offset.saturating_add(v & CODE_DELTA_MASK);
                 line = line.saturating_add(signed(v >> LINE_DELTA_SHIFT));
-                open.get_or_insert(offset);
-                site.lines.push((offset, line, file));
+                entry(&mut site, &mut entries, offset, None, (line, file));
             }
             op::BA_OP_CHANGE_CODE_LENGTH => {
                 let Some(len) = uncompress(&mut r) else { break };
-                let start = open.take().unwrap_or(offset);
-                let end = offset.saturating_add(len);
-                close(&mut site, start, end);
-                offset = end;
+                // The last entry's length; the code offset moves to its end
+                // (the next jump is from there).
+                match entries.last_mut() {
+                    Some((at, l @ None)) => {
+                        *l = Some(len);
+                        offset = at.saturating_add(len);
+                    }
+                    _ => offset = offset.saturating_add(len),
+                }
             }
             op::BA_OP_CHANGE_CODE_LENGTH_AND_CODE_OFFSET => {
                 let (Some(len), Some(d)) = (uncompress(&mut r), uncompress(&mut r)) else {
                     break;
                 };
-                // A range of its own, after a jump.
-                if let Some(start) = open.take() {
-                    close(&mut site, start, offset);
-                }
+                // An entry of its length, after a jump. The code offset
+                // stays at its start: the next jump is from there (MSVC's
+                // nested sites tile their caller's code so: `0C 03 00`
+                // then `0C 05 06` are [0, 3) and [6, 0xB)).
                 offset = offset.saturating_add(d);
-                site.lines.push((offset, line, file));
-                let end = offset.saturating_add(len);
-                close(&mut site, offset, end);
-                offset = end;
+                entry(&mut site, &mut entries, offset, Some(len), (line, file));
             }
             op::BA_OP_CHANGE_LINE_OFFSET => {
                 let Some(v) = uncompress(&mut r) else { break };
@@ -168,6 +177,21 @@ pub fn decode(annotations: &[u8]) -> Site {
                 }
             }
             _ => break,
+        }
+    }
+    // The entries' code: each to its length, or to the next's start (the
+    // last, without one, has none); touching ones joined.
+    for (i, &(at, len)) in entries.iter().enumerate() {
+        let end = match len {
+            Some(n) => at.saturating_add(n),
+            None => entries.get(i + 1).map_or(at, |n| n.0),
+        };
+        if end <= at {
+            continue;
+        }
+        match site.ranges.last_mut() {
+            Some((s, n)) if s.saturating_add(*n) == at => *n = end - *s,
+            _ => site.ranges.push((at, end - at)),
         }
     }
     site
@@ -221,6 +245,39 @@ mod tests {
                 (0x30, 1, None)
             ]
         );
+    }
+
+    /// MSVC's nested sites (lines.exe's `square` in `sum_of_squares`): a
+    /// jump after a range is from the range's start.
+    #[test]
+    fn length_and_offset_jumps_from_the_range_start() {
+        let op = op::BA_OP_CHANGE_CODE_LENGTH_AND_CODE_OFFSET as u8;
+        let s = decode(&[op, 0x03, 0x00, op, 0x05, 0x06, 0]);
+        assert_eq!(s.ranges, [(0, 3), (6, 5)]);
+        assert_eq!(s.lines, [(0, 0, None), (6, 0, None)]);
+    }
+
+    /// Entries without lengths run to the next's start (clang.pdb's sites,
+    /// as DIA reads them).
+    #[test]
+    fn entries_run_to_the_next() {
+        // An entry at 0xA48, then one of 6 bytes 0xA further on.
+        let s = decode(&[
+            0x06, 0x02, 0x03, 0x8A, 0x48, 0x06, 0x02, 0x0C, 0x06, 0x0A, 0, 0,
+        ]);
+        assert_eq!(s.ranges, [(0xA48, 0x10)]);
+        assert_eq!(s.lines, [(0xA48, 1, None), (0xA52, 2, None)]);
+        // 0x979 to 0x980 (the next), 0x980 to 0x983, 0x983 for 0x13; then
+        // 0x9A0 for 0x25.
+        let s = decode(&[
+            0x06, 0x04, 0x03, 0x89, 0x79, 0x0B, 0x37, 0x06, 0x02, 0x0C, 0x13, 0x03, 0x06, 0x02,
+            0x0C, 0x25, 0x1D, 0, 0, 0,
+        ]);
+        assert_eq!(s.ranges, [(0x979, 0x1D), (0x9A0, 0x25)]);
+        // The last entry, without a length, has no code.
+        let s = decode(&[op::BA_OP_CODE_OFFSET as u8, 0x10]);
+        assert!(s.ranges.is_empty());
+        assert_eq!(s.lines, [(0x10, 0, None)]);
     }
 
     #[test]

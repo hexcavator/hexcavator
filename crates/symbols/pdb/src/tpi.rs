@@ -14,7 +14,7 @@ use hexcavator_core::{
 };
 
 use crate::hash::hash_v1;
-use crate::msf::{SN_NIL, StreamData};
+use crate::msf::{Msf, SN_NIL, StreamData};
 use hexcavator_codeview::types::{TypeIndex, TypeRecord, TypeSource, leaf};
 
 pod! {
@@ -56,6 +56,83 @@ const MAX_WALK: u32 = 4096;
 const MAX_WALKS: u32 = 256;
 /// The most hash buckets indexed (MSVC uses 0x3FFFF).
 const MAX_BUCKETS: usize = 1 << 20;
+
+/// The most bytes [`LazyTypeStream::with_record`] reads for a record (from
+/// the index entry before it to the next): MSVC and LLVM index every 8 KB.
+const MAX_LAZY: u32 = 1 << 20;
+
+/// A TPI or IPI stream read a record at a time: its header and its hash
+/// stream's index, then, for each lookup, only the records from the index
+/// entry before it to the next (a few KB). For a few lookups in a large
+/// PDB, whose type stream would take longer to read whole than they.
+pub struct LazyTypeStream<'m, 'data> {
+    msf: &'m Msf<'data>,
+    stream: u32,
+    header: TpiHeader,
+    /// (type index, offset), sorted.
+    index: Vec<(u32, u32)>,
+}
+
+impl<'m, 'data> LazyTypeStream<'m, 'data> {
+    /// Stream `stream` (the TPI or IPI) of `msf`, and its hash stream's
+    /// index.
+    pub fn new(msf: &'m Msf<'data>, stream: u32) -> Result<Self> {
+        let head = msf.read(stream, 0, std::mem::size_of::<TpiHeader>() as u64)?;
+        let header: TpiHeader = *read_at::<TpiHeader>(&head, 0)?;
+        let hash = u32::from(header.hash_stream_index.get());
+        let b = &header.index_offset_buffer;
+        let mut index = Vec::new();
+        if hash != u32::from(SN_NIL) && msf.stream_size(hash).is_some() {
+            let data = msf.read(hash, u64::from(b.offset.get()), u64::from(b.length.get()))?;
+            let n = data.len() as u64 / 8;
+            let entries: &[TypeIndexOffset] = read_slice_at(&data, 0, n).unwrap_or(&[]);
+            index = entries
+                .iter()
+                .map(|e| (e.type_index.get(), e.offset.get()))
+                .collect();
+            // (A hostile index out of order is no index.)
+            if !index.is_sorted() {
+                index.clear();
+            }
+        }
+        Ok(Self {
+            msf,
+            stream,
+            header,
+            index,
+        })
+    }
+
+    /// Reads record `ti` and gives it to `f`: `None` if there is no such
+    /// record, or reaching it would mean reading more than a megabyte (a
+    /// stream without an index).
+    pub fn with_record<R>(&self, ti: TypeIndex, f: impl FnOnce(TypeRecord<'_>) -> R) -> Option<R> {
+        let (begin, end) = (
+            self.header.type_index_begin.get(),
+            self.header.type_index_end.get(),
+        );
+        if ti.0 < begin || ti.0 >= end {
+            return None;
+        }
+        let i = self.index.partition_point(|e| e.0 <= ti.0);
+        let (mut cur, from) = i.checked_sub(1).map_or((begin, 0), |i| self.index[i]);
+        let to = self
+            .index
+            .get(i)
+            .map_or(self.header.type_record_bytes.get(), |e| e.1);
+        let len = to.checked_sub(from).filter(|&n| n <= MAX_LAZY)?;
+        let start = u64::from(self.header.header_size.get()) + u64::from(from);
+        let data = self.msf.read(self.stream, start, u64::from(len)).ok()?;
+        let mut r = Reader::new(&data);
+        loop {
+            let rec = TypeRecord::read(&mut r).ok()?;
+            if cur == ti.0 {
+                return Some(f(rec));
+            }
+            cur = cur.checked_add(1)?;
+        }
+    }
+}
 
 /// A TPI or IPI stream.
 pub struct TypeStream<'s> {
@@ -102,7 +179,12 @@ impl<'s> TypeStream<'s> {
         }
         let records = match stream {
             StreamData::Borrowed(b) => StreamData::Borrowed(&b[start..start + len]),
-            StreamData::Owned(v) => StreamData::Owned(v[start..start + len].to_vec()),
+            // (In place: a large stream isn't copied a second time.)
+            StreamData::Owned(mut v) => {
+                v.truncate(start + len);
+                v.drain(..start);
+                StreamData::Owned(v)
+            }
         };
         Ok(Self {
             header,
@@ -405,6 +487,81 @@ mod tests {
         header.extend_from_slice(&bytes);
         let hash: Vec<u8> = buckets.iter().flat_map(|b| b.to_le_bytes()).collect();
         (header, hash)
+    }
+
+    /// A type stream of `records` (from 0x1000), its hash stream (number
+    /// 1) holding only `index`'s (type index, offset) pairs.
+    fn indexed(records: &[Vec<u8>], index: &[(u32, u32)]) -> (Vec<u8>, Vec<u8>) {
+        let bytes: Vec<u8> = records.concat();
+        let mut header = Vec::new();
+        for v in [
+            20040203u32,
+            56,
+            0x1000,
+            0x1000 + records.len() as u32,
+            bytes.len() as u32,
+        ] {
+            header.extend_from_slice(&v.to_le_bytes());
+        }
+        header.extend_from_slice(&1u16.to_le_bytes());
+        header.extend_from_slice(&0xFFFFu16.to_le_bytes());
+        let len = 8 * index.len() as u32;
+        for v in [4u32, BUCKETS, 0, 0, 0, len, 0, 0] {
+            header.extend_from_slice(&v.to_le_bytes());
+        }
+        header.extend_from_slice(&bytes);
+        let hash = index
+            .iter()
+            .flat_map(|&(ti, off)| ti.to_le_bytes().into_iter().chain(off.to_le_bytes()))
+            .collect();
+        (header, hash)
+    }
+
+    /// Records read lazily (a few KB of a stream at a time) are the
+    /// records read from the whole stream: with an index (in a fragmented
+    /// stream), without one, and with a hostile one (out of order: no
+    /// index).
+    #[test]
+    fn lazy_records_are_the_records() {
+        let records: Vec<Vec<u8>> = (0..300)
+            .map(|i| structure(&format!("S{i}"), &format!(".?AUS{i}@@"), i as u16, false))
+            .collect();
+        let mut offsets = Vec::new();
+        let mut at = 0u32;
+        for (i, r) in records.iter().enumerate() {
+            if i % 37 == 0 {
+                offsets.push((0x1000 + i as u32, at));
+            }
+            at += r.len() as u32;
+        }
+        let mut shuffled = offsets.clone();
+        shuffled.reverse();
+        for index in [offsets.clone(), Vec::new(), shuffled] {
+            let (tpi, hash) = indexed(&records, &index);
+            // (Stream 1, the hash stream, is laid out backwards.)
+            let file = crate::msf::tests::build(&[&tpi, &hash]);
+            let msf = Msf::parse(&file).unwrap();
+            let lazy = LazyTypeStream::new(&msf, 0).unwrap();
+            let whole =
+                TypeStream::parse(msf.stream(0).unwrap(), StreamData::Borrowed(&[])).unwrap();
+            for ti in 0x1000..0x1000 + 300 {
+                let want = whole
+                    .record(TypeIndex(ti))
+                    .map(|r| (r.kind, r.data.to_vec()));
+                let got = lazy.with_record(TypeIndex(ti), |r| (r.kind, r.data.to_vec()));
+                assert_eq!(got, want, "{ti:#x}");
+            }
+            for ti in [0, 0xFFF, 0x1000 + 300, u32::MAX] {
+                assert!(lazy.with_record(TypeIndex(ti), |_| ()).is_none());
+            }
+        }
+        // Truncated: no record, no panic.
+        let (tpi, hash) = indexed(&records, &offsets);
+        let file = crate::msf::tests::build(&[&tpi[..tpi.len() / 2], &hash]);
+        let msf = Msf::parse(&file).unwrap();
+        let lazy = LazyTypeStream::new(&msf, 0).unwrap();
+        assert!(lazy.with_record(TypeIndex(0x1000 + 299), |_| ()).is_none());
+        assert!(LazyTypeStream::new(&msf, 7).is_err());
     }
 
     #[test]

@@ -657,6 +657,7 @@ impl Server {
             "symbols" => self.symbols(args),
             "lookup" => self.lookup(args),
             "dependencies" => dependencies(args),
+            "symbolize" => symbolize(args),
             "query" => self.query(args),
             "why" => self.why(args),
             "recommend" => self.recommend(args),
@@ -740,7 +741,7 @@ impl Server {
     }
 }
 
-const INSTRUCTIONS: &str = "hexc reports what the bytes of a Windows executable (PE, with its PDB), COFF object, or library are. Start with size_report on the file (sources: sections; then symbols, compileunits, libraries, or groups, or several for a breakdown). Use symbols to find the largest or a named symbol, findings for what wastes space and how to fix it, and lookup to ask what is at an address. Give `base` to size_report to diff two builds. Sizes are in bytes; `file` is bytes on disk, `vm` bytes in memory.";
+const INSTRUCTIONS: &str = "hexc reports what the bytes of a Windows executable (PE, with its PDB), COFF object, or library are. Start with size_report on the file (sources: sections; then symbols, compileunits, libraries, or groups, or several for a breakdown). Use symbols to find the largest or a named symbol, findings for what wastes space and how to fix it, and lookup to ask what is at an address. Give `base` to size_report to diff two builds. Sizes are in bytes; `file` is bytes on disk, `vm` bytes in memory. For crash reports and stack traces of any executable (PE, ELF, Mach-O, WebAssembly), symbolize gives each address's function, source line, and inlined functions, or annotates a log's text.";
 
 fn error(id: Value, code: i64, message: &str) -> Value {
     object([
@@ -798,6 +799,69 @@ fn dependencies(args: &Value) -> ToolResult {
         String::from_utf8_lossy(&summary.stdout).into_owned(),
         structured,
     ))
+}
+
+/// The `symbolize` tool: the frames at addresses (as `hexc symbolize`
+/// gives them), or text with where each address in it is added.
+fn symbolize(args: &Value) -> ToolResult {
+    let mut images: Vec<String> = match args.get("images") {
+        Some(Value::Array(a)) => a
+            .iter()
+            .filter_map(Value::as_str)
+            .map(str::to_string)
+            .collect(),
+        _ => Vec::new(),
+    };
+    if let Some(p) = arg_str(args, "path") {
+        images.insert(0, p.to_string());
+    }
+    if images.is_empty() {
+        return Err("`path` (or `images`) is required".into());
+    }
+    if let Some(text) = arg_str(args, "text") {
+        let out = crate::symbolize::annotate_text(&images, text)?;
+        let structured = object([("text", Value::from(out.clone()))]);
+        return Ok((out, structured));
+    }
+    let addresses: Vec<String> = match args.get("addresses") {
+        Some(Value::Array(a)) => a
+            .iter()
+            .map(|v| v.as_str().map_or_else(|| v.to_string(), str::to_string))
+            .collect(),
+        Some(Value::String(s)) => s
+            .split([',', ' '])
+            .filter(|s| !s.is_empty())
+            .map(str::to_string)
+            .collect(),
+        _ => return Err("`addresses` or `text` is required".into()),
+    };
+    let mut command = vec!["symbolize".to_string()];
+    if args.get("offset").and_then(Value::as_bool) == Some(true) {
+        command.push("-offset".into());
+    }
+    if args.get("return").and_then(Value::as_bool) == Some(true) {
+        command.push("-return".into());
+    }
+    if let Some(p) = arg_str(args, "pdb") {
+        command.extend(["-pdb".into(), p.to_string()]);
+    }
+    command.extend(images);
+    command.extend(addresses);
+    let run = |json: bool| {
+        let mut c = command.clone();
+        if json {
+            c.insert(1, "-json".into());
+        }
+        let (code, out) = crate::out::capture(|| crate::command(&c));
+        let stdout = String::from_utf8_lossy(&out.stdout).into_owned();
+        if code != std::process::ExitCode::SUCCESS && stdout.is_empty() {
+            return Err(String::from_utf8_lossy(&out.stderr).trim().to_string());
+        }
+        Ok(stdout)
+    };
+    let text = run(false)?;
+    let structured = serde_json::from_str(&run(true)?).map_err(|e| e.to_string())?;
+    Ok((text, object([("addresses", structured)])))
 }
 
 fn tools() -> Value {
@@ -1047,6 +1111,76 @@ fn tools() -> Value {
                 ),
             ),
             tool(
+                "symbolize",
+                "The function, source file and line, and inlined functions (innermost first) at addresses of executables or libraries (PE with its PDB; ELF, Mach-O, WebAssembly with DWARF; or, without debug information, their own symbol tables), as a symbolizer for crash reports and stack traces. Or, given `text` (a log, a stack trace), that text with where each address in it is added after it.",
+                schema(
+                    vec![
+                        (
+                            "path",
+                            prop(
+                                "string",
+                                "The image the addresses are in; `path@base` if it was loaded at `base` (then addresses are as loaded).",
+                            ),
+                        ),
+                        (
+                            "images",
+                            object([
+                                ("type", Value::from("array")),
+                                ("items", object([("type", Value::from("string"))])),
+                                (
+                                    "description",
+                                    Value::from(
+                                        "More images (each `path` or `path@base`), for text or addresses of several modules.",
+                                    ),
+                                ),
+                            ]),
+                        ),
+                        (
+                            "addresses",
+                            object([
+                                ("type", Value::from("array")),
+                                ("items", object([("type", Value::from("string"))])),
+                                (
+                                    "description",
+                                    Value::from(
+                                        "Addresses: hex (\"0x140001043\"), as the image's tools show them (a PE image's with its preferred base) unless a base is given; or `name+0xoffset` (an offset from the start of the image named name).",
+                                    ),
+                                ),
+                            ]),
+                        ),
+                        (
+                            "text",
+                            prop(
+                                "string",
+                                "Text to annotate instead (a crash log, a stack trace).",
+                            ),
+                        ),
+                        (
+                            "offset",
+                            prop(
+                                "boolean",
+                                "The addresses are offsets from the image's start.",
+                            ),
+                        ),
+                        (
+                            "return",
+                            prop(
+                                "boolean",
+                                "The addresses are return addresses (stack frames' but the first): the call before each is looked up.",
+                            ),
+                        ),
+                        (
+                            "pdb",
+                            prop(
+                                "string",
+                                "The first image's debug information, if it isn't found from the image.",
+                            ),
+                        ),
+                    ],
+                    &[],
+                ),
+            ),
+            tool(
                 "lookup",
                 "What is at an address of a binary, by every data source: section, COFF group, symbol (with every name folded there), compiland, and library.",
                 schema(
@@ -1175,6 +1309,7 @@ mod tests {
                 "why",
                 "recommend",
                 "dependencies",
+                "symbolize",
                 "lookup"
             ]
         );

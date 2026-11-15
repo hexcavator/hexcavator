@@ -173,6 +173,46 @@ impl<'data> Msf<'data> {
         }
         self.stream(index)
     }
+
+    /// `len` bytes of stream `index` from `offset` (fewer at its end), and
+    /// nothing more of it: borrowed from the file if they are in one block
+    /// (or contiguous blocks), else gathered.
+    pub fn read(&self, index: u32, offset: u64, len: u64) -> Result<StreamData<'data>> {
+        let what = "MSF stream";
+        let bad = || Error::new(ErrorKind::Malformed, u64::from(index), what);
+        let size = u64::from(self.stream_size(index).ok_or_else(bad)?);
+        let blocks = self.stream_blocks(index).ok_or_else(bad)?;
+        let end = offset.saturating_add(len).min(size);
+        if offset >= end {
+            return Ok(Cow::Borrowed(&[]));
+        }
+        let bs = u64::from(self.block_size);
+        let block = |at: u64| -> Result<u64> {
+            let b = blocks
+                .get(usize::try_from(at / bs).map_err(|_| bad())?)
+                .ok_or_else(bad)?;
+            Ok(u64::from(b.get()) * bs + at % bs)
+        };
+        // Within one run of contiguous blocks: borrowed.
+        let first = offset / bs;
+        let last = (end - 1) / bs;
+        let run = (first..last).all(|i| {
+            let (a, b) = (blocks.get(i as usize), blocks.get(i as usize + 1));
+            matches!((a, b), (Some(a), Some(b)) if b.get() == a.get().wrapping_add(1))
+        });
+        if run {
+            return hexcavator_core::bytes_at(self.data, block(offset)?, end - offset)
+                .map(Cow::Borrowed);
+        }
+        let mut out = Vec::with_capacity(usize::try_from(end - offset).unwrap_or(0));
+        let mut at = offset;
+        while at < end {
+            let take = (bs - at % bs).min(end - at);
+            out.extend_from_slice(hexcavator_core::bytes_at(self.data, block(at)?, take)?);
+            at += take;
+        }
+        Ok(Cow::Owned(out))
+    }
 }
 
 /// Assembles `size` bytes from `blocks`, borrowing when they are contiguous.
@@ -284,6 +324,39 @@ pub(crate) mod tests {
         assert_eq!(&*s1, &b[..]);
         assert!(msf.stream(2).unwrap().is_empty());
         assert!(msf.stream(3).is_err());
+    }
+
+    /// Ranges of a stream: within a block, across contiguous ones
+    /// (borrowed), across a fragmented stream's (gathered), clipped at its
+    /// end, and nothing past it.
+    #[test]
+    fn ranges_of_streams() {
+        let a: Vec<u8> = (0..1000u32).map(|i| i as u8).collect();
+        let b: Vec<u8> = (0..1500u32).map(|i| (i * 7) as u8).collect();
+        let file = build(&[&a, &b]);
+        let msf = Msf::parse(&file).unwrap();
+        for (index, data) in [(0u32, &a), (1, &b)] {
+            for (at, len) in [
+                (0u64, 10u64),
+                (500, 30),
+                (510, 4),
+                (0, 1000),
+                (300, 5000),
+                (999, 1),
+            ] {
+                let got = msf.read(index, at, len).unwrap();
+                let end = (at + len).min(data.len() as u64) as usize;
+                assert_eq!(&*got, &data[at as usize..end], "{index} {at} {len}");
+            }
+            assert!(msf.read(index, 5000, 10).unwrap().is_empty());
+            assert!(msf.read(index, u64::MAX, u64::MAX).unwrap().is_empty());
+        }
+        // Within one block of the fragmented stream: borrowed; across two
+        // of its blocks: gathered.
+        assert!(matches!(msf.read(1, 0, 100).unwrap(), Cow::Borrowed(_)));
+        assert!(matches!(msf.read(1, 500, 30).unwrap(), Cow::Owned(_)));
+        assert!(matches!(msf.read(0, 500, 30).unwrap(), Cow::Borrowed(_)));
+        assert!(msf.read(9, 0, 1).is_err());
     }
 
     #[test]
