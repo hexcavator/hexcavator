@@ -3,7 +3,7 @@
 //! (generated with .NET 10). SizeBench names resource languages this way.
 
 /// (LCID, name), sorted by LCID.
-pub(crate) static LANGUAGES: &[(u16, &str)] = &[
+pub static LANGUAGES: &[(u16, &str)] = &[
     (0x0001, "Arabic"),
     (0x0002, "Bulgarian"),
     (0x0003, "Catalan"),
@@ -458,7 +458,7 @@ pub(crate) static LANGUAGES: &[(u16, &str)] = &[
 ];
 
 /// The display name of language `lcid`, as SizeBench shows it.
-pub(crate) fn language_name(lcid: u16) -> &'static str {
+pub fn language_name(lcid: u16) -> &'static str {
     if lcid == 0 || lcid == 0x400 {
         return "LANG_NEUTRAL";
     }

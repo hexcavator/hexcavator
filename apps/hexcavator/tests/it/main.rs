@@ -19,6 +19,7 @@ mod mcp;
 mod pdb;
 mod query;
 mod readobj;
+mod resources;
 mod self_contained;
 mod serve;
 mod signature;

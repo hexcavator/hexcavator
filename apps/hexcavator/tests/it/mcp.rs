@@ -354,6 +354,38 @@ fn query_tool() {
     assert!(e.to_string().contains("no column 'size'"), "{e}");
 }
 
+/// The resources tool: the list, and one decoded (without its bytes).
+#[test]
+fn resources_tool() {
+    let exe = testdata("resources/resources.exe");
+    let path = || Value::from(exe.to_string_lossy().into_owned());
+    let r = session(&[
+        ("resources", object([("path", path())])),
+        (
+            "resources",
+            object([("path", path()), ("id", Value::from("GROUP_ICON/#1/1033"))]),
+        ),
+        (
+            "resources",
+            object([("path", path()), ("id", Value::from("NOPE"))]),
+        ),
+    ]);
+    let v = result(&r[0]);
+    assert!(
+        v["items"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|i| i["id"] == "VERSION/#1/1033")
+    );
+    let v = result(&r[1]);
+    assert_eq!(v["images"].as_array().unwrap().len(), 2);
+    assert!(v.get("file").is_none());
+    let e = r[2].get("result").unwrap();
+    assert_eq!(e["isError"], true, "{e}");
+    assert!(e.to_string().contains("has no resource 'NOPE'"), "{e}");
+}
+
 /// The why and recommend tools, over one cached graph.
 #[test]
 fn why_and_recommend_tools() {

@@ -1234,6 +1234,184 @@ table.tree th.sortable {
   color: var(--shrinks);
 }
 
+/* The Resources page (resources-view.js): the list on the left, the
+   selected one on the right. */
+.respage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+}
+
+.reslist {
+  flex: 0 0 45%;
+  overflow: auto;
+  border-right: 1px solid var(--vscode-panel-border);
+}
+
+.resitem {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  padding: 6px 10px;
+}
+
+table.restable {
+  width: 100%;
+  table-layout: fixed;
+}
+
+table.restable tr.group td {
+  cursor: pointer;
+  padding-top: 4px;
+}
+
+table.restable tr.res {
+  cursor: pointer;
+}
+
+table.restable tr.res td.rname {
+  width: 40%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+table.restable td.rsummary {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+table.restable td.num {
+  width: 70px;
+}
+
+.resitem .detailhead {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.resitem .detailhead .spacer {
+  flex: 1;
+}
+
+.resbody pre.text,
+.resbody pre.hex {
+  font-family: var(--vscode-editor-font-family);
+  font-size: var(--vscode-editor-font-size);
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin: 0;
+}
+
+.resbody pre.hex {
+  white-space: pre;
+}
+
+.resbody td.pre {
+  white-space: pre-wrap;
+}
+
+.resbody table.pairs td.key {
+  color: var(--vscode-descriptionForeground);
+  white-space: nowrap;
+  padding-right: 16px;
+  vertical-align: top;
+}
+
+.resbody table.pairs td.mono {
+  word-break: break-all;
+}
+
+.resbody h4 {
+  margin: 12px 0 4px;
+}
+
+.resbody .images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end;
+}
+
+.resbody figure {
+  margin: 0;
+  text-align: center;
+}
+
+.resbody figure img {
+  image-rendering: pixelated;
+  background: repeating-conic-gradient(rgba(128, 128, 128, 0.25) 0% 25%, transparent 0% 50%) 50% / 12px 12px;
+}
+
+.resbody .dlgframe {
+  display: inline-block;
+  margin: 8px 0 12px;
+  border: 1px solid var(--vscode-panel-border);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.resbody .dlgtitle {
+  padding: 3px 8px;
+  background: var(--vscode-titleBar-activeBackground, var(--vscode-editorWidget-background));
+  color: var(--vscode-titleBar-activeForeground, inherit);
+  font-size: 12px;
+}
+
+.resbody .dlgface {
+  position: relative;
+  background: var(--vscode-editorWidget-background);
+  font-size: 11px;
+}
+
+.resbody .dlgctl {
+  position: absolute;
+  box-sizing: border-box;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.resbody .dlgctl.button {
+  border: 1px solid var(--vscode-button-border, var(--vscode-panel-border));
+  background: var(--vscode-button-secondaryBackground);
+  color: var(--vscode-button-secondaryForeground);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.resbody .dlgctl.edit,
+.resbody .dlgctl.list {
+  border: 1px solid var(--vscode-input-border, var(--vscode-panel-border));
+  background: var(--vscode-input-background);
+}
+
+.resbody .dlgctl.other {
+  border: 1px dashed var(--vscode-panel-border);
+  color: var(--vscode-descriptionForeground);
+}
+
+.resbody ul.menu {
+  list-style: none;
+  margin: 0;
+  padding-left: 16px;
+}
+
+.resbody .menubox > ul.menu {
+  padding-left: 0;
+}
+
+.resbody ul.menu li.sep hr {
+  border: none;
+  border-top: 1px solid var(--vscode-panel-border);
+  margin: 3px 0;
+  width: 200px;
+}
+
 /* The Initialization page (init-view.js). */
 table.init tr.phase td {
   padding-top: 10px;

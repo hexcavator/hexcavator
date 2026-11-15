@@ -30,7 +30,7 @@ pub mod elf;
 pub mod findings;
 pub mod fingerprint;
 pub mod index;
-mod lcid;
+pub mod lcid;
 pub mod macho;
 pub mod map;
 pub mod model;

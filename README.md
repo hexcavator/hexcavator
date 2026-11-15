@@ -296,6 +296,29 @@ languages), or a Mach-O image's versions and Info.plist.
 strings from its `.mui` satellite, which has its own versions; hexc reads
 the file's own, so those are skipped).
 
+### Resources and metadata
+
+```
+hexc resources app.exe                     # each resource (by type, name, language) and what it says, in a line
+hexc resources -show VERSION/#1/1033 app.exe   # one decoded: version information, a dialog's controls, a menu, strings, ...
+hexc resources -save GROUP_ICON/#1/1033 app.ico app.exe   # an icon group as an .ico file (a cursor's as .cur, a bitmap as .bmp)
+hexc resources -show Entitlements App.app/Contents/MacOS/App   # a Mach-O image's entitlements (or Info.plist, Versions)
+hexc resources -all -json libfoo.so        # everything, decoded, as JSON: an ELF image's notes and .comment
+```
+
+What a binary holds besides its code, and what it says of itself. A PE
+image's resources, decoded: version information, manifests (in a line: the
+assemblies it needs, the privileges it asks for), string tables, message
+tables, dialogs (`DIALOG` and `DIALOGEX`), menus (`MENU` and `MENUEX`),
+accelerators, icon and cursor groups and their images (PNG or bitmap),
+bitmaps, HTML, and the rest as text or bytes. A Mach-O image's Info.plist
+(`__TEXT,__info_plist`), its code signature's entitlements, and its
+versions (platform, minimum OS, SDK, UUID, the bundle's). An ELF image's
+notes (build ID, ABI tag, package metadata, GNU properties: IBT, SHSTK, BTI,
+PAC, ...), `.comment`, and `.gnu_debuglink`. A WebAssembly module's
+`producers`, `target_features`, and other custom sections. A 16-bit
+image's resources. `tools/resources` builds the test's images.
+
 ### Type layouts
 
 ```

@@ -23,6 +23,7 @@ Mach-O file with DWARF gets what a PE image with its PDB does):
 
 - **Headers** and **File Format**: `hexc`'s output, as text.
 - **Dependencies**: the Dependencies page (below).
+- **Resources**: the Resources page (below).
 - **Build Information**: the Build Information page (below).
 - **Debug Information** (its PDB's summary, or its DWARF's units, lines,
   and frames; a Mach-O image without a dSYM, each object's of its debug
@@ -98,6 +99,20 @@ opens to what it calls (in the order its code calls them), and those to
 what they call, asked of `hexc` as you open them. Double-click a function
 to open its source; its context menu disassembles it, says why it's there,
 and what refers to it.
+
+## The Resources page
+
+What the binary holds besides its code, and what it says of itself: `hexc
+resources -json`. On the left, each resource (a PE image's, by type, name,
+and language), or a Mach-O image's Info.plist, entitlements, and versions,
+or an ELF image's notes, or a WebAssembly module's custom sections, grouped,
+each with what it says in a line; a filter. On the right, the one selected,
+decoded (`-show`): version information as a table; a manifest, Info.plist,
+or HTML as text; string and message tables; a dialog drawn from its
+template, with its controls listed; a menu; accelerators; an icon or cursor
+group's images; a bitmap; anything else as bytes. **Save…** writes it out
+(an icon group as an `.ico` file, a cursor group as a `.cur` file, a bitmap
+as a `.bmp` file); **Copy** copies its text.
 
 ## The Build Information page
 

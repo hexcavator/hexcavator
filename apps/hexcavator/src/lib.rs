@@ -18,6 +18,7 @@ mod mcp;
 mod pdbdump;
 mod query;
 mod recommend;
+mod resources;
 mod serve;
 mod signature;
 mod size;
@@ -55,6 +56,7 @@ commands:
   pdb [options] <file.pdb>   dump a PDB (see `hexc pdb` for options)
   query <image> <query>      the image's symbols, filtered, grouped, and sorted
   recommend <image>          build changes that would make the image smaller, measured
+  resources [options] <image>  its resources and metadata (version, manifest, icons, dialogs, Info.plist, notes)
   serve                      run commands for an editor, keeping what they read in memory
   signature [-json] <image>  its code signatures (Authenticode, Apple), verified on any platform
   size [options] <image>     where the bytes go, by section, library, and compiland
@@ -228,6 +230,7 @@ fn command(args: &[String]) -> ExitCode {
         "xref" => xref::run(rest),
         "query" => query::run(rest),
         "recommend" => recommend::run(rest),
+        "resources" => resources::run(rest),
         "types" => types::run(rest),
         "inlines" => lines::run_inlines(rest),
         "sourcefiles" => lines::run_sourcefiles(rest),
@@ -668,6 +671,9 @@ fn tools_for(format: &str, kind: &str, debug: bool, dwarf: bool) -> Vec<&'static
     }
     if kind == "linked" && format != "other" {
         t.push("disassemble");
+    }
+    if kind == "linked" && ["pe", "elf", "macho", "wasm"].contains(&format) {
+        t.push("resources");
     }
     if kind == "linked" && ["pe", "elf", "macho"].contains(&format) {
         t.push("deps");
