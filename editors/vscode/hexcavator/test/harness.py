@@ -382,6 +382,7 @@ def main():
     types_checks(exe, image, shot)
     build_checks(exe, shot)
     deps_checks(exe, shot)
+    init_checks(exe, shot)
     diff_checks(exe, shot)
     print(f"ok: {outer} sections in the treemap; zoom, search, disassembly actions, sunburst, tree, diff, and findings ({rows} rows) render; disassembly: {modes}")
 
@@ -669,6 +670,79 @@ def deps_checks(exe, shot):
     dom = render(None, html_page=page("document.getElementById('system').click();"))
     posted = html.unescape(re.search(r'<pre id="posted">(.*?)</pre>', dom, re.S).group(1))
     assert '"command":"refresh","system":true' in posted, posted
+
+
+def init_page(message, answers, then=""):
+    """The Initialization page, with a stand-in for the extension that
+    answers its "callees" requests from `answers` (by node), as hexc
+    would."""
+    def read(name):
+        with open(os.path.join(MEDIA, name), encoding="utf-8") as f:
+            return f.read()
+
+    stub = f"""
+window.__answers = {json.dumps(answers)};
+(function () {{
+  var post = window.acquireVsCodeApi().postMessage;
+  window.acquireVsCodeApi = function () {{ return {{
+    postMessage: function (m) {{
+      post(m);
+      var a = m.command === "callees" ? window.__answers[String(m.node)] : null;
+      if (a) setTimeout(function () {{ window.postMessage(Object.assign({{ kind: "callees" }}, a), "*"); }}, 5);
+    }},
+    getState: function () {{ return null; }}, setState: function () {{}} }}; }};
+}})();
+"""
+    return f"""<!DOCTYPE html><html><head><meta charset="utf-8"><style>{THEME}{read("view.css")}{read("loading.css")}</style></head><body class="treemode">
+<header id="header"></header><div id="toolbar"></div><div id="main"></div><pre id="posted"></pre>
+<script>{VSCODE_STUB}{stub}</script>
+<script>{read("loading.js")}</script>
+<script>{read("init-view.js")}</script>
+<script>window.postMessage({json.dumps(message)}, "*");
+setTimeout(function () {{ {then} }}, 150);</script>
+</body></html>"""
+
+
+def init_checks(exe, shot):
+    """The Initialization page: the phases in order, each function opened
+    a level (its callees asked of hexc), a callee opened further, and the
+    program's own code last."""
+    image = os.path.join(REPO, "testdata", "init", "init.exe")
+    data = hexc(exe, "init", "-json", image)
+    answers = {}
+    nodes = [e["node"] for p in data["phases"] for e in p["entries"] if e["node"] is not None]
+    for n in nodes:
+        answers[str(n)] = hexc(exe, "init", "-json", "-callees", str(n), image)
+    # (And a level further, for what a click opens.)
+    for a in list(answers.values()):
+        for c in a["callees"]:
+            if str(c["node"]) not in answers:
+                answers[str(c["node"])] = hexc(exe, "init", "-json", "-callees", str(c["node"]), image)
+    message = {"kind": "init", "file": image, "data": data}
+    dom = render(None, shot=shot("init"), html_page=init_page(message, answers))
+    text = html.unescape(re.sub("<[^>]+>", " ", dom))
+    phases = [p["name"] for p in data["phases"]]
+    at = [text.find(p) for p in phases]
+    assert all(i >= 0 for i in at) and at == sorted(at), f"the phases in order: {phases}"
+    assert "tls_callback" in text and "c_initializer" in text, "the phases' functions"
+    assert "jumps to" in text and "Widget::Widget()" in text, "a constructor's callee, opened"
+    assert text.rfind("Then the program's own code") > at[-1] and "main()" in text, "main last"
+    posted = html.unescape(re.search(r'<pre id="posted">(.*?)</pre>', dom, re.S).group(1))
+    assert '"command":"callees"' in posted, "callees asked for"
+    # A callee opened further: Widget::Widget's own.
+    dom = render(
+        None,
+        html_page=init_page(
+            message,
+            answers,
+            "var rows = Array.from(document.querySelectorAll('tr')).filter(function (r) { return r.textContent.indexOf('Widget::Widget()') >= 0; });"
+            " rows[0].querySelector('.twisty').click();",
+        ),
+    )
+    text = html.unescape(re.sub("<[^>]+>", " ", dom))
+    assert "Widget::prepare()" in text, "a callee's callee"
+    # Its context: the symbol menu's (Disassemble, Why, References, Go to Source).
+    assert '&quot;webviewSection&quot;:&quot;symbol&quot;' in dom, "the row menu"
 
 
 def table_checks(exe, image, shot):

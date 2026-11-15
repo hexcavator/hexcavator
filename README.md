@@ -328,6 +328,24 @@ folding merged count once. Source files come from the line tables; inlined
 code counts where it was inlined. On clang: 4.3 million inline sites of
 361,000 functions, 40.0 MB of its 82 MB of code, in about 5 seconds.
 
+### What runs before main
+
+```
+hexc init app.exe                          # what runs when it loads, before main, in order, with what each calls
+hexc init -depth 4 libfoo.so               # a library: what runs when it's loaded, callees four levels down
+hexc init -json app.exe                    # as JSON (hexc init -json -callees <node>: what a function calls)
+```
+
+The phases in the order they run, from the image and its debug
+information: a PE image's TLS callbacks, its entry point, and the CRT's
+lists (`.rtc$I*`, `.CRT$XI*`, `.CRT$XC*`: global objects' constructors),
+each group's entries in order, then `main` (or `DllMain`); an ELF image's
+`.preinit_array`, `DT_INIT`, `.ctors`, `.init_array` (through the loader's
+relocations, in a position-independent image), and entry point; a Mach-O
+image's `__mod_init_func` (or `__init_offsets`) and entry point. What each
+function calls comes from the cross-reference graph, in the order its code
+calls them (a tail call marked). `tools/init` builds the test's images.
+
 ### Symbolizing addresses and crash logs
 
 ```

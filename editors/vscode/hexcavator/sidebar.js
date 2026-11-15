@@ -707,6 +707,8 @@ async function runTool(sidebar, provider, node) {
       return sidebar.deps.openBuildInfo(entry.file);
     case "deps":
       return sidebar.deps.openDeps(entry.file);
+    case "init":
+      return sidebar.deps.openInit(entry.file);
     case "sources":
       return sidebar.deps.openSources(entry.file);
     case "pick-base": {

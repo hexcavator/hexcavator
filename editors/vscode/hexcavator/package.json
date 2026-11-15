@@ -495,7 +495,7 @@
       "webview/context": [
         {
           "command": "hexcavator.row.disassemble",
-          "when": "(webviewId == 'hexcSize' || webviewId == 'hexcavator.sizeEditor' || webviewId == 'hexcTable') && webviewSection == 'symbol' && symbolKind != 'data'",
+          "when": "(webviewId == 'hexcSize' || webviewId == 'hexcavator.sizeEditor' || webviewId == 'hexcTable' || webviewId == 'hexcInit') && webviewSection == 'symbol' && symbolKind != 'data'",
           "group": "1@1"
         },
         {
@@ -510,22 +510,22 @@
         },
         {
           "command": "hexcavator.row.why",
-          "when": "(webviewId == 'hexcSize' || webviewId == 'hexcavator.sizeEditor' || webviewId == 'hexcTable') && webviewSection == 'symbol' && canQuery",
+          "when": "(webviewId == 'hexcSize' || webviewId == 'hexcavator.sizeEditor' || webviewId == 'hexcTable' || webviewId == 'hexcInit') && webviewSection == 'symbol' && canQuery",
           "group": "2@1"
         },
         {
           "command": "hexcavator.row.refs",
-          "when": "(webviewId == 'hexcSize' || webviewId == 'hexcavator.sizeEditor' || webviewId == 'hexcTable') && webviewSection == 'symbol' && canQuery",
+          "when": "(webviewId == 'hexcSize' || webviewId == 'hexcavator.sizeEditor' || webviewId == 'hexcTable' || webviewId == 'hexcInit') && webviewSection == 'symbol' && canQuery",
           "group": "2@2"
         },
         {
           "command": "hexcavator.row.goToSource",
-          "when": "(webviewId == 'hexcSize' || webviewId == 'hexcavator.sizeEditor' || webviewId == 'hexcTable') && webviewSection == 'symbol' && symbolKind != 'data'",
+          "when": "(webviewId == 'hexcSize' || webviewId == 'hexcavator.sizeEditor' || webviewId == 'hexcTable' || webviewId == 'hexcInit') && webviewSection == 'symbol' && symbolKind != 'data'",
           "group": "1@3"
         },
         {
           "command": "hexcavator.row.copyName",
-          "when": "(webviewId == 'hexcSize' || webviewId == 'hexcavator.sizeEditor' || webviewId == 'hexcTable') && (webviewSection == 'symbol' || webviewSection == 'row' || webviewSection == 'diffSymbol')",
+          "when": "(webviewId == 'hexcSize' || webviewId == 'hexcavator.sizeEditor' || webviewId == 'hexcTable' || webviewId == 'hexcInit') && (webviewSection == 'symbol' || webviewSection == 'row' || webviewSection == 'diffSymbol')",
           "group": "3@1"
         },
         {

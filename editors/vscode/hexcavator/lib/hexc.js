@@ -104,7 +104,7 @@ function capsFallback(file) {
   if (kind === "pe") {
     return {
       format: "pe",
-      tools: ["report", "compare", "info", "dump", "deps", "disassemble", "findings", "recommend", "why", "refs", "xref", "unreachable", "vtables", "identical", "query", "types", "layout", "inlines", "sourcefiles", "annotations", "data", "functionsDiff", "findingsDiff", "typesDiff", "lenses"],
+      tools: ["report", "compare", "info", "dump", "deps", "disassemble", "init", "findings", "recommend", "why", "refs", "xref", "unreachable", "vtables", "identical", "query", "types", "layout", "inlines", "sourcefiles", "annotations", "data", "functionsDiff", "findingsDiff", "typesDiff", "lenses"],
     };
   }
   if (kind === "coff") {
@@ -249,6 +249,9 @@ function sidebarFor(entry, caps) {
     items.push(t("debuginfo", "Debug Information", "symbol-namespace", `its PDB: ${debug.path}`, { run: "text", args: ["pdb", "-summary", debug.path] }));
   } else if (can(caps, "dwarf")) {
     items.push(t("debuginfo", "Debug Information", "symbol-namespace", "its DWARF: units, lines, and frames, as llvm-dwarfdump shows them", { run: "text", args: ["dwarf", "-summary", file] }));
+  }
+  if (can(caps, "init")) {
+    items.push(t("initialization", "Initialization", "rocket", "what runs before main (or when it's loaded), in order, and what each function calls", { run: "init" }));
   }
   if (tool("report")) {
     items.push(t("symbols", "Symbols", "symbol-method", "every symbol, by size: grouped, filtered, as a tree or a map", { run: "panel" }));
