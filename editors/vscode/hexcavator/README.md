@@ -26,6 +26,7 @@ Mach-O file with DWARF gets what a PE image with its PDB does):
 - **Debug Information** (its PDB's summary, or its DWARF's units, lines,
   and frames; a Mach-O image without a dSYM, each object's of its debug
   map): `hexc`'s output, as text.
+- **Initialization**: the Initialization page (below).
 - **Symbols**: the Symbols page (below).
 - **Types**: the Types page (below).
 - **Sources**: the Symbols page grouped by source file (each byte of code
@@ -66,6 +67,19 @@ mapped drive) are found here by `hexcavator.sourcePathMap` (prefixes, from
 the build's to yours), else by their last directories under the
 workspace's folders and the binary's directories; lenses match them the
 same way.
+
+## The Initialization page
+
+What runs when the binary is loaded, before its `main` (or, a library,
+when it's loaded): `hexc init -json`. The phases in the order they run
+(TLS callbacks, the entry point, the CRT's lists of C initializers and
+global objects' constructors; `.preinit_array`, `DT_INIT`, `.ctors`,
+`.init_array`; `__mod_init_func`), each with its functions in order, and
+then the program's own code (`main`, `WinMain`, `DllMain`). Each function
+opens to what it calls (in the order its code calls them), and those to
+what they call, asked of `hexc` as you open them. Double-click a function
+to open its source; its context menu disassembles it, says why it's there,
+and what refers to it.
 
 ## The Build Information page
 

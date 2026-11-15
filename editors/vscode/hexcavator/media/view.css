@@ -1233,3 +1233,27 @@ table.tree th.sortable {
 .gchip.kind .change.shrank {
   color: var(--shrinks);
 }
+
+/* The Initialization page (init-view.js). */
+table.init tr.phase td {
+  padding-top: 10px;
+  height: auto;
+  line-height: 18px;
+  white-space: normal;
+}
+
+table.init .phasename {
+  font-weight: 600;
+}
+
+table.init td.where {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 0;
+  width: 30%;
+}
+
+table.init td.tname {
+  width: 70%;
+}
