@@ -250,7 +250,7 @@ checksum = "ed5909b6e89a2db4456e54cd5f673791d7eca6732202bbf2a9cc504fe2f9b84a"
 
 [[package]]
 name = "hexcavator"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "hexcavator-archive",
  "hexcavator-arm64",
@@ -286,7 +286,7 @@ dependencies = [
 
 [[package]]
 name = "hexcavator-archive"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "hexcavator-core",
  "hexcavator-pe",
@@ -294,15 +294,15 @@ dependencies = [
 
 [[package]]
 name = "hexcavator-arm32"
-version = "0.0.5"
+version = "0.0.6"
 
 [[package]]
 name = "hexcavator-arm64"
-version = "0.0.5"
+version = "0.0.6"
 
 [[package]]
 name = "hexcavator-code"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "hexcavator-arm32",
  "hexcavator-arm64",
@@ -312,18 +312,18 @@ dependencies = [
 
 [[package]]
 name = "hexcavator-codeview"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "hexcavator-core",
 ]
 
 [[package]]
 name = "hexcavator-core"
-version = "0.0.5"
+version = "0.0.6"
 
 [[package]]
 name = "hexcavator-debuginfo"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "hexcavator-codeview",
  "hexcavator-core",
@@ -340,7 +340,7 @@ dependencies = [
 
 [[package]]
 name = "hexcavator-demangle"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "bumpalo",
  "hexcavator-core",
@@ -348,7 +348,7 @@ dependencies = [
 
 [[package]]
 name = "hexcavator-deps"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "hexcavator-core",
  "hexcavator-elf",
@@ -360,7 +360,7 @@ dependencies = [
 
 [[package]]
 name = "hexcavator-dwarf"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "hexcavator-core",
  "hexcavator-elf",
@@ -368,14 +368,14 @@ dependencies = [
 
 [[package]]
 name = "hexcavator-elf"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "hexcavator-core",
 ]
 
 [[package]]
 name = "hexcavator-etl"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "hexcavator-core",
  "hexcavator-mmap",
@@ -383,7 +383,7 @@ dependencies = [
 
 [[package]]
 name = "hexcavator-etw"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "hexcavator-core",
  "hexcavator-etl",
@@ -394,7 +394,7 @@ dependencies = [
 
 [[package]]
 name = "hexcavator-fingerprint"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "hexcavator-arm64",
  "hexcavator-core",
@@ -405,7 +405,7 @@ dependencies = [
 
 [[package]]
 name = "hexcavator-fuzz"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "hexcavator",
  "hexcavator-arm32",
@@ -434,7 +434,7 @@ dependencies = [
 
 [[package]]
 name = "hexcavator-image"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "hexcavator-core",
  "hexcavator-elf",
@@ -445,15 +445,15 @@ dependencies = [
 
 [[package]]
 name = "hexcavator-linkerlog"
-version = "0.0.5"
+version = "0.0.6"
 
 [[package]]
 name = "hexcavator-linkmap"
-version = "0.0.5"
+version = "0.0.6"
 
 [[package]]
 name = "hexcavator-lx"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "hexcavator-core",
  "hexcavator-mz",
@@ -461,21 +461,21 @@ dependencies = [
 
 [[package]]
 name = "hexcavator-macho"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "hexcavator-core",
 ]
 
 [[package]]
 name = "hexcavator-minidump"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "hexcavator-core",
 ]
 
 [[package]]
 name = "hexcavator-mmap"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "libc",
  "memmap2",
@@ -483,14 +483,14 @@ dependencies = [
 
 [[package]]
 name = "hexcavator-mz"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "hexcavator-core",
 ]
 
 [[package]]
 name = "hexcavator-ne"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "hexcavator-core",
  "hexcavator-mz",
@@ -498,7 +498,7 @@ dependencies = [
 
 [[package]]
 name = "hexcavator-pdb"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "hexcavator-codeview",
  "hexcavator-core",
@@ -506,7 +506,7 @@ dependencies = [
 
 [[package]]
 name = "hexcavator-pe"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "hexcavator-core",
  "hexcavator-mz",
@@ -514,7 +514,7 @@ dependencies = [
 
 [[package]]
 name = "hexcavator-program"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "hexcavator-archive",
  "hexcavator-codeview",
@@ -531,14 +531,14 @@ dependencies = [
 
 [[package]]
 name = "hexcavator-query"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "regex",
 ]
 
 [[package]]
 name = "hexcavator-signature"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "hexcavator-core",
  "hexcavator-macho",
@@ -553,7 +553,7 @@ dependencies = [
 
 [[package]]
 name = "hexcavator-size"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "hexcavator-archive",
  "hexcavator-arm32",
@@ -584,7 +584,7 @@ dependencies = [
 
 [[package]]
 name = "hexcavator-symbolize"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "hexcavator-codeview",
  "hexcavator-core",
@@ -596,7 +596,7 @@ dependencies = [
 
 [[package]]
 name = "hexcavator-trace"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "hexcavator-core",
  "hexcavator-etl",
@@ -607,7 +607,7 @@ dependencies = [
 
 [[package]]
 name = "hexcavator-trace-analysis"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "hexcavator-etl",
  "hexcavator-mmap",
@@ -618,7 +618,7 @@ dependencies = [
 
 [[package]]
 name = "hexcavator-unwind"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "hexcavator-arm32",
  "hexcavator-arm64",
@@ -633,25 +633,25 @@ dependencies = [
 
 [[package]]
 name = "hexcavator-wasm"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "hexcavator-core",
 ]
 
 [[package]]
 name = "hexcavator-wasm-isa"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "hexcavator-core",
 ]
 
 [[package]]
 name = "hexcavator-x86"
-version = "0.0.5"
+version = "0.0.6"
 
 [[package]]
 name = "hexcavator-xref"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "hexcavator-arm64",
  "hexcavator-core",
@@ -1102,7 +1102,7 @@ dependencies = [
 
 [[package]]
 name = "xtask"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "serde_json",
 ]

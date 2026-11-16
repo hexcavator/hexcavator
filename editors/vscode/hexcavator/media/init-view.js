@@ -1,8 +1,9 @@
 // The Initialization page: what runs when a binary is loaded, before its
 // main (hexc init -json), as a list in the order it runs: each phase (TLS
 // callbacks, the entry point, the CRT's lists, .init_array, ...) with its
-// functions, each opening to what it calls, and what those call, asked of
-// hexc as they're opened (hexc init -callees). A function whose source is
+// functions, closed to begin, each opening to what it calls (given with the
+// list: hexc init -calls), and what those call, asked of hexc as they're
+// opened (hexc init -callees). A function whose source is
 // known opens there (double-click); its context menu disassembles it, says
 // why it's there, and what refers to it.
 "use strict";
@@ -168,12 +169,32 @@
       tbody.append(tr);
     }
     const table = el("table", { class: "rows tree init" }, el("thead", {}, el("tr", {}, el("th", {}, "Function"), el("th", {}, "Source"))), tbody);
+    // The same scrolling element throughout, its table replaced: a new one
+    // would lose a scroll under way (and start at the top).
     const main = $("main");
-    const old = main.querySelector(".treewrap");
-    const top = old ? old.scrollTop : 0;
-    const wrap = el("div", { class: "treewrap" }, table);
-    main.replaceChildren(wrap);
+    let wrap = main.querySelector(".treewrap");
+    if (!wrap) {
+      wrap = el("div", { class: "treewrap" });
+      main.replaceChildren(wrap);
+    }
+    const top = wrap.scrollTop;
+    wrap.replaceChildren(table);
     wrap.scrollTop = top;
+  }
+
+  /** The tree drawn again once, shortly, for however many changes come
+   * before then (callees arriving together). (A timer, not the next
+   * animation frame: frames wait while the page is hidden.) */
+  let drawing = false;
+  function renderTreeSoon() {
+    if (drawing) {
+      return;
+    }
+    drawing = true;
+    setTimeout(() => {
+      drawing = false;
+      renderTree();
+    }, 16);
   }
 
   function indent(depth) {
@@ -196,20 +217,23 @@
     if (m.kind === "init") {
       state.file = m.file;
       state.data = m.data;
-      // The phases' functions open a level, to begin.
-      state.data.phases.forEach((p, pi) => p.entries.forEach((_, i) => state.open.add(`p${pi}/${i}`)));
-      for (const p of state.data.phases) {
-        for (const f of p.entries) {
-          if (f.node != null && f.callees > 0 && !state.asked.has(f.node)) {
-            state.asked.add(f.node);
-            post({ command: "callees", node: f.node });
-          }
+      // Closed, to begin (a program may have thousands of initializers),
+      // with what each listed function calls given with it (hexc init
+      // -calls): asked of hexc only further down.
+      state.callees.clear();
+      state.asked.clear();
+      state.open.clear();
+      state.selected = null;
+      const listed = state.data.phases.flatMap((p) => p.entries).concat(state.data.main ? [state.data.main] : []);
+      for (const f of listed) {
+        if (f.node != null && Array.isArray(f.calls)) {
+          state.callees.set(f.node, f.calls);
         }
       }
       render();
     } else if (m.kind === "callees") {
       state.callees.set(m.node, m.callees || []);
-      renderTree();
+      renderTreeSoon();
     }
   });
   post({ command: "ready" });

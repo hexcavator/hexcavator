@@ -705,45 +705,85 @@ setTimeout(function () {{ {then} }}, 150);</script>
 
 
 def init_checks(exe, shot):
-    """The Initialization page: the phases in order, each function opened
-    a level (its callees asked of hexc), a callee opened further, and the
-    program's own code last."""
+    """The Initialization page: the phases in order, closed, with what each
+    function calls given with them (hexc init -calls: nothing asked of hexc
+    to open one); a callee opened further (asked of hexc); the program's
+    own code last; and a long tree that keeps its scroll while callees
+    arrive."""
     image = os.path.join(REPO, "testdata", "init", "init.exe")
-    data = hexc(exe, "init", "-json", image)
+    data = hexc(exe, "init", "-json", "-calls", image)
+    # (What a click a level further opens, as hexc would answer.)
     answers = {}
-    nodes = [e["node"] for p in data["phases"] for e in p["entries"] if e["node"] is not None]
-    for n in nodes:
-        answers[str(n)] = hexc(exe, "init", "-json", "-callees", str(n), image)
-    # (And a level further, for what a click opens.)
-    for a in list(answers.values()):
-        for c in a["callees"]:
+    for f in [e for p in data["phases"] for e in p["entries"]] + [data["main"]]:
+        for c in f.get("calls") or []:
             if str(c["node"]) not in answers:
                 answers[str(c["node"])] = hexc(exe, "init", "-json", "-callees", str(c["node"]), image)
     message = {"kind": "init", "file": image, "data": data}
+
+    def shown(dom):
+        """The page's text (not its scripts': the message is in one)."""
+        return html.unescape(re.sub("<[^>]+>", " ", re.sub(r"<script>.*?</script>", "", dom, flags=re.S)))
+
+    def posted(dom):
+        return html.unescape(re.search(r'<pre id="posted">(.*?)</pre>', dom, re.S).group(1))
+
+    open_row = ("var rows = Array.from(document.querySelectorAll('tr')).filter(function (r) {{ return r.textContent.indexOf({!r}) >= 0; }});"
+                " rows[0].querySelector('.twisty').click();")
     dom = render(None, shot=shot("init"), html_page=init_page(message, answers))
-    text = html.unescape(re.sub("<[^>]+>", " ", dom))
+    text = shown(dom)
     phases = [p["name"] for p in data["phases"]]
     at = [text.find(p) for p in phases]
     assert all(i >= 0 for i in at) and at == sorted(at), f"the phases in order: {phases}"
     assert "tls_callback" in text and "c_initializer" in text, "the phases' functions"
-    assert "jumps to" in text and "Widget::Widget()" in text, "a constructor's callee, opened"
+    assert "Widget::Widget()" not in text, "closed, to begin"
     assert text.rfind("Then the program's own code") > at[-1] and "main()" in text, "main last"
-    posted = html.unescape(re.search(r'<pre id="posted">(.*?)</pre>', dom, re.S).group(1))
-    assert '"command":"callees"' in posted, "callees asked for"
-    # A callee opened further: Widget::Widget's own.
+    assert '"command":"callees"' not in posted(dom), "nothing asked of hexc to begin"
+    # An initializer opened: its calls, as given (nothing asked).
+    dom = render(None, html_page=init_page(message, answers, open_row.format("dynamic initializer for 'widget'")))
+    text = shown(dom)
+    assert "jumps to" in text and "Widget::Widget()" in text, "a constructor's callee, opened"
+    assert '"command":"callees"' not in posted(dom), "given with the list"
+    # A callee opened further: Widget::Widget's own, asked of hexc.
     dom = render(
         None,
         html_page=init_page(
             message,
             answers,
-            "var rows = Array.from(document.querySelectorAll('tr')).filter(function (r) { return r.textContent.indexOf('Widget::Widget()') >= 0; });"
-            " rows[0].querySelector('.twisty').click();",
+            open_row.format("dynamic initializer for 'widget'") + " setTimeout(function () { " + open_row.format("Widget::Widget()") + " }, 50);",
         ),
     )
-    text = html.unescape(re.sub("<[^>]+>", " ", dom))
+    text = shown(dom)
     assert "Widget::prepare()" in text, "a callee's callee"
+    assert '"command":"callees"' in posted(dom), "asked of hexc"
     # Its context: the symbol menu's (Disassemble, Why, References, Go to Source).
     assert '&quot;webviewSection&quot;:&quot;symbol&quot;' in dom, "the row menu"
+    # A long tree (as a large program's thousands of initializers): scrolled
+    # down, then callees arrive (each drawing it again): it stays where it
+    # was scrolled to, in the same scrolling element.
+    xcu = next(p for p in data["phases"] if p["name"] == ".CRT$XCU")
+    many = json.loads(json.dumps(data))
+    next(p for p in many["phases"] if p["name"] == ".CRT$XCU")["entries"] = xcu["entries"] * 2000
+    widget = xcu["entries"][0]["calls"][0]
+    arrive = "".join(
+        f"window.postMessage({{kind: 'callees', node: {1000000 + i}, callees: []}}, '*');" for i in range(50)
+    )
+    dom = render(
+        None,
+        html_page=init_page(
+            {"kind": "init", "file": image, "data": many},
+            answers,
+            "var w = document.querySelector('.treewrap'); w.scrollTop = 20000; window.__w = w;"
+            + arrive
+            + " setTimeout(function () { var x = document.querySelector('.treewrap');"
+            " document.getElementById('posted').textContent += 'scrolled ' + x.scrollTop + ' same ' + (x === window.__w)"
+            " + ' rows ' + x.querySelectorAll('tbody tr').length; }, 300);",
+        ),
+    )
+    got = re.search(r"scrolled (\d+) same (\w+) rows (\d+)", posted(dom))
+    assert got, "the long tree drawn"
+    assert int(got.group(3)) > 2000, f"{got.group(3)} rows"
+    assert got.group(1) == "20000" and got.group(2) == "true", f"scrolled to {got.group(1)}, same element: {got.group(2)}"
+    assert widget["name"] not in shown(dom), "the long tree closed too"
 
 
 def resources_checks(exe, shot):
