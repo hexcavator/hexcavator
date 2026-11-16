@@ -332,12 +332,19 @@ fn sections_larger_than_the_file() {
             .stderr(std::process::Stdio::null())
             .spawn()
             .unwrap();
+        // (20 s natively. Under emulation, as CI's big-endian job runs it,
+        // the job says how much slower it is.)
+        let slowdown: u64 = std::env::var("HEXC_TEST_SLOWDOWN")
+            .ok()
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(1);
+        let limit = 20 * slowdown;
         let started = std::time::Instant::now();
         let finished = loop {
             if child.try_wait().unwrap().is_some() {
                 break true;
             }
-            if started.elapsed() > std::time::Duration::from_secs(20) {
+            if started.elapsed() > std::time::Duration::from_secs(limit) {
                 let _ = child.kill();
                 let _ = child.wait();
                 break false;
@@ -345,6 +352,6 @@ fn sections_larger_than_the_file() {
             std::thread::sleep(std::time::Duration::from_millis(20));
         };
         let _ = std::fs::remove_dir_all(&dir);
-        assert!(finished, "{image}: hexc init still running after 20 s");
+        assert!(finished, "{image}: hexc init still running after {limit} s");
     }
 }
