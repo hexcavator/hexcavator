@@ -30,6 +30,8 @@ A function shown before is shown again as \"(above)\".
 options:
   -depth <n>       how many levels of callees to show (default 2; 0: none)
   -json            as JSON (each function's direct callees counted)
+  -calls           (with -json) each function listed with what it calls
+                   (its \"calls\", as -callees gives them)
   -callees <node>  (with -json) what the function node <node> calls, for an
                    editor's tree
   -pdb <path>      its debug information: a PDB, or a file with its DWARF";
@@ -39,6 +41,7 @@ struct Options {
     pdb: Option<PathBuf>,
     depth: usize,
     json: bool,
+    calls: bool,
     callees: Option<u32>,
 }
 
@@ -48,6 +51,7 @@ fn parse(args: &[String]) -> Result<Options, String> {
         pdb: None,
         depth: 2,
         json: false,
+        calls: false,
         callees: None,
     };
     let mut it = args.iter();
@@ -60,6 +64,7 @@ fn parse(args: &[String]) -> Result<Options, String> {
                     .map_err(|_| "-depth needs a number")?;
             }
             "-json" | "/json" => o.json = true,
+            "-calls" | "/calls" => o.calls = true,
             "-callees" | "/callees" => {
                 o.callees = Some(
                     value("a node")?
@@ -78,6 +83,9 @@ fn parse(args: &[String]) -> Result<Options, String> {
     }
     if o.callees.is_some() && !o.json {
         return Err("-callees is for -json".into());
+    }
+    if o.calls && !o.json {
+        return Err("-calls is for -json".into());
     }
     Ok(o)
 }
@@ -152,16 +160,13 @@ fn report(o: &Options) -> Result<String, String> {
         if n as usize >= x.names.len() {
             return Err(format!("no node {n}"));
         }
-        let list: Vec<Value> = startup::callees(&program.image, &x, n)
-            .into_iter()
-            .map(|(c, e)| function_json(&mut named, c, Some(e)))
-            .collect();
+        let list = callees_json(&mut named, n);
         return Ok(format!("{}\n", json!({ "node": n, "callees": list })));
     }
     if o.json {
         return Ok(format!(
             "{}\n",
-            serde_json::to_string_pretty(&as_json(&s, &mut named)).unwrap_or_default()
+            serde_json::to_string_pretty(&as_json(&s, &mut named, o.calls)).unwrap_or_default()
         ));
     }
     let file = path.file_name().map_or_else(
@@ -169,6 +174,14 @@ fn report(o: &Options) -> Result<String, String> {
         |n| n.to_string_lossy().into_owned(),
     );
     Ok(as_text(&s, &mut named, &file, o.depth))
+}
+
+/// What `n` calls, each as `function_json` gives it.
+fn callees_json(named: &mut Named<'_>, n: u32) -> Vec<Value> {
+    startup::callees(named.image, named.x, n)
+        .into_iter()
+        .map(|(c, e)| function_json(named, c, Some(e)))
+        .collect()
 }
 
 fn function_json(named: &mut Named<'_>, n: u32, edge: Option<Edge>) -> Value {
@@ -185,7 +198,16 @@ fn function_json(named: &mut Named<'_>, n: u32, edge: Option<Edge>) -> Value {
     })
 }
 
-fn as_json(s: &Startup, named: &mut Named<'_>) -> Value {
+/// The phases and main as JSON; with `calls`, each function with what it
+/// calls.
+fn as_json(s: &Startup, named: &mut Named<'_>, calls: bool) -> Value {
+    let listed = |named: &mut Named<'_>, n: u32| {
+        let mut v = function_json(named, n, None);
+        if calls {
+            v["calls"] = callees_json(named, n).into();
+        }
+        v
+    };
     let phases: Vec<Value> = s
         .phases
         .iter()
@@ -195,7 +217,7 @@ fn as_json(s: &Startup, named: &mut Named<'_>) -> Value {
                 "detail": p.detail,
                 "entries": p.entries.iter().map(|e| match e.node {
                     Some(n) => {
-                        let mut v = function_json(named, n, None);
+                        let mut v = listed(named, n);
                         v["slot"] = e.slot.map(|a| format!("{:#x}", a.wrapping_add(named.base))).into();
                         v
                     }
@@ -213,7 +235,7 @@ fn as_json(s: &Startup, named: &mut Named<'_>) -> Value {
     json!({
         "library": s.library,
         "phases": phases,
-        "main": s.main.map(|m| function_json(named, m, None)),
+        "main": s.main.map(|m| listed(named, m)),
     })
 }
 

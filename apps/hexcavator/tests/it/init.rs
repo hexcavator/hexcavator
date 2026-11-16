@@ -129,6 +129,30 @@ fn pe_program() {
         ["__security_init_cookie()", "__scrt_common_main_seh()"]
     );
     assert_eq!(v["main"]["name"], "main()");
+    // Without -calls, no function's calls; with it, each listed function's
+    // (main's too), as -callees gives them.
+    assert!(start.get("calls").is_none());
+    let with = json("init.exe", &["-calls"]);
+    let listed: Vec<&Value> = with["phases"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .flat_map(|p| p["entries"].as_array().unwrap())
+        .chain([&with["main"]])
+        .filter(|f| !f["node"].is_null())
+        .collect();
+    assert!(listed.len() >= 4);
+    for f in listed {
+        let n = f["node"].to_string();
+        assert_eq!(
+            f["calls"],
+            json("init.exe", &["-callees", &n])["callees"],
+            "{}",
+            f["name"]
+        );
+    }
+    let start = entry(&with, "the entry point", "mainCRTStartup(void*)");
+    assert_eq!(start["calls"].as_array().unwrap().len(), 2);
 }
 
 #[test]
@@ -255,6 +279,7 @@ fn bad_arguments() {
         &["-nonesuch", "x"],
         &["-depth", "x", "y"],
         &["-callees", "1", "x"],
+        &["-calls", "x"],
         &["a", "b"],
     ] {
         let (code, _, err) = hexc(args);

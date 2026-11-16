@@ -158,11 +158,16 @@
       el("thead", {}, el("tr", {}, el("th", { class: "n" }, "Offset"), el("th", { class: "n" }, "Size"), el("th", {}, "Part"), el("th", {}, "Type"))),
       tbody
     );
+    // The same scrolling element throughout, its table replaced: a new one
+    // would lose a scroll under way (and start at the top).
     const main = $("main");
-    const old = main.querySelector(".treewrap");
-    const top = old ? old.scrollTop : 0;
-    const wrap = el("div", { class: "treewrap" }, table);
-    main.replaceChildren(wrap);
+    let wrap = main.querySelector(".treewrap");
+    if (!wrap) {
+      wrap = el("div", { class: "treewrap" });
+      main.replaceChildren(wrap);
+    }
+    const top = wrap.scrollTop;
+    wrap.replaceChildren(table);
     wrap.scrollTop = top;
   }
 

@@ -1271,7 +1271,7 @@ function openInit(context, file) {
   panel.onDidDispose(() => initPanels.delete(file));
   const load = async () => {
     try {
-      const out = await paneRun(panel.webview, `Finding what runs before ${name}'s main…`, ["init", "-json", file]);
+      const out = await paneRun(panel.webview, `Finding what runs before ${name}'s main…`, ["init", "-json", "-calls", file]);
       panel.webview.postMessage({ kind: "init", file, data: JSON.parse(out) });
     } catch (e) {
       if (!e.cancelled) {
