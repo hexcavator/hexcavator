@@ -67,6 +67,7 @@ hexcavator-etl = { path = "crates/formats/etl" }
 hexcavator-etw = { path = "crates/trace/etw" }
 hexcavator-trace = { path = "crates/trace/trace" }
 hexcavator-trace-analysis = { path = "crates/trace/trace-analysis" }
+hexcavator-trace-synth = { path = "crates/trace/trace-synth" }
 hexcavator-symbolize = { path = "crates/symbols/symbolize" }
 
 [workspace.lints.rust]

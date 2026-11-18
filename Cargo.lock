@@ -617,6 +617,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "hexcavator-trace-synth"
+version = "0.0.6"
+dependencies = [
+ "hexcavator-etl",
+ "hexcavator-etw",
+ "hexcavator-trace",
+ "hexcavator-trace-analysis",
+ "rustc-hash",
+]
+
+[[package]]
 name = "hexcavator-unwind"
 version = "0.0.6"
 dependencies = [
