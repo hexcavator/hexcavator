@@ -179,7 +179,21 @@ fn other_tabs_list_their_rows_and_say_what_they_dont() {
         &[],
     );
     t.preset.filter = Some("[Process Name]:=Idle".into());
-    assert!(map(&t).skipped.iter().any(|s| s.contains("takes none yet")));
+    assert_eq!(
+        map(&t).params["filter"],
+        "[Process Name]:=Idle",
+        "the tree's threads"
+    );
+    t.preset.filter = Some("[DPC/ISR]:=\"DPC\"".into());
+    assert!(
+        map(&t)
+            .skipped
+            .iter()
+            .any(|s| s.contains("no DPC/ISR column"))
+    );
+    let mut r = graph(None, Some("RegionsGraphTreeItem"), &["Region"], &[]);
+    r.preset.filter = Some("[Region]:~=x".into());
+    assert!(map(&r).skipped.iter().any(|s| s.contains("takes none yet")));
     let m = map(&graph(
         None,
         Some("RegionsGraphTreeItem"),

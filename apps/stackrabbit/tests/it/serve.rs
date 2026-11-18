@@ -2752,3 +2752,35 @@ fn event_kinds_take_wpa_filters() {
     );
     assert!(error(&a, 5).contains("[Field 1]"));
 }
+
+#[test]
+fn trees_take_wpa_filters_on_threads_and_processes() {
+    let dir = scratch("serve-tree-filter");
+    let (path, s) = write_trace(&dir, "t.etl", &small());
+    let p = &s.truth.processes[0];
+    let q = &s.truth.processes[1];
+    let tree = |filter: &str| json!({"method": "tree.create", "params": {"trace": 1, "groupBy": ["process"], "filter": filter}});
+    let a = session(&[
+        json!({"method": "open", "params": {"path": path, "useIndex": false}}),
+        tree(&format!(r#"[Process Name]:="{}""#, p.name.to_uppercase())),
+        tree(&format!(
+            "[Process ID]:={} OR [Process ID]:={}",
+            p.pid, q.pid
+        )),
+        tree(&format!("NOT [Process ID]:={}", p.pid)),
+        json!({"method": "functions", "params": {"trace": 1, "filter": format!("[Process ID]:={}", p.pid)}}),
+        tree("[IO Type]:=Read"),
+        tree("[Process ID]:="),
+    ]);
+    // (Process names compare without case.)
+    assert_eq!(result(&a, 2)["root"]["inclusive"], p.samples);
+    assert_eq!(result(&a, 3)["root"]["inclusive"], p.samples + q.samples);
+    assert_eq!(
+        result(&a, 4)["root"]["inclusive"],
+        s.truth.samples - p.samples
+    );
+    assert_eq!(result(&a, 5)["total"], p.samples);
+    let e = error(&a, 6);
+    assert!(e.contains("[IO Type]") && e.contains("Thread Name"), "{e}");
+    assert!(error(&a, 7).contains("filter"));
+}

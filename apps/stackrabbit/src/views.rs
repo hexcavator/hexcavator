@@ -73,6 +73,41 @@ pub struct TreeSpec {
     /// Only this function's (a row's `fn`) callees, or callers if
     /// `invert`, from it (the grouping columns don't apply).
     pub focus: Option<String>,
+    /// Only the threads that hold this (WPA's query language, on
+    /// [`TREE_COLUMNS`]).
+    pub filter: Option<crate::reading::Query>,
+}
+
+/// The columns a stack tree's filter may name (WPA's names): its
+/// threads' and their processes'.
+pub const TREE_COLUMNS: &[&str] = &[
+    "Process Name",
+    "Process",
+    "Process ID",
+    "Thread ID",
+    "Thread Name",
+];
+
+/// The threads that hold `filter` (on [`TREE_COLUMNS`]), if there is one.
+fn filter_threads(
+    trace: &Trace,
+    filter: Option<&crate::reading::Query>,
+) -> Option<rustc_hash::FxHashSet<ThreadIx>> {
+    use crate::reading::{process_cell, thread_cell};
+    let q = filter?;
+    Some(
+        (0..trace.threads.len())
+            .filter_map(|i| u32::try_from(i).ok().map(ThreadIx))
+            .filter(|&t| {
+                let process = trace.threads[t.index()].process;
+                q.holds(&|c: &str| {
+                    process_cell(trace, process, c)
+                        .or_else(|| thread_cell(trace, t, c))
+                        .flatten()
+                })
+            })
+            .collect(),
+    )
 }
 
 impl Default for TreeSpec {
@@ -84,6 +119,7 @@ impl Default for TreeSpec {
             invert: false,
             time: None,
             focus: None,
+            filter: None,
         }
     }
 }
@@ -124,6 +160,16 @@ impl TreeSpec {
                 .ok_or("time: expected [start, end]")?;
             let n = |v: &Value| v.as_i64().ok_or("time: expected nanoseconds");
             spec.time = Some((n(&pair[0])?, n(&pair[1])?));
+        }
+        // (Its syntax only: what a filter's columns may be is the
+        // request's to say.)
+        if let Some(f) = params
+            .get("filter")
+            .and_then(Value::as_str)
+            .filter(|f| !f.trim().is_empty())
+        {
+            spec.filter =
+                Some(crate::reading::Query::parse(f).map_err(|e| format!("filter: {e}"))?);
         }
         if let Some(f) = params.get("focus")
             && !f.is_null()
@@ -223,6 +269,7 @@ fn weighed(
     let mut keys = Keys::default();
     let filter = Filter {
         time: spec.time.map(|(s, e)| (ticks(trace, s), ticks(trace, e))),
+        threads: filter_threads(trace, spec.filter.as_ref()),
         ..Filter::default()
     };
     let (instances, unit) = match spec.source {
@@ -396,6 +443,7 @@ pub fn line_totals(
 ) -> (hexcavator_trace_analysis::lines::LineTotals, Unit, u64) {
     let filter = Filter {
         time: spec.time.map(|(s, e)| (ticks(trace, s), ticks(trace, e))),
+        threads: filter_threads(trace, spec.filter.as_ref()),
         ..Filter::default()
     };
     let (buckets, unit) = match spec.source {

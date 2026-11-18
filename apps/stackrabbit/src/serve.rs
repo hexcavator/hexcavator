@@ -881,6 +881,7 @@ impl State {
             }
             "lines" => {
                 let spec = TreeSpec::from_json(params)?;
+                crate::reading::filter(params, crate::views::TREE_COLUMNS)?;
                 let limit = count(params, "limit", 200)?;
                 let file = match params.get("file") {
                     None | Some(Value::Null) => None,
@@ -1215,6 +1216,7 @@ impl State {
             }
             "functions" => {
                 let spec = TreeSpec::from_json(params)?;
+                crate::reading::filter(params, crate::views::TREE_COLUMNS)?;
                 let limit = count(params, "limit", 1000)?;
                 Ok(crate::views::functions(
                     trace,
@@ -1226,6 +1228,7 @@ impl State {
             }
             "tree.create" => {
                 let spec = TreeSpec::from_json(params)?;
+                crate::reading::filter(params, crate::views::TREE_COLUMNS)?;
                 let view = TreeView::build(
                     trace,
                     &self.resolver,

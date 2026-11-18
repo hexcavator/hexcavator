@@ -24,6 +24,9 @@
 
   let model = null;
   let selection = null; // [startNs, endNs], or null for all of it
+  // The threads the tree and functions are of: a WPA query a profile's
+  // preset set (on their threads' and processes' columns), or null.
+  let treeFilter = null;
   // A function the stack tree is of (its callers, or callees): {fn, label}.
   let focus = null;
   const selectionEl = $("selection");
@@ -155,6 +158,9 @@
     }
     if (focus) {
       s.focus = focus.fn;
+    }
+    if (treeFilter) {
+      s.filter = treeFilter;
     }
     return s;
   }
@@ -358,6 +364,9 @@
       const params = { source: controls.source.value, frames: controls.frames.value };
       if (selection) {
         params.time = selection;
+      }
+      if (treeFilter) {
+        params.filter = treeFilter;
       }
       const f = await request("functions", params);
       functionsUnit = f.unit;
@@ -1023,6 +1032,7 @@
   async function applyGraph(g) {
     const p = g.params || {};
     if (g.tab === "stacks" || g.tab === "functions") {
+      treeFilter = p.filter || null;
       if (p.source) {
         controls.source.value = p.source;
       }
@@ -1083,6 +1093,11 @@
       if (tab === "events") {
         loadEvents();
       }
+    }
+    if (treeFilter) {
+      treeFilter = null;
+      createTree();
+      loadFunctions();
     }
     $("profile-note").textContent = "Filters cleared.";
   });

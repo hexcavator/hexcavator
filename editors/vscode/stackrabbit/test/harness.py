@@ -940,7 +940,7 @@ def main():
             {"table": "Disk Usage", "preset": "By Type", "tab": "disk", "params": {"by": "type"}, "applied": ["grouped by type"], "skipped": ["grouping further by Process"]},
             {"table": "Images", "preset": "Images", "tab": None, "params": {}, "applied": [], "skipped": ["Images: Stackrabbit has no such table yet"]}]},
         {"title": "CPU", "graphs": [
-            {"table": "CPU Usage (Precise)", "preset": "By Process, Thread, Tag", "tab": "stacks", "params": {"source": "running", "groupBy": ["process", "thread", "tag"]}, "applied": [], "skipped": []},
+            {"table": "CPU Usage (Precise)", "preset": "By Process, Thread, Tag", "tab": "stacks", "params": {"source": "running", "groupBy": ["process", "thread", "tag"], "filter": "[Thread Name]:~<Worker"}, "applied": [], "skipped": []},
             {"table": "Generic Events", "preset": "One provider", "tab": "events", "params": {"filter": f'[Provider Name]:="{provider}"'}, "applied": [], "skipped": []}]}]}}
     base = "window.postMessage(" + json.dumps(profile) + ", '*');"
     pick = lambda i: base + f"setTimeout(function () {{ var s = document.getElementById('profile-graph'); s.value = '{i}'; s.dispatchEvent(new Event('change')); }}, 100);"
@@ -959,6 +959,7 @@ def main():
     posted = json.loads(html.unescape(re.search(r'<pre id="posted"[^>]*>(.*?)</pre>', dom, re.S).group(1)))
     trees = [m["params"] for m in posted if m.get("method") == "tree.create"]
     assert trees[-1]["source"] == "running" and trees[-1]["groupBy"] == ["process", "thread", "tag"], trees[-1]
+    assert trees[-1]["filter"] == "[Thread Name]:~<Worker", trees[-1]
     assert '<option value="process,thread,tag">Process, thread, stack tag</option>' in dom
     assert "Applied in full." in dom
     # The events graph: its provider's most numerous kind, listed.

@@ -467,6 +467,7 @@ fn filter_columns(tab: &str) -> Option<Vec<&'static str>> {
         "heap" | "pool" => crate::allocs::COLUMNS.to_vec(),
         "memory" => crate::memutil::COLUMNS.to_vec(),
         "events" => crate::views::EVENT_COLUMNS.iter().map(|c| c.0).collect(),
+        "stacks" | "functions" => crate::views::TREE_COLUMNS.to_vec(),
         _ => return None,
     })
 }
