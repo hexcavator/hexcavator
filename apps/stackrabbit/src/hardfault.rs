@@ -165,6 +165,41 @@ fn assemble(trace: &Trace, all: Vec<Read>) -> FaultTable {
     }
 }
 
+/// The columns a filter may name (WPA's names).
+pub const COLUMNS: &[&str] = &[
+    "Process Name",
+    "Process",
+    "Process ID",
+    "Thread ID",
+    "Thread Name",
+    "File Name",
+    "Path Name",
+    "Size",
+    "ByteCount",
+    "File Offset",
+];
+
+/// A row's cell of `column`.
+fn cell(
+    trace: &Trace,
+    table: &FaultTable,
+    row: &Fault,
+    column: &str,
+) -> Option<crate::reading::Cell> {
+    use crate::reading::{number, process_cell, text, thread_cell};
+    if let Some(c) =
+        process_cell(trace, row.process, column).or_else(|| thread_cell(trace, row.thread, column))
+    {
+        return c;
+    }
+    match column.to_ascii_lowercase().as_str() {
+        "file name" | "path name" => row.file.and_then(|f| text(&table.files[f as usize])),
+        "size" | "bytecount" => number(u64::from(row.size)),
+        "file offset" => number(row.offset),
+        _ => None,
+    }
+}
+
 /// What hard faults are grouped by.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum GroupBy {
@@ -184,13 +219,24 @@ pub fn summary(
     table: &FaultTable,
     group: GroupBy,
     time: Option<(i64, i64)>,
-    limits: crate::reading::Limits,
+    ask: &crate::reading::Ask,
 ) -> Value {
-    let (limit, group_limit) = (limits.items, limits.groups);
+    let (limit, group_limit) = (ask.items, ask.groups);
     let (start, end) = time.unwrap_or((i64::MIN, i64::MAX));
     let from = table.faults.partition_point(|f| f.start < start);
     let to = table.faults.partition_point(|f| f.start < end);
-    let faults = &table.faults[from..to];
+    // (Only the rows the filter keeps, if there is one.)
+    let kept: Vec<Fault>;
+    let faults: &[Fault] = if ask.filter.is_some() {
+        kept = table.faults[from..to]
+            .iter()
+            .filter(|r| ask.keeps(*r, |r, c| cell(trace, table, r, c)))
+            .cloned()
+            .collect();
+        &kept
+    } else {
+        &table.faults[from..to]
+    };
     let ns = |f: &Fault| {
         u64::try_from(trace.clock.nanos(f.end) - trace.clock.nanos(f.start)).unwrap_or(0)
     };

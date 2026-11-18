@@ -147,6 +147,9 @@ pub fn table(trace: &Trace, path: &Path) -> Result<MemTable, String> {
     Ok(table)
 }
 
+/// The columns a filter may name (WPA's names).
+pub const COLUMNS: &[&str] = &["Process Name", "Process", "Process ID"];
+
 /// What processes are grouped by.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum GroupBy {
@@ -166,9 +169,9 @@ pub fn summary(
     table: &MemTable,
     group: GroupBy,
     time: Option<(i64, i64)>,
-    limits: crate::reading::Limits,
+    ask: &crate::reading::Ask,
 ) -> Value {
-    let (limit, group_limit) = (limits.items, limits.groups);
+    let (limit, group_limit) = (ask.items, ask.groups);
     let (start, end) = time.unwrap_or((i64::MIN, i64::MAX));
     let from = table.snapshots.partition_point(|s| s.time < start);
     let to = table.snapshots.partition_point(|s| s.time < end);
@@ -202,6 +205,11 @@ pub fn summary(
         let mut sums: FxHashMap<String, [u64; 3]> = FxHashMap::default();
         let mut total = [0u64; 3];
         for &(p, pid, u) in &s.processes {
+            if !ask.keeps(&p, |p, c| {
+                crate::reading::process_cell(trace, *p, c).flatten()
+            }) {
+                continue;
+            }
             let v =
                 [u.working_set, u.private_working_set, u.commit].map(|n| n.saturating_mul(PAGE));
             let g = sums.entry(label(p, pid)).or_default();

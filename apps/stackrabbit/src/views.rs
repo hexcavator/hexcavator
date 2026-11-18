@@ -1174,6 +1174,41 @@ pub fn threads(
     json!({"rows": rows.into_iter().map(|(_, v)| v).collect::<Vec<_>>()})
 }
 
+/// The columns a filter of [`events`] may name (WPA's Generic Events
+/// names), and the fields of its rows they are.
+pub const EVENT_COLUMNS: &[(&str, &str)] = &[
+    ("Provider Name", "provider"),
+    ("Provider Id", "guid"),
+    ("Task Name", "taskName"),
+    ("Opcode Name", "opcodeName"),
+    ("Event Name", "event"),
+    ("Id", "id"),
+    ("Version", "version"),
+    ("Opcode", "opcode"),
+    ("Keyword", "keywords"),
+];
+
+/// [`events`]'s rows that `filter` keeps (all, without one).
+pub fn filter_events(mut table: Value, filter: Option<&crate::reading::Query>) -> Value {
+    use crate::reading::Cell;
+    if let (Some(q), Some(rows)) = (filter, table.get_mut("rows").and_then(Value::as_array_mut)) {
+        rows.retain(|r| {
+            q.holds(&|c: &str| {
+                let field = EVENT_COLUMNS
+                    .iter()
+                    .find(|(n, _)| n.eq_ignore_ascii_case(c))?
+                    .1;
+                match r.get(field)? {
+                    Value::String(s) => Some(Cell::Text(s.clone())),
+                    Value::Number(n) => n.as_f64().map(Cell::Number),
+                    _ => None,
+                }
+            })
+        });
+    }
+    table
+}
+
 /// Every kind of event in the trace, as a table: each kind's provider
 /// (named where the kernel's schemas or the provider itself say), event
 /// (likewise), ID, version, opcode, task, count, payload bytes, and first
@@ -1230,10 +1265,21 @@ pub fn events(trace: &Trace) -> Value {
                     })
                 })
                 .or_else(|| schema.map(|s| s.name.to_string()));
+            // (Task and opcode names: the description's, else the
+            // kernel schema's.)
+            let task_name = info
+                .and_then(|i| i.task_name.clone())
+                .or_else(|| schema.map(|s| s.task.to_string()));
+            let opcode_name = info
+                .and_then(|i| i.opcode_name.clone())
+                .or_else(|| schema.map(|s| s.name.to_string()));
             json!({
                 "provider": provider,
                 "guid": e.provider.to_string(),
                 "event": event,
+                "taskName": task_name,
+                "opcodeName": opcode_name,
+                "keywords": info.map(|i| format!("0x{:x}", i.keywords)),
                 "described": info.is_some(),
                 "id": e.id,
                 "version": e.version,

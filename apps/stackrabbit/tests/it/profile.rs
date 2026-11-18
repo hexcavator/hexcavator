@@ -137,7 +137,7 @@ fn other_tabs_list_their_rows_and_say_what_they_dont() {
         (m.tab, &m.params),
         (
             Some("events"),
-            &json!({"provider": "Microsoft-Windows-Foo"})
+            &json!({"filter": "[Provider Name]:=\"Microsoft-Windows-Foo\""})
         )
     );
     assert_eq!(
@@ -145,14 +145,41 @@ fn other_tabs_list_their_rows_and_say_what_they_dont() {
         ["grouping by Process", "its 2 highlight(s)"],
         "the filter is applied"
     );
-    // A filter that isn't one provider is said.
-    g.preset.filter = Some("[Task Name]:=X".into());
+    // A filter on columns the tab has: applied, whatever it is.
+    g.preset.filter = Some("([Task Name]:=X [Opcode Name]:=\"win:Stop\") OR [Id]:=5".into());
+    assert!(map(&g).params.get("filter").is_some());
+    // One on a column it lacks, one it can't read, one on a tab without
+    // filters: said, with why.
+    g.preset.filter = Some("[Process]:=x".into());
     let m = map(&g);
     assert_eq!(m.params, json!({}));
     assert!(
         m.skipped
-            .contains(&"its filter ([Task Name]:=X)".to_string())
+            .contains(&"its filter ([Process]:=x): no Process column here".to_string()),
+        "{:?}",
+        m.skipped
     );
+    g.preset.filter = Some("[Task Name]:=".into());
+    assert!(map(&g).skipped.iter().any(|s| s.contains("unreadable")));
+    let mut d = graph(
+        Some("12c5387c-58ca-45d4-a5c6-450475c30e06"),
+        None,
+        &["IO Type"],
+        &[],
+    );
+    d.preset.filter = Some("[IO Type]:=Write".into());
+    assert_eq!(
+        map(&d).params,
+        json!({"by": "type", "filter": "[IO Type]:=Write"})
+    );
+    let mut t = graph(
+        None,
+        Some("CpuSamplingGraphTreeItem"),
+        &["Process Name"],
+        &[],
+    );
+    t.preset.filter = Some("[Process Name]:=Idle".into());
+    assert!(map(&t).skipped.iter().any(|s| s.contains("takes none yet")));
     let m = map(&graph(
         None,
         Some("RegionsGraphTreeItem"),

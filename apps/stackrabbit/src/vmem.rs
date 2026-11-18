@@ -214,6 +214,30 @@ fn take(pieces: &mut Pieces, from: u64, to: u64) -> Vec<(u64, u64, i64, ThreadIx
         .collect()
 }
 
+/// The columns a filter may name (WPA's names).
+pub const COLUMNS: &[&str] = &[
+    "Process Name",
+    "Process",
+    "Process ID",
+    "Thread ID",
+    "Thread Name",
+    "Size",
+];
+
+/// A lifetime's cell of `column`.
+fn cell(trace: &Trace, l: &Lifetime, column: &str) -> Option<crate::reading::Cell> {
+    use crate::reading::{number, process_cell, thread_cell};
+    if let Some(c) =
+        process_cell(trace, l.process, column).or_else(|| thread_cell(trace, l.thread, column))
+    {
+        return c;
+    }
+    match column.to_ascii_lowercase().as_str() {
+        "size" => number(l.size),
+        _ => None,
+    }
+}
+
 /// What lifetimes are grouped by.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum GroupBy {
@@ -233,9 +257,9 @@ pub fn summary(
     table: &VmemTable,
     group: GroupBy,
     time: Option<(i64, i64)>,
-    limits: crate::reading::Limits,
+    ask: &crate::reading::Ask,
 ) -> Value {
-    let (limit, group_limit) = (limits.items, limits.groups);
+    let (limit, group_limit) = (ask.items, ask.groups);
     let (start, end) = time.unwrap_or((i64::MIN, i64::MAX));
     let within = |t: i64| t >= start && t < end;
     let process_label = |p: ProcessIx| {
@@ -252,6 +276,9 @@ pub fn summary(
     let mut totals = [0u64; 5];
     let mut largest: Vec<&Lifetime> = Vec::new();
     for l in &table.lifetimes {
+        if !ask.keeps(l, |l, c| cell(trace, l, c)) {
+            continue;
+        }
         let committed = within(l.commit);
         let decommitted = l.decommit.is_some_and(within);
         if !(committed || decommitted) {

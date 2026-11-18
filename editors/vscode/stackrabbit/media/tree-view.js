@@ -509,16 +509,19 @@
   }
   let eventListTable = null;
   let eventsLoaded = false;
+  // (A WPA query a profile's preset set, or null.)
+  let eventsFilter = null;
   async function loadEvents() {
     if (eventsLoaded) {
       return;
     }
     try {
-      const r = await request("events", {});
+      const r = await request("events", eventsFilter ? { filter: eventsFilter } : {});
       eventsLoaded = true;
       const total = r.rows.reduce((a, x) => a + x.count, 0);
       $("events-title").textContent =
-        `${total.toLocaleString("en-US")} events of ${r.rows.length.toLocaleString("en-US")} kinds, in all of the trace`;
+        `${total.toLocaleString("en-US")} events of ${r.rows.length.toLocaleString("en-US")} kinds, in all of the trace` +
+        (eventsFilter ? `, of those ${eventsFilter} keeps` : "");
       eventsTable.set(r.rows.map((x) => ({ ...x, pick: `${x.guid}/${x.id}/${x.version}/${x.opcode}/${x.task}` })));
     } catch (e) {
       statusEl.textContent = e.message;
@@ -597,7 +600,8 @@
   function summaryTab(spec) {
     const groups = new SortedTable($(`${spec.name}-groups`), spec.groups, spec.groupSort);
     const items = new SortedTable($(`${spec.name}-${spec.items}`), spec.itemColumns, spec.itemSort);
-    const t = { stale: true, tables: [groups].concat(spec.tables || [], [items]) };
+    // (`filter`: a WPA query a profile's preset set, or null.)
+    const t = { stale: true, tables: [groups].concat(spec.tables || [], [items]), filter: null };
     t.load = async () => {
       if ($(`${spec.name}-pane`).classList.contains("hidden")) {
         t.stale = true;
@@ -611,13 +615,18 @@
         if (selection) {
           params.time = selection;
         }
+        if (t.filter) {
+          params.filter = t.filter;
+        }
         const d = await request(spec.method, params);
         const n = (v) => v.toLocaleString("en-US");
         const shown =
           d.groupsTotal > d.groups.length
             ? ` (the ${n(d.groups.length)} groups that took longest of ${n(d.groupsTotal)})`
             : "";
-        title.textContent = `${spec.title(d, selection ? " in the time selected" : "")}${shown}.`;
+        title.textContent =
+          `${spec.title(d, selection ? " in the time selected" : "")}${shown}` +
+          `${t.filter ? `, of those ${t.filter} keeps` : ""}.`;
         groups.set(d.groups);
         items.set(d[spec.items]);
         if (spec.also) {
@@ -1035,13 +1044,16 @@
       if (p.by) {
         $(`${g.tab}-by`).value = p.by;
       }
+      summaryTabs[g.tab].filter = p.filter || null;
       showTab(g.tab);
       summaryTabs[g.tab].load();
     } else if (g.tab === "events") {
+      eventsFilter = p.filter || null;
+      eventsLoaded = false;
       showTab("events");
       await loadEvents();
-      // (One provider's events: its most numerous kind's, listed.)
-      const kind = p.provider ? eventsTable.rows.filter((r) => r.provider === p.provider).sort((a, b) => b.count - a.count)[0] : null;
+      // (Filtered: the most numerous kind it keeps, listed.)
+      const kind = eventsFilter ? [...eventsTable.rows].sort((a, b) => b.count - a.count)[0] : null;
       if (kind) {
         eventsTable.picked = kind.pick;
         eventsTable.draw();
@@ -1059,6 +1071,21 @@
     }
   });
   $("profile-open").addEventListener("click", () => vscode.postMessage({ type: "pickProfile" }));
+  // Clearing the filters presets set: every tab shows all of its rows.
+  $("profile-clear").addEventListener("click", () => {
+    for (const t of Object.values(summaryTabs)) {
+      t.filter = null;
+      t.load();
+    }
+    if (eventsFilter) {
+      eventsFilter = null;
+      eventsLoaded = false;
+      if (tab === "events") {
+        loadEvents();
+      }
+    }
+    $("profile-note").textContent = "Filters cleared.";
+  });
   $("copy").addEventListener("click", () => copy(false));
   $("copy-csv").addEventListener("click", () => copy(true));
   $("highlight").addEventListener("click", () => {

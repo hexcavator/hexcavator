@@ -225,6 +225,42 @@ fn assemble(trace: &Trace, all: Vec<Read>, perf_freq: u64) -> DiskTable {
     }
 }
 
+/// The columns a filter may name (WPA's names).
+pub const COLUMNS: &[&str] = &[
+    "Process Name",
+    "Process",
+    "Process ID",
+    "Thread ID",
+    "Thread Name",
+    "IO Type",
+    "Path Name",
+    "File Name",
+    "Disk",
+    "Size",
+];
+
+/// A row's cell of `column`.
+fn cell(
+    trace: &Trace,
+    table: &DiskTable,
+    row: &DiskIo,
+    column: &str,
+) -> Option<crate::reading::Cell> {
+    use crate::reading::{number, process_cell, text, thread_cell};
+    if let Some(c) =
+        process_cell(trace, row.process, column).or_else(|| thread_cell(trace, row.thread, column))
+    {
+        return c;
+    }
+    match column.to_ascii_lowercase().as_str() {
+        "io type" => text(row.kind.name()),
+        "path name" | "file name" => row.file.and_then(|f| text(&table.files[f as usize])),
+        "disk" => number(u64::from(row.disk)),
+        "size" => number(u64::from(row.size)),
+        _ => None,
+    }
+}
+
 /// What disk I/Os are grouped by.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum GroupBy {
@@ -246,13 +282,24 @@ pub fn summary(
     table: &DiskTable,
     group: GroupBy,
     time: Option<(i64, i64)>,
-    limits: crate::reading::Limits,
+    ask: &crate::reading::Ask,
 ) -> Value {
-    let (limit, group_limit) = (limits.items, limits.groups);
+    let (limit, group_limit) = (ask.items, ask.groups);
     let (start, end) = time.unwrap_or((i64::MIN, i64::MAX));
     let from = table.ios.partition_point(|io| io.complete < start);
     let to = table.ios.partition_point(|io| io.complete < end);
-    let ios = &table.ios[from..to];
+    // (Only the rows the filter keeps, if there is one.)
+    let kept: Vec<DiskIo>;
+    let ios: &[DiskIo] = if ask.filter.is_some() {
+        kept = table.ios[from..to]
+            .iter()
+            .filter(|r| ask.keeps(*r, |r, c| cell(trace, table, r, c)))
+            .cloned()
+            .collect();
+        &kept
+    } else {
+        &table.ios[from..to]
+    };
     let process_label = |p: ProcessIx| {
         if p.is_some() {
             let pr = &trace.processes[p.index()];

@@ -289,6 +289,42 @@ fn assemble(trace: &Trace, mut all: Vec<Read>, heap: bool) -> BlockTable {
     }
 }
 
+/// The columns a filter may name (WPA's names; the heap's or the pool's
+/// group is its Heap or Tag, its kind its Type).
+pub const COLUMNS: &[&str] = &[
+    "Process Name",
+    "Process",
+    "Process ID",
+    "Thread ID",
+    "Thread Name",
+    "Heap",
+    "Tag",
+    "Type",
+    "Size",
+];
+
+/// A block's cell of `column`.
+fn cell(
+    trace: &Trace,
+    table: &BlockTable,
+    kinds: &[&str],
+    b: &Block,
+    column: &str,
+) -> Option<crate::reading::Cell> {
+    use crate::reading::{number, process_cell, text, thread_cell};
+    if let Some(c) =
+        process_cell(trace, b.process, column).or_else(|| thread_cell(trace, b.thread, column))
+    {
+        return c;
+    }
+    match column.to_ascii_lowercase().as_str() {
+        "heap" | "tag" => text(&table.labels[b.group as usize]),
+        "type" => kinds.get(usize::from(b.kind)).and_then(|k| text(k)),
+        "size" => number(b.size),
+        _ => None,
+    }
+}
+
 /// What blocks are grouped by.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum GroupBy {
@@ -313,9 +349,9 @@ pub fn summary(
     kinds: &[&str],
     group: GroupBy,
     time: Option<(i64, i64)>,
-    limits: crate::reading::Limits,
+    ask: &crate::reading::Ask,
 ) -> Value {
-    let (limit, group_limit) = (limits.items, limits.groups);
+    let (limit, group_limit) = (ask.items, ask.groups);
     let (start, end) = time.unwrap_or((i64::MIN, i64::MAX));
     let within = |t: i64| t >= start && t < end;
     let process_label = |p: ProcessIx| {
@@ -335,6 +371,9 @@ pub fn summary(
     // can't count, but those allocated before it may be freed in it.)
     let last = table.blocks.partition_point(|b| b.start < end);
     for b in &table.blocks[..last] {
+        if !ask.keeps(b, |b, c| cell(trace, table, kinds, b, c)) {
+            continue;
+        }
         let allocated = within(b.start);
         let freed = b.end.is_some_and(within);
         if !(allocated || freed) {

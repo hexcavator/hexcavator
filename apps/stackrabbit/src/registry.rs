@@ -213,6 +213,43 @@ fn assemble(trace: &Trace, all: Vec<Read>) -> RegistryTable {
     }
 }
 
+/// The columns a filter may name (WPA's names).
+pub const COLUMNS: &[&str] = &[
+    "Process Name",
+    "Process",
+    "Process ID",
+    "Thread ID",
+    "Thread Name",
+    "Operation",
+    "Key",
+    "Key Name",
+    "Value",
+    "Value Name",
+    "Status",
+];
+
+/// A row's cell of `column`.
+fn cell(
+    trace: &Trace,
+    table: &RegistryTable,
+    row: &RegOp,
+    column: &str,
+) -> Option<crate::reading::Cell> {
+    use crate::reading::{process_cell, text, thread_cell};
+    if let Some(c) =
+        process_cell(trace, row.process, column).or_else(|| thread_cell(trace, row.thread, column))
+    {
+        return c;
+    }
+    match column.to_ascii_lowercase().as_str() {
+        "operation" => text(OPERATIONS[usize::from(row.op)].1),
+        "key" | "key name" => row.key.and_then(|k| text(&table.names[k as usize])),
+        "value" | "value name" => row.value.and_then(|v| text(&table.names[v as usize])),
+        "status" => text(&format!("0x{:08x}", row.status)),
+        _ => None,
+    }
+}
+
 /// What registry operations are grouped by.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum GroupBy {
@@ -232,13 +269,24 @@ pub fn summary(
     table: &RegistryTable,
     group: GroupBy,
     time: Option<(i64, i64)>,
-    limits: crate::reading::Limits,
+    ask: &crate::reading::Ask,
 ) -> Value {
-    let (limit, group_limit) = (limits.items, limits.groups);
+    let (limit, group_limit) = (ask.items, ask.groups);
     let (start, end) = time.unwrap_or((i64::MIN, i64::MAX));
     let from = table.ops.partition_point(|o| o.start < start);
     let to = table.ops.partition_point(|o| o.start < end);
-    let ops = &table.ops[from..to];
+    // (Only the rows the filter keeps, if there is one.)
+    let kept: Vec<RegOp>;
+    let ops: &[RegOp] = if ask.filter.is_some() {
+        kept = table.ops[from..to]
+            .iter()
+            .filter(|r| ask.keeps(*r, |r, c| cell(trace, table, r, c)))
+            .cloned()
+            .collect();
+        &kept
+    } else {
+        &table.ops[from..to]
+    };
     let ns = |o: &RegOp| {
         u64::try_from(trace.clock.nanos(o.end) - trace.clock.nanos(o.start)).unwrap_or(0)
     };

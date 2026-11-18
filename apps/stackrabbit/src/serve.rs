@@ -136,11 +136,18 @@
 //!   1000 by default; heaviest exclusive first) and every module, each
 //!   row `{label, exclusive, inclusive, count}` (functions also have
 //!   `module`).
-//! - `events` `{trace}` → `{rows}`: every kind of event in the trace
-//!   (whether or not it is imported): `{provider, guid, event, id,
-//!   version, opcode, task, count, bytes, firstNs, lastNs}`, most numerous
-//!   first; `provider` and `event` named where the kernel's schemas or the
-//!   provider (TraceLogging) say, else null.
+//! - `events` `{trace, filter?}` → `{rows}`: every kind of event in the
+//!   trace (whether or not it is imported): `{provider, guid, event,
+//!   taskName, opcodeName, keywords, id, version, opcode, task, count,
+//!   bytes, firstNs, lastNs}`, most numerous first; `provider` and `event`
+//!   named where the kernel's schemas or the provider (TraceLogging) say,
+//!   else null. `filter`: those it keeps (WPA's query language on Provider
+//!   Name, Provider Id, Task Name, Opcode Name, Event Name, Id, Version,
+//!   Opcode, Keyword).
+//!
+//!   The summaries below (disk to registry) take a `filter` too: WPA's
+//!   query language on their columns (WPA's names for them; a column a
+//!   table lacks is an error that lists those it has).
 //! - `events.list` `{trace, guid, id?, version?, opcode?, time?, offset?,
 //!   limit?, stacks?}` → `{total, offset, columns, rows}`: one kind of event's
 //!   occurrences (in `time`), read from the trace file, in time order:
@@ -757,7 +764,14 @@ impl State {
                 let time = TreeSpec::from_json(params)?.time;
                 Ok(crate::views::processes(trace, time))
             }
-            "events" => Ok(crate::views::events(trace)),
+            "events" => {
+                let names: Vec<&str> = crate::views::EVENT_COLUMNS.iter().map(|c| c.0).collect();
+                let filter = crate::reading::filter(params, &names)?;
+                Ok(crate::views::filter_events(
+                    crate::views::events(trace),
+                    filter.as_ref(),
+                ))
+            }
             "events.list" => {
                 let guid = params
                     .get("guid")
@@ -923,9 +937,10 @@ impl State {
                     &table,
                     group,
                     time,
-                    crate::reading::Limits {
+                    &crate::reading::Ask {
                         items: limit,
                         groups: count(params, "groupLimit", 10_000)?,
+                        filter: crate::reading::filter(params, crate::disk::COLUMNS)?,
                     },
                 ))
             }
@@ -959,9 +974,10 @@ impl State {
                     &*self.symbols,
                     group,
                     time,
-                    crate::reading::Limits {
+                    &crate::reading::Ask {
                         items: limit,
                         groups: count(params, "groupLimit", 10_000)?,
+                        filter: crate::reading::filter(params, crate::dpc::COLUMNS)?,
                     },
                 ))
             }
@@ -990,9 +1006,10 @@ impl State {
                     &table,
                     group,
                     ticks(trace, spec.time),
-                    crate::reading::Limits {
+                    &crate::reading::Ask {
                         items: limit,
                         groups: group_limit,
+                        filter: crate::reading::filter(params, crate::hardfault::COLUMNS)?,
                     },
                 ))
             }
@@ -1047,9 +1064,10 @@ impl State {
                     kinds,
                     group,
                     ticks(trace, spec.time),
-                    crate::reading::Limits {
+                    &crate::reading::Ask {
                         items: limit,
                         groups: group_limit,
+                        filter: crate::reading::filter(params, crate::allocs::COLUMNS)?,
                     },
                 ))
             }
@@ -1075,9 +1093,10 @@ impl State {
                     &table,
                     group,
                     ticks(trace, spec.time),
-                    crate::reading::Limits {
+                    &crate::reading::Ask {
                         items: limit,
                         groups: group_limit,
+                        filter: crate::reading::filter(params, crate::memutil::COLUMNS)?,
                     },
                 ))
             }
@@ -1103,9 +1122,10 @@ impl State {
                     &table,
                     group,
                     ticks(trace, spec.time),
-                    crate::reading::Limits {
+                    &crate::reading::Ask {
                         items: limit,
                         groups: group_limit,
+                        filter: crate::reading::filter(params, crate::vmem::COLUMNS)?,
                     },
                 ))
             }
@@ -1135,9 +1155,10 @@ impl State {
                     &table,
                     group,
                     time,
-                    crate::reading::Limits {
+                    &crate::reading::Ask {
                         items: limit,
                         groups: group_limit,
+                        filter: crate::reading::filter(params, crate::registry::COLUMNS)?,
                     },
                 ))
             }
@@ -1166,9 +1187,10 @@ impl State {
                     &table,
                     group,
                     time,
-                    crate::reading::Limits {
+                    &crate::reading::Ask {
                         items: limit,
                         groups: count(params, "groupLimit", 10_000)?,
+                        filter: crate::reading::filter(params, crate::fileio::COLUMNS)?,
                     },
                 ))
             }

@@ -12,6 +12,7 @@ use hexcavator_etl::{Buffer, Etl, Guid, merge::for_each_event};
 use hexcavator_etw::schema::Property;
 use hexcavator_mmap::Mmap;
 use hexcavator_trace::{ProcessIx, ThreadIx, Trace};
+pub use hexcavator_trace_analysis::wpa_query::{Cell, Query};
 use rustc_hash::FxHashMap;
 
 /// Buffers a worker reads at a time.
@@ -214,11 +215,84 @@ impl Interner {
     }
 }
 
-/// How much of a summary to answer.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct Limits {
+/// What a summary is asked: of which rows, and how much of it to answer.
+#[derive(Clone, Debug, Default)]
+pub struct Ask {
     /// The items (the longest, largest or heaviest) to list.
     pub items: usize,
     /// The groups to list (the most first).
     pub groups: usize,
+    /// The rows it's of: those that hold this (WPA's query language, on
+    /// the table's columns), or all.
+    pub filter: Option<Query>,
+}
+
+impl Ask {
+    /// Whether `row` is one the summary is of: `cell` gives its value of a
+    /// column (by WPA's name for it).
+    pub fn keeps<T>(&self, row: &T, cell: impl Fn(&T, &str) -> Option<Cell>) -> bool {
+        self.filter
+            .as_ref()
+            .is_none_or(|q| q.holds(&|c: &str| cell(row, c)))
+    }
+}
+
+/// A request's `filter` (WPA's query language) on a table with `columns`:
+/// none, or the query, whose every column is one of them.
+pub fn filter(params: &serde_json::Value, columns: &[&str]) -> Result<Option<Query>, String> {
+    let Some(text) = params
+        .get("filter")
+        .and_then(serde_json::Value::as_str)
+        .filter(|t| !t.trim().is_empty())
+    else {
+        return Ok(None);
+    };
+    let q = Query::parse(text).map_err(|e| format!("filter: {e}"))?;
+    for c in q.columns() {
+        if !columns.iter().any(|k| k.eq_ignore_ascii_case(c)) {
+            return Err(format!(
+                "filter: [{c}] isn't a column here (these are: {})",
+                columns.join(", ")
+            ));
+        }
+    }
+    Ok(Some(q))
+}
+
+/// A text cell.
+pub fn text(s: &str) -> Option<Cell> {
+    Some(Cell::Text(s.to_string()))
+}
+
+/// A number cell.
+#[allow(clippy::cast_precision_loss)]
+pub fn number(n: u64) -> Option<Cell> {
+    Some(Cell::Number(n as f64))
+}
+
+/// The process columns every table has (by WPA's names).
+pub const PROCESS_COLUMNS: [&str; 3] = ["Process Name", "Process", "Process ID"];
+/// The thread columns.
+pub const THREAD_COLUMNS: [&str; 2] = ["Thread ID", "Thread Name"];
+
+/// A process's cell of `column` (one of `PROCESS_COLUMNS`), if it is one
+/// (an unknown process has none).
+pub fn process_cell(trace: &Trace, p: ProcessIx, column: &str) -> Option<Option<Cell>> {
+    let pr = p.is_some().then(|| &trace.processes[p.index()]);
+    Some(match column.to_ascii_lowercase().as_str() {
+        "process name" => pr.and_then(|p| text(&p.name)),
+        "process" => pr.and_then(|p| text(&format!("{} ({})", p.name, p.pid))),
+        "process id" => pr.and_then(|p| number(u64::from(p.pid))),
+        _ => return None,
+    })
+}
+
+/// A thread's cell of `column` (one of `THREAD_COLUMNS`), if it is one.
+pub fn thread_cell(trace: &Trace, t: ThreadIx, column: &str) -> Option<Option<Cell>> {
+    let th = t.is_some().then(|| &trace.threads[t.index()]);
+    Some(match column.to_ascii_lowercase().as_str() {
+        "thread id" => th.and_then(|t| number(u64::from(t.tid))),
+        "thread name" => th.and_then(|t| t.name.as_deref()).and_then(text),
+        _ => return None,
+    })
 }

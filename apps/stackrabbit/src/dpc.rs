@@ -106,6 +106,9 @@ pub fn table(trace: &Trace, path: &Path) -> Result<DpcTable, String> {
     Ok(DpcTable { runs })
 }
 
+/// The columns a filter may name (WPA's names).
+pub const COLUMNS: &[&str] = &["Type", "CPU", "Module", "Function", "Vector"];
+
 /// What runs are grouped by.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum GroupBy {
@@ -134,9 +137,9 @@ pub fn summary(
     symbols: &dyn Symbolizer,
     group: GroupBy,
     time: Option<(i64, i64)>,
-    limits: crate::reading::Limits,
+    ask: &crate::reading::Ask,
 ) -> Value {
-    let (limit, group_limit) = (limits.items, limits.groups);
+    let (limit, group_limit) = (ask.items, ask.groups);
     let (start, end) = time.unwrap_or((i64::MIN, i64::MAX));
     let from = table.runs.partition_point(|r| r.start < start);
     let to = table.runs.partition_point(|r| r.start < end);
@@ -163,6 +166,30 @@ pub fn summary(
                 }
             })
             .clone()
+    };
+    // (Only the runs the filter keeps, if there is one.)
+    let kept: Vec<Run>;
+    let runs: &[Run] = match &ask.filter {
+        None => runs,
+        Some(q) => {
+            use crate::reading::{number, text};
+            kept = runs
+                .iter()
+                .filter(|r| {
+                    let (module, function) = name(r.routine);
+                    q.holds(&|c: &str| match c.to_ascii_lowercase().as_str() {
+                        "type" => text(r.kind.name()),
+                        "cpu" => number(u64::from(r.processor)),
+                        "module" => text(&module),
+                        "function" => text(&function),
+                        "vector" => r.vector.and_then(|v| number(u64::from(v))),
+                        _ => None,
+                    })
+                })
+                .copied()
+                .collect();
+            &kept
+        }
     };
     let mut groups: FxHashMap<String, (u64, u64, u64)> = FxHashMap::default();
     let mut histogram: FxHashMap<Type, [u64; BUCKETS.len()]> = FxHashMap::default();

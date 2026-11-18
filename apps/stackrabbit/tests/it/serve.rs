@@ -2632,3 +2632,123 @@ fn profiles_are_mapped_without_a_trace() {
     assert!(error(&a, 2).contains("missing.wpaProfile"));
     assert!(error(&a, 3).contains("path"));
 }
+
+#[test]
+fn summaries_take_wpa_filters() {
+    use hexcavator_etw::guids;
+    // Registry: four operations, two of them opens.
+    let dir = scratch("serve-filters");
+    let path = registry_trace(
+        &dir,
+        &[
+            (11, 20, 10, 0, 0, r"\REGISTRY\A", 200, 100),
+            (11, 40, 30, 0xc000_0034, 0, r"\REGISTRY\B", 200, 100),
+            (16, 60, 50, 0, 0, "", 200, 100),
+            (27, 80, 70, 0, 0, r"\REGISTRY\A", 999, 777),
+        ],
+    );
+    let req = |params: Value| {
+        let mut p = json!({"trace": 1});
+        for (k, v) in params.as_object().unwrap() {
+            p[k] = v.clone();
+        }
+        json!({"method": "registry", "params": p})
+    };
+    let a = session(&[
+        json!({"method": "open", "params": {"path": path, "useIndex": true}}),
+        req(json!({"filter": "[Operation]:=Open"})),
+        req(json!({"filter": "[Operation]:=open [Status]:<>0x00000000"})),
+        req(json!({"filter": r#"[Key]:~>"\a" OR [Process Name]:="app.exe""#})),
+        req(json!({"filter": "NOT [Process ID]:=100", "by": "process"})),
+        req(json!({"filter": "  "})),
+        req(json!({"filter": "[Nonsense]:=1"})),
+        req(json!({"filter": "[Operation]:="})),
+    ]);
+    assert_eq!(result(&a, 2)["count"], 2);
+    assert_eq!(result(&a, 3)["count"], 1, "the failed open");
+    // (The Close of \REGISTRY\A by an unknown process; the opens and the
+    // query by app.exe.)
+    assert_eq!(result(&a, 4)["count"], 4);
+    let r = result(&a, 5);
+    assert_eq!(r["count"], 1);
+    assert_eq!(
+        r["groups"][0]["label"], "Unknown process",
+        "no process: not 100"
+    );
+    assert_eq!(result(&a, 6)["count"], 4, "a blank filter is none");
+    let e = error(&a, 7);
+    assert!(e.contains("[Nonsense]") && e.contains("Key Name"), "{e}");
+    assert!(error(&a, 8).contains("filter"), "{}", error(&a, 8));
+
+    // Heap: by heap and size.
+    let dir = scratch("serve-filters-heap");
+    let ptrs = |v: &[u64]| v.iter().flat_map(|v| v.to_le_bytes()).collect::<Vec<u8>>();
+    let alloc = |ts: i64, heap: u64, size: u64, address: u64| {
+        let mut p = ptrs(&[heap, size, address]);
+        p.extend_from_slice(&0u32.to_le_bytes());
+        (guids::HEAP, 33, 2, ts, p, 200)
+    };
+    let path = app_trace(
+        &dir,
+        vec![
+            alloc(10, 0x1000, 100, 0xa1),
+            alloc(20, 0x1000, 5000, 0xa2),
+            alloc(30, 0x2000, 70, 0xa3),
+        ],
+    );
+    let a = session(&[
+        json!({"method": "open", "params": {"path": path, "useIndex": true}}),
+        json!({"method": "heap", "params": {"trace": 1, "filter": "[Heap]:~<0x1000 [Size]:>=100"}}),
+        json!({"method": "heap", "params": {"trace": 1, "filter": "[Size]:<1000", "by": "heap"}}),
+        json!({"method": "hardfaults", "params": {"trace": 1, "filter": "[Heap]:=1"}}),
+    ]);
+    assert_eq!(result(&a, 2)["allocated"], 5100);
+    let r = result(&a, 3);
+    assert_eq!(
+        (r["allocs"].as_u64(), r["groupsTotal"].as_u64()),
+        (Some(2), Some(2))
+    );
+    assert!(error(&a, 4).contains("[Heap]"), "a column of another table");
+}
+
+#[test]
+fn event_kinds_take_wpa_filters() {
+    let dir = scratch("serve-event-filters");
+    let path = registry_trace(
+        &dir,
+        &[
+            (11, 20, 10, 0, 0, r"\REGISTRY\A", 200, 100),
+            (11, 40, 30, 0, 0, r"\REGISTRY\B", 200, 100),
+            (27, 80, 70, 0, 0, r"\REGISTRY\A", 200, 100),
+        ],
+    );
+    let ask = |filter: &str| json!({"method": "events", "params": {"trace": 1, "filter": filter}});
+    let a = session(&[
+        json!({"method": "open", "params": {"path": path, "useIndex": true}}),
+        ask("[Task Name]:=Registry [Opcode Name]:=Open"),
+        ask("[Task Name]:=Registry"),
+        ask("[Opcode]:>=27 OR [Provider Name]:=Process"),
+        ask("[Field 1]:=x"),
+    ]);
+    let kinds = |id: u64| -> Vec<(String, u64)> {
+        result(&a, id)["rows"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|r| {
+                (
+                    r["opcodeName"].as_str().unwrap_or("").to_string(),
+                    r["count"].as_u64().unwrap(),
+                )
+            })
+            .collect()
+    };
+    assert_eq!(kinds(2), [("Open".to_string(), 2)]);
+    assert_eq!(kinds(3).len(), 2, "the opens and the close");
+    let r = kinds(4);
+    assert!(
+        r.contains(&("Close".to_string(), 1)) && r.contains(&("DCStart".to_string(), 1)),
+        "{r:?}"
+    );
+    assert!(error(&a, 5).contains("[Field 1]"));
+}

@@ -10,6 +10,7 @@
 use std::process::ExitCode;
 
 use hexcavator_trace_analysis::wpa_profile::{Column, Graph, Preset, Profile};
+use hexcavator_trace_analysis::wpa_query::Query;
 use serde_json::{Map, Value, json};
 
 /// What Stackrabbit shows a table as.
@@ -306,9 +307,6 @@ pub fn map(graph: &Graph) -> Mapped {
         Shown::Summary(tab, by) => summary(preset, tab, by, &mut m),
         Shown::Tab(tab) => {
             m.tab = Some(tab);
-            if tab == "events" {
-                events(preset, &mut m);
-            }
             let native = NATIVE
                 .iter()
                 .find(|(t, _)| *t == tab)
@@ -339,10 +337,8 @@ pub fn map(graph: &Graph) -> Mapped {
             }
         }
     }
-    if let Some(f) = &preset.filter
-        && !(m.tab == Some("events") && m.params.get("provider").is_some())
-    {
-        m.skipped.push(format!("its filter ({f})"));
+    if let Some(f) = &preset.filter {
+        filter(f, &mut m);
     }
     if preset.highlights > 0 {
         m.skipped
@@ -459,18 +455,53 @@ fn summary(preset: &Preset, tab: &'static str, by: &[(&str, &str)], m: &mut Mapp
 
 /// A generic events preset: a filter that names one provider lists its
 /// events.
-fn events(preset: &Preset, m: &mut Mapped) {
-    if let Some(p) = preset.filter.as_deref().and_then(single_provider) {
-        m.params = json!({"provider": p});
-        m.applied.push(format!("the events of {p}"));
-    }
+/// The columns a tab's filter may name, if it takes one.
+fn filter_columns(tab: &str) -> Option<Vec<&'static str>> {
+    Some(match tab {
+        "disk" => crate::disk::COLUMNS.to_vec(),
+        "fileio" => crate::fileio::COLUMNS.to_vec(),
+        "dpc" => crate::dpc::COLUMNS.to_vec(),
+        "registry" => crate::registry::COLUMNS.to_vec(),
+        "hardfaults" => crate::hardfault::COLUMNS.to_vec(),
+        "vmem" => crate::vmem::COLUMNS.to_vec(),
+        "heap" | "pool" => crate::allocs::COLUMNS.to_vec(),
+        "memory" => crate::memutil::COLUMNS.to_vec(),
+        "events" => crate::views::EVENT_COLUMNS.iter().map(|c| c.0).collect(),
+        _ => return None,
+    })
 }
 
-/// The provider a filter names, if it is just `[Provider Name]:="X"`.
-fn single_provider(filter: &str) -> Option<String> {
-    let rest = filter.trim().strip_prefix("[Provider Name]:=")?;
-    let name = rest.strip_prefix('"')?.strip_suffix('"')?;
-    (!name.contains('"')).then(|| name.to_string())
+/// A preset's filter: applied, if its tab takes one on every column it
+/// names; else said, with why.
+fn filter(f: &str, m: &mut Mapped) {
+    let Some(columns) = m.tab.and_then(filter_columns) else {
+        m.skipped
+            .push(format!("its filter ({f}): this tab takes none yet"));
+        return;
+    };
+    match Query::parse(f) {
+        Err(e) => m
+            .skipped
+            .push(format!("its filter ({f}): unreadable ({e})")),
+        Ok(q) => {
+            let missing: Vec<&str> = q
+                .columns()
+                .into_iter()
+                .filter(|c| !columns.iter().any(|k| k.eq_ignore_ascii_case(c)))
+                .collect();
+            if missing.is_empty() {
+                if let Some(o) = m.params.as_object_mut() {
+                    o.insert("filter".into(), json!(f));
+                }
+                m.applied.push(format!("its filter ({f})"));
+            } else {
+                m.skipped.push(format!(
+                    "its filter ({f}): no {} column here",
+                    missing.join(", ")
+                ));
+            }
+        }
+    }
 }
 
 /// A profile's views, mapped: `{views: [{title, graphs: [{table, preset,

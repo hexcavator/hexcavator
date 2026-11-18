@@ -139,7 +139,11 @@ window.acquireVsCodeApi = function () {
     else if (m.method === "graph") r.result = m.params.highlight ? A.lit : A.graph;
     else if (m.method === "processes") r.result = A.processes;
     else if (m.method === "functions") r.result = A.functions;
-    else if (m.method === "events") r.result = A.events;
+    else if (m.method === "events") {
+      // (A provider's filter, as the engine would keep it.)
+      var f = m.params && m.params.filter && /^\\[Provider Name\\]:="(.*)"$/.exec(m.params.filter);
+      r.result = f ? {rows: A.events.rows.filter(function (k) { return k.provider === f[1]; })} : A.events;
+    }
     else if (m.method === "regions" && A.regions) r.result = A.regions;
     else if (m.method === "disk" && A.disk) r.result = A.disk;
     else if (m.method === "fileio" && A.fileio) r.result = A.fileio;
@@ -937,7 +941,7 @@ def main():
             {"table": "Images", "preset": "Images", "tab": None, "params": {}, "applied": [], "skipped": ["Images: Stackrabbit has no such table yet"]}]},
         {"title": "CPU", "graphs": [
             {"table": "CPU Usage (Precise)", "preset": "By Process, Thread, Tag", "tab": "stacks", "params": {"source": "running", "groupBy": ["process", "thread", "tag"]}, "applied": [], "skipped": []},
-            {"table": "Generic Events", "preset": "One provider", "tab": "events", "params": {"provider": provider}, "applied": [], "skipped": []}]}]}}
+            {"table": "Generic Events", "preset": "One provider", "tab": "events", "params": {"filter": f'[Provider Name]:="{provider}"'}, "applied": [], "skipped": []}]}]}}
     base = "window.postMessage(" + json.dumps(profile) + ", '*');"
     pick = lambda i: base + f"setTimeout(function () {{ var s = document.getElementById('profile-graph'); s.value = '{i}'; s.dispatchEvent(new Event('change')); }}, 100);"
     dom = render(data, pick(0), shot=shot("profile"))
@@ -963,6 +967,18 @@ def main():
     listed = [m["params"] for m in posted if m.get("method") == "events.list"]
     mine = sorted((k for k in data["events"]["rows"] if k["provider"] == provider), key=lambda k: -k["count"])[0]
     assert listed and listed[-1]["guid"] == mine["guid"] and listed[-1]["opcode"] == mine["opcode"], listed
+    asked = [m["params"] for m in posted if m.get("method") == "events"]
+    assert asked[-1] == {"filter": f'[Provider Name]:="{provider}"'}, asked
+    assert f'of those [Provider Name]:="{provider}" keeps' in html.unescape(dom)
+    # A summary tab's filter: sent, said, and cleared.
+    profile["result"]["views"][0]["graphs"][0]["params"]["filter"] = "[IO Type]:=Write"
+    base = "window.postMessage(" + json.dumps(profile) + ", '*');"
+    dom = render(data, pick(0) + "setTimeout(function () { document.getElementById('profile-clear').click(); }, 400);", wait=800)
+    posted = json.loads(html.unescape(re.search(r'<pre id="posted"[^>]*>(.*?)</pre>', dom, re.S).group(1)))
+    disks = [m["params"] for m in posted if m.get("method") == "disk"]
+    assert any(d.get("filter") == "[IO Type]:=Write" for d in disks), disks
+    assert "filter" not in disks[-1], "cleared"
+    assert "Filters cleared." in dom
     # Asking for a profile goes to the extension.
     dom = render(data, "document.getElementById('profile-open').click();")
     posted = json.loads(html.unescape(re.search(r'<pre id="posted"[^>]*>(.*?)</pre>', dom, re.S).group(1)))

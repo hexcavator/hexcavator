@@ -276,7 +276,7 @@ function html(webview, media) {
 <div class="threads-title">Modules</div><table id="modules" class="processes"></table></div>
 <div id="symbols-pane" class="pane hidden"><div id="symbols-title" class="threads-title"></div><table id="symbols-table" class="processes"></table>
 <div id="no-debug-title" class="threads-title"></div><table id="no-debug" class="processes"></table></div>
-<div id="profile-bar" class="threads-title hidden"><span id="profile-name"></span> <select id="profile-graph"></select> <span id="profile-note"></span></div>
+<div id="profile-bar" class="threads-title hidden"><span id="profile-name"></span> <select id="profile-graph"></select> <button id="profile-clear" title="Show every tab's rows again, not only those a preset's filter keeps">Clear filters</button> <span id="profile-note"></span></div>
 <div id="disk-pane" class="pane hidden"><div class="threads-title"><span id="disk-title"></span> <label>Group by <select id="disk-by">
     <option value="process">Process</option><option value="file">File</option><option value="disk">Disk</option><option value="type">Type</option>
   </select></label></div><table id="disk-groups" class="processes"></table>
