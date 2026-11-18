@@ -10,7 +10,7 @@ const { Session } = require("./lib/protocol");
 const { LineHeat } = require("./lib/line-heat");
 
 /** The requests a view may make of the engine about its trace. */
-const VIEW_METHODS = new Set(["summary", "graph", "processes", "threads", "functions", "symbols", "events", "tree.create", "tree.children", "tree.hotPath", "tree.close"]);
+const VIEW_METHODS = new Set(["summary", "graph", "processes", "threads", "functions", "symbols", "events", "events.list", "tree.create", "tree.children", "tree.hotPath", "tree.close"]);
 
 let channel;
 
@@ -255,7 +255,8 @@ function html(webview, media) {
 <div class="threads-title">Modules</div><table id="modules" class="processes"></table></div>
 <div id="symbols-pane" class="pane hidden"><div id="symbols-title" class="threads-title"></div><table id="symbols-table" class="processes"></table>
 <div id="no-debug-title" class="threads-title"></div><table id="no-debug" class="processes"></table></div>
-<div id="events-pane" class="pane hidden"><div id="events-title" class="threads-title"></div><table id="events" class="processes"></table></div>
+<div id="events-pane" class="pane hidden"><div id="events-title" class="threads-title"></div><table id="events" class="processes"></table>
+<div id="event-list-title" class="threads-title">Click a kind of event for its events.</div><div id="event-list-holder"></div></div>
 <div id="processes-pane" class="pane hidden"><table id="processes" class="processes"></table>
 <div id="threads-title" class="threads-title">Click a process for its threads.</div><table id="threads" class="processes"></table></div>
 <script nonce="${nonce}" src="${src("tree-model.js")}"></script>

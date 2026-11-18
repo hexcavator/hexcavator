@@ -60,6 +60,14 @@
 //!   version, opcode, task, count, bytes, firstNs, lastNs}`, most numerous
 //!   first; `provider` and `event` named where the kernel's schemas or the
 //!   provider (TraceLogging) say, else null.
+//! - `events.list` `{trace, guid, id?, version?, opcode?, time?, offset?,
+//!   limit?}` → `{total, offset, columns, rows}`: one kind of event's
+//!   occurrences (in `time`), read from the trace file, in time order:
+//!   how many, and `limit` (1000) from `offset`, each `{timeNs, cpu, pid,
+//!   process, tid, fields, missing, extra}` with its fields as `[name,
+//!   value]` (decoded by the description recorded with the trace, else
+//!   the kernel's schema, else bytes); `missing`, the properties its
+//!   payload ended before, `extra`, the bytes after its last.
 //! - `threads` `{trace, process?, time?}` → `{rows}`: a process's threads
 //!   (or all), with their lifetimes, start addresses (named), CPU samples,
 //!   switches in and running time (precise, in ms) in `time`, heaviest
@@ -594,6 +602,44 @@ impl State {
                 Ok(crate::views::processes(trace, time))
             }
             "events" => Ok(crate::views::events(trace)),
+            "events.list" => {
+                let guid = params
+                    .get("guid")
+                    .and_then(Value::as_str)
+                    .and_then(hexcavator_etl::Guid::parse)
+                    .ok_or("guid: expected a provider's GUID")?;
+                let small = |name: &str, max: u64| -> Result<u64, String> {
+                    match params.get(name) {
+                        None | Some(Value::Null) => Ok(0),
+                        Some(v) => v
+                            .as_u64()
+                            .filter(|&n| n <= max)
+                            .ok_or_else(|| format!("{name}: expected a number up to {max}")),
+                    }
+                };
+                let kind = crate::generic::Kind {
+                    provider: guid,
+                    id: u16::try_from(small("id", 0xffff)?).unwrap_or(0),
+                    version: u8::try_from(small("version", 0xff)?).unwrap_or(0),
+                    opcode: u8::try_from(small("opcode", 0xff)?).unwrap_or(0),
+                };
+                let time = TreeSpec::from_json(params)?.time.map(|(s, e)| {
+                    let tps = i128::from(trace.clock.ticks_per_second.max(1));
+                    let t = |ns: i64| {
+                        i64::try_from(
+                            i128::from(trace.clock.origin) + i128::from(ns) * tps / 1_000_000_000,
+                        )
+                        .unwrap_or(i64::MAX)
+                    };
+                    (t(s), t(e))
+                });
+                let offset = usize::try_from(small("offset", u64::MAX)?).unwrap_or(usize::MAX);
+                let limit = match params.get("limit") {
+                    None | Some(Value::Null) => 1000,
+                    Some(_) => usize::try_from(small("limit", 100_000)?).unwrap_or(1000),
+                };
+                crate::generic::list(trace, &self.loaded.path, kind, time, offset, limit)
+            }
             "threads" => {
                 let time = TreeSpec::from_json(params)?.time;
                 let process = match params.get("process") {

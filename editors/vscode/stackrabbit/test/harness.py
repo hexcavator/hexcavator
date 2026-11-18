@@ -110,6 +110,8 @@ def answers(engine, path, spec, depth=4, limit=4000):
     lit = engine.request("graph", {"trace": trace, "buckets": 1000, "top": 8, "highlight": functions["functions"][1]["fn"]})
     symbols = engine.request("symbols", {"trace": trace, "wait": True})
     events = engine.request("events", {"trace": trace})
+    top_kind = events["rows"][0]
+    event_list = engine.request("events.list", {"trace": trace, "guid": top_kind["guid"], "id": top_kind["id"], "version": top_kind["version"], "opcode": top_kind["opcode"], "limit": 1000})
     # A function's callers, and their hot path (for the hover card).
     heavy = functions["functions"][0]
     focus_tree = engine.request("tree.create", {"trace": trace, "focus": heavy["fn"], "invert": True, "groupBy": []})
@@ -117,7 +119,7 @@ def answers(engine, path, spec, depth=4, limit=4000):
     focus_tree = dict(focus_tree, view=99)
     # (The view's view IDs: its first tree is view 1 of its own.)
     tree = dict(tree, view=1)
-    return {"opened": opened, "tree": tree, "children": children, "hot": hot, "graph": graph, "processes": processes, "threads": threads, "functions": functions, "lit": lit, "symbols": symbols, "focusTree": focus_tree, "focusHot": focus_hot, "events": events}
+    return {"opened": opened, "tree": tree, "children": children, "hot": hot, "graph": graph, "processes": processes, "threads": threads, "functions": functions, "lit": lit, "symbols": symbols, "focusTree": focus_tree, "focusHot": focus_hot, "events": events, "eventList": event_list}
 
 
 STUB = """
@@ -136,6 +138,7 @@ window.acquireVsCodeApi = function () {
     else if (m.method === "processes") r.result = A.processes;
     else if (m.method === "functions") r.result = A.functions;
     else if (m.method === "events") r.result = A.events;
+    else if (m.method === "events.list") r.result = A.eventList;
     else if (m.method === "symbols") r.result = A.symbols;
     else if (m.method === "threads" && A.threads[m.params.process]) r.result = A.threads[m.params.process];
     else r.error = m.method + ": no answer for " + JSON.stringify(m.params);
@@ -656,6 +659,22 @@ def main():
     table = dom[dom.index('id="events"'):dom.index('id="processes-pane"')]
     counts = [int(x.replace(",", "")) for x in re.findall(r'<tr data-i="\d+">(?:<td[^>]*>[^<]*</td>){5}<td class="num">([^<]*)</td>', table)]
     assert counts == [r["count"] for r in kinds], counts[:5]
+    # Clicking the most numerous kind: its events listed, a column for
+    # each field.
+    click = ("document.getElementById('tab-events').click();"
+             "setTimeout(function () { document.querySelector('#events tbody tr').click(); }, 50);")
+    dom = render(data, click, shot=shot("event-list"))
+    posted = json.loads(html.unescape(re.search(r'<pre id="posted"[^>]*>(.*?)</pre>', dom, re.S).group(1)))
+    asked = [m["params"] for m in posted if m.get("method") == "events.list"]
+    top_kind = data["events"]["rows"][0]
+    assert asked and asked[-1]["guid"] == top_kind["guid"] and asked[-1]["opcode"] == top_kind["opcode"], asked
+    el = data["eventList"]
+    assert f"{el['total']:,} events" in dom, "the list's title"
+    table = dom[dom.index('id="event-list"'):]
+    heads = re.findall(r'<th[^>]*data-key="f\d+"[^>]*>([^<▾▴]*)', table)
+    assert [h.strip() for h in heads] == el["columns"], (heads, el["columns"])
+    n = len(re.findall(r'<tr data-i="\d+"', table[:table.index("</table>")]))
+    assert n == len(el["rows"]), f"{n} rows"
     print("harness: ok")
 
 

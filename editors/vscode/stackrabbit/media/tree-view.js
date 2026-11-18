@@ -42,6 +42,9 @@
     createTree();
     loadProcesses();
     loadFunctions();
+    if (listedKind) {
+      loadEventList(listedKind);
+    }
   }, $("graph-tip"));
   let view = null; // the engine's view ID
   let unit = "samples";
@@ -422,8 +425,57 @@
       { key: "lastNs", title: "Last", num: true, text: at("") },
       { key: "guid", title: "Provider GUID", cls: "cmd" },
     ],
-    { key: "count", down: true }
+    { key: "count", down: true },
+    (row) => {
+      eventsTable.picked = row.pick;
+      eventsTable.draw();
+      loadEventList(row);
+    }
   );
+  // The kind of event picked: its events listed (in the time selected).
+  let listedKind = null;
+  async function loadEventList(kind) {
+    listedKind = kind;
+    const title = $("event-list-title");
+    title.textContent = `Reading the trace for ${kind.provider || kind.guid} ${kind.event || ""}…`;
+    try {
+      const params = { guid: kind.guid, id: kind.id, version: kind.version, opcode: kind.opcode, limit: 1000 };
+      if (selection) {
+        params.time = selection;
+      }
+      const r = await request("events.list", params);
+      if (listedKind !== kind) {
+        return;
+      }
+      const shown = r.rows.length < r.total ? `the first ${r.rows.length.toLocaleString("en-US")} of ` : "";
+      title.textContent = `${kind.provider || kind.guid} ${kind.event || ""}: ${shown}${r.total.toLocaleString("en-US")} events${selection ? " in the time selected" : ""}`;
+      // A table of its own (its columns are the kind's fields).
+      const table = document.createElement("table");
+      table.id = "event-list";
+      table.className = "processes";
+      $("event-list-holder").replaceChildren(table);
+      const columns = [
+        { key: "timeNs", title: "Time", num: true, text: (v) => (v / 1e9).toFixed(6) + " s" },
+        { key: "cpu", title: "CPU", num: true },
+        { key: "process", title: "Process" },
+        { key: "pid", title: "PID", num: true },
+        { key: "tid", title: "TID", num: true },
+        ...r.columns.map((c, i) => ({ key: `f${i}`, title: c })),
+      ];
+      const rows = r.rows.map((x) => {
+        const o = { timeNs: x.timeNs, cpu: x.cpu, process: x.process, pid: x.pid, tid: x.tid };
+        for (const [name, value] of x.fields) {
+          o[`f${r.columns.indexOf(name)}`] = value;
+        }
+        return o;
+      });
+      eventListTable = new SortedTable(table, columns, { key: "timeNs", down: false });
+      eventListTable.set(rows);
+    } catch (e) {
+      title.textContent = e.message;
+    }
+  }
+  let eventListTable = null;
   let eventsLoaded = false;
   async function loadEvents() {
     if (eventsLoaded) {
@@ -435,7 +487,7 @@
       const total = r.rows.reduce((a, x) => a + x.count, 0);
       $("events-title").textContent =
         `${total.toLocaleString("en-US")} events of ${r.rows.length.toLocaleString("en-US")} kinds, in all of the trace`;
-      eventsTable.set(r.rows);
+      eventsTable.set(r.rows.map((x) => ({ ...x, pick: `${x.guid}/${x.id}/${x.version}/${x.opcode}/${x.task}` })));
     } catch (e) {
       statusEl.textContent = e.message;
       statusEl.classList.add("error");
@@ -488,7 +540,7 @@
       text = symbolsTable.markdown();
       what = "the symbols";
     } else if (!$("events-pane").classList.contains("hidden")) {
-      text = eventsTable.markdown();
+      text = eventsTable.markdown() + (eventListTable ? "\n" + eventListTable.markdown() : "");
       what = "the events";
     } else {
       text = processesTable.markdown();

@@ -866,3 +866,101 @@ fn events_are_named_by_the_descriptions_recorded_with_them() {
     trace.event_infos = vec![vec![1, 2, 3]];
     assert!(row(&trace, 5)["provider"].is_null());
 }
+
+#[test]
+fn one_kind_of_events_listed_and_decoded() {
+    let dir = scratch("serve-events-list");
+    let (path, s) = write_trace(&dir, "t.etl", &small());
+    let a = session(&[
+        json!({"method": "open", "params": {"path": path, "useIndex": false}}),
+        json!({"method": "events", "params": {"trace": 1}}),
+    ]);
+    let thread = hexcavator_etw::guids::THREAD.to_string();
+    let cswitch = result(&a, 2)["rows"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|r| r["guid"] == thread.as_str() && r["opcode"] == 36)
+        .unwrap()
+        .clone();
+    let list = |extra: Value| {
+        let mut p = json!({"trace": 1, "guid": cswitch["guid"], "id": cswitch["id"], "version": cswitch["version"], "opcode": 36});
+        for (k, v) in extra.as_object().unwrap() {
+            p[k] = v.clone();
+        }
+        json!({"method": "events.list", "params": p})
+    };
+    let a = session(&[
+        json!({"method": "open", "params": {"path": path, "useIndex": false}}),
+        list(json!({"limit": 25})),
+        list(json!({"limit": 25, "offset": 25})),
+        list(json!({"limit": 50})),
+        list(json!({"limit": 100000, "time": [0, 100_000_000]})),
+        json!({"method": "events.list", "params": {"trace": 1, "guid": "nonsense"}}),
+        list(json!({"limit": 1_000_000})),
+    ]);
+    let first = result(&a, 2);
+    assert_eq!(first["total"], s.truth.switches);
+    let rows = first["rows"].as_array().unwrap();
+    assert_eq!(rows.len(), 25);
+    let times = |r: &Value| -> Vec<i64> {
+        r["rows"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|x| x["timeNs"].as_i64().unwrap())
+            .collect()
+    };
+    let t1 = times(first);
+    assert!(t1.windows(2).all(|w| w[0] <= w[1]), "in time order");
+    // Pages join up: the first two pages are the first 50.
+    let mut both = t1.clone();
+    both.extend(times(result(&a, 3)));
+    assert_eq!(both, times(result(&a, 4)));
+    // Decoded by the kernel's schema: the new thread is the import's.
+    assert!(
+        first["columns"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|c| c == "NewThreadId"),
+        "{}",
+        first["columns"]
+    );
+    let new_tid = |r: &Value| -> u64 {
+        let f = r["fields"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|f| f[0] == "NewThreadId")
+            .unwrap();
+        f[1].as_str().unwrap().parse().unwrap()
+    };
+    let loaded = stackrabbit::store::open(
+        &path,
+        &stackrabbit::store::Options {
+            use_index: false,
+            cache_dir: None,
+        },
+    )
+    .unwrap();
+    let t = &loaded.trace;
+    for (i, r) in rows.iter().enumerate() {
+        let th = t.switches.new_thread[i];
+        let tid = if th.is_some() {
+            u64::from(t.threads[th.index()].tid)
+        } else {
+            0
+        };
+        assert_eq!(new_tid(r), tid, "switch {i}");
+        assert_eq!(r["missing"], 0);
+    }
+    // A time range: only its events, and how many.
+    let ranged = result(&a, 5);
+    let n = ranged["total"].as_u64().unwrap();
+    assert!(n > 0 && n < s.truth.switches);
+    assert_eq!(ranged["rows"].as_array().unwrap().len() as u64, n);
+    assert!(times(ranged).iter().all(|&t| (0..100_000_000).contains(&t)));
+    assert!(error(&a, 6).contains("guid"));
+    assert!(error(&a, 7).contains("limit"));
+}
