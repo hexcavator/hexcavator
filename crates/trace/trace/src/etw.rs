@@ -1206,6 +1206,11 @@ struct Tables {
     live_processes: FxHashMap<u32, ProcessIx>,
     live_threads: FxHashMap<u32, ThreadIx>,
     live_images: FxHashMap<(u32, u64), ImageIx>,
+    /// Threads whose process wasn't known when their events named it (a
+    /// trace with no rundown at its start: a process running then is
+    /// named only when it ends, or by the rundown at the end), by that
+    /// process's ID: they join it when it is.
+    orphans: FxHashMap<u32, Vec<ThreadIx>>,
 }
 
 impl Tables {
@@ -1215,6 +1220,7 @@ impl Tables {
             live_processes: FxHashMap::default(),
             live_threads: FxHashMap::default(),
             live_images: FxHashMap::default(),
+            orphans: FxHashMap::default(),
         }
     }
 
@@ -1287,6 +1293,33 @@ impl Tables {
         ix
     }
 
+    /// Adds a process (live as `pid` from now), and adopts the threads
+    /// waiting for it.
+    fn add_process(&mut self, process: Process) -> ProcessIx {
+        let ix = ProcessIx(row(self.trace.processes.len()));
+        let pid = process.pid;
+        self.trace.processes.push(process);
+        self.live_processes.insert(pid, ix);
+        for t in self.orphans.remove(&pid).unwrap_or_default() {
+            let thread = &mut self.trace.threads[t.index()];
+            if thread.process == ProcessIx::NONE {
+                thread.process = ix;
+            }
+        }
+        ix
+    }
+
+    /// `thread`'s process is `pid`'s, if it is known; else it waits for it.
+    fn join(&mut self, thread: ThreadIx, pid: u32, process: ProcessIx) {
+        if process == ProcessIx::NONE {
+            if pid != u32::MAX {
+                self.orphans.entry(pid).or_default().push(thread);
+            }
+        } else {
+            self.trace.threads[thread.index()].process = process;
+        }
+    }
+
     fn process(&mut self, t: i64, p: &ProcessItem) {
         let existing = self.live_processes.get(&p.process_id).copied();
         let same = existing.filter(|ix| {
@@ -1298,8 +1331,7 @@ impl Tables {
                 if p.lifetime == Lifetime::RundownStart && same.is_some() {
                     return;
                 }
-                let ix = ProcessIx(row(self.trace.processes.len()));
-                self.trace.processes.push(Process {
+                self.add_process(Process {
                     pid: p.process_id,
                     parent_pid: p.parent_id,
                     unique_key: p.unique_key,
@@ -1309,19 +1341,30 @@ impl Tables {
                     end: None,
                     exit_status: None,
                 });
-                self.live_processes.insert(p.process_id, ix);
             }
             Lifetime::End => {
                 if let Some(ix) = same {
                     let q = &mut self.trace.processes[ix.index()];
                     q.end = Some(t);
                     q.exit_status = Some(p.exit_status);
+                } else {
+                    // Running before the trace began (with no rundown at
+                    // its start to say so): known from its end.
+                    self.add_process(Process {
+                        pid: p.process_id,
+                        parent_pid: p.parent_id,
+                        unique_key: p.unique_key,
+                        name: p.name.clone(),
+                        command_line: p.command_line.clone(),
+                        start: None,
+                        end: Some(t),
+                        exit_status: Some(p.exit_status),
+                    });
                 }
             }
             Lifetime::RundownEnd => {
                 if same.is_none() {
-                    let ix = ProcessIx(row(self.trace.processes.len()));
-                    self.trace.processes.push(Process {
+                    self.add_process(Process {
                         pid: p.process_id,
                         parent_pid: p.parent_id,
                         unique_key: p.unique_key,
@@ -1329,7 +1372,6 @@ impl Tables {
                         command_line: p.command_line.clone(),
                         ..Process::default()
                     });
-                    self.live_processes.insert(p.process_id, ix);
                 }
             }
             Lifetime::Defunct => {}
@@ -1350,42 +1392,45 @@ impl Tables {
                     if th.lifetime == Lifetime::RundownStart
                         || (existing.process == ProcessIx::NONE && existing.start.is_none())
                     {
-                        if existing.process == ProcessIx::NONE {
-                            existing.process = process;
+                        let unjoined = existing.process == ProcessIx::NONE;
+                        if unjoined {
                             existing.start_address = th.win32_start_address;
                         }
-                        if th.lifetime == Lifetime::RundownStart {
-                            return;
+                        if th.lifetime != Lifetime::RundownStart {
+                            existing.start = Some(t);
                         }
-                        existing.start = Some(t);
+                        if unjoined {
+                            self.join(ix, th.process_id, process);
+                        }
                         return;
                     }
                 }
                 let ix = ThreadIx(row(self.trace.threads.len()));
                 self.trace.threads.push(Thread {
                     tid: th.thread_id,
-                    process,
+                    process: ProcessIx::NONE,
                     name: None,
                     start_address: th.win32_start_address,
                     start: (th.lifetime == Lifetime::Start).then_some(t),
                     end: None,
                 });
                 self.live_threads.insert(th.thread_id, ix);
+                self.join(ix, th.process_id, process);
             }
             Lifetime::End => {
                 let ix = self.thread(th.thread_id);
                 let thread = &mut self.trace.threads[ix.index()];
                 thread.end = Some(t);
                 if thread.process == ProcessIx::NONE {
-                    thread.process = process;
+                    self.join(ix, th.process_id, process);
                 }
             }
             Lifetime::RundownEnd => {
                 let ix = self.thread(th.thread_id);
                 let thread = &mut self.trace.threads[ix.index()];
                 if thread.process == ProcessIx::NONE {
-                    thread.process = process;
                     thread.start_address = th.win32_start_address;
+                    self.join(ix, th.process_id, process);
                 }
             }
             Lifetime::Defunct => {}

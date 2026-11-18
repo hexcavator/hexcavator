@@ -20,8 +20,10 @@ use crate::stacks::{StackId, StackStore};
 
 /// The file's magic.
 pub const MAGIC: &[u8; 8] = b"HXTRACE\0";
-/// The format's version; any change to the layout bumps it.
-pub const VERSION: u32 = 5;
+/// The format's version; any change to the layout, or to what an import
+/// makes of a trace, bumps it (so that indexes are made again). 6: threads
+/// of processes known only from their ends.
+pub const VERSION: u32 = 6;
 
 /// What an index was built from.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]

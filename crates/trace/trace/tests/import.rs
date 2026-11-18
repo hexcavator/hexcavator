@@ -516,3 +516,60 @@ fn keeps_event_descriptions_and_provider_names() {
     assert_eq!(back.provider_names, trace.provider_names);
     assert_eq!(back.events, trace.events);
 }
+
+#[test]
+fn processes_known_only_from_their_ends_keep_their_threads() {
+    // No rundown at the start: process 500 ran before the trace began and
+    // is named only when it ends; process 600 only by the rundown at the
+    // end.
+    let mut t = T::new();
+    // Thread 300 of process 500 starts; 301 runs, then ends; 302 ends.
+    t.kernel(0, guids::THREAD, 1, 3, 5, thread(500, 300));
+    t.kernel(0, guids::THREAD, 36, 2, 6, cswitch(301, 0));
+    t.kernel(0, guids::THREAD, 2, 3, 7, thread(500, 301));
+    t.kernel(0, guids::THREAD, 2, 3, 8, thread(500, 302));
+    t.kernel(
+        0,
+        guids::PROCESS,
+        2,
+        4,
+        10,
+        process(0x5555, 500, "gone.exe"),
+    );
+    // Thread 400 of process 600 starts; both are run down at the end.
+    t.kernel(0, guids::THREAD, 1, 3, 11, thread(600, 400));
+    // A new process 500, with thread 310: it isn't the one that ended.
+    t.kernel(0, guids::PROCESS, 1, 4, 30, process(0x6666, 500, "new.exe"));
+    t.kernel(0, guids::THREAD, 1, 3, 31, thread(500, 310));
+    t.kernel(
+        0,
+        guids::PROCESS,
+        4,
+        4,
+        40,
+        process(0x7777, 600, "kept.exe"),
+    );
+    t.kernel(0, guids::THREAD, 4, 3, 41, thread(600, 400));
+    let data = t.0.finish();
+    let etl = Etl::parse(&data).unwrap();
+    let (trace, stats) = etw::import(&etl).unwrap();
+    assert_eq!(stats.decode_errors, 0);
+    let process_of = |tid: u32| {
+        let t = trace.threads.iter().find(|t| t.tid == tid).unwrap();
+        assert!(t.process.is_some(), "thread {tid} has a process");
+        let p = &trace.processes[t.process.index()];
+        (p.name.as_str(), p.start, p.end)
+    };
+    for tid in [300, 301, 302] {
+        assert_eq!(process_of(tid), ("gone.exe", None, Some(10)), "{tid}");
+    }
+    assert_eq!(process_of(310), ("new.exe", Some(30), None));
+    assert_eq!(process_of(400), ("kept.exe", None, None));
+    let gone = trace
+        .processes
+        .iter()
+        .find(|p| p.name == "gone.exe")
+        .unwrap();
+    assert_eq!((gone.pid, gone.exit_status), (500, Some(0)));
+    assert_eq!(trace.processes.len(), 3);
+}
