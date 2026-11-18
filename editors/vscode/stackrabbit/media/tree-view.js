@@ -4,7 +4,7 @@
 "use strict";
 (function () {
   const vscode = acquireVsCodeApi();
-  const { TreeModel, formatWeight, markdownTable } = globalThis.StackrabbitTree;
+  const { TreeModel, formatWeight, markdownTable, csvTable } = globalThis.StackrabbitTree;
   const { Graph } = globalThis.StackrabbitGraph;
   const ROW = 22;
 
@@ -195,6 +195,14 @@
     }
 
     /** The table as it is sorted, as Markdown. */
+    /** The table as CSV, as it is sorted: values as they are, not as shown. */
+    csv() {
+      return csvTable(
+        this.columns.map((c) => c.title),
+        (this.sorted || []).map((r) => this.columns.map((c) => r[c.key]))
+      );
+    }
+
     markdown() {
       const cells = (r) => this.columns.map((c) => (c.text ? c.text(r[c.key]) : r[c.key]));
       return markdownTable(
@@ -587,7 +595,7 @@
   function summaryTab(spec) {
     const groups = new SortedTable($(`${spec.name}-groups`), spec.groups, spec.groupSort);
     const items = new SortedTable($(`${spec.name}-${spec.items}`), spec.itemColumns, spec.itemSort);
-    const t = { stale: true };
+    const t = { stale: true, tables: [groups].concat(spec.tables || [], [items]) };
     t.load = async () => {
       if ($(`${spec.name}-pane`).classList.contains("hidden")) {
         t.stale = true;
@@ -713,6 +721,7 @@
     ],
     itemSort: { key: "durationNs", down: true },
     title: (d, when) => `${count(d.count)} DPCs and ISRs, ${ms(d.durationNs)} ms${when}`,
+    tables: [dpcHistogram],
     also: (d) =>
       dpcHistogram.set(
         d.histogram.map((h) => Object.fromEntries([["type", h.type]].concat(h.counts.map((n, i) => [`b${i}`, n]))))
@@ -919,52 +928,65 @@
   $("tab-memory").addEventListener("click", () => showTab("memory"));
   symbolsEl.addEventListener("click", () => showTab("symbols"));
   /**
-   * The shown tab as Markdown, to the clipboard (by way of the extension):
-   * the stack tree's selected row and the rows open under it (or every
-   * row shown), or the tab's tables as they are sorted.
+   * The shown tab as Markdown (or, with `csv`, CSV), to the clipboard (by
+   * way of the extension): the stack tree's selected row and the rows open
+   * under it (or every row shown), or the tab's tables as they are sorted.
    */
-  function copy() {
+  function copy(csv) {
     let text = "";
     let what = "";
-    if (!$("stacks-pane").classList.contains("hidden")) {
+    const tables = (list, name) => {
+      text = list
+        .filter((t) => t.rows.length)
+        .map((t) => (csv ? t.csv() : t.markdown()))
+        .join(csv ? "\r\n" : "\n");
+      what = name;
+    };
+    if (summaryTabs[tab]) {
+      tables(summaryTabs[tab].tables, `the ${$(`tab-${tab}`).textContent} tables`);
+    } else if (tab === "regions") {
+      tables([regionsTable, instancesTable], "the regions");
+    } else if (!$("stacks-pane").classList.contains("hidden")) {
       if (!model) {
         return;
       }
       const visible = model.visible();
       const rows = selected >= 0 && visible[selected] ? model.subtree(visible[selected].id) : visible;
-      text = model.markdown(rows, (v) => formatWeight(v, unit, ticksPerSecond));
+      text = csv
+        ? csvTable(
+            ["Depth", "Name", "Inclusive", "Exclusive"],
+            rows.map((r) => [r.depth, r.label, r.inclusive, r.exclusive])
+          )
+        : model.markdown(rows, (v) => formatWeight(v, unit, ticksPerSecond));
       what = `${rows.length} rows`;
     } else if (!$("functions-pane").classList.contains("hidden")) {
-      text = functionsTable.markdown() + "\n" + modulesTable.markdown();
-      what = "the functions and modules";
+      tables([functionsTable, modulesTable], "the functions and modules");
     } else if (!$("symbols-pane").classList.contains("hidden")) {
-      text = symbolsTable.markdown();
-      what = "the symbols";
+      tables([symbolsTable], "the symbols");
     } else if (!$("events-pane").classList.contains("hidden")) {
-      text = eventsTable.markdown() + (eventListTable ? "\n" + eventListTable.markdown() : "");
-      what = "the events";
+      tables([eventsTable].concat(eventListTable ? [eventListTable] : []), "the events");
     } else {
-      text = processesTable.markdown();
-      what = "the processes";
-      if (processesTable.picked !== null) {
-        text += "\n" + threadsTable.markdown();
-        what += " and threads";
-      }
+      tables(
+        [processesTable].concat(processesTable.picked !== null ? [threadsTable] : []),
+        processesTable.picked !== null ? "the processes and threads" : "the processes"
+      );
     }
-    vscode.postMessage({ type: "copy", text, what });
+    vscode.postMessage({ type: "copy", text, what, format: csv ? "CSV" : "Markdown" });
   }
-  $("copy").addEventListener("click", copy);
+  $("copy").addEventListener("click", () => copy(false));
+  $("copy-csv").addEventListener("click", () => copy(true));
   $("highlight").addEventListener("click", () => {
     if (model) {
       highlight(model.visible()[selected]);
     }
     viewport.focus();
   });
-  // Ctrl+C (or Cmd+C) copies the tab, unless text is selected.
+  // Ctrl+C (or Cmd+C) copies the tab, unless text is selected; with Shift,
+  // as CSV.
   document.addEventListener("keydown", (e) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === "c" && !String(window.getSelection() || "")) {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c" && !String(window.getSelection() || "")) {
       e.preventDefault();
-      copy();
+      copy(e.shiftKey);
     }
   });
 

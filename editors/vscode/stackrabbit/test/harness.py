@@ -748,6 +748,19 @@ def main():
     labels = [html.unescape(x) for x in re.findall(r'<tr data-i="\d+"><td class="">([^<]*)</td>', table)]
     assert labels == ["app.exe (100)", "System (4)"], labels
     assert "C:\\a.txt" in html.unescape(dom[dom.index('id="disk-ios"'):])
+    # Copying the disk tab: its own tables, as CSV (values unformatted) or
+    # Markdown.
+    copying = ("document.getElementById('tab-disk').click();"
+               "setTimeout(function () { document.getElementById('copy-csv').click();"
+               " document.getElementById('copy').click(); }, 200);")
+    dom = render(disked, copying)
+    posted = json.loads(html.unescape(re.search(r'<pre id="posted"[^>]*>(.*?)</pre>', dom, re.S).group(1)))
+    copies = [m for m in posted if m.get("type") == "copy"]
+    assert [m["format"] for m in copies] == ["CSV", "Markdown"], copies
+    csv_text = copies[0]["text"]
+    assert csv_text.startswith("Group,I/Os,KB,I/O time (ms),Service time (ms)\r\napp.exe (100),2,8192,3000000,2500000\r\n"), csv_text[:200]
+    assert r"C:\a.txt" in csv_text and copies[0]["what"] == "the Disk tables", (copies[0]["what"], csv_text)
+    assert copies[1]["text"].startswith("| Group | I/Os |"), copies[1]["text"][:100]
     # The file I/O tab: totals by the grouping chosen, and the longest
     # operations; changing the grouping asks again.
     filed = json.loads(json.dumps(data))

@@ -2,7 +2,7 @@
 "use strict";
 
 const assert = require("assert");
-const { TreeModel, formatWeight, markdownTable } = require("../media/tree-model");
+const { TreeModel, formatWeight, markdownTable, csvTable } = require("../media/tree-model");
 
 const row = (id, parent, depth, inclusive, hasChildren) => ({
   id,
@@ -64,6 +64,12 @@ assert.strictEqual(
   markdownTable(["Name", "N"], [["a|b", 1], ["two\nlines", null]], [false, true]),
   "| Name | N |\n| --- | ---: |\n| a\\|b | 1 |\n| two lines |  |\n"
 );
+// CSV: values as they are (numbers unformatted), quoted where needed.
+assert.strictEqual(
+  csvTable(["Name", "N", "x"], [["a,b", 1234.5, null], ['say "hi"', 0, [1, 2]], ["two\nlines", -1, " pad"]]),
+  'Name,N,x\r\n"a,b",1234.5,\r\n"say ""hi""",0,"[1,2]"\r\n"two\nlines",-1," pad"\r\n'
+);
+assert.strictEqual(csvTable(["A"], []), "A\r\n");
 // A subtree: a row and the rows open under it, indented from it.
 {
   const t = new TreeModel(row(0, 0, 0, 100, true));

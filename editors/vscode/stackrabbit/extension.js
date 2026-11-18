@@ -171,7 +171,7 @@ class TraceEditorProvider {
         this.context.globalState.update(stateKey, m.state);
       } else if (m.type === "copy") {
         await vscode.env.clipboard.writeText(m.text);
-        vscode.window.setStatusBarMessage(`Stackrabbit: copied ${m.what} as Markdown`, 4000);
+        vscode.window.setStatusBarMessage(`Stackrabbit: copied ${m.what} as ${m.format || "Markdown"}`, 4000);
       } else if (m.type === "request") {
         if (!VIEW_METHODS.has(m.method) || document.trace === null) {
           panel.webview.postMessage({ type: "response", id: m.id, error: `${m.method}: not available` });
@@ -240,7 +240,7 @@ function html(webview, media) {
   </select></label>
   <button id="hot" title="Expand the hot path under the selected row (*)">Hot path</button>
   <button id="highlight" title="Highlight the selected row's function in the graph; again to stop (H)">Highlight</button>
-  <button id="copy" title="Copy as Markdown: the selected row and the rows open under it, or the tab's tables (Ctrl+C)">Copy</button>
+  <button id="copy" title="Copy as Markdown: the selected row and the rows open under it, or the tab's tables (Ctrl+C)">Copy</button><button id="copy-csv" title="Copy as CSV, values unformatted: the selected row and the rows open under it, or the tab's tables (Ctrl+Shift+C)">Copy CSV</button>
   <span id="symbols" class="symbols"></span>
   <span id="status" class="status"></span>
 </div>

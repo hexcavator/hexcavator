@@ -133,6 +133,20 @@
     return [line(headers), rule, ...rows.map(line)].join("\n") + "\n";
   }
 
+  /**
+   * A CSV table (RFC 4180, CRLF line ends): `headers`, then `rows` of
+   * cells (null as nothing, numbers as they are, other values as text,
+   * quoted where they hold a comma, a quote, a line break, or space at
+   * either end).
+   */
+  function csvTable(headers, rows) {
+    const cell = (v) => {
+      const s = v === null || v === undefined ? "" : typeof v === "object" ? JSON.stringify(v) : String(v);
+      return /[",\r\n]|^ | $/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    };
+    return [headers, ...rows].map((r) => r.map(cell).join(",") + "\r\n").join("");
+  }
+
   /** A weight as text: samples as counts, ticks as milliseconds. */
   function formatWeight(value, unit, ticksPerSecond) {
     if (unit === "ticks") {
@@ -145,4 +159,5 @@
   exports.TreeModel = TreeModel;
   exports.formatWeight = formatWeight;
   exports.markdownTable = markdownTable;
+  exports.csvTable = csvTable;
 })(typeof module !== "undefined" && module.exports ? module.exports : (globalThis.StackrabbitTree = {}));
