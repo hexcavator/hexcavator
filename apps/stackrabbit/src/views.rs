@@ -407,6 +407,60 @@ pub fn cpu_graph(trace: &Trace, buckets: usize, time: Option<(i64, i64)>, top: u
     })
 }
 
+/// The trace's processes, as a table: each one's ID, name, command line,
+/// start and end (nanoseconds from the trace's start, or null for before
+/// and after it), threads, and CPU samples in `[start, end)` (all of the
+/// trace by default); heaviest first.
+pub fn processes(trace: &Trace, time: Option<(i64, i64)>) -> Value {
+    let filter = time.map(|(s, e)| (ticks(trace, s), ticks(trace, e)));
+    let s = &trace.samples;
+    let (from, to) = match filter {
+        Some((a, b)) => (
+            s.time.partition_point(|&t| t < a),
+            s.time.partition_point(|&t| t < b),
+        ),
+        None => (0, s.len()),
+    };
+    let mut samples = vec![0u64; trace.processes.len()];
+    for i in from..to {
+        let p = trace.thread_process(s.thread[i]);
+        if p.is_some() {
+            samples[p.index()] += u64::from(s.weight[i]);
+        }
+    }
+    let mut threads = vec![0u32; trace.processes.len()];
+    for t in &trace.threads {
+        if t.process.is_some() {
+            threads[t.process.index()] += 1;
+        }
+    }
+    let interval = trace.sample_interval_ns();
+    let mut rows: Vec<(usize, Value)> = trace
+        .processes
+        .iter()
+        .enumerate()
+        .map(|(i, p)| {
+            (
+                i,
+                json!({
+                    "pid": p.pid,
+                    "parentPid": p.parent_pid,
+                    "name": p.name,
+                    "commandLine": p.command_line,
+                    "startNs": p.start.map(|t| trace.clock.nanos(t)),
+                    "endNs": p.end.map(|t| trace.clock.nanos(t)),
+                    "exitStatus": p.exit_status,
+                    "threads": threads[i],
+                    "samples": samples[i],
+                    "cpuMs": (samples[i] * interval) as f64 / 1e6,
+                }),
+            )
+        })
+        .collect();
+    rows.sort_by(|a, b| samples[b.0].cmp(&samples[a.0]).then(a.0.cmp(&b.0)));
+    json!({"rows": rows.into_iter().map(|(_, v)| v).collect::<Vec<_>>()})
+}
+
 /// A trace's summary, as JSON: its size, time span, and what it holds.
 pub fn summary(trace: &Trace) -> Value {
     let times = trace

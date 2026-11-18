@@ -25,6 +25,8 @@
 //!   functions.
 //! - `close` `{trace}` → `{}`.
 //! - `summary` `{trace}` → the trace's summary.
+//! - `processes` `{trace, time?}` → `{rows}`: the processes, with their
+//!   lifetimes, threads and CPU samples (in `time`), heaviest first.
 //! - `graph` `{trace, buckets?, time?, top?}` → `{startNs, endNs, buckets,
 //!   series}`: CPU usage (sampled) over time, by process, each series's
 //!   values the share of all the processors it used in each bucket.
@@ -410,6 +412,10 @@ impl State {
         let trace = &self.loaded.trace;
         match method {
             "summary" => Ok(summary(trace)),
+            "processes" => {
+                let time = TreeSpec::from_json(params)?.time;
+                Ok(crate::views::processes(trace, time))
+            }
             "graph" => {
                 let buckets = params
                     .get("buckets")

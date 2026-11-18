@@ -104,9 +104,10 @@ def answers(engine, path, spec, depth=4, limit=4000):
             if r["id"] not in children:
                 children[r["id"]] = {"rows": engine.request("tree.children", {"trace": trace, "view": view, "node": r["id"]})["rows"]}
     graph = engine.request("graph", {"trace": trace, "buckets": 1000, "top": 8})
+    processes = engine.request("processes", {"trace": trace})
     # (The view's view IDs: its first tree is view 1 of its own.)
     tree = dict(tree, view=1)
-    return {"opened": opened, "tree": tree, "children": children, "hot": hot, "graph": graph}
+    return {"opened": opened, "tree": tree, "children": children, "hot": hot, "graph": graph, "processes": processes}
 
 
 STUB = """
@@ -120,6 +121,7 @@ window.acquireVsCodeApi = function () {
     else if (m.method === "tree.hotPath" && A.hot[m.params.node]) r.result = A.hot[m.params.node];
     else if (m.method === "tree.close") r.result = {};
     else if (m.method === "graph") r.result = A.graph;
+    else if (m.method === "processes") r.result = A.processes;
     else r.error = m.method + ": no answer for " + JSON.stringify(m.params);
     setTimeout(function () { window.postMessage(r, "*"); }, 0);
   }
@@ -327,6 +329,16 @@ def main():
     creates = [m for m in posted if m.get("method") == "tree.create"]
     assert "time" not in creates[-1]["params"], "all of it again"
     assert "All of the trace" in dom
+    # The processes tab: every process, heaviest first; sorted by name when
+    # its heading is clicked.
+    dom = render(data, "document.getElementById('tab-processes').click();", shot=shot("processes"))
+    assert 'id="stacks-pane" class="pane hidden"' in dom, "the stacks hidden"
+    names = re.findall(r'<tr><td class="">([^<]*)</td>', dom)
+    assert len(names) == len(data["processes"]["rows"]), f"{len(names)} process rows"
+    assert names[0] == data["processes"]["rows"][0]["name"], "heaviest first"
+    dom = render(data, "document.getElementById('tab-processes').click(); document.querySelector('th[data-key=name]').click();")
+    names = [html.unescape(n) for n in re.findall(r'<tr><td class="">([^<]*)</td>', dom)]
+    assert names == sorted(names, key=str.lower) or names == sorted(names), f"by name: {names}"
     print("harness: ok")
 
 

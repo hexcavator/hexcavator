@@ -32,6 +32,7 @@
         `(${((range[1] - range[0]) / 1e9).toFixed(3)} s). Double-click the graph to clear.`
       : "All of the trace. Drag across the graph to select a time range; double-click it to clear.";
     createTree();
+    loadProcesses();
   });
   let view = null; // the engine's view ID
   let unit = "samples";
@@ -66,6 +67,7 @@
       showSummary(m.summary, m.opened);
       createTree();
       loadGraph();
+      loadProcesses();
     } else if (m.type === "notification" && m.method === "symbols") {
       symbolsNote(m.params);
     } else if (m.type === "failed") {
@@ -117,6 +119,81 @@
     }
     return s;
   }
+
+  // The processes table: its rows, sorted by a column (click a heading;
+  // again for the other way).
+  const processesEl = $("processes");
+  let processes = [];
+  let sortBy = { key: "samples", down: true };
+  const COLUMNS = [
+    { key: "name", title: "Process" },
+    { key: "pid", title: "ID", num: true },
+    { key: "cpuMs", title: "CPU (ms)", num: true, text: (r) => r.cpuMs.toLocaleString("en-US", { maximumFractionDigits: 1 }) },
+    { key: "samples", title: "Samples", num: true, text: (r) => r.samples.toLocaleString("en-US") },
+    { key: "threads", title: "Threads", num: true },
+    { key: "startNs", title: "Started", num: true, text: (r) => (r.startNs === null ? "before" : (r.startNs / 1e9).toFixed(3) + " s") },
+    { key: "endNs", title: "Ended", num: true, text: (r) => (r.endNs === null ? "after" : (r.endNs / 1e9).toFixed(3) + " s") },
+    { key: "commandLine", title: "Command line", cls: "cmd" },
+  ];
+
+  async function loadProcesses() {
+    try {
+      const params = selection ? { time: selection } : {};
+      processes = (await request("processes", params)).rows;
+      drawProcesses();
+    } catch (e) {
+      statusEl.textContent = e.message;
+      statusEl.classList.add("error");
+    }
+  }
+
+  function drawProcesses() {
+    const k = sortBy.key;
+    const rows = [...processes].sort((a, b) => {
+      const x = a[k] === null ? -Infinity : a[k];
+      const y = b[k] === null ? -Infinity : b[k];
+      const c = typeof x === "string" ? x.localeCompare(y) : x - y;
+      return sortBy.down ? -c : c;
+    });
+    const head = COLUMNS.map((c) => {
+      const mark = c.key === k ? (sortBy.down ? " ▾" : " ▴") : "";
+      return `<th class="${c.num ? "num" : ""}" data-key="${c.key}">${c.title}${mark}</th>`;
+    }).join("");
+    const body = rows
+      .map(
+        (r) =>
+          "<tr>" +
+          COLUMNS.map((c) => {
+            const v = c.text ? c.text(r) : r[c.key];
+            return `<td class="${c.num ? "num" : c.cls || ""}">${escape(v === null ? "" : v)}</td>`;
+          }).join("") +
+          "</tr>"
+      )
+      .join("");
+    processesEl.innerHTML = `<thead><tr>${head}</tr></thead><tbody>${body}</tbody>`;
+  }
+
+  processesEl.addEventListener("click", (e) => {
+    const th = e.target.closest("th");
+    if (!th) {
+      return;
+    }
+    const key = th.dataset.key;
+    sortBy = { key, down: sortBy.key === key ? !sortBy.down : typeof processes[0]?.[key] !== "string" };
+    drawProcesses();
+  });
+
+  function showTab(name) {
+    $("tab-stacks").classList.toggle("active", name === "stacks");
+    $("tab-processes").classList.toggle("active", name === "processes");
+    $("stacks-pane").classList.toggle("hidden", name !== "stacks");
+    $("processes-pane").classList.toggle("hidden", name !== "processes");
+    if (name === "stacks") {
+      requestAnimationFrame(draw);
+    }
+  }
+  $("tab-stacks").addEventListener("click", () => showTab("stacks"));
+  $("tab-processes").addEventListener("click", () => showTab("processes"));
 
   /** Asks for the graph, as many buckets as it has pixels. */
   async function loadGraph() {

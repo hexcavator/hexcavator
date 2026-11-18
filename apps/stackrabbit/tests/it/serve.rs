@@ -464,3 +464,42 @@ fn stack_tags_group_stacks_by_what_they_do() {
     );
     assert!(r["stackTags"].is_null());
 }
+
+#[test]
+fn the_processes_table_has_lifetimes_threads_and_samples() {
+    let dir = scratch("serve-processes");
+    let (path, s) = write_trace(&dir, "t.etl", &small());
+    let a = session(&[
+        json!({"method": "open", "params": {"path": path, "useIndex": false}}),
+        json!({"method": "processes", "params": {"trace": 1}}),
+        json!({"method": "processes", "params": {"trace": 1, "time": [0, 0]}}),
+    ]);
+    let rows = result(&a, 2)["rows"].as_array().unwrap();
+    for p in &s.truth.processes {
+        let r = rows.iter().find(|r| r["pid"] == p.pid).unwrap();
+        assert_eq!(r["name"], p.name.as_str());
+        assert_eq!(r["samples"], p.samples, "{}", p.name);
+        let threads = s.truth.threads.iter().filter(|t| t.pid == p.pid).count();
+        assert_eq!(r["threads"], threads, "{}", p.name);
+    }
+    // The second process ends during the trace, the last starts; the rest
+    // span it all.
+    let n = s.truth.processes.len();
+    let row = |i: usize| {
+        rows.iter()
+            .find(|r| r["pid"] == s.truth.processes[i].pid)
+            .unwrap()
+    };
+    assert!(row(1)["endNs"].is_i64() && row(1)["startNs"].is_null());
+    assert!(row(n - 1)["startNs"].is_i64() && row(n - 1)["endNs"].is_null());
+    assert!(row(0)["startNs"].is_null() && row(0)["endNs"].is_null());
+    let samples: Vec<u64> = rows
+        .iter()
+        .map(|r| r["samples"].as_u64().unwrap())
+        .collect();
+    assert!(samples.windows(2).all(|w| w[0] >= w[1]), "heaviest first");
+    // An empty range: every process, no samples.
+    let empty = result(&a, 3)["rows"].as_array().unwrap();
+    assert_eq!(empty.len(), rows.len());
+    assert!(empty.iter().all(|r| r["samples"] == 0));
+}

@@ -71,6 +71,68 @@ body {
   color: var(--vscode-descriptionForeground);
   border-bottom: 1px solid var(--vscode-panel-border);
 }
+.tabs {
+  display: flex;
+  gap: 2px;
+  padding: 4px 10px 0;
+  border-bottom: 1px solid var(--vscode-panel-border);
+}
+.tab {
+  font: inherit;
+  color: var(--vscode-descriptionForeground);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 3px 10px;
+  cursor: pointer;
+}
+.tab.active {
+  color: var(--vscode-foreground);
+  border-bottom-color: var(--vscode-focusBorder, #0078d4);
+}
+.pane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: auto;
+}
+.pane.hidden {
+  display: none;
+}
+table.processes {
+  border-collapse: collapse;
+  width: 100%;
+}
+table.processes th {
+  position: sticky;
+  top: 0;
+  background: var(--vscode-editor-background);
+  text-align: left;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-bottom: 1px solid var(--vscode-panel-border);
+  cursor: pointer;
+  white-space: nowrap;
+}
+table.processes td {
+  padding: 2px 10px;
+  white-space: nowrap;
+}
+table.processes td.num,
+table.processes th.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+table.processes td.cmd {
+  color: var(--vscode-descriptionForeground);
+  max-width: 600px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+table.processes tr:hover td {
+  background: var(--vscode-list-hoverBackground);
+}
 .header,
 .row {
   display: flex;
