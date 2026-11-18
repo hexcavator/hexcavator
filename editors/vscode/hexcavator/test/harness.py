@@ -326,6 +326,20 @@ def main():
         body = table.split("<tbody>", 1)[1]
         names = [html.unescape(re.findall(r"<td[^>]*>([^<]*)</td>", tr)[-1]) for tr in re.findall(r"<tr[^>]*>(.*?)</tr>", body, re.S)]
         assert names and names == sorted(names, key=str.lower), f"sorted by name: {names[:5]}"
+    # The Stripped box: for a format a strip takes something from, as the
+    # setting is; unchecked, it asks for the whole file.
+    elf = os.path.join(os.path.dirname(HERE), "..", "..", "..", "testdata", "elf", "program-x86_64-linux-gnu")
+    stripped_table = hexc(exe, "size", "-stripped", "-table", elf)
+    msg = {"kind": "report", "file": elf, "table": stripped_table, "levels": [], "format": "elf", "tools": [], "stripped": True, "strippable": True}
+    dom = render(msg, "document.querySelector('label.stripped input').click();", vscode=True)
+    assert re.search(r'<label class="toggle stripped"[^>]*><input type="checkbox"', dom), "the Stripped box"
+    posted = html.unescape(re.search(r'<pre id="posted">(.*?)</pre>', dom, re.S).group(1))
+    assert '"command":"stripped","on":false' in posted, "Stripped unchecked: " + posted
+    assert not any(x.startswith((".debug", "[section .debug", ".symtab")) for x in stripped_table["strings"]), "nothing stripped in the table"
+    dom = render(dict(msg, stripped=False), vscode=True)
+    assert re.search(r'label class="toggle stripped"', dom), "unchecked, still there"
+    dom = render(dict(msg, strippable=False), vscode=True)
+    assert "<label class=\"toggle stripped\"" not in dom, "no box for PE"
     # The pane's spinner: gone once the report is there; over it while
     # hexc runs again (a refresh), saying what it does, with Cancel.
     dom = render({"kind": "report", "file": image, "report": report}, vscode=True)

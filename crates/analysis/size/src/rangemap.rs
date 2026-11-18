@@ -244,6 +244,49 @@ impl RangeMap {
         self.map.is_empty()
     }
 
+    /// Unlabels `[start, end)`: the entries overlapping it are cut, the
+    /// parts outside it kept. Returns the parts removed, in order (each
+    /// with its translation, if it had one).
+    pub fn remove(&mut self, start: u64, end: u64) -> Vec<Entry> {
+        let hit: Vec<Entry> = self
+            .overlapping(start, end)
+            .filter(|e| e.end > start)
+            .collect();
+        let mut removed = Vec::with_capacity(hit.len());
+        for e in hit {
+            self.map.remove(&e.start);
+            let at = |a: u64| e.other.map(|o| o.wrapping_add(a - e.start));
+            if e.start < start {
+                self.map.insert(
+                    e.start,
+                    Value {
+                        end: start,
+                        label: e.label,
+                        other: e.other,
+                    },
+                );
+            }
+            if e.end > end {
+                self.map.insert(
+                    end,
+                    Value {
+                        end: e.end,
+                        label: e.label,
+                        other: at(end),
+                    },
+                );
+            }
+            let (s, t) = (e.start.max(start), e.end.min(end));
+            removed.push(Entry {
+                start: s,
+                end: t,
+                label: e.label,
+                other: at(s),
+            });
+        }
+        removed
+    }
+
     /// The number of bytes labeled.
     pub fn total(&self) -> u64 {
         self.map.iter().map(|(&s, v)| v.end - s).sum()

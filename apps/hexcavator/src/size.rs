@@ -56,6 +56,11 @@ bloaty-style reports (every byte of the file and of memory, labeled once):
   -base-debug-file <path>  the base image's
   -source-map <id>=<path>  the source map of the module whose sourceMappingURL
                     or path (as given) is <id> (bloaty's --source-map)
+  -stripped         as if the file were stripped: the bytes of its debug
+                    information and symbol tables (ELF: .debug_*, .symtab;
+                    Mach-O: the debug map and local symbols; WebAssembly:
+                    .debug_* and name) aren't counted, though they still
+                    name what is left (a base image too)
   -mangled          each symbol's shown name and its mangled one, as JSON
   -table            as JSON, the sizes of each distinct section, COFF group,
                     object, library, and symbol (and mangled name), at once:
@@ -144,6 +149,8 @@ struct Options {
     definition: Option<String>,
     /// `-mangled`: each symbol's shown name and its mangled one.
     mangled: bool,
+    /// `-stripped`: the file as if stripped (see `hexcavator_size::strip`).
+    stripped: bool,
     /// `-table`: every source's labels at once, for a viewer to group.
     table: bool,
     /// Whether `-d` was given (else the sources are a default's).
@@ -221,6 +228,7 @@ fn parse(args: &[String]) -> Result<Options, String> {
     let mut disassemble = None;
     let mut definition = None;
     let mut mangled = false;
+    let mut stripped = false;
     let mut table = false;
     let mut sources_given = false;
     let mut blocks = false;
@@ -319,6 +327,7 @@ fn parse(args: &[String]) -> Result<Options, String> {
             Some("disassemble") => disassemble = Some(value(&mut i, "disassemble")?),
             Some("definition") => definition = Some(value(&mut i, "definition")?),
             Some("mangled") => mangled = true,
+            Some("stripped") => stripped = true,
             Some("table") => table = true,
             Some("blocks") => blocks = true,
             Some("budget") => budget = Some(PathBuf::from(value(&mut i, "budget")?)),
@@ -441,6 +450,7 @@ fn parse(args: &[String]) -> Result<Options, String> {
         disassemble,
         definition,
         mangled,
+        stripped,
         table,
         sources_given,
         blocks,
@@ -485,7 +495,7 @@ fn check_budget(options: &Options, path: &Path, out: &mut impl Write) -> Result<
         } else {
             list.clone()
         };
-        let maps = maps_of(image, pdb, map, debug, &sources)?;
+        let maps = maps_of(image, pdb, map, debug, &sources, options.stripped)?;
         let whole = Rollup::of_sources(&maps, &[0]);
         let mut t = Totals {
             file: whole.file,
@@ -601,7 +611,7 @@ fn size_table(options: &Options) -> Result<String, String> {
                    map: Option<&Path>,
                    debug: Option<&Path>|
      -> Result<Rows, String> {
-        let maps = maps_of(path, pdb, map, debug, &sources)?;
+        let maps = maps_of(path, pdb, map, debug, &sources, options.stripped)?;
         Ok(hexcavator_size::rollup::table(&maps)
             .into_iter()
             .map(|(labels, f, v)| {
@@ -785,6 +795,7 @@ fn mangled_names(options: &Options) -> Result<String, String> {
             None,
             options.debug_file.as_deref(),
             &[Source::Symbols, Source::RawSymbols],
+            false,
         )?;
         let shown = &maps.sources[0].1.vm;
         let raw = &maps.sources[1].1.vm;
@@ -1266,12 +1277,21 @@ fn rollup_of(
     pdb: Option<&Path>,
     map: Option<&Path>,
     debug_file: Option<&Path>,
-    sources: &[Source],
-    customs: &[Option<CustomSource>],
-    filter: Option<&regex::Regex>,
+    options: &Options,
 ) -> Result<Rollup, String> {
-    let maps = maps_of(path, pdb, map, debug_file, sources)?;
-    Ok(finish_rollup(maps, customs, filter))
+    let maps = maps_of(
+        path,
+        pdb,
+        map,
+        debug_file,
+        &options.sources,
+        options.stripped,
+    )?;
+    Ok(finish_rollup(
+        maps,
+        &options.customs,
+        options.source_filter.as_ref(),
+    ))
 }
 
 /// Rewrites custom sources' labels, then rolls up (filtered).
@@ -1303,15 +1323,16 @@ fn customized(
 }
 
 /// The maps of `sources` for the image at `path` (with the files given
-/// for it): kept in memory, if what is built is (`hexc serve`), until the
-/// files change. (A PDB found, not given, is the image's: the image
-/// changes when it is relinked.)
+/// for it), as if stripped if `stripped`: kept in memory, if what is built
+/// is (`hexc serve`), until the files change. (A PDB found, not given, is
+/// the image's: the image changes when it is relinked.)
 fn maps_of(
     path: &Path,
     pdb: Option<&Path>,
     map: Option<&Path>,
     debug_file: Option<&Path>,
     sources: &[Source],
+    stripped: bool,
 ) -> Result<std::sync::Arc<hexcavator_size::sources::Maps>, String> {
     let mut files = vec![path];
     files.extend(pdb);
@@ -1323,6 +1344,16 @@ fn maps_of(
         map.is_some(),
         debug_file.is_some()
     );
+    if stripped {
+        // (The whole file's maps, kept too, less what a strip removes.)
+        return hexcavator_program::cache::remember(&files, &format!("{what} stripped"), || {
+            let whole = maps_of(path, pdb, map, debug_file, sources, false)?;
+            let data = Mmap::open(path).map_err(|e| format!("{}: {e}", path.display()))?;
+            let mut maps = std::sync::Arc::unwrap_or_clone(whole);
+            maps.strip(&hexcavator_size::strip::ranges(&data));
+            Ok(maps)
+        });
+    }
     hexcavator_program::cache::remember(&files, &what, || {
         build_maps(path, pdb, map, debug_file, sources)
     })
@@ -1562,9 +1593,7 @@ fn bloaty(options: &Options, out: &mut impl Write) -> Result<(), String> {
         options.pdb.as_deref(),
         options.map.as_deref(),
         debug_file.as_deref(),
-        &options.sources,
-        &options.customs,
-        options.source_filter.as_ref(),
+        options,
     )?;
     // More images: summed (each finds its own debug information).
     for more in &options.more {
@@ -1581,9 +1610,7 @@ fn bloaty(options: &Options, out: &mut impl Write) -> Result<(), String> {
                     .clone()
                     .or_else(|| source_map_option(b, &options.source_maps))
                     .as_deref(),
-                &options.sources,
-                &options.customs,
-                options.source_filter.as_ref(),
+                options,
             )?;
             for more in &options.more_bases {
                 add_image(&mut r, more, options)?;
@@ -1601,6 +1628,7 @@ fn bloaty(options: &Options, out: &mut impl Write) -> Result<(), String> {
             options.map.as_deref(),
             debug_file.as_deref(),
             &options.sources,
+            options.stripped,
         )?;
         let mut text = String::new();
         explain(&maps, &options.source_names, options, &mut text);
@@ -1691,7 +1719,14 @@ fn explain(
 /// own debug information.
 fn add_image(rollup: &mut Rollup, path: &Path, options: &Options) -> Result<(), String> {
     let debug = source_map_option(path, &options.source_maps);
-    let maps = maps_of(path, None, None, debug.as_deref(), &options.sources)?;
+    let maps = maps_of(
+        path,
+        None,
+        None,
+        debug.as_deref(),
+        &options.sources,
+        options.stripped,
+    )?;
     let maps = customized(maps, &options.customs);
     rollup.add_maps_filtered(&maps, options.source_filter.as_ref());
     Ok(())

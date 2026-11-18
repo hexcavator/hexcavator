@@ -1656,3 +1656,126 @@ fn findings_of_elf_and_mach_o() {
         assert!(v["duplicate_data"].is_object(), "{image}: {v}");
     }
 }
+
+/// A one-source report's rows, by label: (memory size, file size).
+fn rows_of(args: &[&std::ffi::OsStr]) -> std::collections::BTreeMap<String, (i64, i64)> {
+    let mut all = args.to_vec();
+    all.extend::<[&std::ffi::OsStr; 3]>(["-n".as_ref(), "0".as_ref(), "-csv".as_ref()]);
+    let (ok, stdout, stderr) = hexc(&all);
+    assert!(ok, "{stderr}");
+    stdout
+        .lines()
+        .skip(1)
+        .map(|l| {
+            let mut f = l.rsplitn(3, ',');
+            let file = f.next().unwrap().parse().unwrap();
+            let vm = f.next().unwrap().parse().unwrap();
+            (f.next().unwrap().trim_matches('"').to_string(), (vm, file))
+        })
+        .collect()
+}
+
+/// -stripped: the file as if stripped, its debug information and symbol
+/// tables uncounted but still naming the rest; nothing else changes.
+#[test]
+fn stripped() {
+    let s = |p: &PathBuf, d: &str, stripped: bool| {
+        let mut args = vec![p.as_os_str(), "-d".as_ref(), d.as_ref()];
+        if stripped {
+            args.push("-stripped".as_ref());
+        }
+        rows_of(&args)
+    };
+    // ELF: the debug sections, .symtab and .strtab go, and their headers.
+    let image = elf("program-x86_64-linux-gnu");
+    let (whole, stripped) = (s(&image, "sections", false), s(&image, "sections", true));
+    assert!(whole.contains_key(".debug_info") && whole.contains_key(".symtab"));
+    for (name, size) in &whole {
+        let gone = name.starts_with(".debug") || name == ".symtab" || name == ".strtab";
+        match stripped.get(name) {
+            None => assert!(gone, "{name} went"),
+            Some(after)
+                if name == "[ELF Section Headers]"
+                    || name == ".shstrtab"
+                    || name == "[Unmapped]" =>
+            {
+                assert!(after.1 < size.1, "{name}: {after:?} of {size:?}");
+            }
+            Some(after) => assert_eq!(after, size, "{name}"),
+        }
+    }
+    // As GNU strip leaves it, within its rewritten .comment and padding.
+    let total = |r: &std::collections::BTreeMap<String, (i64, i64)>| {
+        r.values().fold((0, 0), |a, v| (a.0 + v.0, a.1 + v.1))
+    };
+    let real = total(&s(&elf("program-stripped"), "sections", false));
+    let sim = total(&stripped);
+    assert_eq!(sim.0, real.0);
+    assert!((sim.1 - real.1).abs() <= 32, "{sim:?} vs {real:?}");
+    // An image already stripped is as it was.
+    let already = elf("program-stripped");
+    assert_eq!(
+        s(&already, "sections", true),
+        s(&already, "sections", false)
+    );
+    // Symbols keep their names and memory; their symbol table entries
+    // and DWARF no longer count.
+    let (whole, stripped) = (s(&image, "symbols", false), s(&image, "symbols", true));
+    let (w, t) = (whole["compute"], stripped["compute"]);
+    assert!(t.0 == w.0 && t.1 < w.1, "{w:?} {t:?}");
+    assert!(!stripped.contains_key("[section .debug_info]"));
+    // An object keeps its symbol table (as strip --strip-debug does).
+    let object = s(&elf("program-x86_64-linux-gnu.o"), "sections", true);
+    assert!(
+        object.contains_key(".symtab") && !object.keys().any(|k| k.contains("debug")),
+        "{object:?}"
+    );
+
+    // Mach-O: the debug map and local symbols, in memory too (__LINKEDIT).
+    let image = macho("program-arm64");
+    let (whole, stripped) = (s(&image, "sections", false), s(&image, "sections", true));
+    let (w, t) = (whole["Symbol Table"], stripped["Symbol Table"]);
+    assert!(t.1 < w.1 && t.0 == t.1, "{w:?} {t:?}");
+    assert!(stripped["String Table"].1 < whole["String Table"].1);
+    assert_eq!(stripped["__TEXT,__text"], whole["__TEXT,__text"]);
+    // An object's DWARF, its section headers too.
+    let object = s(&macho("program-arm64.o"), "sections", true);
+    assert!(!object.keys().any(|k| k.contains("__DWARF")), "{object:?}");
+
+    // WebAssembly: the DWARF and the name section; the names still name.
+    let module =
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../testdata/wasm/sample-dwarf.wasm");
+    let (whole, stripped) = (s(&module, "sections", false), s(&module, "sections", true));
+    assert!(whole.contains_key("name") && whole.keys().any(|k| k.starts_with(".debug_")));
+    assert!(
+        !stripped.contains_key("name") && !stripped.keys().any(|k| k.starts_with(".debug_")),
+        "{stripped:?}"
+    );
+    assert_eq!(stripped.get("Code"), whole.get("Code"));
+    assert!(
+        s(&module, "symbols", true)
+            .keys()
+            .any(|k| !k.starts_with('[') && !k.starts_with("func["))
+    );
+
+    // PE: nothing to strip.
+    let pe = bin("PEParser.Tests.Dllx64.dll");
+    assert_eq!(s(&pe, "sections", true), s(&pe, "sections", false));
+
+    // A diff of two stripped builds, and the -table.
+    let (ok, stdout, stderr) = hexc(&[
+        image.as_os_str(),
+        "-stripped".as_ref(),
+        "--".as_ref(),
+        macho("program-arm64").as_os_str(),
+    ]);
+    assert!(ok && stdout.contains("TOTAL"), "{stderr}");
+    let (ok, stdout, stderr) = hexc(&[
+        elf("program-x86_64-linux-gnu").as_os_str(),
+        "-stripped".as_ref(),
+        "-table".as_ref(),
+    ]);
+    assert!(ok, "{stderr}");
+    let t: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+    assert_eq!(t["file"].as_i64().unwrap(), sim.1, "{t}");
+}

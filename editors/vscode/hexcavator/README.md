@@ -185,6 +185,11 @@ sizes:
   Definition** (a function's source file, at its line: `hexc size
   -definition`), **Copy Name**. The button in the first column (or `D`) opens its code or
   its data.
+- **Stripped** (in the header, for ELF, Mach-O, and WebAssembly files): this
+  page's sizes as if the file were stripped (`hexc size -stripped`). The
+  file isn't changed, and its debug information and symbol tables still
+  name everything, but their own bytes aren't counted. Each page has its
+  own box, unchecked when it opens.
 - **Compare** (⇄ in the header): the difference from a base build, growth
   in red and shrinkage in green, stronger for larger changes. In the tree,
   each row is marked: **+** added, **−** removed, **↗** grew, **↘** shrank

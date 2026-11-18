@@ -180,6 +180,51 @@ pub struct Maps {
     pub absorb_padding: bool,
 }
 
+impl Maps {
+    /// The maps as if the file's `ranges` (file offsets: what a strip
+    /// removes, see [`crate::strip`]) weren't there: every map forgets
+    /// them, and the memory they are loaded at, if they are (Mach-O's
+    /// `__LINKEDIT`). The rest keeps its offsets and labels.
+    pub fn strip(&mut self, ranges: &[(u64, u64)]) {
+        let len = self.file_size;
+        for &(start, end) in ranges {
+            let end = end.min(len);
+            if start >= end {
+                continue;
+            }
+            let gone = self.base.file.remove(start, end);
+            // The memory loaded from the bytes removed: where the base map
+            // has it from them (in a universal file, another slice may have
+            // the same addresses).
+            let mut loaded = Vec::new();
+            for g in &gone {
+                let Some(o) = g.other else { continue };
+                let (vs, ve) = (o, o.wrapping_add(g.end - g.start));
+                for b in self.base.vm.overlapping(vs, ve) {
+                    let (s, e) = (vs.max(b.start), ve.min(b.end));
+                    let Some(bo) = b.other.filter(|_| s < e) else {
+                        continue;
+                    };
+                    let from = bo.wrapping_add(s - b.start);
+                    let (fs, fe) = (from.max(start), from.wrapping_add(e - s).min(end));
+                    if fs < fe {
+                        loaded.push((s + (fs - from), s + (fe - from)));
+                    }
+                }
+            }
+            self.file_size -= gone.iter().map(|e| e.end - e.start).sum::<u64>();
+            for map in
+                std::iter::once(&mut self.base).chain(self.sources.iter_mut().map(|(_, m)| m))
+            {
+                map.file.remove(start, end);
+                for &(s, e) in &loaded {
+                    map.vm.remove(s, e);
+                }
+            }
+        }
+    }
+}
+
 /// What the sources other than the sections need.
 #[derive(Clone, Copy, Debug)]
 pub struct Inputs<'a> {
