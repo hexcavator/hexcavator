@@ -8,11 +8,13 @@
 //!   ready threads, stacks, image identities);
 //! - [`schema`]: the layouts of the kernel's classic events and of the
 //!   trace-control events, for any event, by name;
-//! - [`stacks`]: which event each stack belongs to.
+//! - [`stacks`]: which event each stack belongs to;
+//! - [`encode`]: the inverse of [`kernel::decode`], to build traces.
 //!
 //! The layouts are those TDH reports for the kernel's MOF classes, and the
 //! tests check them against TDH on real traces (see `tools/etwdump`).
 
+pub mod encode;
 pub mod guids;
 pub mod kernel;
 pub mod manifest;

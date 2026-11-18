@@ -2,4 +2,5 @@
 //! each module was a file of its own.
 
 mod decode;
+mod encode;
 mod manifest;
