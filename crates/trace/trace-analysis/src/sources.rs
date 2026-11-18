@@ -39,6 +39,17 @@ pub struct Filter {
 }
 
 impl Filter {
+    /// The rows of a time-ordered column (`times`) that can be in range: by
+    /// binary search, so a short range costs little in a long trace.
+    fn rows(&self, times: &[i64]) -> std::ops::Range<usize> {
+        match self.time {
+            Some((start, end)) => {
+                times.partition_point(|&t| t < start)..times.partition_point(|&t| t < end)
+            }
+            None => 0..times.len(),
+        }
+    }
+
     fn keeps(&self, trace: &Trace, time: i64, thread: ThreadIx) -> bool {
         if let Some((start, end)) = self.time
             && (time < start || time >= end)
@@ -207,7 +218,7 @@ pub fn samples(
     let by_cpu = groups.contains(&GroupBy::Cpu);
     let s = &trace.samples;
     let mut buckets: FxHashMap<Bucket, (u64, u64)> = FxHashMap::default();
-    for i in 0..s.len() {
+    for i in filter.rows(&s.time) {
         if !filter.keeps(trace, s.time[i], s.thread[i]) {
             continue;
         }
@@ -279,7 +290,7 @@ pub fn switches(
     let by_cpu = groups.contains(&GroupBy::Cpu);
     let sw = &trace.switches;
     let mut buckets: FxHashMap<Bucket, (u64, u64)> = FxHashMap::default();
-    for i in 0..sw.len() {
+    for i in filter.rows(&sw.time) {
         let thread = sw.new_thread[i];
         if !filter.keeps(trace, sw.time[i], thread) {
             continue;
