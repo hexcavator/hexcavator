@@ -79,6 +79,11 @@ const { encode, Decoder, Session, MAX_HEADER } = require("../lib/protocol");
   const d = s.request("summary", { trace: 1 });
   s.receive(encode({ id: 4, error: "summary: no such trace" }));
   await assert.rejects(d, /no such trace/);
+  // Notifications go to their listener, not to a request.
+  const heard = [];
+  const n = new Session(() => {}, (method, params) => heard.push([method, params]));
+  n.receive(encode({ method: "symbols", params: { trace: 1, done: true } }));
+  assert.deepStrictEqual(heard, [["symbols", { trace: 1, done: true }]]);
   console.log("protocol: ok");
 })().catch((e) => {
   console.error(e);

@@ -55,6 +55,12 @@ impl PdbSymbolizer {
         self.tables.lock().unwrap_or_else(PoisonError::into_inner)
     }
 
+    /// Forgets the PDBs that weren't found, so that they are looked for
+    /// again (after a download).
+    pub fn forget_missing(&self) {
+        self.tables().retain(|_, t| t.is_some());
+    }
+
     /// How many PDBs were looked for, and how many found.
     pub fn loaded(&self) -> (usize, usize) {
         let t = self.tables();

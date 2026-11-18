@@ -10,6 +10,7 @@
   const $ = (id) => document.getElementById(id);
   const summaryEl = $("summary");
   const statusEl = $("status");
+  const symbolsEl = $("symbols");
   const viewport = $("viewport");
   const spacer = $("spacer");
   const rowsEl = $("rows");
@@ -53,6 +54,8 @@
     } else if (m.type === "opened") {
       showSummary(m.summary, m.opened);
       createTree();
+    } else if (m.type === "notification" && m.method === "symbols") {
+      symbolsNote(m.params);
     } else if (m.type === "failed") {
       statusEl.textContent = m.error;
       statusEl.classList.add("error");
@@ -66,6 +69,20 @@
       `${secs} s · ${s.processors} processors · ${s.processes} processes · ` +
       `${s.samples.toLocaleString("en-US")} samples · ${s.switches.toLocaleString("en-US")} switches · ` +
       `${how} in ${opened.seconds.toFixed(2)} s`;
+  }
+
+  /** Shows how the symbols' download goes; when it is done, makes the tree
+   * again, with the new names. */
+  function symbolsNote(p) {
+    const have = p.cached + p.downloaded;
+    if (!p.done) {
+      symbolsEl.textContent = `Symbols: ${have + p.missing} of ${p.wanted}…`;
+      return;
+    }
+    symbolsEl.textContent = `Symbols: ${have} of ${p.wanted}` + (p.missing ? ` (${p.missing} not found)` : "");
+    if (p.downloaded > 0 && model) {
+      createTree();
+    }
   }
 
   function spec() {

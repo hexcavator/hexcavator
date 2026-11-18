@@ -9,8 +9,14 @@
 //! Methods (parameters, then result):
 //!
 //! - `hello` → `{version}`.
-//! - `open` `{path, useIndex?}` → `{trace, summary, opened}`: `trace` names
-//!   it in the requests below.
+//! - `open` `{path, useIndex?, symbolCache?, symbolServers?,
+//!   downloadSymbols?}` → `{trace, summary, opened}`: `trace` names it in
+//!   the requests below. Then, if `downloadSymbols` is true, the PDBs its
+//!   stacks need are downloaded in the background (into
+//!   `symbolCache`, from `symbolServers`; by default `_NT_SYMBOL_PATH`'s,
+//!   else WinDbg's cache and Microsoft's server), with notifications
+//!   `symbols` `{trace, wanted, cached, downloaded, missing, done}`; when
+//!   `done`, trees made after it name the new functions.
 //! - `close` `{trace}` → `{}`.
 //! - `summary` `{trace}` → the trace's summary.
 //! - `tree.create` `{trace, source?, groupBy?, frames?, invert?, time?}` →
@@ -30,12 +36,12 @@ use std::sync::mpsc::{Receiver, Sender, channel};
 use std::sync::{Arc, Mutex, PoisonError};
 use std::thread::JoinHandle;
 
-use hexcavator_symbolize::SymbolPath;
 use hexcavator_trace_analysis::{NodeId, PdbSymbolizer, Resolver};
 use serde_json::{Value, json};
 
 use crate::protocol::{Frame, read_frame, write_frame};
 use crate::store::{self, Loaded, Opened};
+use crate::symbols::{self, Symbols};
 use crate::views::{TreeSpec, TreeView, Unit, summary};
 
 const USAGE: &str = "\
@@ -104,6 +110,27 @@ pub fn serve(mut input: impl Read, out: &Output) -> io::Result<()> {
                         .unwrap_or(true),
                     ..store::Options::default()
                 };
+                let symbols = Symbols::new(
+                    params
+                        .get("symbolCache")
+                        .and_then(Value::as_str)
+                        .filter(|s| !s.is_empty())
+                        .map(PathBuf::from),
+                    params
+                        .get("symbolServers")
+                        .and_then(Value::as_array)
+                        .map(|a| {
+                            a.iter()
+                                .filter_map(Value::as_str)
+                                .map(|s| s.trim_end_matches('/').to_string())
+                                .collect()
+                        })
+                        .unwrap_or_default(),
+                    params
+                        .get("downloadSymbols")
+                        .and_then(Value::as_bool)
+                        .unwrap_or(false),
+                );
                 let trace = next_trace;
                 next_trace += 1;
                 let (tx, rx) = channel();
@@ -111,7 +138,7 @@ pub fn serve(mut input: impl Read, out: &Output) -> io::Result<()> {
                 let path = PathBuf::from(path);
                 let out = Arc::clone(out);
                 threads.push(std::thread::spawn(move || {
-                    worker(trace, &path, &options, &id, &rx, &out);
+                    worker(trace, &path, &options, &symbols, &id, &rx, &out);
                 }));
             }
             "close" => {
@@ -163,7 +190,9 @@ fn send(out: &Output, header: &Value) {
 struct State {
     loaded: Loaded,
     resolver: Resolver,
-    symbols: PdbSymbolizer,
+    /// Shared with the symbols' download, which makes it look again for
+    /// what was missing.
+    symbols: std::sync::Arc<PdbSymbolizer>,
     views: HashMap<u64, TreeView>,
     next_view: u64,
 }
@@ -174,6 +203,7 @@ fn worker(
     trace: u64,
     path: &std::path::Path,
     options: &store::Options,
+    symbols: &Symbols,
     open_id: &Value,
     rx: &Receiver<Request>,
     out: &Output,
@@ -214,7 +244,7 @@ fn worker(
     };
     let mut state = State {
         resolver: Resolver::new(&loaded.trace),
-        symbols: PdbSymbolizer::new(SymbolPath::from_env()),
+        symbols: std::sync::Arc::new(PdbSymbolizer::new(symbols.path.clone())),
         loaded,
         views: HashMap::new(),
         next_view: 1,
@@ -227,6 +257,9 @@ fn worker(
             "opened": opened,
         }}),
     );
+    let download = symbols
+        .download
+        .then(|| download_symbols(trace, &state, symbols, out));
     for r in rx {
         let response = match state.handle(&r.method, &r.params) {
             Ok(result) => json!({"id": r.id, "result": result}),
@@ -234,6 +267,46 @@ fn worker(
         };
         send(out, &response);
     }
+    // (The download's last notification is sent before the trace closes.)
+    if let Some(d) = download {
+        let _ = d.join();
+    }
+}
+
+/// Downloads the PDBs the trace's stacks need, in the background, telling
+/// the editor how it goes; then the symbolizer looks again for what was
+/// missing.
+fn download_symbols(trace: u64, state: &State, symbols: &Symbols, out: &Output) -> JoinHandle<()> {
+    let ids = symbols::wanted(&state.loaded.trace);
+    let servers = symbols.servers.clone();
+    let symbolizer = std::sync::Arc::clone(&state.symbols);
+    let out = std::sync::Arc::clone(out);
+    std::thread::spawn(move || {
+        let note = |d: &symbols::Downloaded, done: bool| {
+            send(
+                &out,
+                &json!({"method": "symbols", "params": {
+                    "trace": trace,
+                    "wanted": d.wanted,
+                    "cached": d.cached,
+                    "downloaded": d.downloaded,
+                    "missing": d.missing,
+                    "done": done,
+                }}),
+            );
+        };
+        // (At most a few notes a second.)
+        let last = std::sync::Mutex::new(std::time::Instant::now());
+        let d = symbols::download(&servers, &ids, |d| {
+            let mut l = last.lock().unwrap_or_else(PoisonError::into_inner);
+            if l.elapsed().as_millis() >= 250 {
+                *l = std::time::Instant::now();
+                note(d, false);
+            }
+        });
+        symbolizer.forget_missing();
+        note(&d, true);
+    })
 }
 
 impl State {
@@ -243,8 +316,8 @@ impl State {
             "summary" => Ok(summary(trace)),
             "tree.create" => {
                 let spec = TreeSpec::from_json(params)?;
-                let view = TreeView::build(trace, &self.resolver, &self.symbols, spec);
-                let root = view.row(trace, &self.symbols, NodeId::ROOT);
+                let view = TreeView::build(trace, &self.resolver, &*self.symbols, spec);
+                let root = view.row(trace, &*self.symbols, NodeId::ROOT);
                 let id = self.next_view;
                 self.next_view += 1;
                 let unit = match view.unit {
@@ -264,13 +337,13 @@ impl State {
                 let (view, node) = self.view_node(params)?;
                 let view = self.views.get_mut(&view).expect("checked");
                 let rows = if method == "tree.children" {
-                    view.children(trace, &self.symbols, node)
+                    view.children(trace, &*self.symbols, node)
                 } else {
                     let fraction = params
                         .get("fraction")
                         .and_then(Value::as_f64)
                         .unwrap_or(0.1);
-                    view.hot_path(trace, &self.symbols, node, fraction)
+                    view.hot_path(trace, &*self.symbols, node, fraction)
                 };
                 Ok(json!({"rows": rows.iter().map(crate::views::Row::to_json).collect::<Vec<_>>()}))
             }

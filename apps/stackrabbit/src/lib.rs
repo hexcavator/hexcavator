@@ -6,6 +6,7 @@
 //! - [`store`]: opening a trace, from its saved index when there is one;
 //! - [`views`]: queries (stack trees) and the rows they show;
 //! - [`serve`]: the session an editor drives;
+//! - [`symbols`]: which PDBs a trace needs, and downloading them;
 //! - [`bench`], [`synth`], [`tree`]: the command-line tools.
 
 use std::process::ExitCode;
@@ -14,6 +15,7 @@ pub mod bench;
 pub mod protocol;
 pub mod serve;
 pub mod store;
+pub mod symbols;
 pub mod synth;
 pub mod tree;
 pub mod views;
@@ -27,6 +29,7 @@ Commands:
   tree <trace> [options]    Print a trace's stack tree.
   bench <trace or dir>...   Time opening and querying traces: import, index, trees.
                             Prints timings and counts only, never what the traces hold.
+  symbols <trace> [options] Download the PDBs a trace's stacks need, many at once.
   synth <out.etl> [options] Write a synthetic trace (and, with -truth, its answers).
   help                      Show this.
   version                   Show the version.
@@ -44,6 +47,7 @@ pub fn run(args: &[String]) -> ExitCode {
         "tree" => tree::run(rest),
         "bench" => bench::run(rest),
         "synth" => synth::run(rest),
+        "symbols" => symbols::run(rest),
         "help" | "-h" | "--help" | "-help" => {
             println!("{USAGE}");
             ExitCode::SUCCESS

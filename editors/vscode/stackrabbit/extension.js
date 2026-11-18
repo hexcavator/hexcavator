@@ -34,6 +34,9 @@ class Engine {
   constructor(context) {
     this.context = context;
     this.session = null;
+    /** Each open trace's listeners (its editors) for what the engine says
+     * about it. */
+    this.listeners = new Map();
   }
 
   get() {
@@ -43,7 +46,14 @@ class Engine {
     const exe = enginePath(this.context);
     channel.appendLine(`Starting ${exe} serve`);
     const child = spawn(exe, ["serve"], { stdio: ["pipe", "pipe", "pipe"] });
-    const session = new Session((bytes) => child.stdin.write(bytes));
+    const session = new Session(
+      (bytes) => child.stdin.write(bytes),
+      (method, params) => {
+        for (const listen of this.listeners.get(params.trace) || []) {
+          listen(method, params);
+        }
+      }
+    );
     child.stdout.on("data", (chunk) => {
       try {
         session.receive(chunk);
@@ -101,8 +111,14 @@ class TraceEditorProvider {
     const session = () => this.engine.get();
     const open = () => {
       if (!document.opening) {
+        const config = vscode.workspace.getConfiguration("stackrabbit");
         document.opening = session()
-          .request("open", { path: document.uri.fsPath })
+          .request("open", {
+            path: document.uri.fsPath,
+            downloadSymbols: config.get("downloadSymbols"),
+            symbolCache: config.get("symbolCache"),
+            symbolServers: config.get("symbolServers"),
+          })
           .then((r) => {
             document.trace = r.trace;
             return r;
@@ -110,8 +126,20 @@ class TraceEditorProvider {
       }
       return document.opening;
     };
+    let listening = false;
+    const listener = (method, params) => panel.webview.postMessage({ type: "notification", method, params });
     panel.webview.onDidReceiveMessage(async (m) => {
       if (m.type === "ready") {
+        if (!listening) {
+          listening = true;
+          open()
+            .then((r) => {
+              const set = this.engine.listeners.get(r.trace) || new Set();
+              set.add(listener);
+              this.engine.listeners.set(r.trace, set);
+            })
+            .catch(() => {});
+        }
         try {
           const r = await open();
           panel.webview.postMessage({ type: "opened", summary: r.summary, opened: r.opened });
@@ -133,6 +161,10 @@ class TraceEditorProvider {
       }
     });
     panel.onDidDispose(() => {
+      const set = this.engine.listeners.get(document.trace);
+      if (set) {
+        set.delete(listener);
+      }
       if (document.trace !== null && this.engine.session) {
         this.engine.session.request("close", { trace: document.trace }).catch(() => {});
       }
@@ -172,6 +204,7 @@ function html(webview, media) {
   </select></label>
   <label><input type="checkbox" id="invert"> Callers (inverted)</label>
   <button id="hot" title="Expand the hot path under the selected row (*)">Hot path</button>
+  <span id="symbols" class="symbols"></span>
   <span id="status" class="status"></span>
 </div>
 <div class="header"><span class="name">Stack</span><span class="num">Weight</span><span class="num">%</span><span class="num">Self</span></div>

@@ -269,3 +269,69 @@ fn the_binary_serves_on_standard_input_and_output() {
     assert_eq!(result(&answers, 2)["root"]["inclusive"], s.truth.samples);
     assert_eq!(result(&answers, 3), &json!({}));
 }
+
+/// A session's answers by ID, and its notifications, in order.
+fn session_with_notes(requests: &[Value]) -> (HashMap<u64, Value>, Vec<Value>) {
+    let mut input = Vec::new();
+    for (i, r) in requests.iter().enumerate() {
+        let mut r = r.clone();
+        r["id"] = json!(i + 1);
+        write_frame(&mut input, &Frame::new(r)).unwrap();
+    }
+    let sink = Arc::new(Mutex::new(Vec::<u8>::new()));
+    let out: Output = sink.clone();
+    serve(Cursor::new(input), &out).unwrap();
+    let data = sink.lock().unwrap().clone();
+    let mut r = Cursor::new(data);
+    let (mut answers, mut notes) = (HashMap::new(), Vec::new());
+    while let Some(f) = read_frame(&mut r).unwrap() {
+        match f.header["id"].as_u64() {
+            Some(id) => {
+                answers.insert(id, f.header);
+            }
+            None => notes.push(f.header),
+        }
+    }
+    (answers, notes)
+}
+
+#[test]
+fn symbols_are_downloaded_when_asked_and_reported() {
+    let dir = scratch("serve-symbols");
+    let (path, _) = write_trace(&dir, "t.etl", &small());
+    let cache = dir.join("cache");
+    // A server that refuses every connection: every PDB is missing, fast.
+    let (a, notes) = session_with_notes(&[
+        json!({"method": "open", "params": {
+            "path": path, "useIndex": false, "downloadSymbols": true,
+            "symbolCache": cache, "symbolServers": ["http://127.0.0.1:9"],
+        }}),
+        json!({"method": "tree.create", "params": {"trace": 1}}),
+    ]);
+    assert_eq!(
+        result(&a, 2)["view"],
+        1,
+        "the session goes on while it downloads"
+    );
+    let last = notes.last().expect("notes on the download");
+    assert_eq!(last["method"], "symbols");
+    let p = &last["params"];
+    assert_eq!(p["trace"], 1);
+    assert_eq!(p["done"], true);
+    let wanted = p["wanted"].as_u64().unwrap();
+    // The synthetic machine's images with samples: its kernel, system DLLs
+    // and each process's executable and DLLs.
+    assert!(wanted >= 4, "{wanted} PDBs wanted");
+    assert_eq!(p["missing"], wanted);
+    assert_eq!(p["downloaded"], 0);
+}
+
+#[test]
+fn symbols_are_not_downloaded_unless_asked() {
+    let dir = scratch("serve-no-symbols");
+    let (path, _) = write_trace(&dir, "t.etl", &small());
+    let (_, notes) = session_with_notes(&[
+        json!({"method": "open", "params": {"path": path, "useIndex": false}}),
+    ]);
+    assert!(notes.is_empty(), "no download, no notes");
+}

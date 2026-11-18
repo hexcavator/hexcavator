@@ -84,8 +84,10 @@ class Decoder {
  * how frames go out; feed what comes back to `receive(chunk)`.
  */
 class Session {
-  constructor(write) {
+  /** `onNotification(method, params)` hears what the engine says unasked. */
+  constructor(write, onNotification) {
     this.write = write;
+    this.onNotification = onNotification || (() => {});
     this.decoder = new Decoder();
     this.next = 1;
     this.pending = new Map();
@@ -106,6 +108,10 @@ class Session {
 
   receive(chunk) {
     for (const { header } of this.decoder.push(chunk)) {
+      if (header.id === undefined && typeof header.method === "string") {
+        this.onNotification(header.method, header.params || {});
+        continue;
+      }
       const waiter = this.pending.get(header.id);
       if (!waiter) {
         continue;

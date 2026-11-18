@@ -57,6 +57,24 @@
           "type": "string",
           "default": "",
           "description": "The stackrabbit engine to run. Empty: the one that comes with the extension."
+        },
+        "stackrabbit.downloadSymbols": {
+          "type": "boolean",
+          "default": true,
+          "description": "Download the PDBs a trace's stacks need from the symbol servers, in the background, when it opens."
+        },
+        "stackrabbit.symbolCache": {
+          "type": "string",
+          "default": "",
+          "description": "Where downloaded PDBs go, laid out as WinDbg's cache is (so the two can share it). Empty: _NT_SYMBOL_PATH's cache, else WinDbg's default (C:\\ProgramData\\Dbg\\sym)."
+        },
+        "stackrabbit.symbolServers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Symbol servers, asked in order. Empty: _NT_SYMBOL_PATH's, else Microsoft's (https://msdl.microsoft.com/download/symbols)."
         }
       }
     }
