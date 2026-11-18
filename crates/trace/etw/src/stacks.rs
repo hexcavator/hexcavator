@@ -20,6 +20,19 @@
 //!   then takes a stack of any thread with its timestamp, and the stack
 //!   names the readying thread ([`StackMatch::thread`]).
 
+//!
+//! # Matching in parts
+//!
+//! An importer may cut a trace into parts by time and match each part's
+//! stacks with a matcher of its own, in parallel. A part's matcher starts
+//! knowing which thread runs on each processor
+//! ([`StackMatcher::starting_with`]), so it matches what a matcher that
+//! had read the whole trace would, except stacks whose event is in an
+//! earlier part (whose event timestamp is before the part's start). Those
+//! are matched afterwards, in order, by a [`Stitch`]: it holds what the
+//! earlier parts' matchers ended with ([`StackMatcher::snapshot`]) and
+//! matches as one matcher would have at that point.
+
 use std::collections::VecDeque;
 
 use rustc_hash::FxHashMap;
@@ -64,8 +77,8 @@ pub struct StackMatcher {
     /// The thread running on each processor, by its context switches.
     running: Vec<u32>,
     /// Events that got a piece, by (timestamp, thread), for continuations:
-    /// the event, and whether it took any thread's stack.
-    matched: FxHashMap<(i64, u32), (u64, bool)>,
+    /// the event, whether it took any thread's stack, and when.
+    matched: FxHashMap<(i64, u32), (u64, bool, i64)>,
     /// `matched`'s keys in the order they were added, to forget old ones.
     matched_order: VecDeque<(i64, (i64, u32))>,
     /// How long (in clock ticks) to wait for a continuation.
@@ -82,6 +95,35 @@ impl StackMatcher {
             matched: FxHashMap::default(),
             matched_order: VecDeque::new(),
             window,
+        }
+    }
+
+    /// A matcher for a part of a trace, starting with `running[c]` running
+    /// on processor `c` (`u32::MAX`: not known; see the module's notes).
+    pub fn starting_with(window: i64, running: &[u32]) -> Self {
+        let mut m = Self::new(window);
+        if !running.is_empty() {
+            let last = u16::try_from(running.len() - 1).expect("processors fit in u16");
+            m.cpu(last);
+            m.running.copy_from_slice(running);
+        }
+        m
+    }
+
+    /// How many recent events (at most the ring's size) each processor has.
+    pub fn recent_counts(&self) -> Vec<u8> {
+        self.recent
+            .iter()
+            .map(|r| u8::try_from(r.len()).expect("a ring holds few events"))
+            .collect()
+    }
+
+    /// What later stacks may refer to: each processor's recent events, and
+    /// the events that got a stack, with when.
+    pub fn snapshot(self) -> Snapshot {
+        Snapshot {
+            recent: self.recent,
+            matched: self.matched,
         }
     }
 
@@ -160,7 +202,7 @@ impl StackMatcher {
     ) -> Option<StackMatch> {
         self.forget_before(now.saturating_sub(self.window));
         let key = (event_timestamp, thread_id);
-        if let Some(&(id, any)) = self.matched.get(&key) {
+        if let Some(&(id, any, _)) = self.matched.get(&key) {
             return Some(StackMatch {
                 id,
                 continuation: true,
@@ -175,7 +217,7 @@ impl StackMatcher {
                 .filter(|&(i, _)| i != cpu)
                 .find_map(|(_, ring)| find(ring, key))
         })?;
-        self.matched.insert(key, (found, any));
+        self.matched.insert(key, (found, any, now));
         self.matched_order.push_back((now, key));
         Some(StackMatch {
             id: found,
@@ -211,4 +253,142 @@ fn find(ring: &VecDeque<Candidate>, (timestamp, thread): (i64, u32)) -> Option<(
     newest(thread)
         .map(|id| (id, false))
         .or_else(|| newest(ANY).map(|id| (id, true)))
+}
+
+/// A matcher's state at the end of a part of a trace (see the module's
+/// notes).
+#[derive(Clone, Debug, Default)]
+pub struct Snapshot {
+    /// Each processor's recent events, oldest first.
+    recent: Vec<VecDeque<Candidate>>,
+    /// The events that got a stack: key to (event, any thread's, when).
+    matched: FxHashMap<(i64, u32), (u64, bool, i64)>,
+}
+
+/// Events that got a stack: key to (event, any thread's, when).
+type Matched = FxHashMap<(i64, u32), (u64, bool, i64)>;
+
+/// A part a [`Stitch`] took in: its first event timestamp, its matched
+/// events, and how to rename its events.
+type AbsorbedPart = (i64, Matched, Box<dyn Fn(u64) -> u64 + Send>);
+
+/// Matches the stacks that parts' matchers couldn't: those whose events
+/// are in earlier parts. Feed it each part's leftover stacks in order
+/// ([`Stitch::stack`]), then the part's [`Snapshot`] ([`Stitch::absorb`]).
+pub struct Stitch {
+    /// Each processor's recent events as of the current part's start
+    /// (with the trace's names for them).
+    recent: Vec<VecDeque<Candidate>>,
+    /// The parts absorbed: each one's first event timestamp, matched
+    /// events, and how to rename its events.
+    parts: Vec<AbsorbedPart>,
+    /// Events that got a stack here: key to (event, any thread's, when).
+    matched: FxHashMap<(i64, u32), (u64, bool, i64)>,
+    window: i64,
+}
+
+impl Stitch {
+    /// A stitch waiting up to `window` clock ticks for continuations, as
+    /// the parts' matchers do.
+    pub fn new(window: i64) -> Self {
+        Self {
+            recent: Vec::new(),
+            parts: Vec::new(),
+            matched: FxHashMap::default(),
+            window,
+        }
+    }
+
+    /// The event a leftover stack of the current part belongs to, as one
+    /// matcher would have found it: `processor` logged it at `now`, when
+    /// the part's matcher had `counts[c]` recent events of its own on
+    /// processor `c` (none of them its event: they are later).
+    pub fn stack(
+        &mut self,
+        processor: u16,
+        now: i64,
+        event_timestamp: i64,
+        thread_id: u32,
+        counts: &[u8],
+    ) -> Option<StackMatch> {
+        let key = (event_timestamp, thread_id);
+        let horizon = now.saturating_sub(self.window);
+        // Matched before: here, or in the part the event is in (by its
+        // timestamp), whichever is later.
+        let here = self.matched.get(&key).copied();
+        let i = self.parts.partition_point(|p| p.0 <= event_timestamp);
+        let there = i.checked_sub(1).and_then(|i| {
+            let (_, map, rename) = &self.parts[i];
+            map.get(&key)
+                .map(|&(id, any, when)| (rename(id), any, when))
+        });
+        let matched = match (here, there) {
+            (Some(a), Some(b)) => Some(if a.2 >= b.2 { a } else { b }),
+            (a, b) => a.or(b),
+        };
+        if let Some((id, any, when)) = matched
+            && when >= horizon
+        {
+            return Some(StackMatch {
+                id,
+                continuation: true,
+                thread: any.then_some(thread_id),
+            });
+        }
+        // Each processor's ring then: the part's own events (none of them
+        // this one), after the newest of the earlier parts' that fit.
+        let older = |c: usize| {
+            let ring = self.recent.get(c)?;
+            let own = counts.get(c).map_or(0, |&n| usize::from(n));
+            let keep = RING.saturating_sub(own).min(ring.len());
+            Some(
+                ring.range(ring.len() - keep..)
+                    .copied()
+                    .collect::<VecDeque<_>>(),
+            )
+        };
+        let cpu = usize::from(processor);
+        let found = older(cpu).and_then(|r| find(&r, key)).or_else(|| {
+            (0..self.recent.len())
+                .filter(|&c| c != cpu)
+                .find_map(|c| older(c).and_then(|r| find(&r, key)))
+        });
+        let (id, any) = found?;
+        self.matched.insert(key, (id, any, now));
+        Some(StackMatch {
+            id,
+            continuation: false,
+            thread: any.then_some(thread_id),
+        })
+    }
+
+    /// Takes in a finished part, whose first event is at `start`: its
+    /// recent events after the earlier parts' (keeping the newest), and its
+    /// matched events. `rename` gives its events' names in the whole trace.
+    pub fn absorb(&mut self, start: i64, part: Snapshot, rename: Box<dyn Fn(u64) -> u64 + Send>) {
+        if self.recent.len() < part.recent.len() {
+            self.recent.resize_with(part.recent.len(), VecDeque::new);
+        }
+        for (c, ring) in part.recent.into_iter().enumerate() {
+            let all = &mut self.recent[c];
+            all.extend(ring.into_iter().map(|mut e| {
+                e.id = rename(e.id);
+                e
+            }));
+            while all.len() > RING {
+                all.pop_front();
+            }
+        }
+        self.parts.push((start, part.matched, rename));
+    }
+}
+
+impl std::fmt::Debug for Stitch {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Stitch")
+            .field("parts", &self.parts.len())
+            .field("matched", &self.matched.len())
+            .field("window", &self.window)
+            .finish_non_exhaustive()
+    }
 }

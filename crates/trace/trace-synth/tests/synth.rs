@@ -287,3 +287,36 @@ fn the_import_is_the_same_on_any_number_of_threads() {
         assert!(saved.windows(2).all(|w| w[0] == w[1]));
     }
 }
+
+#[test]
+fn the_import_is_the_same_in_any_number_of_parts() {
+    use hexcavator_trace::index;
+    for config in [
+        small(),
+        Config {
+            processors: 16,
+            processes: 12,
+            threads_per_process: 6,
+            duration_ms: 300,
+            sample_interval_us: 125,
+            switch_per_mille: 400,
+            ..Config::default()
+        },
+        Config {
+            pointer_size: 4,
+            compress: true,
+            ..small()
+        },
+    ] {
+        let s = generate(&config);
+        let etl = Etl::parse(&s.etl).unwrap();
+        let source = index::Source::of(&s.etl);
+        let (one, stats) = etw::import_parts(&etl, 1, Some(1)).unwrap();
+        let expected = index::write(&one, source);
+        for parts in [2, 3, 7, 50, 1000] {
+            let (trace, st) = etw::import_parts(&etl, 4, Some(parts)).unwrap();
+            assert_eq!(st, stats, "{parts} parts");
+            assert!(index::write(&trace, source) == expected, "{parts} parts");
+        }
+    }
+}
