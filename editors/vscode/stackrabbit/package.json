@@ -68,6 +68,11 @@
           "default": "",
           "description": "Where downloaded PDBs go, laid out as WinDbg's cache is (so the two can share it). Empty: _NT_SYMBOL_PATH's cache, else WinDbg's default (C:\\ProgramData\\Dbg\\sym)."
         },
+        "stackrabbit.stackTags": {
+          "type": "string",
+          "default": "",
+          "description": "A file of stack tags, in WPA's format, for grouping stacks by what they are doing (Group by: Stack tag)."
+        },
         "stackrabbit.symbolServers": {
           "type": "array",
           "items": {

@@ -7,8 +7,8 @@
 
 use hexcavator_trace::{ProcessIx, Trace};
 use hexcavator_trace_analysis::{
-    Filter, FrameMode, Framer, GroupBy, Keys, NodeId, Precise, Resolver, SwitchWeight, Symbolizer,
-    Tree, label, sources,
+    Filter, FrameMode, Framer, GroupBy, Key, Keys, NodeId, Precise, Resolver, StackTags,
+    SwitchWeight, Symbolizer, Tree, label, sources,
 };
 use rustc_hash::FxHashMap;
 use serde_json::{Value, json};
@@ -36,12 +36,13 @@ impl Source {
     }
 }
 
-/// A grouping column, by name (`process`, `thread`, `cpu`).
+/// A grouping column, by name (`process`, `thread`, `cpu`, `tag`).
 pub fn parse_group(name: &str) -> Option<GroupBy> {
     Some(match name {
         "process" => GroupBy::Process,
         "thread" => GroupBy::Thread,
         "cpu" => GroupBy::Cpu,
+        "tag" => GroupBy::StackTag,
         _ => return None,
     })
 }
@@ -143,6 +144,8 @@ pub struct TreeView {
     pub keys: Keys,
     /// Its weights' unit.
     pub unit: Unit,
+    /// The stack tags' names, by tag.
+    tag_names: Vec<String>,
 }
 
 /// One row of a tree: a node and what a table shows for it.
@@ -195,9 +198,18 @@ impl TreeView {
         trace: &Trace,
         resolver: &Resolver,
         symbols: &dyn Symbolizer,
+        tags: Option<&StackTags>,
         spec: TreeSpec,
     ) -> Self {
         let mut framer = Framer::new(trace, resolver, symbols, spec.frames);
+        if let Some(t) = tags {
+            framer = framer.with_tags(t.clone());
+        }
+        let tag_names = tags.map_or_else(Vec::new, |t| {
+            (0..u32::try_from(t.len()).expect("few tags"))
+                .map(|i| t.name(i).to_string())
+                .collect()
+        });
         let mut keys = Keys::default();
         let filter = Filter {
             time: spec.time.map(|(s, e)| (ticks(trace, s), ticks(trace, e))),
@@ -239,6 +251,7 @@ impl TreeView {
             tree: Tree::new(instances),
             keys,
             unit,
+            tag_names,
         }
     }
 
@@ -251,7 +264,15 @@ impl TreeView {
             depth: t.depth(node),
             label: t.key(node).map_or_else(
                 || "All".to_string(),
-                |k| label(trace, self.keys.get(k), symbols),
+                |k| match self.keys.get(k) {
+                    Key::Tag(Key::NO_TAG) => "Other".to_string(),
+                    Key::Tag(i) => self
+                        .tag_names
+                        .get(i as usize)
+                        .cloned()
+                        .unwrap_or_else(|| format!("Tag {i}")),
+                    key => label(trace, key, symbols),
+                },
             ),
             inclusive: t.inclusive(node),
             exclusive: t.exclusive(node),

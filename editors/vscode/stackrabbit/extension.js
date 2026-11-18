@@ -118,6 +118,7 @@ class TraceEditorProvider {
             downloadSymbols: config.get("downloadSymbols"),
             symbolCache: config.get("symbolCache"),
             symbolServers: config.get("symbolServers"),
+            stackTags: config.get("stackTags"),
           })
           .then((r) => {
             document.trace = r.trace;
@@ -195,6 +196,8 @@ function html(webview, media) {
     <option value="process,thread">Process, thread</option>
     <option value="thread">Thread</option>
     <option value="cpu">Processor</option>
+    <option value="tag">Stack tag</option>
+    <option value="process,tag">Process, stack tag</option>
     <option value="">Nothing</option>
   </select></label>
   <label>Frames <select id="frames">

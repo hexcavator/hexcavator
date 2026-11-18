@@ -397,3 +397,55 @@ fn the_cpu_graph_adds_up_to_the_samples() {
         .sum();
     assert!(part > 0 && part < total, "{part} of {total}");
 }
+
+#[test]
+fn stack_tags_group_stacks_by_what_they_do() {
+    let dir = scratch("serve-tags");
+    let (path, s) = write_trace(&dir, "t.etl", &small());
+    let tags = dir.join("tags.xml");
+    std::fs::write(
+        &tags,
+        r#"<?xml version="1.0"?>
+<Tag Name="">
+  <Tag Name="Kernel"><Entrypoint Module="ntoskrnl.exe"/></Tag>
+  <Tag Name="System"><Entrypoint Module="ntdll.dll"/></Tag>
+</Tag>"#,
+    )
+    .unwrap();
+    let a = session(&[
+        json!({"method": "open", "params": {"path": path, "useIndex": false, "stackTags": tags}}),
+        json!({"method": "tree.create", "params": {"trace": 1, "groupBy": ["tag"], "frames": "module"}}),
+        json!({"method": "tree.children", "params": {"trace": 1, "view": 1, "node": 0}}),
+        json!({"method": "open", "params": {"path": path, "useIndex": false, "stackTags": dir.join("missing.xml")}}),
+    ]);
+    assert_eq!(result(&a, 1)["stackTags"], 2, "two tags");
+    let rows = result(&a, 3)["rows"].as_array().unwrap();
+    let weight = |name: &str| {
+        rows.iter()
+            .find(|r| r["label"] == name)
+            .map_or(0, |r| r["inclusive"].as_u64().unwrap())
+    };
+    // A stack's tag is its deepest frame's that matches: in the kernel if
+    // it got there (the kernel calls only the kernel), else ntdll's (every
+    // user stack starts there).
+    let t = &s.truth;
+    let kernel_leaf: u64 = t
+        .functions
+        .iter()
+        .enumerate()
+        .filter(|(_, f)| t.modules[f.module].name == "ntoskrnl.exe")
+        .map(|(i, _)| t.exclusive[i])
+        .sum();
+    assert_eq!(weight("Kernel"), kernel_leaf + t.idle_samples);
+    assert_eq!(weight("System"), t.samples - kernel_leaf - t.idle_samples);
+    assert_eq!(weight("Other"), 0);
+    // A missing file: reported, and the trace opens.
+    let r = result(&a, 4);
+    assert!(
+        r["stackTagsError"]
+            .as_str()
+            .unwrap()
+            .contains("missing.xml")
+    );
+    assert!(r["stackTags"].is_null());
+}

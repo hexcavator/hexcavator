@@ -262,6 +262,7 @@ fn measure(path: &Path, symbols: bool) -> Result<Measured, String> {
         &trace,
         &resolver,
         symbolizer,
+        None,
         TreeSpec {
             source: Source::Samples,
             groups: vec![GroupBy::Process],
@@ -280,6 +281,7 @@ fn measure(path: &Path, symbols: bool) -> Result<Measured, String> {
         &trace,
         &resolver,
         symbolizer,
+        None,
         TreeSpec {
             invert: true,
             groups: vec![],
@@ -294,6 +296,7 @@ fn measure(path: &Path, symbols: bool) -> Result<Measured, String> {
         &trace,
         &resolver,
         symbolizer,
+        None,
         TreeSpec {
             source: Source::Waits,
             groups: vec![GroupBy::Process],

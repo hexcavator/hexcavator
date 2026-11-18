@@ -10,7 +10,10 @@
 //!
 //! - `hello` → `{version}`.
 //! - `open` `{path, useIndex?, symbolCache?, symbolServers?,
-//!   downloadSymbols?}` → `{trace, summary, opened}`: `trace` names it in
+//!   downloadSymbols?, stackTags?}` → `{trace, summary, opened, stackTags,
+//!   stackTagsError}`: `stackTags` is a file of WPA's stack tags, for
+//!   grouping by `tag` (its count, or the error that kept it out, comes
+//!   back). `trace` names it in
 //!   the requests below. Then, if `downloadSymbols` is true, the PDBs its
 //!   stacks need are downloaded in the background (into
 //!   `symbolCache`, from `symbolServers`; by default `_NT_SYMBOL_PATH`'s,
@@ -39,7 +42,7 @@ use std::sync::mpsc::{Receiver, Sender, channel};
 use std::sync::{Arc, Mutex, PoisonError};
 use std::thread::JoinHandle;
 
-use hexcavator_trace_analysis::{NodeId, PdbSymbolizer, Resolver};
+use hexcavator_trace_analysis::{NodeId, PdbSymbolizer, Resolver, StackTags};
 use serde_json::{Value, json};
 
 use crate::protocol::{Frame, read_frame, write_frame};
@@ -140,8 +143,22 @@ pub fn serve(mut input: impl Read, out: &Output) -> io::Result<()> {
                 traces.insert(trace, tx);
                 let path = PathBuf::from(path);
                 let out = Arc::clone(out);
+                let tags = params
+                    .get("stackTags")
+                    .and_then(Value::as_str)
+                    .filter(|s| !s.is_empty())
+                    .map(PathBuf::from);
                 threads.push(std::thread::spawn(move || {
-                    worker(trace, &path, &options, &symbols, &id, &rx, &out);
+                    worker(
+                        trace,
+                        &path,
+                        &options,
+                        &symbols,
+                        tags.as_deref(),
+                        &id,
+                        &rx,
+                        &out,
+                    );
                 }));
             }
             "close" => {
@@ -196,17 +213,21 @@ struct State {
     /// Shared with the symbols' download, which makes it look again for
     /// what was missing.
     symbols: std::sync::Arc<PdbSymbolizer>,
+    /// The stack tags, if a file of them was given.
+    tags: Option<StackTags>,
     views: HashMap<u64, TreeView>,
     next_view: u64,
 }
 
 /// A trace's thread: opens it, answers `open_id`, then answers the
 /// requests about it until the session closes it.
+#[allow(clippy::too_many_arguments)]
 fn worker(
     trace: u64,
     path: &std::path::Path,
     options: &store::Options,
     symbols: &Symbols,
+    tags_path: Option<&std::path::Path>,
     open_id: &Value,
     rx: &Receiver<Request>,
     out: &Output,
@@ -245,7 +266,20 @@ fn worker(
             },
         }),
     };
+    // Stack tags: a file that can't be read or parsed is reported, and the
+    // trace opens without them.
+    let (tags, tags_error) = match tags_path {
+        None => (None, None),
+        Some(p) => match std::fs::read_to_string(p)
+            .map_err(|e| e.to_string())
+            .and_then(|text| StackTags::from_xml(&text))
+        {
+            Ok(t) => (Some(t), None),
+            Err(e) => (None, Some(format!("{}: {e}", p.display()))),
+        },
+    };
     let mut state = State {
+        tags,
         resolver: Resolver::new(&loaded.trace),
         symbols: std::sync::Arc::new(PdbSymbolizer::new(symbols.path.clone())),
         loaded,
@@ -258,6 +292,8 @@ fn worker(
             "trace": trace,
             "summary": summary(&state.loaded.trace),
             "opened": opened,
+            "stackTags": state.tags.as_ref().map(StackTags::len),
+            "stackTagsError": tags_error,
         }}),
     );
     // What is here already loads at once; the rest downloads meanwhile.
@@ -359,7 +395,13 @@ impl State {
             }
             "tree.create" => {
                 let spec = TreeSpec::from_json(params)?;
-                let view = TreeView::build(trace, &self.resolver, &*self.symbols, spec);
+                let view = TreeView::build(
+                    trace,
+                    &self.resolver,
+                    &*self.symbols,
+                    self.tags.as_ref(),
+                    spec,
+                );
                 let root = view.row(trace, &*self.symbols, NodeId::ROOT);
                 let id = self.next_view;
                 self.next_view += 1;

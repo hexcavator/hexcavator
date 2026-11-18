@@ -19,8 +19,9 @@ the whole, its weight and its own (exclusive) weight.
 
 Options:
   -source <samples|running|waits>  What to weigh (samples).
-  -group <columns>                 Grouping columns, comma-separated: process, thread, cpu
-                                   (process); '' for none.
+  -group <columns>                 Grouping columns, comma-separated: process, thread, cpu,
+                                   tag (process); '' for none.
+  -tags <file.xml>                 Stack tags, in WPA's format, for -group tag.
   -frames <function|module|address> How frames are told apart (function).
   -invert                          Callers: innermost frames first.
   -depth <n>                       Levels to print (6).
@@ -59,6 +60,7 @@ struct Options {
     top: usize,
     hot: bool,
     use_index: bool,
+    tags: Option<String>,
 }
 
 fn parse(args: &[String]) -> Result<Option<Options>, String> {
@@ -70,6 +72,7 @@ fn parse(args: &[String]) -> Result<Option<Options>, String> {
         top: 5,
         hot: false,
         use_index: true,
+        tags: None,
     };
     while let Some(arg) = a.next() {
         match arg {
@@ -97,6 +100,7 @@ fn parse(args: &[String]) -> Result<Option<Options>, String> {
             "-top" => o.top = a.number(arg)?,
             "-hot" => o.hot = true,
             "-no-index" => o.use_index = false,
+            "-tags" => o.tags = Some(a.value(arg)?.to_string()),
             x if x.starts_with('-') => return Err(format!("unknown option '{x}'")),
             p if o.path.is_empty() => o.path = p.to_string(),
             extra => return Err(format!("unexpected '{extra}'")),
@@ -118,7 +122,18 @@ fn print(o: &Options) -> Result<String, String> {
     let trace = &loaded.trace;
     let resolver = Resolver::new(trace);
     let symbols = PdbSymbolizer::new(SymbolPath::from_env());
-    let mut view = TreeView::build(trace, &resolver, &symbols, o.spec.clone());
+    let tags = match &o.tags {
+        Some(p) => Some(
+            std::fs::read_to_string(p)
+                .map_err(|e| format!("{p}: {e}"))
+                .and_then(|t| {
+                    hexcavator_trace_analysis::StackTags::from_xml(&t)
+                        .map_err(|e| format!("{p}: {e}"))
+                })?,
+        ),
+        None => None,
+    };
+    let mut view = TreeView::build(trace, &resolver, &symbols, tags.as_ref(), o.spec.clone());
     let total = view.tree.inclusive(NodeId::ROOT).max(1);
     let mut out = String::new();
     let mut line = |out: &mut String, row: &views::Row| {
