@@ -12,6 +12,7 @@
 use std::process::ExitCode;
 
 pub mod bench;
+pub mod disk;
 pub mod generic;
 pub mod protocol;
 pub mod regions;

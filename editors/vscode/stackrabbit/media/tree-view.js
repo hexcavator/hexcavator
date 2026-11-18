@@ -46,6 +46,7 @@
     createTree();
     loadProcesses();
     loadFunctions();
+    loadDisk();
     if (listedKind) {
       loadEventList(listedKind);
     }
@@ -572,6 +573,59 @@
     }
   }
 
+  // Disk usage: totals grouped as chosen, and the heaviest I/Os, in the
+  // time selected. Loaded while the tab shows; otherwise when it next does.
+  const kb = (v) => (v / 1024).toLocaleString("en-US", { maximumFractionDigits: 1 });
+  const diskGroups = new SortedTable(
+    $("disk-groups"),
+    [
+      { key: "label", title: "Group" },
+      { key: "count", title: "I/Os", num: true, text: number(0) },
+      { key: "bytes", title: "KB", num: true, text: kb },
+      { key: "ioNs", title: "I/O time (ms)", num: true, text: ms },
+      { key: "serviceNs", title: "Service time (ms)", num: true, text: ms },
+    ],
+    { key: "serviceNs", down: true }
+  );
+  const diskIos = new SortedTable(
+    $("disk-ios"),
+    [
+      { key: "kind", title: "Type" },
+      { key: "process", title: "Process" },
+      { key: "tid", title: "TID", num: true },
+      { key: "file", title: "File", cls: "cmd" },
+      { key: "disk", title: "Disk", num: true },
+      { key: "size", title: "KB", num: true, text: kb },
+      { key: "completeNs", title: "Completed", num: true, text: at("") },
+      { key: "ioNs", title: "I/O time (ms)", num: true, text: ms },
+      { key: "serviceNs", title: "Service time (ms)", num: true, text: ms },
+    ],
+    { key: "serviceNs", down: true }
+  );
+  let diskStale = true;
+  async function loadDisk() {
+    if ($("disk-pane").classList.contains("hidden")) {
+      diskStale = true;
+      return;
+    }
+    diskStale = false;
+    $("disk-title").textContent = "Reading the trace's disk I/O…";
+    try {
+      const params = { by: $("disk-by").value, limit: 1000 };
+      if (selection) {
+        params.time = selection;
+      }
+      const d = await request("disk", params);
+      $("disk-title").textContent =
+        `${d.count.toLocaleString("en-US")} disk I/Os, ${kb(d.bytes)} KB${selection ? " in the time selected" : ""}.`;
+      diskGroups.set(d.groups);
+      diskIos.set(d.ios);
+    } catch (e) {
+      $("disk-title").textContent = e.message;
+    }
+  }
+  $("disk-by").addEventListener("change", loadDisk);
+
   function showTab(name) {
     tab = name;
     saveState();
@@ -581,7 +635,7 @@
     if (name === "regions") {
       loadRegions();
     }
-    for (const t of ["stacks", "processes", "functions", "symbols", "events", "regions"]) {
+    for (const t of ["stacks", "processes", "functions", "symbols", "events", "regions", "disk"]) {
       $(`tab-${t}`).classList.toggle("active", name === t);
       $(`${t}-pane`).classList.toggle("hidden", name !== t);
     }
@@ -594,10 +648,15 @@
     if (name === "symbols") {
       loadSymbols();
     }
+    // (After the pane shows: it loads only if it does.)
+    if (name === "disk" && diskStale) {
+      loadDisk();
+    }
   }
   $("tab-symbols").addEventListener("click", () => showTab("symbols"));
   $("tab-events").addEventListener("click", () => showTab("events"));
   $("tab-regions").addEventListener("click", () => showTab("regions"));
+  $("tab-disk").addEventListener("click", () => showTab("disk"));
   symbolsEl.addEventListener("click", () => showTab("symbols"));
   /**
    * The shown tab as Markdown, to the clipboard (by way of the extension):
@@ -715,7 +774,7 @@
     if (s.lit && typeof s.lit.fn === "string") {
       lit = { fn: s.lit.fn, label: String(s.lit.label || s.lit.fn) };
     }
-    if (["stacks", "processes", "functions", "symbols", "events", "regions"].includes(s.tab)) {
+    if (["stacks", "processes", "functions", "symbols", "events", "regions", "disk"].includes(s.tab)) {
       showTab(s.tab);
     }
   }

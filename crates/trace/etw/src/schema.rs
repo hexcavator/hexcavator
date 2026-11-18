@@ -723,7 +723,8 @@ pub static SCHEMAS: &[Schema] = &[
     s(guids::DISK_IO, 13, 3, "DiskIo", "WriteInit", DISK_IO_INIT),
     s(guids::DISK_IO, 14, 3, "DiskIo", "FlushBuffers", DISK_FLUSH),
     s(guids::DISK_IO, 15, 3, "DiskIo", "FlushInit", DISK_IO_INIT),
-    // FileIo.
+    // FileIo. (The FileIo_Name class: opcodes 0, 32, 35 and 36.)
+    s(guids::FILE_IO, 0, 2, "FileIo", "Name", FILE_NAME),
     s(guids::FILE_IO, 32, 2, "FileIo", "FileCreate", FILE_NAME),
     s(guids::FILE_IO, 35, 2, "FileIo", "FileDelete", FILE_NAME),
     s(guids::FILE_IO, 36, 2, "FileIo", "FileRundown", FILE_NAME),

@@ -1201,3 +1201,134 @@ fn regions_of_interest_over_a_trace() {
     assert!(error(&a, 3).contains("none.xml"));
     assert!(error(&a, 4).contains("file"));
 }
+
+#[test]
+fn disk_usage_by_process_file_disk_and_type() {
+    use hexcavator_etl::classic;
+    use hexcavator_etl::write::{self, Kernel, Writer, WriterOptions};
+    use hexcavator_etw::guids;
+    let dir = scratch("serve-disk");
+    // A counter at 10 MHz: 10,000 ticks a millisecond.
+    let mut w = Writer::new(WriterOptions {
+        processors: 1,
+        perf_freq: 10_000_000,
+        ..WriterOptions::default()
+    });
+    let mut kernel = |provider, op: u8, version: u16, ts: i64, payload: Vec<u8>| {
+        let hook = classic::guid_group(&provider).unwrap() << 8 | u16::from(op);
+        let k = Kernel {
+            hook,
+            version,
+            thread_id: u32::MAX,
+            process_id: u32::MAX,
+            timestamp: ts,
+            ..Kernel::default()
+        };
+        w.record(0, &write::system(&k, true, &payload));
+    };
+    let name = |object: u64, path: &str| {
+        let mut p = object.to_le_bytes().to_vec();
+        for u in path.encode_utf16().chain([0]) {
+            p.extend_from_slice(&u.to_le_bytes());
+        }
+        p
+    };
+    // DiskIo v3: disk, flags, size, reserved, offset, file object, IRP,
+    // response time (ticks), issuing thread.
+    let io = |disk: u32, size: u32, offset: u64, object: u64, response: u64| {
+        let mut p = Vec::new();
+        for v in [disk, 0, size, 0] {
+            p.extend_from_slice(&v.to_le_bytes());
+        }
+        for v in [offset, object, 0x9999, response] {
+            p.extend_from_slice(&v.to_le_bytes());
+        }
+        p.extend_from_slice(&77u32.to_le_bytes());
+        p
+    };
+    // File object 1 is a.txt, then b.txt (renamed); object 2 is named only
+    // by the rundown at the end.
+    kernel(guids::FILE_IO, 32, 2, 10, name(1, r"C:\a.txt"));
+    // Disk 0: a read of 4 KB taking 2 ms, completing at 30,000; a write of
+    // 8 KB taking 3 ms, completing at 35,000 (it started at 5,000, before
+    // the read completed: its service time is from 30,000, 0.5 ms).
+    kernel(guids::DISK_IO, 10, 3, 30_000, io(0, 4096, 0, 1, 20_000));
+    kernel(guids::DISK_IO, 11, 3, 35_000, io(0, 8192, 4096, 1, 30_000));
+    kernel(guids::FILE_IO, 0, 2, 40_000, name(1, r"C:\b.txt"));
+    // Disk 1: a read of object 1 (now b.txt), and a flush, and an I/O of
+    // object 2.
+    kernel(guids::DISK_IO, 10, 3, 60_000, io(1, 512, 0, 1, 10_000));
+    kernel(guids::DISK_IO, 14, 3, 70_000, {
+        let mut p = Vec::new();
+        p.extend_from_slice(&1u32.to_le_bytes());
+        p.extend_from_slice(&0u32.to_le_bytes());
+        p.extend_from_slice(&5_000u64.to_le_bytes());
+        p.extend_from_slice(&0x9999u64.to_le_bytes());
+        p.extend_from_slice(&77u32.to_le_bytes());
+        p
+    });
+    kernel(guids::DISK_IO, 11, 3, 80_000, io(1, 1024, 0, 2, 1_000));
+    kernel(guids::FILE_IO, 36, 2, 90_000, name(2, r"C:\c.log"));
+    let path = dir.join("t.etl");
+    std::fs::write(&path, w.finish()).unwrap();
+
+    let req = |by: &str, extra: Value| {
+        let mut p = json!({"trace": 1, "by": by});
+        for (k, v) in extra.as_object().unwrap() {
+            p[k] = v.clone();
+        }
+        json!({"method": "disk", "params": p})
+    };
+    let a = session(&[
+        json!({"method": "open", "params": {"path": path, "useIndex": false}}),
+        req("type", json!({})),
+        req("file", json!({})),
+        req("disk", json!({})),
+        req("process", json!({"limit": 2})),
+        req("type", json!({"time": [0, 4_000_000]})),
+        req("nonsense", json!({})),
+    ]);
+    let by = |id: u64| -> std::collections::BTreeMap<String, (u64, u64, u64, u64)> {
+        result(&a, id)["groups"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|g| {
+                let n = |k: &str| g[k].as_u64().unwrap();
+                (
+                    g["label"].as_str().unwrap().to_string(),
+                    (n("count"), n("bytes"), n("ioNs"), n("serviceNs")),
+                )
+            })
+            .collect()
+    };
+    let types = by(2);
+    assert_eq!(result(&a, 2)["count"], 5);
+    assert_eq!(result(&a, 2)["bytes"], 4096 + 8192 + 512 + 1024);
+    // I/O times: 2 ms + 1 ms reads; service times: the read 2 ms (nothing
+    // before it), disk 1's read 1 ms.
+    assert_eq!(types["Read"], (2, 4608, 3_000_000, 3_000_000));
+    // The write: 3 ms I/O, 0.5 ms service (from the read's completion);
+    // disk 1's write: 0.1 ms (it started after the flush completed).
+    assert_eq!(types["Write"], (2, 9216, 3_100_000, 600_000));
+    assert_eq!(types["Flush"], (1, 0, 500_000, 500_000));
+    let files = by(3);
+    assert_eq!(files[r"C:\a.txt"].0, 2, "named a.txt then");
+    assert_eq!(files[r"C:\b.txt"].0, 1, "renamed by its next I/O");
+    assert_eq!(files[r"C:\c.log"].0, 1, "named by the rundown after");
+    assert_eq!(files["Unknown file"].0, 1, "the flush names no file");
+    let disks = by(4);
+    assert_eq!((disks["Disk 0"].0, disks["Disk 1"].0), (2, 3));
+    // The heaviest by service time, a limit of them.
+    let ios = result(&a, 5)["ios"].as_array().unwrap();
+    assert_eq!(ios.len(), 2);
+    assert_eq!(
+        (ios[0]["kind"].as_str(), ios[0]["serviceNs"].as_u64()),
+        (Some("Read"), Some(2_000_000))
+    );
+    assert_eq!(ios[1]["serviceNs"], 1_000_000);
+    assert_eq!(ios[0]["file"], r"C:\a.txt");
+    // A time range: the first two only (completed by 4 ms).
+    assert_eq!(result(&a, 6)["count"], 2);
+    assert!(error(&a, 7).contains("by"), "{}", error(&a, 7));
+}

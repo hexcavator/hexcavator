@@ -141,6 +141,7 @@ window.acquireVsCodeApi = function () {
     else if (m.method === "functions") r.result = A.functions;
     else if (m.method === "events") r.result = A.events;
     else if (m.method === "regions" && A.regions) r.result = A.regions;
+    else if (m.method === "disk" && A.disk) r.result = A.disk;
     else if (m.method === "regions") r.error = "regions: file: expected a regions file";
     else if (m.method === "events.list" && A.sampleKind && m.params.opcode === A.sampleKind.opcode && m.params.guid === A.sampleKind.guid) r.result = A.sampleList;
     else if (m.method === "events.list") r.result = A.eventList;
@@ -719,6 +720,26 @@ def main():
     trees = [m["params"] for m in posted if m.get("method") == "tree.create"]
     assert trees[-1].get("time") == [100000000, 200000000], trees[-1]
     assert "Selected 0.100 s to 0.200 s" in dom
+    # The disk tab: totals by the grouping chosen, and the heaviest I/Os;
+    # changing the grouping asks again.
+    disked = json.loads(json.dumps(data))
+    disked["disk"] = {
+        "count": 3, "bytes": 12288,
+        "groups": [{"label": "app.exe (100)", "count": 2, "bytes": 8192, "ioNs": 3000000, "serviceNs": 2500000},
+                   {"label": "System (4)", "count": 1, "bytes": 4096, "ioNs": 1000000, "serviceNs": 1000000}],
+        "ios": [{"kind": "Read", "process": "app.exe (100)", "tid": 7, "file": "C:\\a.txt", "disk": 0, "size": 4096, "completeNs": 3000000, "ioNs": 2000000, "serviceNs": 2000000}],
+    }
+    change = ("document.getElementById('tab-disk').click();"
+              "setTimeout(function () { var b = document.getElementById('disk-by'); b.value = 'file'; b.dispatchEvent(new Event('change')); }, 100);")
+    dom = render(disked, change, shot=shot("disk"))
+    assert "3 disk I/Os, 12 KB." in dom, "the disk title"
+    posted = json.loads(html.unescape(re.search(r'<pre id="posted"[^>]*>(.*?)</pre>', dom, re.S).group(1)))
+    asked = [m["params"]["by"] for m in posted if m.get("method") == "disk"]
+    assert asked == ["process", "file"], asked
+    table = dom[dom.index('id="disk-groups"'):dom.index('id="disk-ios"')]
+    labels = [html.unescape(x) for x in re.findall(r'<tr data-i="\d+"><td class="">([^<]*)</td>', table)]
+    assert labels == ["app.exe (100)", "System (4)"], labels
+    assert "C:\\a.txt" in html.unescape(dom[dom.index('id="disk-ios"'):])
     print("harness: ok")
 
 
