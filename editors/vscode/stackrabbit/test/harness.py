@@ -107,9 +107,10 @@ def answers(engine, path, spec, depth=4, limit=4000):
     processes = engine.request("processes", {"trace": trace})
     threads = {str(p["index"]): engine.request("threads", {"trace": trace, "process": p["index"]}) for p in processes["rows"]}
     functions = engine.request("functions", {"trace": trace, "source": "samples", "frames": "function"})
+    lit = engine.request("graph", {"trace": trace, "buckets": 1000, "top": 8, "highlight": functions["functions"][1]["fn"]})
     # (The view's view IDs: its first tree is view 1 of its own.)
     tree = dict(tree, view=1)
-    return {"opened": opened, "tree": tree, "children": children, "hot": hot, "graph": graph, "processes": processes, "threads": threads, "functions": functions}
+    return {"opened": opened, "tree": tree, "children": children, "hot": hot, "graph": graph, "processes": processes, "threads": threads, "functions": functions, "lit": lit}
 
 
 STUB = """
@@ -122,7 +123,7 @@ window.acquireVsCodeApi = function () {
     else if (m.method === "tree.children" && A.children[m.params.node]) r.result = A.children[m.params.node];
     else if (m.method === "tree.hotPath" && A.hot[m.params.node]) r.result = A.hot[m.params.node];
     else if (m.method === "tree.close") r.result = {};
-    else if (m.method === "graph") r.result = A.graph;
+    else if (m.method === "graph") r.result = m.params.highlight ? A.lit : A.graph;
     else if (m.method === "processes") r.result = A.processes;
     else if (m.method === "functions") r.result = A.functions;
     else if (m.method === "threads" && A.threads[m.params.process]) r.result = A.threads[m.params.process];
@@ -392,6 +393,23 @@ def main():
     assert lines[2].startswith(f"| {top[at]['label']} |"), lines[2]
     assert len(lines) == 3 + len(first_children), f"{len(lines)} lines"
     assert lines[3].startswith("|  " + first_children[0]["label"]), lines[3]
+    # Highlighting a function (the second heaviest: clicking its row): the
+    # graph is asked for it, and its line's key names it; again, and not.
+    second = f["functions"][1]
+    click = "document.getElementById('tab-functions').click(); setTimeout(function () { document.querySelector('#functions tbody tr[data-i=\"1\"]').click(); }, 50);"
+    dom = render(data, click, shot=shot("highlight"))
+    posted = json.loads(html.unescape(re.search(r'<pre id="posted"[^>]*>(.*?)</pre>', dom, re.S).group(1)))
+    graphs = [m for m in posted if m.get("method") == "graph"]
+    assert graphs[-1]["params"].get("highlight") == second["fn"], graphs[-1]
+    legend = lambda dom: dom[dom.index('id="legend"'):dom.index("</div>", dom.index('id="legend"'))]
+    assert 'class="key lit"' in legend(dom) and html.escape(second["label"]) in legend(dom), "the highlight's key"
+    assert '<tr data-i="1" class="selected">' in dom, "the function picked"
+    again = click + " setTimeout(function () { document.querySelector('#functions tbody tr[data-i=\"1\"]').click(); }, 300);"
+    dom = render(data, again)
+    posted = json.loads(html.unescape(re.search(r'<pre id="posted"[^>]*>(.*?)</pre>', dom, re.S).group(1)))
+    graphs = [m for m in posted if m.get("method") == "graph"]
+    assert "highlight" not in graphs[-1]["params"], "clicked again: no highlight"
+    assert 'class="key lit"' not in legend(dom), "no highlight's key"
     print("harness: ok")
 
 

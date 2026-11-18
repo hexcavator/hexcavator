@@ -210,6 +210,7 @@ function html(webview, media) {
   </select></label>
   <label><input type="checkbox" id="invert"> Callers (inverted)</label>
   <button id="hot" title="Expand the hot path under the selected row (*)">Hot path</button>
+  <button id="highlight" title="Highlight the selected row's function in the graph; again to stop (H)">Highlight</button>
   <button id="copy" title="Copy as Markdown: the selected row and the rows open under it, or the tab's tables (Ctrl+C)">Copy</button>
   <span id="symbols" class="symbols"></span>
   <span id="status" class="status"></span>

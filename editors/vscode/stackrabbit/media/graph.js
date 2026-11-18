@@ -5,6 +5,7 @@
   // Colors for series, then Other (gray). Distinguishable in light and dark.
   const COLORS = ["#4e79a7", "#f28e2b", "#e15759", "#76b7b2", "#59a14f", "#edc948", "#b07aa1", "#ff9da7", "#9c755f"];
   const OTHER = "#8c8c8c";
+  const LIT = "#ffd400"; // The highlighted function's line.
   const AXIS = 40; // Left margin for the axis labels, in CSS pixels.
 
   class Graph {
@@ -69,9 +70,13 @@
       return Math.max(10, Math.floor(this.canvas.clientWidth - AXIS));
     }
 
-    /** Shows `data` (the engine's graph). */
-    set(data) {
+    /**
+     * Shows `data` (the engine's graph); its highlight, if any, is named
+     * `litLabel` in the legend.
+     */
+    set(data, litLabel) {
       this.data = data;
+      this.litLabel = litLabel || "";
       this.draw();
       this.drawLegend();
     }
@@ -153,6 +158,27 @@
           base[b] += s.values[b];
         }
       });
+      // The highlighted function: a line over the bands, outlined so it
+      // shows on any of them.
+      if (d.highlight) {
+        g.lineJoin = "round";
+        for (const [color, width] of [["rgba(0, 0, 0, 0.6)", 4], [LIT, 2]]) {
+          g.strokeStyle = color;
+          g.lineWidth = width;
+          g.beginPath();
+          d.highlight.values.forEach((v, b) => {
+            const y = bottom - Math.min(1, v) * h;
+            if (b === 0) {
+              g.moveTo(AXIS, y);
+            } else {
+              g.lineTo(AXIS + b * step, y);
+            }
+            g.lineTo(AXIS + (b + 1) * step, y);
+          });
+          g.stroke();
+        }
+        g.lineWidth = 1;
+      }
       // The selection, or the range being dragged.
       const range = this.drag || this.selection;
       if (range) {
@@ -173,13 +199,18 @@
       // (Sampled series weigh samples; precise ones, nanoseconds.)
       const weight = (s) => (s.samples !== undefined ? s.samples : s.ns);
       const total = d.series.reduce((a, s) => a + weight(s), 0) || 1;
-      this.legend.innerHTML = d.series
-        .map((s, i) => {
-          const color = s.label === "Other" ? OTHER : COLORS[i % COLORS.length];
-          const share = ((100 * weight(s)) / total).toFixed(1);
-          return `<span class="key"><span class="swatch" style="background:${color}"></span>${escape(s.label)} ${share}%</span>`;
-        })
-        .join("");
+      const keys = d.series.map((s, i) => {
+        const color = s.label === "Other" ? OTHER : COLORS[i % COLORS.length];
+        const share = ((100 * weight(s)) / total).toFixed(1);
+        return `<span class="key"><span class="swatch" style="background:${color}"></span>${escape(s.label)} ${share}%</span>`;
+      });
+      if (d.highlight) {
+        const share = ((100 * weight(d.highlight)) / total).toFixed(1);
+        keys.push(
+          `<span class="key lit"><span class="swatch" style="background:${LIT}"></span>${escape(this.litLabel)} ${share}%</span>`
+        );
+      }
+      this.legend.innerHTML = keys.join("");
     }
   }
 

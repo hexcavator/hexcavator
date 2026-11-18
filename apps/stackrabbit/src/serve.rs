@@ -41,11 +41,13 @@
 //!   (or all), with their lifetimes, start addresses (named), CPU samples,
 //!   switches in and running time (precise, in ms) in `time`, heaviest
 //!   first.
-//! - `graph` `{trace, source?, buckets?, time?, top?}` → `{source, startNs,
-//!   endNs, buckets, series}`: CPU usage over time, by process, sampled
-//!   (`samples`) or precise (`running`, or `waits`: both from context
-//!   switches), each series's values the share of all the processors it
-//!   used in each bucket.
+//! - `graph` `{trace, source?, buckets?, time?, top?, highlight?}` →
+//!   `{source, startNs, endNs, buckets, series, highlight?}`: CPU usage
+//!   over time, by process, sampled (`samples`) or precise (`running`, or
+//!   `waits`: both from context switches), each series's values the share
+//!   of all the processors it used in each bucket. `highlight`, a row's
+//!   `fn` (a function's or module's ID), adds a series of the CPU with it
+//!   on the stack.
 //! - `tree.create` `{trace, source?, groupBy?, frames?, invert?, time?}` →
 //!   `{view, unit, root}`: a stack tree and its root row.
 //! - `tree.children` `{trace, view, node}` → `{rows}`: a node's children,
@@ -484,12 +486,22 @@ impl State {
                     .and_then(Value::as_u64)
                     .map_or(8, |t| usize::try_from(t).unwrap_or(8));
                 let spec = TreeSpec::from_json(params)?;
+                let highlight = match params.get("highlight") {
+                    None | Some(Value::Null) => None,
+                    Some(v) => Some(crate::views::Highlight::new(
+                        trace,
+                        &self.resolver,
+                        &*self.symbols,
+                        v.as_str().ok_or("highlight: expected a function's ID")?,
+                    )?),
+                };
                 Ok(crate::views::cpu_graph(
                     trace,
                     spec.source,
                     buckets,
                     spec.time,
                     top,
+                    highlight.as_ref(),
                 ))
             }
             "functions" => {

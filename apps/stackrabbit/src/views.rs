@@ -5,12 +5,12 @@
 //! everything a table shows for a node: its label, weights and whether it
 //! has children.
 
-use hexcavator_trace::{ProcessIx, ThreadIx, Trace};
+use hexcavator_trace::{ImageIx, ProcessIx, StackId, ThreadIx, Trace};
 use hexcavator_trace_analysis::{
     BinTotals, Filter, FrameMode, Framer, GroupBy, Instances, Key, KeyId, Keys, NO_BIN, NodeId,
     Precise, Resolver, StackTags, SwitchWeight, Symbolizer, Tree, label, sources,
 };
-use rustc_hash::FxHashMap;
+use rustc_hash::{FxHashMap, FxHashSet};
 use serde_json::{Value, json};
 
 /// What a tree weighs.
@@ -167,6 +167,9 @@ pub struct Row {
     pub count: u64,
     /// Whether it has children.
     pub has_children: bool,
+    /// Its function's (or module's) ID, if it is one (see
+    /// [`function_id`]).
+    pub function: Option<String>,
 }
 
 impl Row {
@@ -181,6 +184,7 @@ impl Row {
             "exclusive": self.exclusive,
             "count": self.count,
             "hasChildren": self.has_children,
+            "fn": self.function,
         })
     }
 }
@@ -330,6 +334,7 @@ pub fn functions(
         .map(|&f| {
             let key = key_of(function_key[f]);
             let mut r = row(label(trace, key, symbols), &by_function[f]);
+            r["fn"] = json!(function_id(trace, key, spec.frames));
             r["module"] = match key {
                 Key::Frame { image, .. } | Key::Inline { image, .. } => {
                     json!(trace.images[image.index()].file_name())
@@ -421,6 +426,9 @@ impl TreeView {
             exclusive: t.exclusive(node),
             count: t.count(node),
             has_children: t.has_children(node),
+            function: t
+                .key(node)
+                .and_then(|k| function_id(trace, self.keys.get(k), self.spec.frames)),
         }
     }
 
@@ -482,6 +490,7 @@ pub fn cpu_graph(
     buckets: usize,
     time: Option<(i64, i64)>,
     top: usize,
+    highlight: Option<&Highlight<'_>>,
 ) -> Value {
     let buckets = buckets.clamp(1, 10_000);
     let (first, last) = span(trace).unwrap_or((trace.clock.origin, trace.clock.origin));
@@ -510,12 +519,19 @@ pub fn cpu_graph(
             .unwrap_or(0)
             .min(buckets - 1)
     };
-    // Each process's weight per bucket: samples, or clock ticks running.
+    // Each process's weight per bucket: samples, or clock ticks running;
+    // and the highlighted function's (idle or not).
     let mut by_process: FxHashMap<ProcessIx, Vec<u64>> = FxHashMap::default();
+    let mut lit = vec![0u64; buckets];
     if precise {
         let p = Precise::new(trace);
         let sw = &trace.switches;
         let to = sw.time.partition_point(|&t| t < end);
+        let marked = highlight.map(|h| {
+            h.marks(0..to, |i| {
+                (trace.thread_process(sw.new_thread[i]), sw.stack[i], 0)
+            })
+        });
         // A bucket's first tick.
         let edge = |b: usize| {
             start
@@ -531,6 +547,7 @@ pub fn cpu_graph(
             if a >= z || is_idle(process) {
                 continue;
             }
+            let lit_too = marked.as_ref().is_some_and(|m| m[i]);
             let v = by_process
                 .entry(process)
                 .or_insert_with(|| vec![0; buckets]);
@@ -542,7 +559,11 @@ pub fn cpu_graph(
                 } else {
                     z
                 };
-                v[b] += u64::try_from(next - t).unwrap_or(0);
+                let n = u64::try_from(next - t).unwrap_or(0);
+                v[b] += n;
+                if lit_too {
+                    lit[b] += n;
+                }
                 t = next;
                 b += 1;
             }
@@ -552,15 +573,23 @@ pub fn cpu_graph(
         // The samples in range: they are in time order.
         let from = s.time.partition_point(|&t| t < start);
         let to = s.time.partition_point(|&t| t < end);
+        let marked = highlight.map(|h| {
+            h.marks(from..to, |i| {
+                (trace.thread_process(s.thread[i]), s.stack[i], s.ip[i])
+            })
+        });
         for i in from..to {
             let process = trace.thread_process(s.thread[i]);
             if is_idle(process) {
                 continue;
             }
+            let b = bucket_of(s.time[i]);
             by_process
                 .entry(process)
-                .or_insert_with(|| vec![0; buckets])[bucket_of(s.time[i])] +=
-                u64::from(s.weight[i]);
+                .or_insert_with(|| vec![0; buckets])[b] += u64::from(s.weight[i]);
+            if marked.as_ref().is_some_and(|m| m[i - from]) {
+                lit[b] += u64::from(s.weight[i]);
+            }
         }
     }
     let mut totals: Vec<(ProcessIx, u64)> = by_process
@@ -619,13 +648,197 @@ pub fn cpu_graph(
     if totals.len() > top {
         series.push(series_of("Other".to_string(), &other));
     }
-    json!({
+    let mut out = json!({
         "source": if precise { "running" } else { "samples" },
         "startNs": trace.clock.nanos(start),
         "endNs": trace.clock.nanos(end),
         "buckets": buckets,
         "series": series,
-    })
+    });
+    if let Some(h) = highlight {
+        out["highlight"] = series_of(h.id.clone(), &lit);
+    }
+    out
+}
+
+/// A function or module to highlight in a graph: the events with it on
+/// their stacks. (See [`function_id`] for its ID.)
+pub struct Highlight<'a> {
+    trace: &'a Trace,
+    resolver: &'a Resolver,
+    symbols: &'a dyn Symbolizer,
+    /// Its ID.
+    pub id: String,
+    /// The images of its module (one in each process it is in).
+    images: FxHashSet<ImageIx>,
+    target: Target,
+}
+
+/// What a [`Highlight`] looks for in its module's images.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Target {
+    /// Any frame.
+    Module,
+    /// A frame in the function starting at this offset.
+    Function(u64),
+    /// A call inlined at this site.
+    Inline(u32),
+}
+
+/// A function's or module's ID, as rows and [`Highlight`]s name it (the
+/// same in every process): `module|m` for a module, `module|<offset>`
+/// (hex) for a function, `module|i<site>` for an inlined call. Frames by
+/// address have none.
+pub fn function_id(trace: &Trace, key: Key, mode: FrameMode) -> Option<String> {
+    let file = |image: ImageIx| trace.images[image.index()].file_name().to_string();
+    match key {
+        Key::Frame { image, offset } if offset == Key::MODULE => Some(format!("{}|m", file(image))),
+        Key::Frame { image, offset } if mode == FrameMode::Function => {
+            Some(format!("{}|{offset:x}", file(image)))
+        }
+        Key::Inline { image, site } => Some(format!("{}|i{site}", file(image))),
+        _ => None,
+    }
+}
+
+impl<'a> Highlight<'a> {
+    /// The function or module `id` names (see [`function_id`]).
+    pub fn new(
+        trace: &'a Trace,
+        resolver: &'a Resolver,
+        symbols: &'a dyn Symbolizer,
+        id: &str,
+    ) -> Result<Self, String> {
+        let bad = || format!("highlight: not a function's ID: {id}");
+        let (module, what) = id.rsplit_once('|').ok_or_else(bad)?;
+        let target = if what == "m" {
+            Target::Module
+        } else if let Some(site) = what.strip_prefix('i') {
+            Target::Inline(site.parse().map_err(|_| bad())?)
+        } else {
+            Target::Function(u64::from_str_radix(what, 16).map_err(|_| bad())?)
+        };
+        let images = (0..trace.images.len())
+            .filter(|&i| trace.images[i].file_name() == module)
+            .map(|i| ImageIx(u32::try_from(i).expect("fewer than 4G images")))
+            .collect();
+        Ok(Self {
+            trace,
+            resolver,
+            symbols,
+            id: id.to_string(),
+            images,
+            target,
+        })
+    }
+
+    /// Whether the frame at `address` in `process` is it.
+    fn is(
+        &self,
+        framer: &mut Framer<'_>,
+        process: ProcessIx,
+        address: u64,
+        return_address: bool,
+    ) -> bool {
+        let (key, inlined) = framer.frame(process, address, return_address);
+        match (self.target, key) {
+            (Target::Module, Key::Frame { image, .. }) => self.images.contains(&image),
+            (Target::Function(f), Key::Frame { image, offset }) => {
+                offset == f && self.images.contains(&image)
+            }
+            (Target::Inline(s), _) => inlined.iter().any(|k| {
+                matches!(*k, Key::Inline { image, site } if site == s && self.images.contains(&image))
+            }),
+            _ => false,
+        }
+    }
+
+    /// Which of the events `rows` (each one's process, stack, and
+    /// instruction pointer for one without a stack, by `event`) have it on
+    /// their stacks: by row, from the range's start. On every core, in
+    /// chunks; each stack's callers looked at once a chunk.
+    pub fn marks(
+        &self,
+        rows: std::ops::Range<usize>,
+        event: impl Fn(usize) -> (ProcessIx, StackId, u64) + Sync,
+    ) -> Vec<bool> {
+        const CHUNK: usize = 1 << 15;
+        if self.images.is_empty() {
+            return vec![false; rows.len()];
+        }
+        let mode = if self.target == Target::Module {
+            FrameMode::Module
+        } else {
+            FrameMode::Function
+        };
+        let chunks: Vec<std::ops::Range<usize>> = rows
+            .clone()
+            .step_by(CHUNK)
+            .map(|from| from..(from + CHUNK).min(rows.end))
+            .collect();
+        let next = std::sync::atomic::AtomicUsize::new(0);
+        let done: Vec<std::sync::Mutex<Vec<bool>>> =
+            chunks.iter().map(|_| std::sync::Mutex::default()).collect();
+        let threads = std::thread::available_parallelism()
+            .map_or(4, std::num::NonZero::get)
+            .min(chunks.len());
+        std::thread::scope(|scope| {
+            for _ in 0..threads {
+                scope.spawn(|| {
+                    let mut framer = Framer::new(self.trace, self.resolver, self.symbols, mode);
+                    // Whether a node's frame or a caller's is it (its frame
+                    // a return address).
+                    let mut callers: FxHashMap<(ProcessIx, StackId), bool> = FxHashMap::default();
+                    let mut walk: Vec<StackId> = Vec::new();
+                    loop {
+                        let c = next.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                        let Some(range) = chunks.get(c) else { return };
+                        let mut out = Vec::with_capacity(range.len());
+                        for i in range.clone() {
+                            let (process, stack, ip) = event(i);
+                            let stacks = &self.trace.stacks;
+                            if stack.is_empty() {
+                                out.push(ip != 0 && self.is(&mut framer, process, ip, false));
+                                continue;
+                            }
+                            // The innermost frame (not a return address),
+                            // then its callers: up to one known, and back.
+                            if self.is(&mut framer, process, stacks.frame(stack), false) {
+                                out.push(true);
+                                continue;
+                            }
+                            walk.clear();
+                            let mut at = stacks.parent(stack);
+                            let mut known = false;
+                            while !at.is_empty() {
+                                if let Some(&k) = callers.get(&(process, at)) {
+                                    known = k;
+                                    break;
+                                }
+                                walk.push(at);
+                                at = stacks.parent(at);
+                            }
+                            while let Some(n) = walk.pop() {
+                                known =
+                                    known || self.is(&mut framer, process, stacks.frame(n), true);
+                                callers.insert((process, n), known);
+                            }
+                            out.push(known);
+                        }
+                        *done[c]
+                            .lock()
+                            .unwrap_or_else(std::sync::PoisonError::into_inner) = out;
+                    }
+                });
+            }
+        });
+        done.into_iter()
+            .flat_map(|m| {
+                m.into_inner()
+                    .unwrap_or_else(std::sync::PoisonError::into_inner)
+            })
+            .collect()
+    }
 }
 
 /// Rows of events a worker counts at a time.

@@ -286,7 +286,13 @@
   const functionsTable = new SortedTable(
     $("functions"),
     [{ key: "label", title: "Function" }, { key: "module", title: "Module" }, ...weightColumns],
-    { key: "exclusive", down: true }
+    { key: "exclusive", down: true },
+    // Clicking a function highlights it in the graph (again: stops).
+    (row) => {
+      highlight(row);
+      functionsTable.picked = lit ? row.pick : null;
+      functionsTable.draw();
+    }
   );
   const modulesTable = new SortedTable($("modules"), [{ key: "label", title: "Module" }, ...weightColumns], {
     key: "exclusive",
@@ -315,7 +321,7 @@
         }));
       const shown = f.functions.length < f.functionCount ? ` (the heaviest ${f.functions.length.toLocaleString("en-US")})` : "";
       $("functions-title").textContent = `${f.functionCount.toLocaleString("en-US")} functions${shown}`;
-      functionsTable.set(share(f.functions));
+      functionsTable.set(share(f.functions).map((r) => ({ ...r, pick: r.fn })));
       modulesTable.set(share(f.modules));
     } catch (e) {
       statusEl.textContent = e.message;
@@ -365,6 +371,12 @@
     vscode.postMessage({ type: "copy", text, what });
   }
   $("copy").addEventListener("click", copy);
+  $("highlight").addEventListener("click", () => {
+    if (model) {
+      highlight(model.visible()[selected]);
+    }
+    viewport.focus();
+  });
   // Ctrl+C (or Cmd+C) copies the tab, unless text is selected.
   document.addEventListener("keydown", (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key === "c" && !String(window.getSelection() || "")) {
@@ -377,11 +389,26 @@
   $("tab-processes").addEventListener("click", () => showTab("processes"));
   $("tab-functions").addEventListener("click", () => showTab("functions"));
 
+  // A function (or module) highlighted in the graph: its ID and label.
+  let lit = null;
+  /** Highlights `row`'s function in the graph (or stops, if it is). */
+  function highlight(row) {
+    if (!row || !row.fn) {
+      return;
+    }
+    lit = lit && lit.fn === row.fn ? null : { fn: row.fn, label: row.label };
+    loadGraph();
+  }
+
   /** Asks for the graph, as many buckets as it has pixels. */
   async function loadGraph() {
     try {
       const source = controls.source.value === "samples" ? "samples" : "running";
-      graph.set(await request("graph", { source, buckets: graph.plotWidth(), top: 8 }));
+      const params = { source, buckets: graph.plotWidth(), top: 8 };
+      if (lit) {
+        params.highlight = lit.fn;
+      }
+      graph.set(await request("graph", params), lit && lit.label);
     } catch (e) {
       statusEl.textContent = e.message;
       statusEl.classList.add("error");
@@ -580,6 +607,10 @@
         } else if (row) {
           select(rows.findIndex((r) => r.id === row.parent));
         }
+        break;
+      case "h":
+      case "H":
+        highlight(row);
         break;
       case "Enter":
         toggle(selected);
