@@ -146,6 +146,7 @@ fn chunk_instances(
     let mut frames: Vec<u64> = Vec::new();
     let by_tag = groups.contains(&GroupBy::StackTag) && framer.has_tags();
     let folding = framer.has_folds();
+    let by_module = framer.mode() == FrameMode::Module;
     for &((thread, cpu, stack, ip), (weight, count)) in buckets {
         let process = trace.thread_process(thread);
         frames.clear();
@@ -183,23 +184,22 @@ fn chunk_instances(
             } else {
                 None
             };
-            let key = match fold {
-                Some(rule) => Key::Fold(rule),
-                None => framer.key(process, f, i > 0),
+            // The frame's key, and the calls inlined at it (its callees in
+            // the tree).
+            let (key, inlined) = match fold {
+                Some(rule) => (Key::Fold(rule), &[][..]),
+                None => framer.frame(process, f, i > 0),
             };
             let k = keys.intern(key);
             // A run of frames in one folded group, or (by image) in one
             // image, is one node.
-            let collapses = fold.is_some() || framer.mode() == FrameMode::Module;
+            let collapses = fold.is_some() || by_module;
             if collapses && seq.len() > groups.len() && seq.last() == Some(&k) {
                 continue;
             }
             seq.push(k);
-            // The calls inlined at this frame are its callees in the tree.
-            if fold.is_none() {
-                for &inline in framer.inline_keys(process, f, i > 0) {
-                    seq.push(keys.intern(inline));
-                }
+            for &inline in inlined {
+                seq.push(keys.intern(inline));
             }
         }
         out.push_counted(&seq, weight, count);

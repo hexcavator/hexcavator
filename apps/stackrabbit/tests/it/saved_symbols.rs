@@ -287,3 +287,72 @@ fn saved_symbols_are_only_for_their_trace_and_undamaged() {
         Path::new("a/t.etl.hxsyms")
     );
 }
+
+#[test]
+fn a_pdb_missing_at_first_is_found_when_it_comes() {
+    let dir = scratch("saved-symbols-later");
+    let (path, exe, cache) = trace_with_a_real_pdb(&dir);
+    let loaded = store::open(
+        &path,
+        &store::Options {
+            use_index: false,
+            cache_dir: None,
+        },
+    )
+    .unwrap();
+    let trace = &loaded.trace;
+    let image = trace
+        .images
+        .iter()
+        .position(|i| i.file_name() == exe)
+        .map(|i| hexcavator_trace::ImageIx(u32::try_from(i).unwrap()))
+        .unwrap();
+    let id = trace.images[image.index()].debug_id.clone().unwrap();
+    let pdb = std::fs::read(lines_pdb()).unwrap();
+    let table = Arc::new(FunctionTable::from_pdb(&pdb).unwrap());
+    let main = u64::from(table.iter().find(|f| f.2 == "main").unwrap().0);
+    let named = |s: &PdbSymbolizer| s.function_start(trace, image, main);
+    use hexcavator_trace_analysis::Symbolizer;
+
+    // Not waiting: missing until it is seeded (asked about many times, so
+    // that "missing" is remembered).
+    let s = PdbSymbolizer::new(SymbolPath::default());
+    s.set_waiting(false);
+    for _ in 0..3 {
+        assert_eq!(named(&s), None);
+    }
+    s.seed(&id.guid, id.age, Arc::clone(&table));
+    assert_eq!(named(&s), Some(main));
+
+    // Not waiting: missing until a background load loads it.
+    let s = PdbSymbolizer::new(SymbolPath {
+        dirs: vec![cache.clone()],
+    });
+    s.set_waiting(false);
+    assert_eq!(named(&s), None);
+    assert!(s.load(&id.pdb_path, &id.guid, id.age).is_some());
+    assert_eq!(named(&s), Some(main));
+
+    // Waiting: missing (not in the cache) until it is downloaded and the
+    // missing are forgotten.
+    let elsewhere = dir.join("elsewhere");
+    std::fs::create_dir_all(&elsewhere).unwrap();
+    let s = PdbSymbolizer::new(SymbolPath {
+        dirs: vec![elsewhere.clone()],
+    });
+    assert_eq!(named(&s), None);
+    assert_eq!(named(&s), None);
+    for f in std::fs::read_dir(&cache).unwrap() {
+        let f = f.unwrap();
+        std::fs::copy(f.path(), elsewhere.join(f.file_name())).unwrap();
+    }
+    assert_eq!(named(&s), None, "still missing: not looked for again yet");
+    s.forget_missing();
+    assert_eq!(named(&s), Some(main));
+    // And a symbolizer that didn't wait at first, then does.
+    let s = PdbSymbolizer::new(SymbolPath { dirs: vec![cache] });
+    s.set_waiting(false);
+    assert_eq!(named(&s), None);
+    s.set_waiting(true);
+    assert_eq!(named(&s), Some(main));
+}

@@ -212,14 +212,16 @@ pub struct Framer<'a> {
     resolver: &'a Resolver,
     symbolizer: &'a dyn Symbolizer,
     mode: FrameMode,
-    cache: FxHashMap<(ProcessIx, u64), Key>,
+    /// Each frame's key and inlined calls (a range of `inline_store`), by
+    /// (process, address): one lookup a frame.
+    cache: FxHashMap<(ProcessIx, u64), (Key, u32, u32)>,
+    /// The inlined calls' keys of the frames in `cache`.
+    inline_store: Vec<Key>,
     tags: Option<StackTags>,
     folds: Folds,
     /// Each frame's stack tag and folding rule, by (process, lookup
     /// address).
     classes: FxHashMap<(ProcessIx, u64), (Option<u32>, Option<u32>)>,
-    /// Each frame's inlined calls, by (process, lookup address).
-    inlines: FxHashMap<(ProcessIx, u64), Vec<Key>>,
 }
 
 impl<'a> Framer<'a> {
@@ -236,10 +238,10 @@ impl<'a> Framer<'a> {
             symbolizer,
             mode,
             cache: FxHashMap::default(),
+            inline_store: Vec::new(),
             tags: None,
             folds: Folds::default(),
             classes: FxHashMap::default(),
-            inlines: FxHashMap::default(),
         }
     }
 
@@ -251,26 +253,7 @@ impl<'a> Framer<'a> {
         address: u64,
         return_address: bool,
     ) -> &[Key] {
-        if self.mode != FrameMode::Function {
-            return &[];
-        }
-        let lookup = if return_address {
-            address.wrapping_sub(1)
-        } else {
-            address
-        };
-        let (trace, resolver, symbolizer) = (self.trace, self.resolver, self.symbolizer);
-        self.inlines.entry((process, lookup)).or_insert_with(|| {
-            let Some(image) = resolver.image(process, lookup) else {
-                return Vec::new();
-            };
-            let offset = lookup - trace.images[image.index()].base;
-            symbolizer
-                .inline_sites(trace, image, offset)
-                .into_iter()
-                .map(|site| Key::Inline { image, site })
-                .collect()
-        })
+        self.frame(process, address, return_address).1
     }
 
     /// A framer like this one (same trace, symbols, mode, tags and folding
@@ -282,10 +265,10 @@ impl<'a> Framer<'a> {
             symbolizer: self.symbolizer,
             mode: self.mode,
             cache: FxHashMap::default(),
+            inline_store: Vec::new(),
             tags: self.tags.clone(),
             folds: self.folds.clone(),
             classes: FxHashMap::default(),
-            inlines: FxHashMap::default(),
         }
     }
 
@@ -369,35 +352,72 @@ impl<'a> Framer<'a> {
     /// is looked up one byte back, so that a call at the end of a function
     /// is attributed to that function.
     pub fn key(&mut self, process: ProcessIx, address: u64, return_address: bool) -> Key {
+        self.frame(process, address, return_address).0
+    }
+
+    /// The key of the frame at `address` in `process`, as
+    /// [`Framer::key`] gives it, and the keys of the calls inlined there,
+    /// as [`Framer::inline_keys`] does: one lookup for both.
+    pub fn frame(
+        &mut self,
+        process: ProcessIx,
+        address: u64,
+        return_address: bool,
+    ) -> (Key, &[Key]) {
         let lookup = if return_address && self.mode == FrameMode::Function {
             address.wrapping_sub(1)
         } else {
             address
         };
-        if let Some(&k) = self.cache.get(&(process, lookup)) {
-            return k;
-        }
-        let key = match self.resolver.image(process, lookup) {
-            None => Key::Unknown(if self.mode == FrameMode::Address {
+        let (key, from, len) = match self.cache.get(&(process, lookup)) {
+            Some(&k) => k,
+            None => {
+                let k = self.resolve(process, address, lookup);
+                self.cache.insert((process, lookup), k);
+                k
+            }
+        };
+        (
+            key,
+            &self.inline_store[from as usize..(from + len) as usize],
+        )
+    }
+
+    /// Finds a frame's key and inlined calls (adding them to
+    /// `inline_store`).
+    fn resolve(&mut self, process: ProcessIx, address: u64, lookup: u64) -> (Key, u32, u32) {
+        let Some(image) = self.resolver.image(process, lookup) else {
+            let unknown = if self.mode == FrameMode::Address {
                 address
             } else {
                 0
-            }),
-            Some(image) => {
-                let offset = lookup - self.trace.images[image.index()].base;
-                let offset = match self.mode {
-                    FrameMode::Address => offset,
-                    FrameMode::Module => Key::MODULE,
-                    FrameMode::Function => self
-                        .symbolizer
-                        .function_start(self.trace, image, offset)
-                        .unwrap_or(Key::MODULE),
-                };
-                Key::Frame { image, offset }
-            }
+            };
+            return (Key::Unknown(unknown), 0, 0);
         };
-        self.cache.insert((process, lookup), key);
-        key
+        let offset = lookup - self.trace.images[image.index()].base;
+        let offset_key = match self.mode {
+            FrameMode::Address => offset,
+            FrameMode::Module => Key::MODULE,
+            FrameMode::Function => self
+                .symbolizer
+                .function_start(self.trace, image, offset)
+                .unwrap_or(Key::MODULE),
+        };
+        let key = Key::Frame {
+            image,
+            offset: offset_key,
+        };
+        // Inlined calls are only told apart by function.
+        if self.mode != FrameMode::Function {
+            return (key, 0, 0);
+        }
+        let from = u32::try_from(self.inline_store.len()).expect("fewer than 4G inlined calls");
+        for site in self.symbolizer.inline_sites(self.trace, image, offset) {
+            self.inline_store.push(Key::Inline { image, site });
+        }
+        let len =
+            u32::try_from(self.inline_store.len()).expect("fewer than 4G inlined calls") - from;
+        (key, from, len)
     }
 }
 

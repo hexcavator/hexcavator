@@ -1,6 +1,6 @@
 //! A [`Symbolizer`] from PDBs found on this machine.
 
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, OnceLock, PoisonError, RwLock};
 
 use rustc_hash::FxHashMap;
@@ -25,14 +25,23 @@ pub struct PdbSymbolizer {
     /// Whether lookups wait for a PDB to load (else they use only those
     /// loaded already: see [`PdbSymbolizer::set_waiting`]).
     waiting: AtomicBool,
-    /// By image: each image's found table, once a lookup has found it, so
-    /// that later lookups take no lock (a tree's threads look up millions
-    /// of frames at once). With its PDB's identity, checked on each use.
-    by_image: OnceLock<Vec<OnceLock<Found>>>,
+    /// By image: what lookups found, so that later lookups take no lock
+    /// (a tree's threads look up millions of frames at once).
+    by_image: OnceLock<Vec<ImageCache>>,
+    /// Bumped whenever a PDB is loaded, seeded or forgotten: an image
+    /// found missing at an older generation is looked for again.
+    generation: AtomicU64,
 }
 
-/// A table found for an image, with its PDB's identity.
-type Found = (DebugKey, Arc<FunctionTable>);
+/// What lookups found for an image.
+#[derive(Default)]
+struct ImageCache {
+    /// Its table, once found, with its PDB's identity (checked on each
+    /// use). A table found stays found.
+    found: OnceLock<(DebugKey, Arc<FunctionTable>)>,
+    /// The generation (plus one) at which it was found missing; 0 if not.
+    missing_at: AtomicU64,
+}
 
 /// A PDB's slot in a [`PdbSymbolizer`].
 type Slot = Arc<OnceLock<Option<Arc<FunctionTable>>>>;
@@ -46,6 +55,7 @@ impl PdbSymbolizer {
             tables: RwLock::new(FxHashMap::default()),
             waiting: AtomicBool::new(true),
             by_image: OnceLock::new(),
+            generation: AtomicU64::new(0),
         }
     }
 
@@ -69,32 +79,49 @@ impl PdbSymbolizer {
     ) -> Option<R> {
         let id = trace.images[image.index()].debug_id.as_ref()?;
         let key = (id.guid, id.age);
-        let cache = self
-            .by_image
-            .get_or_init(|| (0..trace.images.len()).map(|_| OnceLock::new()).collect());
+        let cache = self.by_image.get_or_init(|| {
+            (0..trace.images.len())
+                .map(|_| ImageCache::default())
+                .collect()
+        });
         let cached = cache.get(image.index());
-        if let Some((k, table)) = cached.and_then(OnceLock::get)
+        if let Some((k, table)) = cached.and_then(|c| c.found.get())
             && *k == key
         {
             return Some(f(table));
         }
+        // Missing, and nothing loaded since: still missing.
+        let generation = self.generation.load(Ordering::Acquire);
+        if cached.is_some_and(|c| c.missing_at.load(Ordering::Relaxed) == generation + 1) {
+            return None;
+        }
+        let missing = || {
+            if let Some(c) = cached {
+                c.missing_at.store(generation + 1, Ordering::Relaxed);
+            }
+            None
+        };
         let found = {
             let tables = self.tables();
             match tables.get(&key).and_then(|slot| slot.get()) {
                 // (Looked for already: found, or not.)
-                Some(done) => Some(done.clone()?),
-                None if !self.waiting.load(Ordering::Relaxed) => return None,
+                Some(Some(t)) => Some(Arc::clone(t)),
+                Some(None) => return missing(),
+                // Not yet: without waiting, perhaps later (after a
+                // download).
+                None if !self.waiting.load(Ordering::Relaxed) => return missing(),
                 None => None,
             }
         };
-        // (Not found yet: perhaps it is later, after a download. Found: it
-        // stays found.)
         let table = match found {
             Some(t) => t,
-            None => self.load(&id.pdb_path, &id.guid, id.age)?,
+            None => match self.load(&id.pdb_path, &id.guid, id.age) {
+                Some(t) => t,
+                None => return missing(),
+            },
         };
         if let Some(c) = cached {
-            let _ = c.set((key, Arc::clone(&table)));
+            let _ = c.found.set((key, Arc::clone(&table)));
         }
         Some(f(&table))
     }
@@ -105,6 +132,8 @@ impl PdbSymbolizer {
     /// at once and a later one has the names.
     pub fn set_waiting(&self, waiting: bool) {
         self.waiting.store(waiting, Ordering::Relaxed);
+        // (What wasn't loaded yet is worth waiting for now.)
+        self.generation.fetch_add(1, Ordering::Release);
     }
 
     /// How many PDBs are loaded and found.
@@ -122,12 +151,17 @@ impl PdbSymbolizer {
     pub fn load(&self, pdb_path: &str, guid: &[u8; 16], age: u32) -> Option<Arc<FunctionTable>> {
         let slot: Slot = Arc::clone(self.tables_mut().entry((*guid, age)).or_default());
         slot.get_or_init(|| {
-            self.path
+            let t = self
+                .path
                 .find_pdb(pdb_path, guid, age)
                 // (Perhaps the path the trace records: see `open_named`.)
                 .and_then(|p| hexcavator_mmap::Mmap::open_named(p).ok())
                 .and_then(|map| FunctionTable::from_pdb(&map).ok())
-                .map(Arc::new)
+                .map(Arc::new);
+            if t.is_some() {
+                self.generation.fetch_add(1, Ordering::Release);
+            }
+            t
         })
         .clone()
     }
@@ -137,7 +171,9 @@ impl PdbSymbolizer {
     /// it. A PDB loaded or seeded already keeps what it has.
     pub fn seed(&self, guid: &[u8; 16], age: u32, table: Arc<FunctionTable>) {
         let slot: Slot = Arc::clone(self.tables_mut().entry((*guid, age)).or_default());
-        let _ = slot.set(Some(table));
+        if slot.set(Some(table)).is_ok() {
+            self.generation.fetch_add(1, Ordering::Release);
+        }
     }
 
     /// The PDBs loaded (or seeded) and found: each one's GUID, age and
@@ -167,6 +203,7 @@ impl PdbSymbolizer {
     pub fn forget_missing(&self) {
         self.tables_mut()
             .retain(|_, t| t.get().is_none_or(Option::is_some));
+        self.generation.fetch_add(1, Ordering::Release);
     }
 
     /// How many PDBs were looked for, and how many found.
