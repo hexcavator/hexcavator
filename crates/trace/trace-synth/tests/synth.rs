@@ -102,6 +102,8 @@ fn check(s: &Synthetic) {
             *by_pid.entry(trace.processes[p.index()].pid).or_default() += tree.inclusive(c);
         }
     }
+    // The idle thread's samples are the Idle process's (process 0).
+    assert_eq!(by_pid.get(&0).copied().unwrap_or(0), truth.idle_samples);
     for p in &truth.processes {
         assert_eq!(
             by_pid.get(&p.pid).copied().unwrap_or(0),
@@ -224,12 +226,7 @@ fn processes_start_and_end_during_the_trace() {
     assert!(ended.end.is_some(), "the second process ends in the trace");
     // Nothing runs in a process before it starts or after it ends.
     for (i, &t) in trace.samples.thread.iter().enumerate() {
-        // (The idle thread is in no process.)
-        let process = trace.thread_process(t);
-        if !process.is_some() {
-            continue;
-        }
-        let p = &trace.processes[process.index()];
+        let p = &trace.processes[trace.thread_process(t).index()];
         let at = trace.samples.time[i];
         assert!(p.start.is_none_or(|s| s <= at) && p.end.is_none_or(|e| at < e));
     }

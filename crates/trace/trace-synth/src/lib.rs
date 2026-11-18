@@ -1110,7 +1110,40 @@ impl Machine {
     fn rundown(&self, out: &mut Emitter, t: &mut i64, lifetime: Lifetime) {
         let at_start = lifetime == Lifetime::RundownStart;
         let sample_at = if at_start { self.t0 } else { self.t1 };
-        // The kernel's images, in the System process's rundown (process 0).
+        // The Idle process (whose threads, one per processor, all have ID
+        // 0) and the System process.
+        for (pid, name) in [(0u32, "Idle"), (4, "System")] {
+            let empty: &[u8] = &[];
+            out.emit(
+                &KernelEvent::Process(ProcessEvent {
+                    lifetime,
+                    unique_key: if self.config.pointer_size == 8 {
+                        0xffff_c000_0000_0000 + u64::from(pid)
+                    } else {
+                        0x8000_0000 + u64::from(pid)
+                    },
+                    process_id: pid,
+                    parent_id: 0,
+                    session_id: u32::MAX,
+                    exit_status: 259,
+                    directory_table_base: 0x1000,
+                    flags: 0,
+                    user_sid: empty,
+                    image_file_name: name.as_bytes(),
+                    command_line: Utf16(empty),
+                    package_full_name: Utf16(empty),
+                    application_id: Utf16(empty),
+                    exit_time: None,
+                }),
+                Context {
+                    timestamp: *t,
+                    thread_id: u32::MAX,
+                    process_id: u32::MAX,
+                },
+            );
+            *t += 1;
+        }
+        // The kernel's images (in no process: process ID 0).
         let kernel: Vec<usize> = (0..self.modules.len())
             .filter(|&i| self.modules[i].kernel)
             .collect();
