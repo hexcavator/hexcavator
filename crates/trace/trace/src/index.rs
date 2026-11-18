@@ -21,7 +21,7 @@ use crate::stacks::{StackId, StackStore};
 /// The file's magic.
 pub const MAGIC: &[u8; 8] = b"HXTRACE\0";
 /// The format's version; any change to the layout bumps it.
-pub const VERSION: u32 = 3;
+pub const VERSION: u32 = 4;
 
 /// What an index was built from.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -206,6 +206,11 @@ pub fn write(trace: &Trace, source: Source) -> Vec<u8> {
     for (g, name) in &trace.provider_names {
         w.out.extend_from_slice(&g.to_bytes());
         w.str(name);
+    }
+    w.len(trace.event_infos.len());
+    for info in &trace.event_infos {
+        w.len(info.len());
+        w.out.extend_from_slice(info);
     }
     w.out
 }
@@ -474,6 +479,13 @@ pub fn read(data: &[u8], source: Option<Source>) -> Result<Trace> {
         trace
             .provider_names
             .push((hexcavator_etl::Guid::from_bytes(&guid), r.str()?));
+    }
+    let n = r.count(4, "event descriptions")?;
+    for _ in 0..n {
+        let len = r.count(1, "event description")?;
+        trace
+            .event_infos
+            .push(r.bytes(len, "event description")?.to_vec());
     }
     if r.pos != data.len() {
         return Err(r.err(ErrorKind::Malformed, "trailing data"));

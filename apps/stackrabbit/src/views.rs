@@ -1184,6 +1184,21 @@ pub fn events(trace: &Trace) -> Value {
         .iter()
         .map(|(g, n)| (*g, n.as_str()))
         .collect();
+    // The descriptions recorded with the trace, by kind; and providers'
+    // names from them.
+    let infos: FxHashMap<
+        (hexcavator_etl::Guid, u16, u8, u8),
+        hexcavator_etw::event_info::EventInfo,
+    > = trace
+        .event_infos
+        .iter()
+        .filter_map(|b| hexcavator_etw::event_info::EventInfo::parse(b).ok())
+        .map(|i| ((i.provider, i.id, i.version, i.opcode), i))
+        .collect();
+    let described_names: FxHashMap<hexcavator_etl::Guid, &str> = infos
+        .values()
+        .filter_map(|i| Some((i.provider, i.provider_name.as_deref()?)))
+        .collect();
     let mut rows: Vec<&hexcavator_trace::EventStats> = trace.events.iter().collect();
     rows.sort_by(|a, b| {
         b.count.cmp(&a.count).then_with(|| {
@@ -1196,14 +1211,30 @@ pub fn events(trace: &Trace) -> Value {
         .map(|e| {
             let schema =
                 hexcavator_etw::schema::lookup(&e.provider, e.opcode, e.version).map(|(s, _)| s);
+            let info = infos.get(&(e.provider, e.id, e.version, e.opcode));
             let provider = names
                 .get(&e.provider)
+                .or_else(|| described_names.get(&e.provider))
                 .map(|n| (*n).to_string())
                 .or_else(|| schema.map(|s| s.task.to_string()));
+            // The event's name; else its task's and opcode's.
+            let event = info
+                .and_then(|i| {
+                    i.event_name.clone().filter(|n| !n.is_empty()).or_else(|| {
+                        let parts: Vec<&str> = [i.task_name.as_deref(), i.opcode_name.as_deref()]
+                            .into_iter()
+                            .flatten()
+                            .filter(|n| !n.is_empty())
+                            .collect();
+                        (!parts.is_empty()).then(|| parts.join("/"))
+                    })
+                })
+                .or_else(|| schema.map(|s| s.name.to_string()));
             json!({
                 "provider": provider,
                 "guid": e.provider.to_string(),
-                "event": schema.map(|s| s.name),
+                "event": event,
+                "described": info.is_some(),
                 "id": e.id,
                 "version": e.version,
                 "opcode": e.opcode,

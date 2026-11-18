@@ -275,6 +275,10 @@ pub struct Trace {
     /// Providers' names, where the trace gives them (TraceLogging's
     /// provider traits), by GUID.
     pub provider_names: Vec<(hexcavator_etl::Guid, String)>,
+    /// The events' descriptions recorded with the trace (each an
+    /// `EventMetadata` event's `TRACE_EVENT_INFO`, as it is; see
+    /// `hexcavator_etw::event_info`), distinct, sorted.
+    pub event_infos: Vec<Vec<u8>>,
 }
 
 /// How many of one kind of event a trace has.
@@ -316,6 +320,7 @@ impl Trace {
             stacks: StackStore::new(),
             events: Vec::new(),
             provider_names: Vec::new(),
+            event_infos: Vec::new(),
         }
     }
 

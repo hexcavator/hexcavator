@@ -449,3 +449,70 @@ fn testdata_index_is_current() {
         "rich.hxtrace is stale; HEXC_BLESS=1 rewrites it"
     );
 }
+
+#[test]
+fn keeps_event_descriptions_and_provider_names() {
+    let mut t = T::new();
+    t.kernel(0, guids::PROCESS, 3, 4, 1, process(0xaaaa, 100, "app.exe"));
+    // Three EventMetadata events, two the same; another kind of its own
+    // (opcode 33) that isn't a description.
+    let meta = |ts: i64, op: u8| write::EventFields {
+        provider: guids::EVENT_METADATA,
+        opcode: op,
+        timestamp: ts,
+        ..write::EventFields::default()
+    };
+    for (ts, payload) in [(5, b"second".as_slice()), (6, b"first"), (7, b"second")] {
+        t.0.record(0, &write::event(&meta(ts, 32), true, &[], payload));
+    }
+    t.0.record(1, &write::event(&meta(8, 33), true, &[], b"a map"));
+    // A TraceLogging event with its provider's traits: its name.
+    let tl = Guid::new(0xabcd, 1, 2, [3; 8]);
+    let mut traits = Vec::new();
+    traits.extend_from_slice(&12u16.to_le_bytes());
+    traits.extend_from_slice(b"My.Provider\0");
+    let e = write::EventFields {
+        provider: tl,
+        id: 4,
+        timestamp: 9,
+        ..write::EventFields::default()
+    };
+    t.0.record(
+        1,
+        &write::event(
+            &e,
+            true,
+            &[(hexcavator_etl::event::ext_type::PROV_TRAITS, &traits)],
+            b"x",
+        ),
+    );
+    let data = t.0.finish();
+    let etl = Etl::parse(&data).unwrap();
+    let (trace, _) = etw::import(&etl).unwrap();
+    assert_eq!(
+        trace.event_infos,
+        [b"first".to_vec(), b"second".to_vec()],
+        "distinct, sorted"
+    );
+    assert_eq!(trace.provider_names, [(tl, "My.Provider".to_string())]);
+    let kinds: Vec<(Guid, u8, u64)> = trace
+        .events
+        .iter()
+        .map(|e| (e.provider, e.opcode, e.count))
+        .collect();
+    assert!(kinds.contains(&(guids::EVENT_METADATA, 32, 3)), "{kinds:?}");
+    assert!(kinds.contains(&(guids::EVENT_METADATA, 33, 1)));
+    assert!(kinds.contains(&(tl, 0, 1)));
+    // The same on one thread; and through the index.
+    let (one, _) = etw::import_with(&etl, 1).unwrap();
+    assert_eq!(one.event_infos, trace.event_infos);
+    let source = hexcavator_trace::index::Source::of(&data);
+    let back = hexcavator_trace::index::read(
+        &hexcavator_trace::index::write(&trace, source),
+        Some(source),
+    )
+    .unwrap();
+    assert_eq!(back.event_infos, trace.event_infos);
+    assert_eq!(back.provider_names, trace.provider_names);
+    assert_eq!(back.events, trace.events);
+}

@@ -789,3 +789,80 @@ fn every_kind_of_event_over_the_protocol() {
     );
     assert!(samples["firstNs"].as_i64() <= samples["lastNs"].as_i64());
 }
+
+#[test]
+fn events_are_named_by_the_descriptions_recorded_with_them() {
+    use hexcavator_etl::Guid;
+    use hexcavator_trace::{Clock, EventStats, Trace};
+    let provider = Guid::new(0x1111, 2, 3, [4; 8]);
+    // A TRACE_EVENT_INFO for (provider, ID 5, version 1, opcode 0): names
+    // only (no properties).
+    let info = |event: Option<&str>, task: &str, opcode: &str| {
+        let mut b = vec![0u8; 112];
+        b[0..16].copy_from_slice(&provider.to_bytes());
+        b[32..34].copy_from_slice(&5u16.to_le_bytes());
+        b[34] = 1;
+        let name = |b: &mut Vec<u8>, at: usize, s: &str| {
+            let off = u32::try_from(b.len()).unwrap();
+            b[at..at + 4].copy_from_slice(&off.to_le_bytes());
+            for u in s.encode_utf16().chain([0]) {
+                b.extend_from_slice(&u.to_le_bytes());
+            }
+        };
+        name(&mut b, 52, "Contoso-Widgets");
+        name(&mut b, 68, task);
+        name(&mut b, 72, opcode);
+        if let Some(e) = event {
+            name(&mut b, 92, e);
+        }
+        b
+    };
+    let stats = |id: u16| EventStats {
+        provider,
+        id,
+        version: 1,
+        count: u64::from(id),
+        ..EventStats::default()
+    };
+    let mut trace = Trace::new(
+        Clock {
+            ticks_per_second: 10_000_000,
+            origin: 0,
+        },
+        1,
+    );
+    trace.events = vec![stats(5), stats(6)];
+    let row = |trace: &Trace, id: u64| {
+        let v = stackrabbit::views::events(trace);
+        v["rows"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|r| r["id"] == id)
+            .unwrap()
+            .clone()
+    };
+    // Described: the provider's and event's names; not: neither.
+    trace.event_infos = vec![info(Some("WidgetMade"), "Make", "Start")];
+    let r = row(&trace, 5);
+    assert_eq!(
+        (
+            r["provider"].as_str(),
+            r["event"].as_str(),
+            r["described"].as_bool()
+        ),
+        (Some("Contoso-Widgets"), Some("WidgetMade"), Some(true))
+    );
+    let other = row(&trace, 6);
+    assert_eq!(
+        other["provider"], "Contoso-Widgets",
+        "the provider is named by any of its descriptions"
+    );
+    assert!(other["event"].is_null() && other["described"] == false);
+    // No event name: its task's and opcode's.
+    trace.event_infos = vec![info(None, "Make", "Start")];
+    assert_eq!(row(&trace, 5)["event"], "Make/Start");
+    // A damaged description is passed over.
+    trace.event_infos = vec![vec![1, 2, 3]];
+    assert!(row(&trace, 5)["provider"].is_null());
+}

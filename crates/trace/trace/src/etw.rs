@@ -135,6 +135,8 @@ pub fn import_parts(
     let next = AtomicUsize::new(0);
     // Each worker's event counts and provider names, when it is done.
     let counted: Mutex<Vec<Counted>> = Mutex::default();
+    // And the event descriptions they saw.
+    let infos: Mutex<Vec<Vec<u8>>> = Mutex::default();
     let runs = std::thread::scope(|scope| {
         for _ in 0..threads {
             scope.spawn(|| {
@@ -150,6 +152,10 @@ pub fn import_parts(
                                 std::mem::take(&mut local.counts),
                                 std::mem::take(&mut local.names),
                             ));
+                        infos
+                            .lock()
+                            .unwrap_or_else(PoisonError::into_inner)
+                            .append(&mut local.infos);
                         return;
                     };
                     let decoded =
@@ -200,6 +206,10 @@ pub fn import_parts(
     );
     trace.events = events;
     trace.provider_names = provider_names;
+    let mut infos = infos.into_inner().unwrap_or_else(PoisonError::into_inner);
+    infos.sort_unstable();
+    infos.dedup();
+    trace.event_infos = infos;
     Ok((trace, stats))
 }
 
@@ -1432,6 +1442,8 @@ struct Local {
     counts: FxHashMap<EventKind, EventStats>,
     /// Providers' names seen (TraceLogging's provider traits).
     names: FxHashMap<hexcavator_etl::Guid, String>,
+    /// Event descriptions seen (`EventMetadata` events' payloads).
+    infos: Vec<Vec<u8>>,
 }
 
 /// A kind of event: provider, ID, version, opcode, task.
@@ -1458,6 +1470,11 @@ impl Local {
         s.bytes += e.user_data.len() as u64;
         s.first = s.first.min(e.timestamp);
         s.last = s.last.max(e.timestamp);
+        if e.provider == hexcavator_etw::guids::EVENT_METADATA
+            && e.descriptor.opcode == hexcavator_etw::event_info::EVENT_INFO_OPCODE
+        {
+            self.infos.push(e.user_data.to_vec());
+        }
         // A TraceLogging provider's name, the first time: its traits are
         // its total size, then its name (NUL-terminated UTF-8).
         if !e.extended.is_empty() && !self.names.contains_key(&e.provider) {
