@@ -335,3 +335,65 @@ fn symbols_are_not_downloaded_unless_asked() {
     ]);
     assert!(notes.is_empty(), "no download, no notes");
 }
+
+#[test]
+fn the_cpu_graph_adds_up_to_the_samples() {
+    let dir = scratch("serve-graph");
+    let (path, s) = write_trace(&dir, "t.etl", &small());
+    let a = session(&[
+        json!({"method": "open", "params": {"path": path, "useIndex": false}}),
+        json!({"method": "graph", "params": {"trace": 1, "buckets": 100, "top": 100}}),
+        json!({"method": "graph", "params": {"trace": 1, "buckets": 50, "top": 2}}),
+        json!({"method": "graph", "params": {"trace": 1, "buckets": 10, "time": [0, 100_000_000]}}),
+    ]);
+    // Every process's samples, Idle aside, in a series of its own.
+    let g = result(&a, 2);
+    // (About 300 ms at 1 ms a sample: buckets of four samples' time.)
+    let buckets = g["buckets"].as_u64().unwrap();
+    let span = g["endNs"].as_i64().unwrap() - g["startNs"].as_i64().unwrap();
+    assert_eq!(buckets, (span / 4_000_000) as u64);
+    let series = g["series"].as_array().unwrap();
+    for p in s.truth.processes.iter().filter(|p| p.samples > 0) {
+        let label = format!("{} ({})", p.name, p.pid);
+        let row = series
+            .iter()
+            .find(|x| x["label"] == label.as_str())
+            .unwrap();
+        assert_eq!(row["samples"], p.samples, "{label}");
+        assert_eq!(row["values"].as_array().unwrap().len() as u64, buckets);
+    }
+    assert!(series.iter().all(|x| x["label"] != "Idle (0)"));
+    // Shares of the machine, heaviest series first.
+    for x in series {
+        assert!(
+            x["values"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .all(|v| (0.0..=1.0).contains(&v.as_f64().unwrap()))
+        );
+    }
+    let samples: Vec<u64> = series
+        .iter()
+        .map(|x| x["samples"].as_u64().unwrap())
+        .collect();
+    assert!(samples.windows(2).all(|w| w[0] >= w[1]));
+    // The top two, and the rest as Other.
+    let g = result(&a, 3);
+    let series = g["series"].as_array().unwrap();
+    assert_eq!(series.len(), 3);
+    assert_eq!(series[2]["label"], "Other");
+    let total: u64 = series.iter().map(|x| x["samples"].as_u64().unwrap()).sum();
+    assert_eq!(total, s.truth.samples - s.truth.idle_samples);
+    // A time range: its samples only.
+    let g = result(&a, 4);
+    assert_eq!(g["startNs"], 0);
+    assert_eq!(g["endNs"], 100_000_000);
+    let part: u64 = g["series"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|x| x["samples"].as_u64().unwrap())
+        .sum();
+    assert!(part > 0 && part < total, "{part} of {total}");
+}

@@ -103,9 +103,10 @@ def answers(engine, path, spec, depth=4, limit=4000):
         for r in hot.get(top["id"], {"rows": []})["rows"]:
             if r["id"] not in children:
                 children[r["id"]] = {"rows": engine.request("tree.children", {"trace": trace, "view": view, "node": r["id"]})["rows"]}
+    graph = engine.request("graph", {"trace": trace, "buckets": 1000, "top": 8})
     # (The view's view IDs: its first tree is view 1 of its own.)
     tree = dict(tree, view=1)
-    return {"opened": opened, "tree": tree, "children": children, "hot": hot}
+    return {"opened": opened, "tree": tree, "children": children, "hot": hot, "graph": graph}
 
 
 STUB = """
@@ -118,6 +119,7 @@ window.acquireVsCodeApi = function () {
     else if (m.method === "tree.children" && A.children[m.params.node]) r.result = A.children[m.params.node];
     else if (m.method === "tree.hotPath" && A.hot[m.params.node]) r.result = A.hot[m.params.node];
     else if (m.method === "tree.close") r.result = {};
+    else if (m.method === "graph") r.result = A.graph;
     else r.error = m.method + ": no answer for " + JSON.stringify(m.params);
     setTimeout(function () { window.postMessage(r, "*"); }, 0);
   }
@@ -150,6 +152,7 @@ def page(data, then=""):
 {body}<pre id="posted" style="display:none"></pre>
 <script>var ANSWERS = {json.dumps(data)};{STUB}</script>
 <script>{read("tree-model.js")}</script>
+<script>{read("graph.js")}</script>
 <script>{read("tree-view.js")}</script>
 <script>setTimeout(function () {{ {then} }}, 300);</script>
 </body></html>"""
@@ -302,6 +305,28 @@ def main():
     creates = [m for m in posted if m.get("method") == "tree.create"]
     assert len(creates) == 2 and creates[1]["params"]["frames"] == "module", "a second tree, by module"
     assert any(m.get("method") == "tree.close" for m in posted), "the first tree closed"
+    # Dragging across the graph: a time range, and a tree of it.
+    drag = (
+        "var c = document.getElementById('graph'); var r = c.getBoundingClientRect();"
+        " function at(type, f) { c.dispatchEvent(new MouseEvent(type, {bubbles: true,"
+        " clientX: r.left + 40 + f * (r.width - 40), clientY: r.top + 40})); }"
+        " at('mousedown', 0.25); at('mousemove', 0.5); at('mouseup', 0.5);"
+    )
+    dom = render(data, drag, shot=shot("selected"))
+    posted = json.loads(html.unescape(re.search(r'<pre id="posted"[^>]*>(.*?)</pre>', dom, re.S).group(1)))
+    timed = [m for m in posted if m.get("method") == "tree.create" and "time" in m["params"]]
+    assert timed, "a tree of the selected range"
+    start, end = timed[-1]["params"]["time"]
+    span = data["graph"]["endNs"] - data["graph"]["startNs"]
+    assert abs((start - data["graph"]["startNs"]) / span - 0.25) < 0.02, "the range's start"
+    assert abs((end - data["graph"]["startNs"]) / span - 0.5) < 0.02, "the range's end"
+    assert "Selected " in dom, "the selection described"
+    # Double-clicking clears it: a tree of all of it again.
+    dom = render(data, drag + " c.dispatchEvent(new MouseEvent('dblclick', {bubbles: true}));")
+    posted = json.loads(html.unescape(re.search(r'<pre id="posted"[^>]*>(.*?)</pre>', dom, re.S).group(1)))
+    creates = [m for m in posted if m.get("method") == "tree.create"]
+    assert "time" not in creates[-1]["params"], "all of it again"
+    assert "All of the trace" in dom
     print("harness: ok")
 
 

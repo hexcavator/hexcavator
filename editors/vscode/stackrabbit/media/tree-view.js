@@ -5,6 +5,7 @@
 (function () {
   const vscode = acquireVsCodeApi();
   const { TreeModel, formatWeight } = globalThis.StackrabbitTree;
+  const { Graph } = globalThis.StackrabbitGraph;
   const ROW = 22;
 
   const $ = (id) => document.getElementById(id);
@@ -22,6 +23,16 @@
   };
 
   let model = null;
+  let selection = null; // [startNs, endNs], or null for all of it
+  const selectionEl = $("selection");
+  const graph = new Graph($("graph"), $("legend"), (range) => {
+    selection = range;
+    selectionEl.textContent = range
+      ? `Selected ${(range[0] / 1e9).toFixed(3)} s to ${(range[1] / 1e9).toFixed(3)} s ` +
+        `(${((range[1] - range[0]) / 1e9).toFixed(3)} s). Double-click the graph to clear.`
+      : "All of the trace. Drag across the graph to select a time range; double-click it to clear.";
+    createTree();
+  });
   let view = null; // the engine's view ID
   let unit = "samples";
   let ticksPerSecond = 10000000;
@@ -54,6 +65,7 @@
     } else if (m.type === "opened") {
       showSummary(m.summary, m.opened);
       createTree();
+      loadGraph();
     } else if (m.type === "notification" && m.method === "symbols") {
       symbolsNote(m.params);
     } else if (m.type === "failed") {
@@ -87,12 +99,26 @@
 
   function spec() {
     const group = controls.group.value === "" ? [] : controls.group.value.split(",");
-    return {
+    const s = {
       source: controls.source.value,
       groupBy: group,
       frames: controls.frames.value,
       invert: controls.invert.checked,
     };
+    if (selection) {
+      s.time = selection;
+    }
+    return s;
+  }
+
+  /** Asks for the graph, as many buckets as it has pixels. */
+  async function loadGraph() {
+    try {
+      graph.set(await request("graph", { buckets: graph.plotWidth(), top: 8 }));
+    } catch (e) {
+      statusEl.textContent = e.message;
+      statusEl.classList.add("error");
+    }
   }
 
   async function createTree() {
@@ -220,7 +246,17 @@
   }
 
   viewport.addEventListener("scroll", () => requestAnimationFrame(draw));
-  window.addEventListener("resize", () => requestAnimationFrame(draw));
+  let resized = null;
+  window.addEventListener("resize", () => {
+    requestAnimationFrame(draw);
+    // The graph again, at its new width, once the resizing stops.
+    clearTimeout(resized);
+    resized = setTimeout(() => {
+      if (graph.data) {
+        loadGraph();
+      }
+    }, 200);
+  });
   rowsEl.addEventListener("click", (e) => {
     const el = e.target.closest(".row");
     if (!el) {

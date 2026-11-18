@@ -19,6 +19,9 @@
 //!   `done`, trees made after it name the new functions.
 //! - `close` `{trace}` → `{}`.
 //! - `summary` `{trace}` → the trace's summary.
+//! - `graph` `{trace, buckets?, time?, top?}` → `{startNs, endNs, buckets,
+//!   series}`: CPU usage (sampled) over time, by process, each series's
+//!   values the share of all the processors it used in each bucket.
 //! - `tree.create` `{trace, source?, groupBy?, frames?, invert?, time?}` →
 //!   `{view, unit, root}`: a stack tree and its root row.
 //! - `tree.children` `{trace, view, node}` → `{rows}`: a node's children,
@@ -342,6 +345,18 @@ impl State {
         let trace = &self.loaded.trace;
         match method {
             "summary" => Ok(summary(trace)),
+            "graph" => {
+                let buckets = params
+                    .get("buckets")
+                    .and_then(Value::as_u64)
+                    .map_or(1000, |b| usize::try_from(b).unwrap_or(10_000));
+                let top = params
+                    .get("top")
+                    .and_then(Value::as_u64)
+                    .map_or(8, |t| usize::try_from(t).unwrap_or(8));
+                let time = TreeSpec::from_json(params)?.time;
+                Ok(crate::views::cpu_graph(trace, buckets, time, top))
+            }
             "tree.create" => {
                 let spec = TreeSpec::from_json(params)?;
                 let view = TreeView::build(trace, &self.resolver, &*self.symbols, spec);
