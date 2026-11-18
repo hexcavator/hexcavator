@@ -105,9 +105,10 @@ def answers(engine, path, spec, depth=4, limit=4000):
                 children[r["id"]] = {"rows": engine.request("tree.children", {"trace": trace, "view": view, "node": r["id"]})["rows"]}
     graph = engine.request("graph", {"trace": trace, "buckets": 1000, "top": 8})
     processes = engine.request("processes", {"trace": trace})
+    threads = {str(p["index"]): engine.request("threads", {"trace": trace, "process": p["index"]}) for p in processes["rows"]}
     # (The view's view IDs: its first tree is view 1 of its own.)
     tree = dict(tree, view=1)
-    return {"opened": opened, "tree": tree, "children": children, "hot": hot, "graph": graph, "processes": processes}
+    return {"opened": opened, "tree": tree, "children": children, "hot": hot, "graph": graph, "processes": processes, "threads": threads}
 
 
 STUB = """
@@ -122,6 +123,7 @@ window.acquireVsCodeApi = function () {
     else if (m.method === "tree.close") r.result = {};
     else if (m.method === "graph") r.result = A.graph;
     else if (m.method === "processes") r.result = A.processes;
+    else if (m.method === "threads" && A.threads[m.params.process]) r.result = A.threads[m.params.process];
     else r.error = m.method + ": no answer for " + JSON.stringify(m.params);
     setTimeout(function () { window.postMessage(r, "*"); }, 0);
   }
@@ -333,12 +335,27 @@ def main():
     # its heading is clicked.
     dom = render(data, "document.getElementById('tab-processes').click();", shot=shot("processes"))
     assert 'id="stacks-pane" class="pane hidden"' in dom, "the stacks hidden"
-    names = re.findall(r'<tr><td class="">([^<]*)</td>', dom)
+    names = re.findall(r'<tr data-i="\d+"><td class="">([^<]*)</td>', dom)
     assert len(names) == len(data["processes"]["rows"]), f"{len(names)} process rows"
     assert names[0] == data["processes"]["rows"][0]["name"], "heaviest first"
     dom = render(data, "document.getElementById('tab-processes').click(); document.querySelector('th[data-key=name]').click();")
-    names = [html.unescape(n) for n in re.findall(r'<tr><td class="">([^<]*)</td>', dom)]
+    names = [html.unescape(n) for n in re.findall(r'<tr data-i="\d+"><td class="">([^<]*)</td>', dom)]
     assert names == sorted(names, key=str.lower) or names == sorted(names), f"by name: {names}"
+    # Clicking the heaviest process: it is picked, and its threads show
+    # under it, heaviest first.
+    first = data["processes"]["rows"][0]
+    want = data["threads"][str(first["index"])]["rows"]
+    dom = render(
+        data,
+        "document.getElementById('tab-processes').click(); document.querySelector('#processes tbody tr').click();",
+        shot=shot("threads"),
+    )
+    assert f"Threads of {html.escape(first['name'])} ({first['pid']})" in dom, "the threads' title"
+    assert '<tr data-i="0" class="selected">' in dom, "the process picked"
+    table = dom[dom.index('id="threads"'):]
+    tids = re.findall(r'<tr data-i="\d+"><td class="num">(\d+)</td>', table)
+    assert len(want) == first["threads"] and len(tids) == len(want), f"{len(tids)} thread rows, {len(want)} threads"
+    assert tids == [str(t["tid"]) for t in want], "heaviest first"
     print("harness: ok")
 
 

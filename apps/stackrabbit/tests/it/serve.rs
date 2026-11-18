@@ -545,3 +545,95 @@ fn the_precise_cpu_graph_adds_up_to_the_running_time() {
         );
     }
 }
+
+#[test]
+fn the_threads_table_has_samples_switches_and_running_time() {
+    let dir = scratch("serve-threads");
+    let (path, s) = write_trace(&dir, "t.etl", &small());
+    let half = [0, 150_000_000];
+    let a = session(&[
+        json!({"method": "open", "params": {"path": path, "useIndex": false}}),
+        json!({"method": "processes", "params": {"trace": 1}}),
+        json!({"method": "threads", "params": {"trace": 1}}),
+        json!({"method": "tree.create", "params": {"trace": 1, "source": "running", "groupBy": ["thread"]}}),
+        json!({"method": "tree.children", "params": {"trace": 1, "view": 1, "node": 0}}),
+        json!({"method": "threads", "params": {"trace": 1, "time": half}}),
+        json!({"method": "processes", "params": {"trace": 1, "time": half}}),
+        json!({"method": "threads", "params": {"trace": 1, "process": 1_000_000}}),
+    ]);
+    let all = result(&a, 3)["rows"].as_array().unwrap();
+    for t in &s.truth.threads {
+        let r = all
+            .iter()
+            .find(|r| r["tid"] == t.tid && r["pid"] == t.pid)
+            .unwrap_or_else(|| panic!("thread {}", t.tid));
+        assert_eq!(r["samples"], t.samples, "thread {}", t.tid);
+        assert_eq!(r["switches"], t.switch_ins, "thread {}", t.tid);
+        assert_eq!(r["name"], json!(t.name), "thread {}", t.tid);
+    }
+    let samples: Vec<u64> = all.iter().map(|r| r["samples"].as_u64().unwrap()).collect();
+    assert!(samples.windows(2).all(|w| w[0] >= w[1]), "heaviest first");
+    // Each thread's running time is the precise tree's (ticks of 100 ns;
+    // the table's is in ms, to the microsecond).
+    let mut compared = 0;
+    for row in result(&a, 5)["rows"].as_array().unwrap() {
+        let label = row["label"].as_str().unwrap();
+        let Some(tid) = label
+            .strip_prefix("Thread ")
+            .and_then(|l| l.split([' ', '(']).next())
+            .and_then(|t| t.parse::<u64>().ok())
+        else {
+            continue;
+        };
+        let ms: f64 = all
+            .iter()
+            .filter(|r| r["tid"] == tid)
+            .map(|r| r["runningMs"].as_f64().unwrap())
+            .sum();
+        let tree_ms = row["inclusive"].as_f64().unwrap() / 10_000.0;
+        assert!(
+            (ms - tree_ms).abs() < 0.002,
+            "thread {tid}: {ms} ms, tree {tree_ms} ms"
+        );
+        compared += 1;
+    }
+    assert!(
+        compared >= s.truth.threads.len(),
+        "{compared} threads compared"
+    );
+    // Each process's threads, and only them, by its index.
+    let processes = result(&a, 2)["rows"].as_array().unwrap().clone();
+    let mut requests = vec![json!({"method": "open", "params": {"path": path, "useIndex": false}})];
+    for p in &processes {
+        requests.push(json!({"method": "threads", "params": {"trace": 1, "process": p["index"]}}));
+    }
+    let b = session(&requests);
+    for (i, p) in processes.iter().enumerate() {
+        let rows = result(&b, i as u64 + 2)["rows"].as_array().unwrap();
+        assert_eq!(
+            rows.len() as u64,
+            p["threads"].as_u64().unwrap(),
+            "{}",
+            p["name"]
+        );
+        assert!(rows.iter().all(|r| r["processIndex"] == p["index"]));
+        let sum: u64 = rows.iter().map(|r| r["samples"].as_u64().unwrap()).sum();
+        assert_eq!(sum, p["samples"].as_u64().unwrap(), "{}", p["name"]);
+    }
+    // In a time range: what the processes table counts there.
+    let in_half: u64 = result(&a, 6)["rows"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|r| r["samples"].as_u64().unwrap())
+        .sum();
+    let processes_half: u64 = result(&a, 7)["rows"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|r| r["samples"].as_u64().unwrap())
+        .sum();
+    assert_eq!(in_half, processes_half);
+    assert!(in_half > 0 && in_half < samples.iter().sum::<u64>());
+    assert!(error(&a, 8).contains("process"));
+}

@@ -133,6 +133,17 @@ table.processes td.cmd {
 table.processes tr:hover td {
   background: var(--vscode-list-hoverBackground);
 }
+table.processes tbody tr {
+  cursor: default;
+}
+table.processes tr.selected td {
+  background: var(--vscode-list-inactiveSelectionBackground, rgba(128, 128, 128, 0.25));
+}
+.threads-title {
+  margin: 12px 10px 4px;
+  font-weight: 600;
+  color: var(--vscode-descriptionForeground);
+}
 .header,
 .row {
   display: flex;

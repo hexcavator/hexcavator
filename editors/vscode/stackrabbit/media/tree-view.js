@@ -120,68 +120,143 @@
     return s;
   }
 
-  // The processes table: its rows, sorted by a column (click a heading;
-  // again for the other way).
-  const processesEl = $("processes");
-  let processes = [];
-  let sortBy = { key: "samples", down: true };
-  const COLUMNS = [
-    { key: "name", title: "Process" },
-    { key: "pid", title: "ID", num: true },
-    { key: "cpuMs", title: "CPU (ms)", num: true, text: (r) => r.cpuMs.toLocaleString("en-US", { maximumFractionDigits: 1 }) },
-    { key: "samples", title: "Samples", num: true, text: (r) => r.samples.toLocaleString("en-US") },
-    { key: "threads", title: "Threads", num: true },
-    { key: "startNs", title: "Started", num: true, text: (r) => (r.startNs === null ? "before" : (r.startNs / 1e9).toFixed(3) + " s") },
-    { key: "endNs", title: "Ended", num: true, text: (r) => (r.endNs === null ? "after" : (r.endNs / 1e9).toFixed(3) + " s") },
-    { key: "commandLine", title: "Command line", cls: "cmd" },
-  ];
+  // Tables of rows sorted by a column (click a heading; again for the
+  // other way): the processes, and the threads of the one clicked.
+  const number = (digits) => (v) => (v === null ? "" : v.toLocaleString("en-US", { maximumFractionDigits: digits }));
+  const at = (before) => (v) => (v === null ? before : (v / 1e9).toFixed(3) + " s");
+  class SortedTable {
+    /**
+     * A table in `el` of `columns` ({key, title, num?, cls?, text?(value)}),
+     * sorted by `sortBy` ({key, down}); `onPick(row)` hears of a row clicked.
+     */
+    constructor(el, columns, sortBy, onPick) {
+      this.el = el;
+      this.columns = columns;
+      this.sortBy = sortBy;
+      this.rows = [];
+      this.picked = null; // a row's `pick` key
+      el.addEventListener("click", (e) => {
+        const th = e.target.closest("th");
+        if (th) {
+          const key = th.dataset.key;
+          const down = this.sortBy.key === key ? !this.sortBy.down : typeof this.rows[0]?.[key] !== "string";
+          this.sortBy = { key, down };
+          this.draw();
+          return;
+        }
+        const tr = e.target.closest("tbody tr");
+        if (tr && onPick) {
+          const row = this.sorted[Number(tr.dataset.i)];
+          onPick(row);
+        }
+      });
+    }
+
+    set(rows) {
+      this.rows = rows;
+      this.draw();
+    }
+
+    draw() {
+      const k = this.sortBy.key;
+      this.sorted = [...this.rows].sort((a, b) => {
+        const x = a[k] === null || a[k] === undefined ? -Infinity : a[k];
+        const y = b[k] === null || b[k] === undefined ? -Infinity : b[k];
+        const c = typeof x === "string" && typeof y === "string" ? x.localeCompare(y) : x < y ? -1 : x > y ? 1 : 0;
+        return this.sortBy.down ? -c : c;
+      });
+      const head = this.columns
+        .map((c) => {
+          const mark = c.key === k ? (this.sortBy.down ? " ▾" : " ▴") : "";
+          return `<th class="${c.num ? "num" : ""}" data-key="${c.key}">${c.title}${mark}</th>`;
+        })
+        .join("");
+      const body = this.sorted
+        .map((r, i) => {
+          const cls = this.picked !== null && r.pick === this.picked ? ' class="selected"' : "";
+          const cells = this.columns
+            .map((c) => {
+              const v = c.text ? c.text(r[c.key]) : r[c.key];
+              return `<td class="${c.num ? "num" : c.cls || ""}">${escape(v === null || v === undefined ? "" : v)}</td>`;
+            })
+            .join("");
+          return `<tr data-i="${i}"${cls}>${cells}</tr>`;
+        })
+        .join("");
+      this.el.innerHTML = `<thead><tr>${head}</tr></thead><tbody>${body}</tbody>`;
+    }
+  }
+
+  const processesTable = new SortedTable(
+    $("processes"),
+    [
+      { key: "name", title: "Process" },
+      { key: "pid", title: "ID", num: true },
+      { key: "cpuMs", title: "CPU (ms)", num: true, text: number(1) },
+      { key: "samples", title: "Samples", num: true, text: number(0) },
+      { key: "threads", title: "Threads", num: true },
+      { key: "startNs", title: "Started", num: true, text: at("before") },
+      { key: "endNs", title: "Ended", num: true, text: at("after") },
+      { key: "commandLine", title: "Command line", cls: "cmd" },
+    ],
+    { key: "samples", down: true },
+    (row) => {
+      processesTable.picked = row.pick;
+      processesTable.draw();
+      loadThreads();
+    }
+  );
+  const threadsTable = new SortedTable(
+    $("threads"),
+    [
+      { key: "tid", title: "Thread", num: true },
+      { key: "name", title: "Name" },
+      { key: "cpuMs", title: "CPU (ms)", num: true, text: number(1) },
+      { key: "samples", title: "Samples", num: true, text: number(0) },
+      { key: "runningMs", title: "Running (ms)", num: true, text: number(1) },
+      { key: "switches", title: "Switches in", num: true, text: number(0) },
+      { key: "startNs", title: "Started", num: true, text: at("before") },
+      { key: "endNs", title: "Ended", num: true, text: at("after") },
+      { key: "startAddress", title: "Start address", cls: "cmd" },
+    ],
+    { key: "samples", down: true }
+  );
+  const threadsTitle = $("threads-title");
 
   async function loadProcesses() {
     try {
       const params = selection ? { time: selection } : {};
-      processes = (await request("processes", params)).rows;
-      drawProcesses();
+      const rows = (await request("processes", params)).rows;
+      processesTable.set(rows.map((r) => ({ ...r, pick: r.index })));
+      if (processesTable.picked !== null) {
+        loadThreads();
+      }
     } catch (e) {
       statusEl.textContent = e.message;
       statusEl.classList.add("error");
     }
   }
 
-  function drawProcesses() {
-    const k = sortBy.key;
-    const rows = [...processes].sort((a, b) => {
-      const x = a[k] === null ? -Infinity : a[k];
-      const y = b[k] === null ? -Infinity : b[k];
-      const c = typeof x === "string" ? x.localeCompare(y) : x - y;
-      return sortBy.down ? -c : c;
-    });
-    const head = COLUMNS.map((c) => {
-      const mark = c.key === k ? (sortBy.down ? " ▾" : " ▴") : "";
-      return `<th class="${c.num ? "num" : ""}" data-key="${c.key}">${c.title}${mark}</th>`;
-    }).join("");
-    const body = rows
-      .map(
-        (r) =>
-          "<tr>" +
-          COLUMNS.map((c) => {
-            const v = c.text ? c.text(r) : r[c.key];
-            return `<td class="${c.num ? "num" : c.cls || ""}">${escape(v === null ? "" : v)}</td>`;
-          }).join("") +
-          "</tr>"
-      )
-      .join("");
-    processesEl.innerHTML = `<thead><tr>${head}</tr></thead><tbody>${body}</tbody>`;
-  }
-
-  processesEl.addEventListener("click", (e) => {
-    const th = e.target.closest("th");
-    if (!th) {
+  /** The threads of the process picked, in the selected time range. */
+  async function loadThreads() {
+    const index = processesTable.picked;
+    const p = processesTable.rows.find((r) => r.index === index);
+    if (!p) {
       return;
     }
-    const key = th.dataset.key;
-    sortBy = { key, down: sortBy.key === key ? !sortBy.down : typeof processes[0]?.[key] !== "string" };
-    drawProcesses();
-  });
+    try {
+      const params = { process: index };
+      if (selection) {
+        params.time = selection;
+      }
+      const rows = (await request("threads", params)).rows;
+      threadsTitle.textContent = `Threads of ${p.name} (${p.pid})`;
+      threadsTable.set(rows);
+    } catch (e) {
+      statusEl.textContent = e.message;
+      statusEl.classList.add("error");
+    }
+  }
 
   function showTab(name) {
     $("tab-stacks").classList.toggle("active", name === "stacks");

@@ -29,7 +29,12 @@
 //! - `close` `{trace}` → `{}`.
 //! - `summary` `{trace}` → the trace's summary.
 //! - `processes` `{trace, time?}` → `{rows}`: the processes, with their
-//!   lifetimes, threads and CPU samples (in `time`), heaviest first.
+//!   lifetimes, threads and CPU samples (in `time`), heaviest first; each
+//!   row's `index` names it to `threads`.
+//! - `threads` `{trace, process?, time?}` → `{rows}`: a process's threads
+//!   (or all), with their lifetimes, start addresses (named), CPU samples,
+//!   switches in and running time (precise, in ms) in `time`, heaviest
+//!   first.
 //! - `graph` `{trace, source?, buckets?, time?, top?}` → `{source, startNs,
 //!   endNs, buckets, series}`: CPU usage over time, by process, sampled
 //!   (`samples`) or precise (`running`, or `waits`: both from context
@@ -441,6 +446,27 @@ impl State {
             "processes" => {
                 let time = TreeSpec::from_json(params)?.time;
                 Ok(crate::views::processes(trace, time))
+            }
+            "threads" => {
+                let time = TreeSpec::from_json(params)?.time;
+                let process = match params.get("process") {
+                    None | Some(Value::Null) => None,
+                    Some(p) => {
+                        let p = p
+                            .as_u64()
+                            .and_then(|p| usize::try_from(p).ok())
+                            .filter(|&p| p < trace.processes.len())
+                            .ok_or("process: expected a process's index")?;
+                        Some(p)
+                    }
+                };
+                Ok(crate::views::threads(
+                    trace,
+                    &self.resolver,
+                    &*self.symbols,
+                    process,
+                    time,
+                ))
             }
             "graph" => {
                 let buckets = params

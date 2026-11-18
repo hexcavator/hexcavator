@@ -9,7 +9,7 @@ const { spawn } = require("child_process");
 const { Session } = require("./lib/protocol");
 
 /** The requests a view may make of the engine about its trace. */
-const VIEW_METHODS = new Set(["summary", "graph", "processes", "tree.create", "tree.children", "tree.hotPath", "tree.close"]);
+const VIEW_METHODS = new Set(["summary", "graph", "processes", "threads", "tree.create", "tree.children", "tree.hotPath", "tree.close"]);
 
 let channel;
 
@@ -217,7 +217,8 @@ function html(webview, media) {
 <div class="header"><span class="name">Stack</span><span class="num">Weight</span><span class="num">%</span><span class="num">Self</span></div>
 <div id="viewport" class="viewport" tabindex="0"><div id="spacer"></div><div id="rows"></div></div>
 </div>
-<div id="processes-pane" class="pane hidden"><table id="processes" class="processes"></table></div>
+<div id="processes-pane" class="pane hidden"><table id="processes" class="processes"></table>
+<div id="threads-title" class="threads-title">Click a process for its threads.</div><table id="threads" class="processes"></table></div>
 <script nonce="${nonce}" src="${src("tree-model.js")}"></script>
 <script nonce="${nonce}" src="${src("graph.js")}"></script>
 <script nonce="${nonce}" src="${src("tree-view.js")}"></script>

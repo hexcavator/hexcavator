@@ -5,7 +5,7 @@
 //! everything a table shows for a node: its label, weights and whether it
 //! has children.
 
-use hexcavator_trace::{ProcessIx, Trace};
+use hexcavator_trace::{ProcessIx, ThreadIx, Trace};
 use hexcavator_trace_analysis::{
     Filter, FrameMode, Framer, GroupBy, Key, Keys, NodeId, Precise, Resolver, StackTags,
     SwitchWeight, Symbolizer, Tree, label, sources,
@@ -485,6 +485,160 @@ pub fn cpu_graph(
     })
 }
 
+/// Rows of events a worker counts at a time.
+const COUNT_CHUNK: usize = 1 << 16;
+
+/// For each of `n` items, the sum over `0..len` of `weigh(i)` for the
+/// item `item(i)` says (if any), on every core, in chunks.
+fn count_on_every_core(
+    n: usize,
+    len: usize,
+    item: impl Fn(usize) -> Option<usize> + Sync,
+    weigh: impl Fn(usize) -> u64 + Sync,
+) -> Vec<u64> {
+    let chunks = len.div_ceil(COUNT_CHUNK);
+    let next = std::sync::atomic::AtomicUsize::new(0);
+    let threads = std::thread::available_parallelism()
+        .map_or(4, std::num::NonZero::get)
+        .min(chunks);
+    let partials: Vec<Vec<u64>> = std::thread::scope(|scope| {
+        let workers: Vec<_> = (0..threads)
+            .map(|_| {
+                scope.spawn(|| {
+                    let mut sums = vec![0u64; n];
+                    loop {
+                        let c = next.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                        if c >= chunks {
+                            return sums;
+                        }
+                        for i in c * COUNT_CHUNK..((c + 1) * COUNT_CHUNK).min(len) {
+                            if let Some(k) = item(i) {
+                                sums[k] += weigh(i);
+                            }
+                        }
+                    }
+                })
+            })
+            .collect();
+        workers
+            .into_iter()
+            .map(|w| w.join().expect("a counting worker"))
+            .collect()
+    });
+    let mut out = vec![0u64; n];
+    for p in partials {
+        for (o, x) in out.iter_mut().zip(p) {
+            *o += x;
+        }
+    }
+    out
+}
+
+/// A process's threads (`process`, an index in the trace's processes; or
+/// all of them), as a table: each one's lifetime, start address (named,
+/// with `symbols`), and in `time` (by default, all of the trace) its CPU
+/// samples, its switches in, and how long it ran after them (precise CPU),
+/// heaviest (by samples, then running time) first.
+pub fn threads(
+    trace: &Trace,
+    resolver: &Resolver,
+    symbols: &dyn Symbolizer,
+    process: Option<usize>,
+    time: Option<(i64, i64)>,
+) -> Value {
+    let filter = time.map(|(s, e)| (ticks(trace, s), ticks(trace, e)));
+    let (start, end) = filter.unwrap_or((i64::MIN, i64::MAX));
+    let n = trace.threads.len();
+    let s = &trace.samples;
+    let (from, to) = (
+        s.time.partition_point(|&t| t < start),
+        s.time.partition_point(|&t| t < end),
+    );
+    let thread_of = |t: ThreadIx| t.is_some().then(|| t.index());
+    let samples = count_on_every_core(
+        n,
+        to - from,
+        |i| thread_of(s.thread[from + i]),
+        |i| u64::from(s.weight[from + i]),
+    );
+    // Switches in, and running time, clipped to the range.
+    let w = &trace.switches;
+    let precise = Precise::new(trace);
+    let to_switch = w.time.partition_point(|&t| t < end);
+    let in_range = |i: usize| {
+        let run = i64::try_from(precise.running[i]).unwrap_or(i64::MAX);
+        let (a, z) = (w.time[i].max(start), w.time[i].saturating_add(run).min(end));
+        (a, z)
+    };
+    let switches = count_on_every_core(
+        n,
+        to_switch,
+        |i| thread_of(w.new_thread[i]).filter(|_| w.time[i] >= start),
+        |_| 1,
+    );
+    let running = count_on_every_core(
+        n,
+        to_switch,
+        |i| thread_of(w.new_thread[i]),
+        |i| {
+            let (a, z) = in_range(i);
+            u64::try_from(z - a).unwrap_or(0)
+        },
+    );
+    let interval = trace.sample_interval_ns();
+    let tick_ns = 1e9 / trace.clock.ticks_per_second.max(1) as f64;
+    let mut rows: Vec<(usize, Value)> = trace
+        .threads
+        .iter()
+        .enumerate()
+        .filter(|(_, t)| process.is_none_or(|p| t.process.is_some() && t.process.index() == p))
+        .map(|(i, t)| {
+            let p = t
+                .process
+                .is_some()
+                .then(|| &trace.processes[t.process.index()]);
+            let start_address = (t.start_address != 0).then(|| {
+                let key = match resolver.image(t.process, t.start_address) {
+                    Some(image) => {
+                        let offset = t.start_address - trace.images[image.index()].base;
+                        let offset = symbols
+                            .function_start(trace, image, offset)
+                            .filter(|&f| f == offset)
+                            .unwrap_or(offset);
+                        Key::Frame { image, offset }
+                    }
+                    None => Key::Unknown(t.start_address),
+                };
+                label(trace, key, symbols)
+            });
+            (
+                i,
+                json!({
+                    "tid": t.tid,
+                    "name": t.name,
+                    "pid": p.map(|p| p.pid),
+                    "process": p.map(|p| p.name.clone()),
+                    "processIndex": t.process.is_some().then(|| t.process.index()),
+                    "startAddress": start_address,
+                    "startNs": t.start.map(|t| trace.clock.nanos(t)),
+                    "endNs": t.end.map(|t| trace.clock.nanos(t)),
+                    "samples": samples[i],
+                    "cpuMs": (samples[i] * interval) as f64 / 1e6,
+                    "switches": switches[i],
+                    "runningMs": ((running[i] as f64 * tick_ns) / 1e3).round() / 1e3,
+                }),
+            )
+        })
+        .collect();
+    rows.sort_by(|a, b| {
+        samples[b.0]
+            .cmp(&samples[a.0])
+            .then(running[b.0].cmp(&running[a.0]))
+            .then(a.0.cmp(&b.0))
+    });
+    json!({"rows": rows.into_iter().map(|(_, v)| v).collect::<Vec<_>>()})
+}
+
 /// The trace's processes, as a table: each one's ID, name, command line,
 /// start and end (nanoseconds from the trace's start, or null for before
 /// and after it), threads, and CPU samples in `[start, end)` (all of the
@@ -499,13 +653,15 @@ pub fn processes(trace: &Trace, time: Option<(i64, i64)>) -> Value {
         ),
         None => (0, s.len()),
     };
-    let mut samples = vec![0u64; trace.processes.len()];
-    for i in from..to {
-        let p = trace.thread_process(s.thread[i]);
-        if p.is_some() {
-            samples[p.index()] += u64::from(s.weight[i]);
-        }
-    }
+    let samples = count_on_every_core(
+        trace.processes.len(),
+        to - from,
+        |i| {
+            let p = trace.thread_process(s.thread[from + i]);
+            p.is_some().then(|| p.index())
+        },
+        |i| u64::from(s.weight[from + i]),
+    );
     let mut threads = vec![0u32; trace.processes.len()];
     for t in &trace.threads {
         if t.process.is_some() {
@@ -521,6 +677,7 @@ pub fn processes(trace: &Trace, time: Option<(i64, i64)>) -> Value {
             (
                 i,
                 json!({
+                    "index": i,
                     "pid": p.pid,
                     "parentPid": p.parent_pid,
                     "name": p.name,
