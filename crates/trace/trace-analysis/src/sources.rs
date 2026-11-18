@@ -418,7 +418,7 @@ mod tests {
         let n = ROWS * 9 + 1234;
         let event = |i: usize| -> Option<(Bucket, u64)> {
             let x = (i as u64).wrapping_mul(0x9e37_79b9_7f4a_7c15) >> 40;
-            if x % 7 == 0 {
+            if x.is_multiple_of(7) {
                 return None;
             }
             let bucket = (
