@@ -41,6 +41,12 @@
 //!   the most service time, each `{kind, disk, offset, size, completeNs,
 //!   ioNs, serviceNs, process, tid, file}`. (Read from the trace file the
 //!   first time, then kept.)
+//! - `fileio` `{trace, by?, time?, limit?}` → `{count, unended, bytes,
+//!   groups, ops}`: the file operations requested in `time`, totals by
+//!   `by` (process, file or operation: count, bytes, total duration, the
+//!   most time first) and the `limit` (1000) longest, each `{op, startNs,
+//!   durationNs, status, size, process, tid, file}`. (Read from the trace
+//!   file the first time, then kept.)
 //! - `regions` `{trace, file}` → `{regions, instances, truncated}`: the
 //!   regions of interest a WPA regions file defines, and their instances
 //!   in the trace: each region `{name, displayName, parent, unsupported,
@@ -292,6 +298,8 @@ struct State {
     next_view: u64,
     /// The trace's disk I/Os, once read.
     disk: Option<Arc<crate::disk::DiskTable>>,
+    /// The trace's file operations, once read.
+    files: Option<Arc<crate::fileio::FileTable>>,
     /// The last line totals worked out: for which (source, time), with
     /// what symbols (how many PDBs were loaded).
     lines: Option<(LinesKey, Arc<LinesValue>)>,
@@ -404,6 +412,7 @@ fn worker(
         next_view: 1,
         lines: None,
         disk: None,
+        files: None,
         report: SymbolsReport {
             frames: Arc::default(),
             saved: saved.iter().map(|(k, _)| *k).collect(),
@@ -811,6 +820,43 @@ impl State {
                     (t(s), t(e))
                 });
                 Ok(crate::disk::summary(trace, &table, group, time, limit))
+            }
+            "fileio" => {
+                let spec = TreeSpec::from_json(params)?;
+                let group = match params.get("by").and_then(Value::as_str) {
+                    None | Some("process") => crate::fileio::GroupBy::Process,
+                    Some("file") => crate::fileio::GroupBy::File,
+                    Some("operation") => crate::fileio::GroupBy::Operation,
+                    Some(other) => {
+                        return Err(format!("by: process, file or operation, not {other}"));
+                    }
+                };
+                let limit = match params.get("limit") {
+                    None | Some(Value::Null) => 1000,
+                    Some(v) => v
+                        .as_u64()
+                        .and_then(|v| usize::try_from(v).ok())
+                        .ok_or("limit: expected a count")?,
+                };
+                let table = match &self.files {
+                    Some(t) => Arc::clone(t),
+                    None => {
+                        let t = Arc::new(crate::fileio::table(trace, &self.loaded.path)?);
+                        self.files = Some(Arc::clone(&t));
+                        t
+                    }
+                };
+                let time = spec.time.map(|(s, e)| {
+                    let tps = i128::from(trace.clock.ticks_per_second.max(1));
+                    let t = |ns: i64| {
+                        i64::try_from(
+                            i128::from(trace.clock.origin) + i128::from(ns) * tps / 1_000_000_000,
+                        )
+                        .unwrap_or(i64::MAX)
+                    };
+                    (t(s), t(e))
+                });
+                Ok(crate::fileio::summary(trace, &table, group, time, limit))
             }
             "regions" => {
                 let file = params

@@ -142,6 +142,7 @@ window.acquireVsCodeApi = function () {
     else if (m.method === "events") r.result = A.events;
     else if (m.method === "regions" && A.regions) r.result = A.regions;
     else if (m.method === "disk" && A.disk) r.result = A.disk;
+    else if (m.method === "fileio" && A.fileio) r.result = A.fileio;
     else if (m.method === "regions") r.error = "regions: file: expected a regions file";
     else if (m.method === "events.list" && A.sampleKind && m.params.opcode === A.sampleKind.opcode && m.params.guid === A.sampleKind.guid) r.result = A.sampleList;
     else if (m.method === "events.list") r.result = A.eventList;
@@ -740,6 +741,27 @@ def main():
     labels = [html.unescape(x) for x in re.findall(r'<tr data-i="\d+"><td class="">([^<]*)</td>', table)]
     assert labels == ["app.exe (100)", "System (4)"], labels
     assert "C:\\a.txt" in html.unescape(dom[dom.index('id="disk-ios"'):])
+    # The file I/O tab: totals by the grouping chosen, and the longest
+    # operations; changing the grouping asks again.
+    filed = json.loads(json.dumps(data))
+    filed["fileio"] = {
+        "count": 3, "unended": 1, "bytes": 8192,
+        "groups": [{"label": "app.exe (100)", "count": 2, "bytes": 8192, "durationNs": 3000000},
+                   {"label": "System (4)", "count": 1, "bytes": 0, "durationNs": 1000000}],
+        "ops": [{"op": "Read", "process": "app.exe (100)", "tid": 7, "file": "C:\f.txt", "size": 8192, "startNs": 1000000, "durationNs": 2000000, "status": "0x00000000"}],
+    }
+    change = ("document.getElementById('tab-fileio').click();"
+              "setTimeout(function () { var b = document.getElementById('fileio-by'); b.value = 'operation'; b.dispatchEvent(new Event('change')); }, 100);")
+    dom = render(filed, change, shot=shot("fileio"))
+    assert "3 file operations, 8 KB read or written (1 not ended in the trace)." in dom, "the file I/O title"
+    posted = json.loads(html.unescape(re.search(r'<pre id="posted"[^>]*>(.*?)</pre>', dom, re.S).group(1)))
+    asked = [m["params"]["by"] for m in posted if m.get("method") == "fileio"]
+    assert asked == ["process", "operation"], asked
+    table = dom[dom.index('id="fileio-groups"'):dom.index('id="fileio-ops"')]
+    labels = [html.unescape(x) for x in re.findall(r'<tr data-i="\d+"><td class="">([^<]*)</td>', table)]
+    assert labels == ["app.exe (100)", "System (4)"], labels
+    rest = html.unescape(dom[dom.index('id="fileio-ops"'):])
+    assert "C:\f.txt" in rest and "0x00000000" in rest
     print("harness: ok")
 
 

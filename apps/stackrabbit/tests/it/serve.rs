@@ -1332,3 +1332,188 @@ fn disk_usage_by_process_file_disk_and_type() {
     assert_eq!(result(&a, 6)["count"], 2);
     assert!(error(&a, 7).contains("by"), "{}", error(&a, 7));
 }
+
+#[test]
+fn file_io_by_process_file_and_operation() {
+    use hexcavator_etl::classic;
+    use hexcavator_etl::write::{self, Kernel, Writer, WriterOptions};
+    use hexcavator_etw::guids;
+    let dir = scratch("serve-fileio");
+    // A counter at 10 MHz: 10,000 ticks a millisecond.
+    let mut w = Writer::new(WriterOptions {
+        processors: 1,
+        perf_freq: 10_000_000,
+        ..WriterOptions::default()
+    });
+    let mut kernel = |provider, op: u8, version: u16, ts: i64, payload: Vec<u8>| {
+        let hook = classic::guid_group(&provider).unwrap() << 8 | u16::from(op);
+        let k = Kernel {
+            hook,
+            version,
+            thread_id: u32::MAX,
+            process_id: u32::MAX,
+            timestamp: ts,
+            ..Kernel::default()
+        };
+        w.record(0, &write::system(&k, true, &payload));
+    };
+    let u32s =
+        |p: &mut Vec<u8>, v: &[u32]| v.iter().for_each(|v| p.extend_from_slice(&v.to_le_bytes()));
+    let u64s =
+        |p: &mut Vec<u8>, v: &[u64]| v.iter().for_each(|v| p.extend_from_slice(&v.to_le_bytes()));
+    let utf16z = |p: &mut Vec<u8>, s: &str| {
+        for u in s.encode_utf16().chain([0]) {
+            p.extend_from_slice(&u.to_le_bytes());
+        }
+    };
+    // Process 100 (app.exe), thread 200.
+    kernel(guids::PROCESS, 3, 4, 1, {
+        let mut p = Vec::new();
+        u64s(&mut p, &[0xaaaa]);
+        u32s(&mut p, &[100, 4, 1, 0]);
+        u64s(&mut p, &[0]);
+        u32s(&mut p, &[0, 0]);
+        p.extend_from_slice(b"app.exe\0");
+        utf16z(&mut p, "app.exe");
+        utf16z(&mut p, "");
+        utf16z(&mut p, "");
+        p
+    });
+    kernel(guids::THREAD, 3, 3, 2, {
+        let mut p = Vec::new();
+        u32s(&mut p, &[100, 200]);
+        u64s(&mut p, &[0, 0, 0, 0, 0, 0x1234, 0]);
+        u32s(&mut p, &[0]);
+        p.extend_from_slice(&[8, 5, 2, 0]);
+        p
+    });
+    let create = |irp: u64, object: u64, tid: u32, path: &str| {
+        let mut p = Vec::new();
+        u64s(&mut p, &[irp, object]);
+        u32s(&mut p, &[tid, 0, 0, 0]);
+        utf16z(&mut p, path);
+        p
+    };
+    let rw = |irp: u64, object: u64, key: u64, tid: u32, size: u32| {
+        let mut p = Vec::new();
+        u64s(&mut p, &[0, irp, object, key]);
+        u32s(&mut p, &[tid, size, 0]);
+        p
+    };
+    let simple = |irp: u64, object: u64, key: u64, tid: u32| {
+        let mut p = Vec::new();
+        u64s(&mut p, &[irp, object, key]);
+        u32s(&mut p, &[tid]);
+        p
+    };
+    let end = |irp: u64, status: u32| {
+        let mut p = Vec::new();
+        u64s(&mut p, &[irp, 0]);
+        u32s(&mut p, &[status]);
+        p
+    };
+    let name = |key: u64, path: &str| {
+        let mut p = Vec::new();
+        u64s(&mut p, &[key]);
+        utf16z(&mut p, path);
+        p
+    };
+    // Thread 200 creates a.txt (object 1) taking 1 ms; reads 4 KB of it
+    // (key 0x11, named by a name event) taking 2 ms; writes 8 KB taking
+    // 3 ms (its end comes after another IRP's); and closes it, which never
+    // ends in the trace. Thread 999 (unknown) flushes c.log (key 0x22,
+    // named by the rundown at the end) taking 0.5 ms, and fails.
+    kernel(
+        guids::FILE_IO,
+        64,
+        3,
+        10_000,
+        create(0xa1, 1, 200, r"C:\a.txt"),
+    );
+    kernel(guids::FILE_IO, 76, 3, 20_000, end(0xa1, 0));
+    kernel(guids::FILE_IO, 0, 3, 20_500, name(0x11, r"C:\a.txt"));
+    kernel(guids::FILE_IO, 67, 3, 30_000, rw(0xa2, 1, 0x11, 200, 4096));
+    kernel(guids::FILE_IO, 76, 3, 50_000, end(0xa2, 0));
+    kernel(guids::FILE_IO, 68, 3, 60_000, rw(0xa2, 1, 0x11, 200, 8192));
+    kernel(guids::FILE_IO, 73, 3, 61_000, simple(0xb1, 2, 0x22, 999));
+    kernel(guids::FILE_IO, 76, 3, 66_000, end(0xb1, 0xc000_0022));
+    kernel(guids::FILE_IO, 76, 3, 90_000, end(0xa2, 0));
+    kernel(guids::FILE_IO, 66, 3, 95_000, simple(0xa3, 1, 0x11, 200));
+    kernel(guids::FILE_IO, 36, 3, 99_000, name(0x22, r"C:\c.log"));
+    let path = dir.join("t.etl");
+    std::fs::write(&path, w.finish()).unwrap();
+
+    let req = |by: &str, extra: Value| {
+        let mut p = json!({"trace": 1, "by": by});
+        for (k, v) in extra.as_object().unwrap() {
+            p[k] = v.clone();
+        }
+        json!({"method": "fileio", "params": p})
+    };
+    let a = session(&[
+        json!({"method": "open", "params": {"path": path, "useIndex": true}}),
+        req("operation", json!({})),
+        req("file", json!({})),
+        req("process", json!({"limit": 2})),
+        req("operation", json!({"time": [0, 5_000_000]})),
+        req("nonsense", json!({})),
+    ]);
+    let by = |id: u64| -> std::collections::BTreeMap<String, (u64, u64, u64)> {
+        result(&a, id)["groups"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|g| {
+                let n = |k: &str| g[k].as_u64().unwrap();
+                (
+                    g["label"].as_str().unwrap().to_string(),
+                    (n("count"), n("bytes"), n("durationNs")),
+                )
+            })
+            .collect()
+    };
+    let r = result(&a, 2);
+    assert_eq!(r["count"], 5);
+    assert_eq!(r["unended"], 1);
+    assert_eq!(r["bytes"], 4096 + 8192);
+    let ops = by(2);
+    assert_eq!(ops["Create"], (1, 0, 1_000_000));
+    assert_eq!(ops["Read"], (1, 4096, 2_000_000));
+    assert_eq!(
+        ops["Write"],
+        (1, 8192, 3_000_000),
+        "ended by its own IRP's next end"
+    );
+    assert_eq!(ops["Flush"], (1, 0, 500_000));
+    assert_eq!(ops["Close"], (1, 0, 0), "never ended");
+    let files = by(3);
+    assert_eq!(
+        files[r"C:\a.txt"].0, 4,
+        "by its create's path, then its key's name"
+    );
+    assert_eq!(files[r"C:\c.log"].0, 1, "named by the rundown after");
+    let r = result(&a, 4);
+    let procs = by(4);
+    assert_eq!(procs["app.exe (100)"].0, 4);
+    assert_eq!(procs["Unknown process"].0, 1);
+    // The longest, a limit of them.
+    let longest = r["ops"].as_array().unwrap();
+    assert_eq!(longest.len(), 2);
+    assert_eq!(longest[0]["op"], "Write");
+    assert_eq!(longest[0]["durationNs"], 3_000_000);
+    assert_eq!(longest[0]["tid"], 200);
+    assert_eq!(longest[0]["file"], r"C:\a.txt");
+    assert_eq!(longest[1]["op"], "Read");
+    let flush = &result(&a, 2)["ops"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|o| o["op"] == "Flush")
+        .unwrap()
+        .clone();
+    assert_eq!(flush["status"], "0xc0000022");
+    assert_eq!(flush["tid"], Value::Null);
+    // A time range: requested by 5 ms (the create and the read).
+    assert_eq!(result(&a, 5)["count"], 2);
+    assert!(error(&a, 6).contains("by"), "{}", error(&a, 6));
+}

@@ -47,6 +47,7 @@
     loadProcesses();
     loadFunctions();
     loadDisk();
+    loadFileIo();
     if (listedKind) {
       loadEventList(listedKind);
     }
@@ -626,6 +627,58 @@
   }
   $("disk-by").addEventListener("change", loadDisk);
 
+  // File I/O: totals grouped as chosen, and the longest operations, in the
+  // time selected. Loaded while the tab shows; otherwise when it next does.
+  const fileGroups = new SortedTable(
+    $("fileio-groups"),
+    [
+      { key: "label", title: "Group" },
+      { key: "count", title: "Operations", num: true, text: number(0) },
+      { key: "bytes", title: "KB", num: true, text: kb },
+      { key: "durationNs", title: "Duration (ms)", num: true, text: ms },
+    ],
+    { key: "durationNs", down: true }
+  );
+  const fileOps = new SortedTable(
+    $("fileio-ops"),
+    [
+      { key: "op", title: "Operation" },
+      { key: "process", title: "Process" },
+      { key: "tid", title: "TID", num: true },
+      { key: "file", title: "File", cls: "cmd" },
+      { key: "size", title: "KB", num: true, text: kb },
+      { key: "startNs", title: "Started", num: true, text: at("") },
+      { key: "durationNs", title: "Duration (ms)", num: true, text: ms },
+      { key: "status", title: "Status" },
+    ],
+    { key: "durationNs", down: true }
+  );
+  let fileStale = true;
+  async function loadFileIo() {
+    if ($("fileio-pane").classList.contains("hidden")) {
+      fileStale = true;
+      return;
+    }
+    fileStale = false;
+    $("fileio-title").textContent = "Reading the trace's file I/O…";
+    try {
+      const params = { by: $("fileio-by").value, limit: 1000 };
+      if (selection) {
+        params.time = selection;
+      }
+      const d = await request("fileio", params);
+      $("fileio-title").textContent =
+        `${d.count.toLocaleString("en-US")} file operations, ${kb(d.bytes)} KB read or written` +
+        `${selection ? " in the time selected" : ""}` +
+        `${d.unended ? ` (${d.unended.toLocaleString("en-US")} not ended in the trace)` : ""}.`;
+      fileGroups.set(d.groups);
+      fileOps.set(d.ops);
+    } catch (e) {
+      $("fileio-title").textContent = e.message;
+    }
+  }
+  $("fileio-by").addEventListener("change", loadFileIo);
+
   function showTab(name) {
     tab = name;
     saveState();
@@ -635,7 +688,7 @@
     if (name === "regions") {
       loadRegions();
     }
-    for (const t of ["stacks", "processes", "functions", "symbols", "events", "regions", "disk"]) {
+    for (const t of ["stacks", "processes", "functions", "symbols", "events", "regions", "disk", "fileio"]) {
       $(`tab-${t}`).classList.toggle("active", name === t);
       $(`${t}-pane`).classList.toggle("hidden", name !== t);
     }
@@ -652,11 +705,15 @@
     if (name === "disk" && diskStale) {
       loadDisk();
     }
+    if (name === "fileio" && fileStale) {
+      loadFileIo();
+    }
   }
   $("tab-symbols").addEventListener("click", () => showTab("symbols"));
   $("tab-events").addEventListener("click", () => showTab("events"));
   $("tab-regions").addEventListener("click", () => showTab("regions"));
   $("tab-disk").addEventListener("click", () => showTab("disk"));
+  $("tab-fileio").addEventListener("click", () => showTab("fileio"));
   symbolsEl.addEventListener("click", () => showTab("symbols"));
   /**
    * The shown tab as Markdown, to the clipboard (by way of the extension):
@@ -774,7 +831,7 @@
     if (s.lit && typeof s.lit.fn === "string") {
       lit = { fn: s.lit.fn, label: String(s.lit.label || s.lit.fn) };
     }
-    if (["stacks", "processes", "functions", "symbols", "events", "regions", "disk"].includes(s.tab)) {
+    if (["stacks", "processes", "functions", "symbols", "events", "regions", "disk", "fileio"].includes(s.tab)) {
       showTab(s.tab);
     }
   }
