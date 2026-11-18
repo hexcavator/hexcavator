@@ -74,26 +74,126 @@ impl Filter {
 /// a stack, and for a sample without a stack, its instruction pointer.
 type Bucket = (ThreadIx, u16, StackId, u64);
 
+/// Buckets, each with its weight and count, sorted by bucket.
+type Run = Vec<(Bucket, (u64, u64))>;
+
 /// How many buckets a thread turns into instances at a time. (Fixed, not
 /// by the number of threads, so that keys are numbered the same on any
 /// machine.)
 const CHUNK: usize = 4096;
 
-/// Turns aggregated buckets into instances: in chunks, on every core, each
-/// with a framer and keys of its own; the chunks' keys are then numbered
-/// in chunk order, so the result is the same on any number of threads.
+/// Events a worker aggregates at a time.
+const ROWS: usize = 1 << 16;
+
+/// The events `rows` (each one's bucket and weight, by `event`; or none,
+/// for an event left out), aggregated: each bucket's weight and count,
+/// sorted by bucket. On every core: each chunk of rows aggregated and
+/// sorted on its own, then the chunks merged.
+fn aggregate(
+    rows: std::ops::Range<usize>,
+    event: impl Fn(usize) -> Option<(Bucket, u64)> + Sync,
+) -> Run {
+    let chunks: Vec<std::ops::Range<usize>> = rows
+        .clone()
+        .step_by(ROWS)
+        .map(|from| from..(from + ROWS).min(rows.end))
+        .collect();
+    let next = std::sync::atomic::AtomicUsize::new(0);
+    let done: Vec<std::sync::Mutex<Run>> =
+        chunks.iter().map(|_| std::sync::Mutex::default()).collect();
+    let threads = std::thread::available_parallelism()
+        .map_or(4, std::num::NonZero::get)
+        .min(chunks.len());
+    std::thread::scope(|scope| {
+        for _ in 0..threads {
+            scope.spawn(|| {
+                let mut map: FxHashMap<Bucket, (u64, u64)> = FxHashMap::default();
+                loop {
+                    let c = next.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                    let Some(range) = chunks.get(c) else { return };
+                    for i in range.clone() {
+                        if let Some((bucket, weight)) = event(i) {
+                            let e = map.entry(bucket).or_default();
+                            e.0 += weight;
+                            e.1 += 1;
+                        }
+                    }
+                    let mut sorted: Run = map.drain().collect();
+                    sorted.sort_unstable_by_key(|&(b, _)| b);
+                    *done[c]
+                        .lock()
+                        .unwrap_or_else(std::sync::PoisonError::into_inner) = sorted;
+                }
+            });
+        }
+    });
+    let mut runs: Vec<Run> = done
+        .into_iter()
+        .map(|m| {
+            m.into_inner()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+        })
+        .collect();
+    // Merged in pairs (each pass's pairs on every core), adding up the
+    // buckets in more than one.
+    while runs.len() > 1 {
+        let mut pairs = Vec::with_capacity(runs.len().div_ceil(2));
+        let mut it = runs.into_iter();
+        while let Some(a) = it.next() {
+            pairs.push((a, it.next().unwrap_or_default()));
+        }
+        runs = std::thread::scope(|scope| {
+            let merging: Vec<_> = pairs
+                .into_iter()
+                .map(|(a, b)| scope.spawn(move || merge_runs(a, b)))
+                .collect();
+            merging
+                .into_iter()
+                .map(|m| m.join().expect("a merge"))
+                .collect()
+        });
+    }
+    runs.pop().unwrap_or_default()
+}
+
+/// Two sorted runs of buckets as one, a bucket in both added up.
+fn merge_runs(a: Run, b: Run) -> Run {
+    if b.is_empty() {
+        return a;
+    }
+    let mut out = Vec::with_capacity(a.len() + b.len());
+    let (mut a, mut b) = (a.into_iter().peekable(), b.into_iter().peekable());
+    loop {
+        match (a.peek(), b.peek()) {
+            (Some(x), Some(y)) => match x.0.cmp(&y.0) {
+                std::cmp::Ordering::Less => out.extend(a.next()),
+                std::cmp::Ordering::Greater => out.extend(b.next()),
+                std::cmp::Ordering::Equal => {
+                    let (k, (w1, c1)) = a.next().expect("peeked");
+                    let (_, (w2, c2)) = b.next().expect("peeked");
+                    out.push((k, (w1 + w2, c1 + c2)));
+                }
+            },
+            (Some(_), None) => out.extend(a.by_ref()),
+            (None, Some(_)) => out.extend(b.by_ref()),
+            (None, None) => return out,
+        }
+    }
+}
+
+/// Turns aggregated buckets (sorted, for a deterministic order) into
+/// instances: in chunks, on every core, each with a framer and keys of its
+/// own; the chunks' keys are then numbered in chunk order, so the result
+/// is the same on any number of threads.
 fn instances(
     trace: &Trace,
     framer: &mut Framer<'_>,
     keys: &mut Keys,
     groups: &[GroupBy],
-    buckets: FxHashMap<Bucket, (u64, u64)>,
+    buckets: &[(Bucket, (u64, u64))],
 ) -> Instances {
-    // Deterministic order: by bucket.
-    let mut buckets: Vec<(Bucket, (u64, u64))> = buckets.into_iter().collect();
-    buckets.sort_unstable_by_key(|&(b, _)| b);
     if buckets.len() <= CHUNK {
-        return chunk_instances(trace, framer, keys, groups, &buckets);
+        return chunk_instances(trace, framer, keys, groups, buckets);
     }
     let chunks: Vec<&[(Bucket, (u64, u64))]> = buckets.chunks(CHUNK).collect();
     let threads = std::thread::available_parallelism()
@@ -217,19 +317,16 @@ pub fn samples(
 ) -> Instances {
     let by_cpu = groups.contains(&GroupBy::Cpu);
     let s = &trace.samples;
-    let mut buckets: FxHashMap<Bucket, (u64, u64)> = FxHashMap::default();
-    for i in filter.rows(&s.time) {
+    let buckets = aggregate(filter.rows(&s.time), |i| {
         if !filter.keeps(trace, s.time[i], s.thread[i]) {
-            continue;
+            return None;
         }
         let stack = s.stack[i];
         let ip = if stack.is_empty() { s.ip[i] } else { 0 };
         let cpu = if by_cpu { s.cpu[i] } else { 0 };
-        let e = buckets.entry((s.thread[i], cpu, stack, ip)).or_default();
-        e.0 += u64::from(s.weight[i]);
-        e.1 += 1;
-    }
-    instances(trace, framer, keys, groups, buckets)
+        Some(((s.thread[i], cpu, stack, ip), u64::from(s.weight[i])))
+    });
+    instances(trace, framer, keys, groups, &buckets)
 }
 
 /// Each context switch's derived times, in clock ticks.
@@ -289,23 +386,61 @@ pub fn switches(
 ) -> Instances {
     let by_cpu = groups.contains(&GroupBy::Cpu);
     let sw = &trace.switches;
-    let mut buckets: FxHashMap<Bucket, (u64, u64)> = FxHashMap::default();
-    for i in filter.rows(&sw.time) {
+    let buckets = aggregate(filter.rows(&sw.time), |i| {
         let thread = sw.new_thread[i];
         if !filter.keeps(trace, sw.time[i], thread) {
-            continue;
+            return None;
         }
         let w = match weight {
             SwitchWeight::Running => precise.running[i],
             SwitchWeight::Waited => precise.waited[i],
         };
         if w == 0 {
-            continue;
+            return None;
         }
         let cpu = if by_cpu { sw.cpu[i] } else { 0 };
-        let e = buckets.entry((thread, cpu, sw.stack[i], 0)).or_default();
-        e.0 += w;
-        e.1 += 1;
+        Some(((thread, cpu, sw.stack[i], 0), w))
+    });
+    instances(trace, framer, keys, groups, &buckets)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{Bucket, ROWS, aggregate};
+    use hexcavator_trace::{StackId, ThreadIx};
+    use rustc_hash::FxHashMap;
+
+    /// Aggregating in chunks on every core, and merging, is aggregating
+    /// all at once: many chunks, buckets in several of them, events left
+    /// out, and a range not starting at 0.
+    #[test]
+    fn aggregates_in_chunks_as_all_at_once() {
+        let n = ROWS * 9 + 1234;
+        let event = |i: usize| -> Option<(Bucket, u64)> {
+            let x = (i as u64).wrapping_mul(0x9e37_79b9_7f4a_7c15) >> 40;
+            if x % 7 == 0 {
+                return None;
+            }
+            let bucket = (
+                ThreadIx(u32::try_from(x % 13).unwrap()),
+                u16::try_from(x % 3).unwrap(),
+                StackId(u32::try_from(x % 5000).unwrap()),
+                x % 2,
+            );
+            Some((bucket, x % 100 + 1))
+        };
+        for range in [0..n, 17..n - 3, 5..5, 100..200] {
+            let mut want: FxHashMap<Bucket, (u64, u64)> = FxHashMap::default();
+            for i in range.clone() {
+                if let Some((b, w)) = event(i) {
+                    let e = want.entry(b).or_default();
+                    e.0 += w;
+                    e.1 += 1;
+                }
+            }
+            let mut want: Vec<_> = want.into_iter().collect();
+            want.sort_unstable_by_key(|&(b, _)| b);
+            assert_eq!(aggregate(range.clone(), event), want, "{range:?}");
+        }
     }
-    instances(trace, framer, keys, groups, buckets)
 }
