@@ -24,13 +24,19 @@ use crate::views::{Source, TreeSpec, TreeView};
 const USAGE: &str = "\
 usage: stackrabbit bench <trace or directory>... [options]
 
-Times, for each trace (a directory's *.etl files, by name): importing it; writing and reading
+Times, for each trace (a directory's *.etl files, by name): importing it (from the disk: it is
+evicted from the system's cache first, where the host allows); writing and reading
 its index; and building the first stack trees (CPU samples by process, inverted, and waits),
 expanding the top level and the hot path. Prints timings and counts only.
 
 Options:
   -symbols   Name functions with the PDBs _NT_SYMBOL_PATH finds (default: by module).
-  -json      One JSON object per trace instead of a table.";
+  -json      One JSON object per trace instead of a table.
+  -phases    Instead, time the import's phases: reading the events in time order
+             (buffers merged, decompressed), then decoding them too, then the import.
+  -read      Instead, time reading each file from the disk (evicted from the cache
+             first, where the host allows): page faults through a mapping, one thread;
+             then reads of 1, 4 and 16 MB on 1, 2, 4 and 8 threads.";
 
 /// Runs `stackrabbit bench`.
 pub fn run(args: &[String]) -> ExitCode {
@@ -38,6 +44,8 @@ pub fn run(args: &[String]) -> ExitCode {
     let mut paths = Vec::new();
     let mut symbols = false;
     let mut as_json = false;
+    let mut phases = false;
+    let mut read = false;
     while let Some(arg) = a.next() {
         match arg {
             "-h" | "-help" | "--help" => {
@@ -46,6 +54,8 @@ pub fn run(args: &[String]) -> ExitCode {
             }
             "-symbols" => symbols = true,
             "-json" => as_json = true,
+            "-phases" => phases = true,
+            "-read" => read = true,
             o if o.starts_with('-') => {
                 eprintln!("stackrabbit bench: unknown option '{o}'\n\n{USAGE}");
                 return ExitCode::from(2);
@@ -64,6 +74,12 @@ pub fn run(args: &[String]) -> ExitCode {
             return ExitCode::FAILURE;
         }
     };
+    if phases {
+        return phase_table(&traces);
+    }
+    if read {
+        return read_table(&traces);
+    }
     if !as_json {
         println!(
             "{:<28} {:>9} {:>8} {:>9} {:>8} {:>8} {:>8} {:>8} {:>8} {:>8} {:>8} {:>8}",
@@ -200,12 +216,17 @@ impl Measured {
 }
 
 fn measure(path: &Path, symbols: bool) -> Result<Measured, String> {
+    // From the disk, as a trace is first opened (where the host can evict
+    // it from the cache).
+    let _ = hexcavator_mmap::evict_from_cache(path);
     let map = Mmap::open(path).map_err(|e| e.to_string())?;
     let data = map.as_slice();
     let start = Instant::now();
+    let prefetch = map.prefetch(crate::store::PREFETCH_THREADS, crate::store::PREFETCH_CHUNK);
     let etl = Etl::parse(data).map_err(|e| e.to_string())?;
     let (trace, stats) = etw::import(&etl).map_err(|e| e.to_string())?;
     let import = start.elapsed();
+    drop(prefetch);
 
     let start = Instant::now();
     let saved = index::write(&trace, index::Source::of(data));
@@ -306,4 +327,129 @@ fn span_ns(trace: &Trace) -> i64 {
     } else {
         0
     }
+}
+
+/// Prints the import's phases for each trace: reading the events in time
+/// order, reading and decoding them, and the whole import.
+fn phase_table(traces: &[PathBuf]) -> ExitCode {
+    println!(
+        "{:<28} {:>9} {:>9} {:>8} {:>8} {:>8} {:>8}",
+        "trace", "MB", "Mevents", "read", "decode", "import", "ns/evt"
+    );
+    for path in traces {
+        let result = (|| -> Result<String, String> {
+            let map = Mmap::open(path).map_err(|e| e.to_string())?;
+            let data = map.as_slice();
+            let etl = Etl::parse(data).map_err(|e| e.to_string())?;
+            let start = Instant::now();
+            let mut events = 0u64;
+            let mut cursor = etl.events().map_err(|e| e.to_string())?;
+            while let Some(e) = cursor.next() {
+                if e.is_ok() {
+                    events += 1;
+                }
+            }
+            let read = start.elapsed();
+            let start = Instant::now();
+            let mut decoded = 0u64;
+            let mut cursor = etl.events().map_err(|e| e.to_string())?;
+            while let Some(e) = cursor.next() {
+                if let Ok(e) = e
+                    && hexcavator_etw::decode(&e).is_some()
+                {
+                    decoded += 1;
+                }
+            }
+            let decode = start.elapsed();
+            std::hint::black_box(decoded);
+            let start = Instant::now();
+            let (trace, _) = etw::import(&etl).map_err(|e| e.to_string())?;
+            let import = start.elapsed();
+            std::hint::black_box(&trace);
+            #[allow(clippy::cast_precision_loss)]
+            let per = import.as_nanos() as f64 / events.max(1) as f64;
+            Ok(format!(
+                "{:<28} {:>9.1} {:>9.2} {:>8.3} {:>8.3} {:>8.3} {:>8.0}",
+                path.file_name()
+                    .map_or_else(String::new, |n| n.to_string_lossy().into_owned()),
+                mb(data.len() as u64),
+                mb(events),
+                read.as_secs_f64(),
+                decode.as_secs_f64(),
+                import.as_secs_f64(),
+                per
+            ))
+        })();
+        match result {
+            Ok(line) => println!("{line}"),
+            Err(e) => {
+                eprintln!("stackrabbit bench: {}: {e}", path.display());
+                return ExitCode::FAILURE;
+            }
+        }
+    }
+    ExitCode::SUCCESS
+}
+
+/// Prints, for each file, how fast it reads from the disk: by page faults
+/// through a mapping, and by reads of several sizes on several threads.
+fn read_table(traces: &[PathBuf]) -> ExitCode {
+    let configs: Vec<(usize, usize)> = [1usize, 2, 4, 8]
+        .iter()
+        .flat_map(|&t| [1usize, 4, 16].map(|mb| (t, mb << 20)))
+        .collect();
+    print!("{:<28} {:>9} {:>9}", "trace", "MB", "faults");
+    for (t, c) in &configs {
+        print!(" {:>7}", format!("{t}x{}M", c >> 20));
+    }
+    println!("  (GB/s)");
+    for path in traces {
+        let result = (|| -> Result<String, String> {
+            let evicted = hexcavator_mmap::evict_from_cache(path).map_err(|e| e.to_string())?;
+            let map = Mmap::open(path).map_err(|e| e.to_string())?;
+            let len = map.len();
+            let gbs = |d: Duration| {
+                #[allow(clippy::cast_precision_loss)]
+                let g = len as f64 / 1e9 / d.as_secs_f64().max(1e-9);
+                g
+            };
+            // Page faults: touching each page in order.
+            let start = Instant::now();
+            let mut sum = 0u64;
+            for page in map.chunks(4096) {
+                sum = sum.wrapping_add(u64::from(page[0]));
+            }
+            std::hint::black_box(sum);
+            let faults = gbs(start.elapsed());
+            drop(map);
+            let mut line = format!(
+                "{:<28} {:>9.1} {:>9.2}",
+                path.file_name()
+                    .map_or_else(String::new, |n| n.to_string_lossy().into_owned()),
+                mb(len as u64),
+                faults
+            );
+            for &(threads, chunk) in &configs {
+                hexcavator_mmap::evict_from_cache(path).map_err(|e| e.to_string())?;
+                let map = Mmap::open(path).map_err(|e| e.to_string())?;
+                let start = Instant::now();
+                map.prefetch(threads, chunk)
+                    .and_then(hexcavator_mmap::Prefetch::wait)
+                    .map_err(|e| e.to_string())?;
+                line += &format!(" {:>7.2}", gbs(start.elapsed()));
+            }
+            if !evicted {
+                line += "  (not evicted: cached reads)";
+            }
+            Ok(line)
+        })();
+        match result {
+            Ok(line) => println!("{line}"),
+            Err(e) => {
+                eprintln!("stackrabbit bench: {}: {e}", path.display());
+                return ExitCode::FAILURE;
+            }
+        }
+    }
+    ExitCode::SUCCESS
 }

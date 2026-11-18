@@ -10,6 +10,13 @@ use hexcavator_mmap::Mmap;
 use hexcavator_trace::etw::{self, ImportStats};
 use hexcavator_trace::{Trace, index};
 
+/// Reading a trace ahead of its import: one thread, 16 MB at a time.
+/// (Measured on a 4 GB/s NVMe drive: this reads at its full speed; more
+/// threads or smaller reads gain nothing. See `stackrabbit bench -read`.)
+pub const PREFETCH_THREADS: usize = 1;
+/// The size of each read ahead.
+pub const PREFETCH_CHUNK: usize = 16 << 20;
+
 /// How to open a trace.
 #[derive(Clone, Debug)]
 pub struct Options {
@@ -90,6 +97,10 @@ pub fn open(path: &Path, options: &Options) -> Result<Loaded, String> {
         }
     }
     let start = Instant::now();
+    // The file is read ahead of the parser at the disk's speed (one
+    // thread's large reads saturate a fast drive), so the parser finds its
+    // pages in memory.
+    let _prefetch = map.prefetch(PREFETCH_THREADS, PREFETCH_CHUNK);
     let etl = Etl::parse(data).map_err(|e| format!("{}: {e}", path.display()))?;
     let (trace, stats) = etw::import(&etl).map_err(|e| format!("{}: {e}", path.display()))?;
     let import = start.elapsed();

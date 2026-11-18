@@ -22,6 +22,7 @@ test = false
 hexcavator-core.workspace = true
 hexcavator-mmap.workspace = true
 hexcavator-etl.workspace = true
+hexcavator-etw.workspace = true
 hexcavator-trace.workspace = true
 hexcavator-trace-analysis.workspace = true
 hexcavator-trace-synth.workspace = true

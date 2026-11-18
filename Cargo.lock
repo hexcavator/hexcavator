@@ -1070,6 +1070,7 @@ version = "0.0.6"
 dependencies = [
  "hexcavator-core",
  "hexcavator-etl",
+ "hexcavator-etw",
  "hexcavator-mmap",
  "hexcavator-symbolize",
  "hexcavator-trace",

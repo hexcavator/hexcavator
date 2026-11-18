@@ -137,6 +137,167 @@ impl Mmap {
     pub fn is_mapped(&self) -> bool {
         !matches!(self.inner, Inner::Owned(_))
     }
+
+    /// Starts reading the mapped file into the system's cache, from its
+    /// start, on `threads` threads, `chunk` bytes per read: so that a
+    /// parser reading the mapping finds its pages in memory instead of
+    /// faulting them in one by one. Many reads in flight at once keep a
+    /// fast drive busy (one thread's page faults use a fraction of it).
+    /// The reads stop when the returned [`Prefetch`] is dropped. For data
+    /// held in memory, there is nothing to read.
+    pub fn prefetch(&self, threads: usize, chunk: usize) -> io::Result<Prefetch> {
+        match &self.inner {
+            Inner::Owned(_) => Ok(Prefetch::done(self.len() as u64)),
+            #[cfg(any(windows, unix))]
+            Inner::Mapped { _file, .. } => {
+                Prefetch::start(_file.try_clone()?, self.len() as u64, threads, chunk)
+            }
+        }
+    }
+}
+
+/// Reads of a file into the system's cache, running ahead of its parser
+/// (see [`Mmap::prefetch`]). Dropping it stops them.
+pub struct Prefetch {
+    state: std::sync::Arc<PrefetchState>,
+    threads: Vec<std::thread::JoinHandle<()>>,
+}
+
+struct PrefetchState {
+    len: u64,
+    /// The next chunk's offset to claim.
+    next: std::sync::atomic::AtomicU64,
+    /// Bytes read so far.
+    read: std::sync::atomic::AtomicU64,
+    stop: std::sync::atomic::AtomicBool,
+    error: std::sync::Mutex<Option<io::Error>>,
+}
+
+impl Prefetch {
+    /// Shared state for reading a file of `len` bytes, `done` of them read.
+    fn state(len: u64, done: u64) -> std::sync::Arc<PrefetchState> {
+        std::sync::Arc::new(PrefetchState {
+            len,
+            next: std::sync::atomic::AtomicU64::new(done),
+            read: std::sync::atomic::AtomicU64::new(done),
+            stop: std::sync::atomic::AtomicBool::new(false),
+            error: std::sync::Mutex::new(None),
+        })
+    }
+
+    fn done(len: u64) -> Self {
+        Self {
+            state: Self::state(len, len),
+            threads: Vec::new(),
+        }
+    }
+
+    #[cfg(any(windows, unix))]
+    fn start(file: File, len: u64, threads: usize, chunk: usize) -> io::Result<Self> {
+        use std::sync::atomic::Ordering;
+        let shared = Self::state(len, 0);
+        let file = std::sync::Arc::new(file);
+        let chunk = chunk.max(4096);
+        let mut handles = Vec::with_capacity(threads.max(1));
+        for _ in 0..threads.max(1) {
+            let state = std::sync::Arc::clone(&shared);
+            let file = std::sync::Arc::clone(&file);
+            handles.push(std::thread::spawn(move || {
+                let mut buf = vec![0u8; chunk];
+                loop {
+                    if state.stop.load(Ordering::Relaxed) {
+                        return;
+                    }
+                    let at = state.next.fetch_add(chunk as u64, Ordering::Relaxed);
+                    if at >= state.len {
+                        return;
+                    }
+                    let want = usize::try_from((state.len - at).min(chunk as u64))
+                        .expect("a chunk fits in memory");
+                    if let Err(e) = read_at(&file, &mut buf[..want], at) {
+                        let mut slot = state
+                            .error
+                            .lock()
+                            .unwrap_or_else(std::sync::PoisonError::into_inner);
+                        slot.get_or_insert(e);
+                        state.stop.store(true, Ordering::Relaxed);
+                        return;
+                    }
+                    state.read.fetch_add(want as u64, Ordering::Relaxed);
+                }
+            }));
+        }
+        Ok(Self {
+            state: shared,
+            threads: handles,
+        })
+    }
+
+    /// Bytes read so far.
+    pub fn bytes_read(&self) -> u64 {
+        self.state.read.load(std::sync::atomic::Ordering::Relaxed)
+    }
+
+    /// Waits for the reads to finish; returns the bytes read, or the first
+    /// read's error.
+    pub fn wait(mut self) -> io::Result<u64> {
+        for t in std::mem::take(&mut self.threads) {
+            let _ = t.join();
+        }
+        if let Some(e) = self
+            .state
+            .error
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .take()
+        {
+            return Err(e);
+        }
+        Ok(self.bytes_read())
+    }
+}
+
+impl Drop for Prefetch {
+    fn drop(&mut self) {
+        self.state
+            .stop
+            .store(true, std::sync::atomic::Ordering::Relaxed);
+        for t in std::mem::take(&mut self.threads) {
+            let _ = t.join();
+        }
+    }
+}
+
+impl fmt::Debug for Prefetch {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Prefetch")
+            .field("len", &self.state.len)
+            .field("read", &self.bytes_read())
+            .finish()
+    }
+}
+
+/// Reads exactly `buf.len()` bytes at `offset`, without moving a shared
+/// file position (so that threads can read one handle at once).
+#[cfg(windows)]
+fn read_at(file: &File, mut buf: &mut [u8], mut offset: u64) -> io::Result<()> {
+    use std::os::windows::fs::FileExt;
+    while !buf.is_empty() {
+        match file.seek_read(buf, offset)? {
+            0 => return Err(io::ErrorKind::UnexpectedEof.into()),
+            n => {
+                buf = &mut buf[n..];
+                offset += n as u64;
+            }
+        }
+    }
+    Ok(())
+}
+
+#[cfg(unix)]
+fn read_at(file: &File, buf: &mut [u8], offset: u64) -> io::Result<()> {
+    use std::os::unix::fs::FileExt;
+    file.read_exact_at(buf, offset)
 }
 impl From<Vec<u8>> for Mmap {
     fn from(data: Vec<u8>) -> Self {
@@ -168,6 +329,29 @@ impl fmt::Debug for Mmap {
             .field("len", &self.len())
             .field("mapped", &self.is_mapped())
             .finish()
+    }
+}
+
+/// Drops `path`'s pages from the system's file cache, if this host can,
+/// so that the next read of it comes from the disk (for measuring reads).
+/// Returns whether it could. On Windows, opening a file unbuffered purges
+/// its cached pages (when no other process has it mapped).
+pub fn evict_from_cache(path: &Path) -> io::Result<bool> {
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::OpenOptionsExt;
+        const FILE_FLAG_NO_BUFFERING: u32 = 0x2000_0000;
+        let file = std::fs::OpenOptions::new()
+            .read(true)
+            .custom_flags(FILE_FLAG_NO_BUFFERING)
+            .open(path)?;
+        drop(file);
+        Ok(true)
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = path;
+        Ok(false)
     }
 }
 
