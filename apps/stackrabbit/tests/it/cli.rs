@@ -236,3 +236,104 @@ fn query_answers_a_request_as_json_or_csv() {
     let o = stackrabbit(&["query", path]);
     assert_eq!(o.status.code(), Some(2));
 }
+
+#[test]
+fn mcp_serves_tools_to_open_and_query_traces() {
+    use std::io::Write as _;
+    use std::process::Stdio;
+    let dir = scratch("cli-mcp");
+    let (path, _) = write_trace(&dir, "m.etl", &small());
+    let messages = [
+        serde_json::json!({"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2025-03-26", "capabilities": {}, "clientInfo": {"name": "test", "version": "1"}}}),
+        serde_json::json!({"jsonrpc": "2.0", "method": "notifications/initialized"}),
+        serde_json::json!({"jsonrpc": "2.0", "id": 2, "method": "tools/list"}),
+        serde_json::json!({"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "open_trace", "arguments": {"path": path}}}),
+        serde_json::json!({"jsonrpc": "2.0", "id": 4, "method": "tools/call", "params": {"name": "query", "arguments": {"trace": 1, "method": "processes"}}}),
+        // (Parameters as JSON text, as some clients send them.)
+        serde_json::json!({"jsonrpc": "2.0", "id": 5, "method": "tools/call", "params": {"name": "query", "arguments": {"trace": 1, "method": "processes", "params": "{\"time\": [0, 1000000]}"}}}),
+        serde_json::json!({"jsonrpc": "2.0", "id": 6, "method": "tools/call", "params": {"name": "query", "arguments": {"trace": 1, "method": "nosuch"}}}),
+        serde_json::json!({"jsonrpc": "2.0", "id": 7, "method": "tools/call", "params": {"name": "query", "arguments": {"trace": 1, "method": "shutdown"}}}),
+        serde_json::json!({"jsonrpc": "2.0", "id": 8, "method": "tools/call", "params": {"name": "protocol", "arguments": {}}}),
+        serde_json::json!({"jsonrpc": "2.0", "id": 9, "method": "tools/call", "params": {"name": "nosuch", "arguments": {}}}),
+        serde_json::json!({"jsonrpc": "2.0", "id": 10, "method": "tools/call", "params": {"name": "open_trace", "arguments": {"path": dir.join("missing.etl")}}}),
+        serde_json::json!({"jsonrpc": "2.0", "id": 11, "method": "tools/call", "params": {"name": "close_trace", "arguments": {"trace": 1}}}),
+        serde_json::json!({"jsonrpc": "2.0", "id": 12, "method": "tools/call", "params": {"name": "query", "arguments": {"trace": 1, "method": "processes"}}}),
+        serde_json::json!({"jsonrpc": "2.0", "id": 13, "method": "ping"}),
+        serde_json::json!({"jsonrpc": "2.0", "id": 14, "method": "resources/list"}),
+    ];
+    let mut input: String = messages.iter().map(|m| format!("{m}\n")).collect();
+    input.push_str("not json\n");
+    let mut child = Command::new(env!("CARGO_BIN_EXE_stackrabbit"))
+        .arg("mcp")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .unwrap();
+    child
+        .stdin
+        .take()
+        .unwrap()
+        .write_all(input.as_bytes())
+        .unwrap();
+    let out = child.wait_with_output().unwrap();
+    assert!(out.status.success());
+    let answers: Vec<Value> = text(&out)
+        .lines()
+        .map(|l| serde_json::from_str(l).unwrap())
+        .collect();
+    // An answer to each request, none to the notification, in order.
+    let ids: Vec<Value> = answers.iter().map(|a| a["id"].clone()).collect();
+    let mut want: Vec<Value> = (1..=14)
+        .filter(|&i| i != 0)
+        .map(|i| serde_json::json!(i))
+        .collect();
+    want.push(Value::Null);
+    assert_eq!(ids, want);
+    let by_id = |i: usize| &answers[i - 1];
+    assert_eq!(by_id(1)["result"]["protocolVersion"], "2025-03-26");
+    assert_eq!(by_id(1)["result"]["serverInfo"]["name"], "stackrabbit");
+    let tools: Vec<&str> = by_id(2)["result"]["tools"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|t| t["name"].as_str().unwrap())
+        .collect();
+    assert_eq!(tools, ["open_trace", "query", "close_trace", "protocol"]);
+    let tool_text = |i: usize| -> String {
+        by_id(i)["result"]["content"][0]["text"]
+            .as_str()
+            .unwrap()
+            .to_string()
+    };
+    let is_error = |i: usize| by_id(i)["result"]["isError"] == true;
+    let opened: Value = serde_json::from_str(&tool_text(3)).unwrap();
+    assert_eq!(opened["trace"], 1);
+    assert!(opened["summary"]["processes"].as_u64().unwrap() > 0);
+    let all: Value = serde_json::from_str(&tool_text(4)).unwrap();
+    let narrow: Value = serde_json::from_str(&tool_text(5)).unwrap();
+    let samples = |v: &Value| -> u64 {
+        v["rows"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|r| r["samples"].as_u64().unwrap_or(0))
+            .sum()
+    };
+    assert!(samples(&narrow) < samples(&all));
+    assert!(is_error(6) && tool_text(6).contains("nosuch"));
+    assert!(
+        is_error(7) && tool_text(7).contains("open_trace"),
+        "no shutdown by query"
+    );
+    assert!(
+        tool_text(8).contains("`registry`"),
+        "the protocol's reference"
+    );
+    assert!(is_error(9));
+    assert!(is_error(10) && tool_text(10).contains("missing.etl"));
+    assert!(!is_error(11));
+    assert!(is_error(12), "closed");
+    assert_eq!(by_id(13)["result"], serde_json::json!({}));
+    assert_eq!(by_id(14)["error"]["code"], -32601);
+    assert_eq!(answers[14]["error"]["code"], -32700);
+}

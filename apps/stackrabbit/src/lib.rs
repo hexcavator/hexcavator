@@ -8,6 +8,7 @@
 //! - [`serve`]: the session an editor drives;
 //! - [`symbols`]: which PDBs a trace needs, and downloading them;
 //! - [`query`]: one of `serve`'s requests, from the command line;
+//! - [`mcp`]: the requests as Model Context Protocol tools;
 //! - [`bench`], [`synth`], [`tree`]: the command-line tools.
 
 use std::process::ExitCode;
@@ -19,6 +20,7 @@ pub mod dpc;
 pub mod fileio;
 pub mod generic;
 pub mod hardfault;
+pub mod mcp;
 pub mod memutil;
 pub mod protocol;
 pub mod query;
@@ -43,6 +45,8 @@ Commands:
   query <trace> <method> [name=value]...
                             Ask a trace one of the extension's requests (disk, registry,
                             threads, ...); print the answer as JSON, or a list of it as CSV.
+  mcp                       A Model Context Protocol server on standard input and output:
+                            tools for AI assistants to open traces and query them.
   bench <trace or dir>...   Time opening and querying traces: import, index, trees.
                             Prints timings and counts only, never what the traces hold.
   symbols <trace> [options] Download the PDBs a trace's stacks need, many at once.
@@ -62,6 +66,7 @@ pub fn run(args: &[String]) -> ExitCode {
         "serve" => serve::run(rest),
         "tree" => tree::run(rest),
         "query" => query::run(rest),
+        "mcp" => mcp::run(rest),
         "bench" => bench::run(rest),
         "synth" => synth::run(rest),
         "symbols" => symbols::run(rest),
