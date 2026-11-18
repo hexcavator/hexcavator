@@ -6,15 +6,13 @@
 //! operations.
 
 use std::path::Path;
-use std::sync::Mutex;
-use std::sync::atomic::{AtomicUsize, Ordering};
 
-use hexcavator_etl::{Buffer, Etl, merge::for_each_event};
 use hexcavator_etw::guids;
-use hexcavator_etw::schema::{Properties, Property, pointer_size};
-use hexcavator_mmap::Mmap;
+use hexcavator_etw::schema::{Properties, pointer_size};
 use hexcavator_trace::{ProcessIx, ThreadIx, Trace};
 use rustc_hash::FxHashMap;
+
+use crate::reading::int;
 use serde_json::{Value, json};
 
 /// The operations (FileIo opcodes, version 3 and later) and their names.
@@ -70,9 +68,6 @@ pub struct FileTable {
     pub files: Vec<String>,
 }
 
-/// Buffers a worker reads at a time.
-const CHUNK: usize = 32;
-
 /// One event read.
 enum Read {
     Op {
@@ -97,114 +92,50 @@ enum Read {
     },
 }
 
-fn int(p: Option<&Property<'_>>) -> u64 {
-    p.map_or(0, |p| {
-        let mut a = [0u8; 8];
-        let n = p.data.len().min(8);
-        a[..n].copy_from_slice(&p.data[..n]);
-        u64::from_le_bytes(a)
-    })
-}
-
 /// The file operations of `trace` (read from `path`): its FileIo events,
 /// from the buffers holding them, on every core.
 pub fn table(trace: &Trace, path: &Path) -> Result<FileTable, String> {
-    let map = Mmap::open(path).map_err(|e| format!("{}: {e}", path.display()))?;
-    let etl = Etl::parse(map.as_slice()).map_err(|e| format!("{}: {e}", path.display()))?;
-    let max = usize::try_from(etl.header().buffer_size)
-        .unwrap_or(1 << 20)
-        .max(1 << 16);
-    let kinds: Vec<u32> = trace
-        .events
-        .iter()
-        .enumerate()
-        .filter(|(_, e)| e.provider == guids::FILE_IO)
-        .filter_map(|(i, _)| u32::try_from(i).ok())
-        .collect();
-    let buffers: Vec<Buffer<'_>> = if trace.buffers.is_empty() {
-        etl.buffers().flatten().collect()
-    } else {
-        trace
-            .buffers
-            .iter()
-            .filter(|b| b.kinds.iter().any(|k| kinds.contains(k)))
-            .filter_map(|b| etl.buffer_at(b.offset, b.index).ok())
-            .collect()
+    let wanted = |provider: &hexcavator_etl::Guid, op: u8| {
+        *provider == guids::FILE_IO
+            && (op == END || NAMES.contains(&op) || OPERATIONS.iter().any(|(o, _)| *o == op))
     };
-    let next = AtomicUsize::new(0);
-    let all: Mutex<Vec<Read>> = Mutex::default();
-    let threads = std::thread::available_parallelism()
-        .map_or(4, std::num::NonZero::get)
-        .min(buffers.len().div_ceil(CHUNK).max(1));
-    std::thread::scope(|scope| {
-        for _ in 0..threads {
-            scope.spawn(|| {
-                let mut scratch = Vec::new();
-                let mut mine = Vec::new();
-                loop {
-                    let c = next.fetch_add(1, Ordering::Relaxed);
-                    let from = c.saturating_mul(CHUNK);
-                    if from >= buffers.len() {
-                        break;
-                    }
-                    for buffer in &buffers[from..(from + CHUNK).min(buffers.len())] {
-                        let _ = for_each_event(buffer, max, &mut scratch, |e| {
-                            if e.provider != guids::FILE_IO {
-                                return;
-                            }
-                            let op = e.descriptor.opcode;
-                            let is_op = OPERATIONS.iter().any(|(o, _)| *o == op);
-                            if !(is_op || op == END || NAMES.contains(&op)) {
-                                return;
-                            }
-                            let Some(Ok(p)) = Properties::of(e) else {
-                                return;
-                            };
-                            let text = |name: &str| {
-                                p.get(name)
-                                    .map(|n| hexcavator_etw::values::format(n, pointer_size(e)))
-                                    .filter(|s| !s.is_empty())
-                            };
-                            if op == END {
-                                mine.push(Read::End {
-                                    time: e.timestamp,
-                                    irp: int(p.get("IrpPtr")),
-                                    status: u32::try_from(int(p.get("NtStatus")))
-                                        .unwrap_or(u32::MAX),
-                                });
-                            } else if NAMES.contains(&op) {
-                                if let Some(name) = text("FileName") {
-                                    mine.push(Read::Name {
-                                        time: e.timestamp,
-                                        file: int(p.get("FileObject")),
-                                        name,
-                                    });
-                                }
-                            } else {
-                                mine.push(Read::Op {
-                                    op,
-                                    time: e.timestamp,
-                                    irp: int(p.get("IrpPtr")),
-                                    file_key: int(p.get("FileKey")),
-                                    file_object: int(p.get("FileObject")),
-                                    thread_id: u32::try_from(int(p.get("TTID")))
-                                        .unwrap_or(u32::MAX),
-                                    size: u32::try_from(int(p.get("IoSize"))).unwrap_or(0),
-                                    path: if op == 64 { text("OpenPath") } else { None },
-                                });
-                            }
-                        });
-                    }
-                }
-                all.lock()
-                    .unwrap_or_else(std::sync::PoisonError::into_inner)
-                    .append(&mut mine);
+    let (all, _) = crate::reading::events(trace, path, wanted, |_, e, mine| {
+        let op = e.descriptor.opcode;
+        let Some(Ok(p)) = Properties::of(e) else {
+            return;
+        };
+        let text = |name: &str| {
+            p.get(name)
+                .map(|n| hexcavator_etw::values::format(n, pointer_size(e)))
+                .filter(|s| !s.is_empty())
+        };
+        if op == END {
+            mine.push(Read::End {
+                time: e.timestamp,
+                irp: int(p.get("IrpPtr")),
+                status: u32::try_from(int(p.get("NtStatus"))).unwrap_or(u32::MAX),
+            });
+        } else if NAMES.contains(&op) {
+            if let Some(name) = text("FileName") {
+                mine.push(Read::Name {
+                    time: e.timestamp,
+                    file: int(p.get("FileObject")),
+                    name,
+                });
+            }
+        } else {
+            mine.push(Read::Op {
+                op,
+                time: e.timestamp,
+                irp: int(p.get("IrpPtr")),
+                file_key: int(p.get("FileKey")),
+                file_object: int(p.get("FileObject")),
+                thread_id: u32::try_from(int(p.get("TTID"))).unwrap_or(u32::MAX),
+                size: u32::try_from(int(p.get("IoSize"))).unwrap_or(0),
+                path: if op == 64 { text("OpenPath") } else { None },
             });
         }
-    });
-    let all = all
-        .into_inner()
-        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    })?;
     Ok(assemble(trace, all))
 }
 
@@ -245,21 +176,7 @@ fn assemble(trace: &Trace, mut all: Vec<Read>) -> FileTable {
         let i = v.partition_point(|(t, _)| *t <= time);
         Some(if i > 0 { &v[i - 1].1 } else { &v.first()?.1 })
     };
-    let mut by_tid: FxHashMap<u32, Vec<usize>> = FxHashMap::default();
-    for (i, t) in trace.threads.iter().enumerate() {
-        by_tid.entry(t.tid).or_default().push(i);
-    }
-    let thread_at = |tid: u32, time: i64| -> ThreadIx {
-        let Some(list) = by_tid.get(&tid) else {
-            return ThreadIx::NONE;
-        };
-        let alive = list.iter().copied().find(|&i| {
-            let t = &trace.threads[i];
-            t.start.is_none_or(|s| s <= time) && t.end.is_none_or(|e| e >= time)
-        });
-        let i = alive.or_else(|| list.last().copied()).unwrap_or(usize::MAX);
-        ThreadIx(u32::try_from(i).unwrap_or(u32::MAX))
-    };
+    let threads = crate::reading::Threads::new(trace);
     let mut files: Vec<String> = Vec::new();
     let mut file_ids: FxHashMap<String, u32> = FxHashMap::default();
     let mut ops: Vec<FileOp> = Vec::new();
@@ -288,7 +205,7 @@ fn assemble(trace: &Trace, mut all: Vec<Read>) -> FileTable {
                         next
                     })
                 });
-                let thread = thread_at(thread_id, time);
+                let thread = threads.at(thread_id, time);
                 let index = OPERATIONS.iter().position(|(o, _)| *o == op).unwrap_or(0);
                 open.insert(irp, ops.len());
                 ops.push(FileOp {

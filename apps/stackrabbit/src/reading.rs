@@ -1,0 +1,138 @@
+//! Reading some of a trace's events again, from its file, on every core:
+//! the buffers holding the kinds wanted (all of them, without the index's
+//! buffer list), a chunk at a time per worker; and what the tables built
+//! from them share (property integers, threads by ID at a time).
+
+use std::path::Path;
+use std::sync::Mutex;
+use std::sync::atomic::{AtomicUsize, Ordering};
+
+use hexcavator_etl::event::Event;
+use hexcavator_etl::{Buffer, Etl, Guid, merge::for_each_event};
+use hexcavator_etw::schema::Property;
+use hexcavator_mmap::Mmap;
+use hexcavator_trace::{ThreadIx, Trace};
+use rustc_hash::FxHashMap;
+
+/// Buffers a worker reads at a time.
+const CHUNK: usize = 32;
+
+/// What the trace file says of its clock.
+#[derive(Clone, Copy, Debug)]
+pub struct FileInfo {
+    /// The performance counter's frequency (ticks a second).
+    pub perf_freq: u64,
+}
+
+/// The events of `trace` (read from `path`) whose provider and opcode are
+/// `wanted`, each given to `read` with its buffer's processor; what it
+/// pushes, from every worker, in no particular order.
+pub fn events<T: Send>(
+    trace: &Trace,
+    path: &Path,
+    wanted: impl Fn(&Guid, u8) -> bool + Sync,
+    read: impl Fn(u16, &Event<'_>, &mut Vec<T>) + Sync,
+) -> Result<(Vec<T>, FileInfo), String> {
+    let map = Mmap::open(path).map_err(|e| format!("{}: {e}", path.display()))?;
+    let etl = Etl::parse(map.as_slice()).map_err(|e| format!("{}: {e}", path.display()))?;
+    let max = usize::try_from(etl.header().buffer_size)
+        .unwrap_or(1 << 20)
+        .max(1 << 16);
+    let info = FileInfo {
+        perf_freq: u64::try_from(etl.header().perf_freq).unwrap_or(0).max(1),
+    };
+    let kinds: Vec<u32> = trace
+        .events
+        .iter()
+        .enumerate()
+        .filter(|(_, e)| wanted(&e.provider, e.opcode))
+        .filter_map(|(i, _)| u32::try_from(i).ok())
+        .collect();
+    let buffers: Vec<Buffer<'_>> = if trace.buffers.is_empty() {
+        etl.buffers().flatten().collect()
+    } else {
+        trace
+            .buffers
+            .iter()
+            .filter(|b| b.kinds.iter().any(|k| kinds.contains(k)))
+            .filter_map(|b| etl.buffer_at(b.offset, b.index).ok())
+            .collect()
+    };
+    let next = AtomicUsize::new(0);
+    let all: Mutex<Vec<T>> = Mutex::default();
+    let threads = std::thread::available_parallelism()
+        .map_or(4, std::num::NonZero::get)
+        .min(buffers.len().div_ceil(CHUNK).max(1));
+    std::thread::scope(|scope| {
+        for _ in 0..threads {
+            scope.spawn(|| {
+                let mut scratch = Vec::new();
+                let mut mine = Vec::new();
+                loop {
+                    let c = next.fetch_add(1, Ordering::Relaxed);
+                    let from = c.saturating_mul(CHUNK);
+                    if from >= buffers.len() {
+                        break;
+                    }
+                    for buffer in &buffers[from..(from + CHUNK).min(buffers.len())] {
+                        let processor = buffer.header.processor;
+                        let _ = for_each_event(buffer, max, &mut scratch, |e| {
+                            if wanted(&e.provider, e.descriptor.opcode) {
+                                read(processor, e, &mut mine);
+                            }
+                        });
+                    }
+                }
+                all.lock()
+                    .unwrap_or_else(std::sync::PoisonError::into_inner)
+                    .append(&mut mine);
+            });
+        }
+    });
+    let all = all
+        .into_inner()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    Ok((all, info))
+}
+
+/// A property's value as an unsigned integer (its first eight bytes,
+/// little-endian; zero if there is none).
+pub fn int(p: Option<&Property<'_>>) -> u64 {
+    p.map_or(0, |p| {
+        let mut a = [0u8; 8];
+        let n = p.data.len().min(8);
+        a[..n].copy_from_slice(&p.data[..n]);
+        u64::from_le_bytes(a)
+    })
+}
+
+/// A trace's threads by ID.
+pub struct Threads<'a> {
+    trace: &'a Trace,
+    by_tid: FxHashMap<u32, Vec<usize>>,
+}
+
+impl<'a> Threads<'a> {
+    /// `trace`'s threads by ID.
+    pub fn new(trace: &'a Trace) -> Self {
+        let mut by_tid: FxHashMap<u32, Vec<usize>> = FxHashMap::default();
+        for (i, t) in trace.threads.iter().enumerate() {
+            by_tid.entry(t.tid).or_default().push(i);
+        }
+        Self { trace, by_tid }
+    }
+
+    /// The thread `tid` at `time`: the one alive then, else the last with
+    /// that ID (none, if no thread had it).
+    pub fn at(&self, tid: u32, time: i64) -> ThreadIx {
+        let Some(list) = self.by_tid.get(&tid) else {
+            return ThreadIx::NONE;
+        };
+        let alive = list.iter().copied().find(|&i| {
+            let t = &self.trace.threads[i];
+            t.start.is_none_or(|s| s <= time) && t.end.is_none_or(|e| e >= time)
+        });
+        let i = alive.or_else(|| list.last().copied()).unwrap_or(usize::MAX);
+        ThreadIx(u32::try_from(i).unwrap_or(u32::MAX))
+    }
+}

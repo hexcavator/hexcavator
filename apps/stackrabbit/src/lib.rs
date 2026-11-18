@@ -16,6 +16,7 @@ pub mod disk;
 pub mod fileio;
 pub mod generic;
 pub mod protocol;
+pub mod reading;
 pub mod regions;
 pub mod serve;
 pub mod store;

@@ -13,15 +13,13 @@
 //!   its completion (as WPA computes it).
 
 use std::path::Path;
-use std::sync::Mutex;
-use std::sync::atomic::{AtomicUsize, Ordering};
 
-use hexcavator_etl::{Buffer, Etl, merge::for_each_event};
 use hexcavator_etw::guids;
-use hexcavator_etw::schema::{Properties, Property};
-use hexcavator_mmap::Mmap;
+use hexcavator_etw::schema::Properties;
 use hexcavator_trace::{ProcessIx, ThreadIx, Trace};
 use rustc_hash::FxHashMap;
+
+use crate::reading::int;
 use serde_json::{Value, json};
 
 /// What an I/O did.
@@ -79,9 +77,6 @@ pub struct DiskTable {
     pub files: Vec<String>,
 }
 
-/// Buffers a worker reads at a time.
-const CHUNK: usize = 32;
-
 /// One event read: a disk I/O's fields, or a file object's name.
 enum Read {
     Io {
@@ -101,118 +96,54 @@ enum Read {
     },
 }
 
-fn int(p: Option<&Property<'_>>) -> u64 {
-    p.map_or(0, |p| {
-        let mut a = [0u8; 8];
-        let n = p.data.len().min(8);
-        a[..n].copy_from_slice(&p.data[..n]);
-        u64::from_le_bytes(a)
-    })
-}
-
 /// The disk I/Os of `trace` (read from `path`): its DiskIo and FileIo name
 /// events, from the buffers holding them, on every core.
 pub fn table(trace: &Trace, path: &Path) -> Result<DiskTable, String> {
-    let map = Mmap::open(path).map_err(|e| format!("{}: {e}", path.display()))?;
-    let etl = Etl::parse(map.as_slice()).map_err(|e| format!("{}: {e}", path.display()))?;
-    let max = usize::try_from(etl.header().buffer_size)
-        .unwrap_or(1 << 20)
-        .max(1 << 16);
-    // (Response times are in the performance counter's ticks.)
-    let perf_freq = u64::try_from(etl.header().perf_freq).unwrap_or(0).max(1);
     let wanted = |provider: &hexcavator_etl::Guid, opcode: u8| {
         (*provider == guids::DISK_IO && matches!(opcode, 10 | 11 | 14))
             || (*provider == guids::FILE_IO && matches!(opcode, 0 | 32 | 35 | 36 | 64))
     };
-    let kinds: Vec<u32> = trace
-        .events
-        .iter()
-        .enumerate()
-        .filter(|(_, e)| wanted(&e.provider, e.opcode))
-        .filter_map(|(i, _)| u32::try_from(i).ok())
-        .collect();
-    let buffers: Vec<Buffer<'_>> = if trace.buffers.is_empty() {
-        etl.buffers().flatten().collect()
-    } else {
-        trace
-            .buffers
-            .iter()
-            .filter(|b| b.kinds.iter().any(|k| kinds.contains(k)))
-            .filter_map(|b| etl.buffer_at(b.offset, b.index).ok())
-            .collect()
-    };
-    let next = AtomicUsize::new(0);
-    let all: Mutex<Vec<Read>> = Mutex::default();
-    let threads = std::thread::available_parallelism()
-        .map_or(4, std::num::NonZero::get)
-        .min(buffers.len().div_ceil(CHUNK).max(1));
-    std::thread::scope(|scope| {
-        for _ in 0..threads {
-            scope.spawn(|| {
-                let mut scratch = Vec::new();
-                let mut mine = Vec::new();
-                loop {
-                    let c = next.fetch_add(1, Ordering::Relaxed);
-                    let from = c.saturating_mul(CHUNK);
-                    if from >= buffers.len() {
-                        break;
-                    }
-                    for buffer in &buffers[from..(from + CHUNK).min(buffers.len())] {
-                        let _ = for_each_event(buffer, max, &mut scratch, |e| {
-                            let op = e.descriptor.opcode;
-                            if !wanted(&e.provider, op) {
-                                return;
-                            }
-                            let Some(Ok(p)) = Properties::of(e) else {
-                                return;
-                            };
-                            if e.provider == guids::FILE_IO {
-                                // (Names, rundowns and creates: the path
-                                // opened.)
-                                let name = p
-                                    .get("FileName")
-                                    .or_else(|| p.get("OpenPath"))
-                                    .map_or_else(String::new, |n| {
-                                        hexcavator_etw::values::format(
-                                            n,
-                                            hexcavator_etw::schema::pointer_size(e),
-                                        )
-                                    });
-                                mine.push(Read::Name {
-                                    time: e.timestamp,
-                                    file_object: int(p.get("FileObject")),
-                                    name,
-                                });
-                                return;
-                            }
-                            let kind = match op {
-                                10 => IoKind::Read,
-                                11 => IoKind::Write,
-                                _ => IoKind::Flush,
-                            };
-                            mine.push(Read::Io {
-                                kind,
-                                complete: e.timestamp,
-                                disk: u32::try_from(int(p.get("DiskNumber"))).unwrap_or(u32::MAX),
-                                offset: int(p.get("ByteOffset")),
-                                size: u32::try_from(int(p.get("TransferSize"))).unwrap_or(u32::MAX),
-                                response: int(p.get("HighResResponseTime")),
-                                file_object: int(p.get("FileObject")),
-                                thread_id: u32::try_from(int(p.get("IssuingThreadId")))
-                                    .unwrap_or(u32::MAX),
-                            });
-                        });
-                    }
-                }
-                all.lock()
-                    .unwrap_or_else(std::sync::PoisonError::into_inner)
-                    .append(&mut mine);
-            });
+    let (all, info) = crate::reading::events(trace, path, wanted, |_, e, mine| {
+        let op = e.descriptor.opcode;
+        if !wanted(&e.provider, op) {
+            return;
         }
-    });
-    let all = all
-        .into_inner()
-        .unwrap_or_else(std::sync::PoisonError::into_inner);
+        let Some(Ok(p)) = Properties::of(e) else {
+            return;
+        };
+        if e.provider == guids::FILE_IO {
+            // (Names, rundowns and creates: the path
+            // opened.)
+            let name = p
+                .get("FileName")
+                .or_else(|| p.get("OpenPath"))
+                .map_or_else(String::new, |n| {
+                    hexcavator_etw::values::format(n, hexcavator_etw::schema::pointer_size(e))
+                });
+            mine.push(Read::Name {
+                time: e.timestamp,
+                file_object: int(p.get("FileObject")),
+                name,
+            });
+            return;
+        }
+        let kind = match op {
+            10 => IoKind::Read,
+            11 => IoKind::Write,
+            _ => IoKind::Flush,
+        };
+        mine.push(Read::Io {
+            kind,
+            complete: e.timestamp,
+            disk: u32::try_from(int(p.get("DiskNumber"))).unwrap_or(u32::MAX),
+            offset: int(p.get("ByteOffset")),
+            size: u32::try_from(int(p.get("TransferSize"))).unwrap_or(u32::MAX),
+            response: int(p.get("HighResResponseTime")),
+            file_object: int(p.get("FileObject")),
+            thread_id: u32::try_from(int(p.get("IssuingThreadId"))).unwrap_or(u32::MAX),
+        });
+    })?;
+    let perf_freq = info.perf_freq;
     Ok(assemble(trace, all, perf_freq))
 }
 
@@ -240,22 +171,7 @@ fn assemble(trace: &Trace, all: Vec<Read>, perf_freq: u64) -> DiskTable {
     }
     let mut files: Vec<String> = Vec::new();
     let mut file_ids: FxHashMap<String, u32> = FxHashMap::default();
-    // Threads by ID at a time: the one alive then, else the last.
-    let mut by_tid: FxHashMap<u32, Vec<usize>> = FxHashMap::default();
-    for (i, t) in trace.threads.iter().enumerate() {
-        by_tid.entry(t.tid).or_default().push(i);
-    }
-    let thread_at = |tid: u32, time: i64| -> ThreadIx {
-        let Some(list) = by_tid.get(&tid) else {
-            return ThreadIx::NONE;
-        };
-        let alive = list.iter().copied().find(|&i| {
-            let t = &trace.threads[i];
-            t.start.is_none_or(|s| s <= time) && t.end.is_none_or(|e| e >= time)
-        });
-        let i = alive.or_else(|| list.last().copied()).unwrap_or(usize::MAX);
-        ThreadIx(u32::try_from(i).unwrap_or(u32::MAX))
-    };
+    let threads = crate::reading::Threads::new(trace);
     let mut out: Vec<DiskIo> = ios
         .into_iter()
         .filter_map(|r| {
@@ -285,7 +201,7 @@ fn assemble(trace: &Trace, all: Vec<Read>, perf_freq: u64) -> DiskTable {
                     next
                 }))
             });
-            let thread = thread_at(thread_id, complete);
+            let thread = threads.at(thread_id, complete);
             Some(DiskIo {
                 kind,
                 disk,
