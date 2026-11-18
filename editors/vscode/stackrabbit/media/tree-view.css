@@ -1,0 +1,95 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size);
+  color: var(--vscode-foreground);
+  background: var(--vscode-editor-background);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+.summary {
+  padding: 6px 10px;
+  color: var(--vscode-descriptionForeground);
+}
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  padding: 4px 10px 6px;
+  border-bottom: 1px solid var(--vscode-panel-border);
+}
+.controls select,
+.controls button {
+  font: inherit;
+  color: var(--vscode-dropdown-foreground);
+  background: var(--vscode-dropdown-background);
+  border: 1px solid var(--vscode-dropdown-border);
+  padding: 1px 4px;
+}
+.controls button {
+  color: var(--vscode-button-foreground);
+  background: var(--vscode-button-background);
+  border: none;
+  padding: 2px 10px;
+  cursor: pointer;
+}
+.status.error {
+  color: var(--vscode-errorForeground);
+}
+.header,
+.row {
+  display: flex;
+  align-items: center;
+  height: 22px;
+  white-space: nowrap;
+}
+.header {
+  font-weight: 600;
+  border-bottom: 1px solid var(--vscode-panel-border);
+  padding-right: 14px;
+}
+.name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.num {
+  width: 110px;
+  text-align: right;
+  padding-right: 10px;
+  font-variant-numeric: tabular-nums;
+}
+.viewport {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+  outline: none;
+}
+#rows {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+.row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  cursor: default;
+}
+.row:hover {
+  background: var(--vscode-list-hoverBackground);
+}
+.row.selected {
+  background: var(--vscode-list-activeSelectionBackground);
+  color: var(--vscode-list-activeSelectionForeground);
+}
+.twisty {
+  display: inline-block;
+  width: 14px;
+  cursor: pointer;
+}

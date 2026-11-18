@@ -1,0 +1,64 @@
+{
+  "name": "stackrabbit",
+  "displayName": "Stackrabbit",
+  "description": "A fast performance trace viewer: open ETW traces (.etl) and explore CPU usage, waits and stacks, with every click answered at once.",
+  "version": "0.0.1",
+  "publisher": "stackrabbit",
+  "license": "Apache-2.0",
+  "preview": true,
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Visualization",
+    "Other"
+  ],
+  "keywords": [
+    "etw",
+    "etl",
+    "performance",
+    "profiler",
+    "trace",
+    "wpa",
+    "cpu",
+    "stacks"
+  ],
+  "main": "./extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "customEditors": [
+      {
+        "viewType": "stackrabbit.trace",
+        "displayName": "Stackrabbit Trace",
+        "selector": [
+          {
+            "filenamePattern": "*.etl"
+          }
+        ],
+        "priority": "default"
+      }
+    ],
+    "commands": [
+      {
+        "command": "stackrabbit.openTrace",
+        "title": "Open Trace…",
+        "category": "Stackrabbit"
+      },
+      {
+        "command": "stackrabbit.showLog",
+        "title": "Show Log",
+        "category": "Stackrabbit"
+      }
+    ],
+    "configuration": {
+      "title": "Stackrabbit",
+      "properties": {
+        "stackrabbit.path": {
+          "type": "string",
+          "default": "",
+          "description": "The stackrabbit engine to run. Empty: the one that comes with the extension."
+        }
+      }
+    }
+  }
+}

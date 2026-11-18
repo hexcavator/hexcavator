@@ -1,0 +1,5 @@
+# Put here when the VSIX is packaged.
+/bin/
+/LICENSE
+/NOTICE
+*.vsix

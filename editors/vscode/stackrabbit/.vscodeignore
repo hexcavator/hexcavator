@@ -1,0 +1,5 @@
+# What the VSIX leaves out: the tests. (bin/ and the license files are put
+# here by the release workflow, and go in.)
+test/**
+.vscode/**
+*.vsix
