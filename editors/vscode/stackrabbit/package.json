@@ -73,6 +73,11 @@
           "default": "",
           "description": "A file of stack tags, in WPA's format, for grouping stacks by what they are doing (Group by: Stack tag)."
         },
+        "stackrabbit.regionsFile": {
+          "type": "string",
+          "default": "",
+          "description": "A regions-of-interest file, in WPA's format, for the Regions tab: intervals between start and stop events, paired and named by their fields."
+        },
         "stackrabbit.lineHeat": {
           "type": "boolean",
           "default": true,

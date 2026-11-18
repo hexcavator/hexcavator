@@ -35,8 +35,12 @@
         `(${((range[1] - range[0]) / 1e9).toFixed(3)} s). Double-click the graph to clear.`
       : "All of the trace. Drag across the graph to select a time range; double-click it to clear.";
   }
-  const graph = new Graph($("graph"), $("legend"), (range) => {
+  const graph = new Graph($("graph"), $("legend"), (range) => selectTime(range), $("graph-tip"));
+  /** Selects `range` (null: all of the trace), and everything follows. */
+  function selectTime(range) {
     selection = range;
+    graph.selection = range;
+    graph.draw();
     showSelection();
     saveState();
     createTree();
@@ -45,7 +49,7 @@
     if (listedKind) {
       loadEventList(listedKind);
     }
-  }, $("graph-tip"));
+  }
   let view = null; // the engine's view ID
   let unit = "samples";
   let ticksPerSecond = 10000000;
@@ -509,13 +513,75 @@
     }
   }
 
+  // Regions of interest (the regions file is a setting): each region's
+  // count and time, and the instances; clicking one selects its time.
+  const ms = (ns) => (ns / 1e6).toLocaleString("en-US", { maximumFractionDigits: 3 });
+  const regionsTable = new SortedTable(
+    $("regions"),
+    [
+      { key: "path", title: "Region" },
+      { key: "count", title: "Instances", num: true, text: number(0) },
+      { key: "totalNs", title: "Total (ms)", num: true, text: ms },
+      { key: "unpairedStarts", title: "Unstopped", num: true },
+      { key: "unpairedStops", title: "Unstarted", num: true },
+      { key: "unsupported", title: "Not supported", cls: "cmd" },
+    ],
+    { key: "path", down: false }
+  );
+  const instancesTable = new SortedTable(
+    $("region-instances"),
+    [
+      { key: "region", title: "Region" },
+      { key: "name", title: "Name" },
+      { key: "startNs", title: "Start", num: true, text: at("") },
+      { key: "durationNs", title: "Duration (ms)", num: true, text: ms },
+      { key: "pid", title: "PID", num: true },
+      { key: "tid", title: "TID", num: true },
+    ],
+    { key: "startNs", down: false },
+    (row) => {
+      instancesTable.picked = row.pick;
+      instancesTable.draw();
+      selectTime([row.startNs, Math.max(row.stopNs, row.startNs + 1)]);
+    }
+  );
+  let regionsLoaded = false;
+  async function loadRegions() {
+    if (regionsLoaded) {
+      return;
+    }
+    try {
+      const r = await request("regions", {});
+      regionsLoaded = true;
+      const path = (i) => {
+        const parts = [];
+        for (let at = i; at !== null && at !== undefined; at = r.regions[at].parent) {
+          parts.unshift(r.regions[at].displayName);
+        }
+        return parts.join(" / ");
+      };
+      regionsTable.set(r.regions.map((x, i) => ({ ...x, path: path(i) })));
+      $("regions-title").textContent = `${r.regions.length} regions`;
+      instancesTable.set(r.instances.map((x, i) => ({ ...x, region: path(x.region), pick: i })));
+      $("region-instances-title").textContent =
+        `${r.instances.length.toLocaleString("en-US")} instances${r.truncated ? " (the first)" : ""}: click one to select its time`;
+    } catch (e) {
+      $("regions-title").textContent = /expected a regions file/.test(e.message)
+        ? "Set stackrabbit.regionsFile to a regions-of-interest file (WPA's format) to see its regions here."
+        : e.message;
+    }
+  }
+
   function showTab(name) {
     tab = name;
     saveState();
     if (name === "events") {
       loadEvents();
     }
-    for (const t of ["stacks", "processes", "functions", "symbols", "events"]) {
+    if (name === "regions") {
+      loadRegions();
+    }
+    for (const t of ["stacks", "processes", "functions", "symbols", "events", "regions"]) {
       $(`tab-${t}`).classList.toggle("active", name === t);
       $(`${t}-pane`).classList.toggle("hidden", name !== t);
     }
@@ -531,6 +597,7 @@
   }
   $("tab-symbols").addEventListener("click", () => showTab("symbols"));
   $("tab-events").addEventListener("click", () => showTab("events"));
+  $("tab-regions").addEventListener("click", () => showTab("regions"));
   symbolsEl.addEventListener("click", () => showTab("symbols"));
   /**
    * The shown tab as Markdown, to the clipboard (by way of the extension):
@@ -648,7 +715,7 @@
     if (s.lit && typeof s.lit.fn === "string") {
       lit = { fn: s.lit.fn, label: String(s.lit.label || s.lit.fn) };
     }
-    if (["stacks", "processes", "functions", "symbols", "events"].includes(s.tab)) {
+    if (["stacks", "processes", "functions", "symbols", "events", "regions"].includes(s.tab)) {
       showTab(s.tab);
     }
   }

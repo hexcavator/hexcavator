@@ -34,6 +34,12 @@
 //!   lines (`{line, exclusive, inclusive, count}`, in order). Exclusive:
 //!   where the line is the innermost frame; inclusive: where it is on the
 //!   stack (a call's line, for a caller).
+//! - `regions` `{trace, file}` → `{regions, instances, truncated}`: the
+//!   regions of interest a WPA regions file defines, and their instances
+//!   in the trace: each region `{name, displayName, parent, unsupported,
+//!   count, totalNs, unpairedStarts, unpairedStops}`; each instance
+//!   `{region, name, startNs, stopNs, durationNs, pid, tid}`, in start
+//!   order (the first 20,000).
 //! - `symbols` `{trace, wait?}` → `{ready, done, cache, rows, noDebug}`:
 //!   the PDBs the
 //!   trace's stacks need, most wanted first, each `{pdb, path, identity,
@@ -757,6 +763,14 @@ impl State {
                     file,
                     limit,
                 ))
+            }
+            "regions" => {
+                let file = params
+                    .get("file")
+                    .and_then(Value::as_str)
+                    .filter(|f| !f.is_empty())
+                    .ok_or("file: expected a regions file")?;
+                crate::regions::regions(trace, &self.loaded.path, std::path::Path::new(file))
             }
             "symbols" => {
                 // (`wait`: once the background thread is done.)

@@ -1085,3 +1085,119 @@ fn listed_events_have_their_stacks() {
             .all(|r| r["stack"].is_null())
     );
 }
+
+#[test]
+fn regions_of_interest_over_a_trace() {
+    use hexcavator_etl::Guid;
+    use hexcavator_etl::write::{self, EventFields, Writer, WriterOptions};
+    let dir = scratch("serve-regions");
+    let provider = Guid::new(0x1234_5678, 1, 2, [3; 8]);
+    // TraceLogging events: Start (ID 1: Item, Key) and Stop (ID 2: Key).
+    let schema = |name: &str, fields: &[(&str, u8)]| {
+        let mut b = vec![0, 0, 0];
+        b.extend_from_slice(name.as_bytes());
+        b.push(0);
+        for (f, t) in fields {
+            b.extend_from_slice(f.as_bytes());
+            b.push(0);
+            b.push(*t);
+        }
+        let n = u16::try_from(b.len()).unwrap().to_le_bytes();
+        b[..2].copy_from_slice(&n);
+        b
+    };
+    let start = schema("Start", &[("Item", 2), ("Key", 8)]);
+    let stop = schema("Stop", &[("Key", 8)]);
+    let mut w = Writer::new(WriterOptions {
+        processors: 1,
+        perf_freq: 1_000_000_000, // (ticks are nanoseconds)
+        ..WriterOptions::default()
+    });
+    let mut emit = |ts: i64, id: u16, tid: u32, meta: &[u8], payload: Vec<u8>| {
+        let e = EventFields {
+            provider,
+            id,
+            thread_id: tid,
+            process_id: 4,
+            timestamp: ts,
+            ..EventFields::default()
+        };
+        w.record(
+            0,
+            &write::event(
+                &e,
+                true,
+                &[(hexcavator_etl::event::ext_type::EVENT_SCHEMA_TL, meta)],
+                &payload,
+            ),
+        );
+    };
+    let item = |name: &str, key: u32| {
+        let mut p = name.as_bytes().to_vec();
+        p.push(0);
+        p.extend_from_slice(&key.to_le_bytes());
+        p
+    };
+    emit(1_000, 1, 10, &start, item("a", 1));
+    emit(2_000, 1, 11, &start, item("b", 2));
+    emit(3_000, 2, 12, &stop, 1u32.to_le_bytes().to_vec());
+    emit(4_000, 2, 13, &stop, 2u32.to_le_bytes().to_vec());
+    emit(5_000, 2, 14, &stop, 9u32.to_le_bytes().to_vec()); // no start
+    let path = dir.join("t.etl");
+    std::fs::write(&path, w.finish()).unwrap();
+    let regions = dir.join("regions.xml");
+    let p = format!("{{{provider}}}");
+    std::fs::write(
+        &regions,
+        format!(
+            r#"<InstrumentationManifest><Instrumentation><Regions>
+  <RegionRoot Guid="{{0}}" Name="Root">
+    <Region Guid="{{1}}" Name="Work" FriendlyName="Work items">
+      <Start><Event Provider="{p}" Id="1" Version="0" /></Start>
+      <Stop><Event Provider="{p}" Id="2" Version="0" /></Stop>
+      <Match><Event><Payload FieldName="Key" /></Event></Match>
+      <Naming><PayloadBased NameField="Item" /></Naming>
+    </Region>
+  </RegionRoot>
+</Regions></Instrumentation></InstrumentationManifest>"#
+        ),
+    )
+    .unwrap();
+    let a = session(&[
+        json!({"method": "open", "params": {"path": path, "useIndex": true}}),
+        json!({"method": "regions", "params": {"trace": 1, "file": regions}}),
+        json!({"method": "regions", "params": {"trace": 1, "file": dir.join("none.xml")}}),
+        json!({"method": "regions", "params": {"trace": 1}}),
+    ]);
+    let r = result(&a, 2);
+    let defs = r["regions"].as_array().unwrap();
+    assert_eq!(defs[1]["displayName"], "Work items");
+    assert_eq!(defs[1]["count"], 2);
+    assert_eq!(defs[1]["unpairedStops"], 1);
+    assert_eq!(defs[1]["totalNs"], 4_000);
+    assert_eq!(defs[0]["count"], 1, "the root contains them");
+    let inst: Vec<(u64, Option<&str>, i64, i64, u64)> = r["instances"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|i| {
+            (
+                i["region"].as_u64().unwrap(),
+                i["name"].as_str(),
+                i["startNs"].as_i64().unwrap(),
+                i["durationNs"].as_i64().unwrap(),
+                i["tid"].as_u64().unwrap_or(0),
+            )
+        })
+        .collect();
+    assert_eq!(
+        inst,
+        [
+            (0, None, 1_000, 3_000, 0),
+            (1, Some("a"), 1_000, 2_000, 10),
+            (1, Some("b"), 2_000, 2_000, 11)
+        ]
+    );
+    assert!(error(&a, 3).contains("none.xml"));
+    assert!(error(&a, 4).contains("file"));
+}

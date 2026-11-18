@@ -9,6 +9,7 @@ authors.workspace = true
 repository.workspace = true
 
 [dependencies]
+hexcavator-etl.workspace = true
 hexcavator-symbolize.workspace = true
 hexcavator-trace.workspace = true
 hexcavator-mmap.workspace = true

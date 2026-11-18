@@ -34,6 +34,7 @@ pub struct Kind {
 /// One event, decoded.
 struct Row {
     timestamp: i64,
+    activity: Guid,
     processor: u16,
     process_id: u32,
     thread_id: u32,
@@ -184,6 +185,100 @@ pub fn list(
             "extra": r.extra,
         })).collect::<Vec<_>>(),
     }))
+}
+
+/// Occurrences of events by kind (provider, ID, version).
+pub type Occurrences =
+    FxHashMap<(Guid, u16, u8), Vec<hexcavator_trace_analysis::regions::Occurrence>>;
+
+/// Every occurrence of the kinds `wanted` names (provider, ID, version:
+/// any opcode), with its payload's fields as text: read from the buffers
+/// holding them, on every core, in time order for each kind.
+pub fn occurrences(
+    trace: &Trace,
+    path: &Path,
+    wanted: &[(Guid, u16, u8)],
+) -> Result<Occurrences, String> {
+    let map = Mmap::open(path).map_err(|e| format!("{}: {e}", path.display()))?;
+    let etl = Etl::parse(map.as_slice()).map_err(|e| format!("{}: {e}", path.display()))?;
+    let max = usize::try_from(etl.header().buffer_size)
+        .unwrap_or(1 << 20)
+        .max(1 << 16);
+    let mut infos = EventInfos::default();
+    for b in &trace.event_infos {
+        if let Ok(i) = EventInfo::parse(b) {
+            infos.add(i);
+        }
+    }
+    let kinds: Vec<u32> = trace
+        .events
+        .iter()
+        .enumerate()
+        .filter(|(_, e)| wanted.contains(&(e.provider, e.id, e.version)))
+        .filter_map(|(i, _)| u32::try_from(i).ok())
+        .collect();
+    let buffers: Vec<Buffer<'_>> = if trace.buffers.is_empty() {
+        etl.buffers().flatten().collect()
+    } else {
+        trace
+            .buffers
+            .iter()
+            .filter(|b| b.kinds.iter().any(|k| kinds.contains(k)))
+            .filter_map(|b| etl.buffer_at(b.offset, b.index).ok())
+            .collect()
+    };
+    type Found = Occurrences;
+    let next = AtomicUsize::new(0);
+    let all: Mutex<Found> = Mutex::default();
+    let threads = std::thread::available_parallelism()
+        .map_or(4, std::num::NonZero::get)
+        .min(buffers.len().div_ceil(CHUNK).max(1));
+    std::thread::scope(|scope| {
+        for _ in 0..threads {
+            scope.spawn(|| {
+                let mut scratch = Vec::new();
+                let mut mine: Found = FxHashMap::default();
+                loop {
+                    let c = next.fetch_add(1, Ordering::Relaxed);
+                    let from = c.saturating_mul(CHUNK);
+                    if from >= buffers.len() {
+                        break;
+                    }
+                    for buffer in &buffers[from..(from + CHUNK).min(buffers.len())] {
+                        let _ = for_each_event(buffer, max, &mut scratch, |e| {
+                            let key = (e.provider, e.descriptor.id, e.descriptor.version);
+                            if !wanted.contains(&key) {
+                                return;
+                            }
+                            let r = decode(e, &infos);
+                            mine.entry(key).or_default().push(
+                                hexcavator_trace_analysis::regions::Occurrence {
+                                    time: r.timestamp,
+                                    process_id: r.process_id,
+                                    thread_id: r.thread_id,
+                                    activity: r.activity,
+                                    fields: r.fields,
+                                },
+                            );
+                        });
+                    }
+                }
+                let mut all = all
+                    .lock()
+                    .unwrap_or_else(std::sync::PoisonError::into_inner);
+                for (k, mut v) in mine {
+                    all.entry(k).or_default().append(&mut v);
+                }
+            });
+        }
+    });
+    let mut all = all
+        .into_inner()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    for v in all.values_mut() {
+        v.sort_by_key(|o| (o.time, o.thread_id));
+    }
+    Ok(all)
 }
 
 /// How long after its event a stack's second (user-mode) part may come:
@@ -474,6 +569,7 @@ fn decode(e: &Event<'_>, infos: &EventInfos) -> Row {
         };
     Row {
         timestamp: e.timestamp,
+        activity: e.activity_id,
         processor: e.context.processor,
         process_id: e.process_id,
         thread_id: e.thread_id,

@@ -140,6 +140,8 @@ window.acquireVsCodeApi = function () {
     else if (m.method === "processes") r.result = A.processes;
     else if (m.method === "functions") r.result = A.functions;
     else if (m.method === "events") r.result = A.events;
+    else if (m.method === "regions" && A.regions) r.result = A.regions;
+    else if (m.method === "regions") r.error = "regions: file: expected a regions file";
     else if (m.method === "events.list" && A.sampleKind && m.params.opcode === A.sampleKind.opcode && m.params.guid === A.sampleKind.guid) r.result = A.sampleList;
     else if (m.method === "events.list") r.result = A.eventList;
     else if (m.method === "symbols") r.result = A.symbols;
@@ -691,6 +693,32 @@ def main():
     shown = html.unescape(m.group(1)).split("\n")
     assert shown[0] == "Stack (innermost first):" and shown[1:] == sl["rows"][first_with]["stack"], shown[:3]
     assert 'data-key="frames"' in dom, "a column of stack depths"
+    # Regions: none without a file (a note about the setting); with one,
+    # its regions and instances, and clicking one selects its time.
+    dom = render(data, "document.getElementById('tab-regions').click();")
+    assert "Set stackrabbit.regionsFile" in dom, "the setting's note"
+    regioned = json.loads(json.dumps(data))
+    regioned["regions"] = {
+        "regions": [
+            {"name": "Root", "displayName": "Root", "parent": None, "unsupported": None, "count": 1, "totalNs": 200000000, "unpairedStarts": 0, "unpairedStops": 0},
+            {"name": "Work", "displayName": "Work items", "parent": 0, "unsupported": None, "count": 2, "totalNs": 150000000, "unpairedStarts": 1, "unpairedStops": 0},
+        ],
+        "instances": [
+            {"region": 0, "name": None, "startNs": 100000000, "stopNs": 300000000, "durationNs": 200000000, "pid": None, "tid": None},
+            {"region": 1, "name": "a", "startNs": 100000000, "stopNs": 200000000, "durationNs": 100000000, "pid": 4, "tid": 10},
+            {"region": 1, "name": "b", "startNs": 250000000, "stopNs": 300000000, "durationNs": 50000000, "pid": 4, "tid": 11},
+        ],
+        "truncated": False,
+    }
+    click = ("document.getElementById('tab-regions').click();"
+             "setTimeout(function () { document.querySelector('#region-instances tbody tr[data-i=\"1\"]').click(); }, 100);")
+    dom = render(regioned, click, shot=shot("regions"))
+    assert "Root / Work items" in dom, "the region's path"
+    assert "3 instances" in dom
+    posted = json.loads(html.unescape(re.search(r'<pre id="posted"[^>]*>(.*?)</pre>', dom, re.S).group(1)))
+    trees = [m["params"] for m in posted if m.get("method") == "tree.create"]
+    assert trees[-1].get("time") == [100000000, 200000000], trees[-1]
+    assert "Selected 0.100 s to 0.200 s" in dom
     print("harness: ok")
 
 

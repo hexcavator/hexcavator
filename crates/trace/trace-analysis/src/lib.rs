@@ -13,6 +13,7 @@
 pub mod keys;
 pub mod lines;
 pub mod pdb;
+pub mod regions;
 pub mod shape;
 pub mod sources;
 pub mod tree;
