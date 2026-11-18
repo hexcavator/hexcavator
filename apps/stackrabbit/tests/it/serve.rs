@@ -1942,6 +1942,7 @@ fn app_trace(dir: &std::path::Path, events: Vec<KernelRecord>) -> std::path::Pat
     let mut w = Writer::new(WriterOptions {
         processors: 1,
         perf_freq: 10_000_000,
+        buffer_size: 0x10000,
         ..WriterOptions::default()
     });
     let mut process = 0xaaaau64.to_le_bytes().to_vec();
@@ -2447,4 +2448,143 @@ fn pool_blocks_by_tag_type_and_process() {
         (&json!(256), &json!("Nonpaged"), &json!("Abcd"))
     );
     assert!(error(&a, 5).contains("by"), "{}", error(&a, 5));
+}
+
+#[test]
+fn memory_utilization_by_process_and_name() {
+    use hexcavator_etw::guids;
+    let dir = scratch("serve-memory");
+    const P: u64 = 4096;
+    // ProcessMemInfo (125) v4: a count, then per process its ID and eight
+    // page counts (working set, commit, virtual size, private working
+    // set, then four more).
+    let info = |ts: i64, records: &[(u32, u64, u64, u64)]| {
+        let mut p = u32::try_from(records.len()).unwrap().to_le_bytes().to_vec();
+        for &(pid, ws, private, commit) in records {
+            p.extend_from_slice(&pid.to_le_bytes());
+            for v in [ws, commit, 100, private, 0, 0, 0, 0] {
+                p.extend_from_slice(&v.to_le_bytes());
+            }
+        }
+        (guids::PAGE_FAULT, 125, 4, ts, p, u32::MAX)
+    };
+    // The first snapshot is split: 256 processes (app.exe, 1000 and 254
+    // more), then 2 more 100 ns later.
+    let mut first = vec![(100, 10, 4, 20), (1000, 1, 1, 1)];
+    first.extend((1001..1255).map(|pid| (pid, 1, 1, 1)));
+    let path = app_trace(
+        &dir,
+        vec![
+            info(10, &first),
+            info(11, &[(4, 1, 1, 1), (5, 1, 1, 1)]),
+            // One not the layout's length.
+            (
+                guids::PAGE_FAULT,
+                125,
+                4,
+                2_000_000,
+                vec![1, 0, 0, 0, 9],
+                u32::MAX,
+            ),
+            // Half a second on.
+            info(5_000_010, &[(100, 30, 5, 15), (1000, 2, 2, 3)]),
+        ],
+    );
+    let req = |by: &str, extra: Value| {
+        let mut p = json!({"trace": 1, "by": by});
+        for (k, v) in extra.as_object().unwrap() {
+            p[k] = v.clone();
+        }
+        json!({"method": "memory", "params": p})
+    };
+    let a = session(&[
+        json!({"method": "open", "params": {"path": path, "useIndex": true}}),
+        req("process", json!({})),
+        req("name", json!({})),
+        req("process", json!({"time": [0, 250_000_000]})),
+        req("process", json!({"groupLimit": 1, "limit": 1})),
+        req("nonsense", json!({})),
+    ]);
+    let groups = |id: u64| -> std::collections::BTreeMap<String, [i64; 6]> {
+        result(&a, id)["groups"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|g| {
+                let n = |k: &str| g[k].as_i64().unwrap();
+                (
+                    g["label"].as_str().unwrap().to_string(),
+                    [
+                        n("workingSet"),
+                        n("privateWorkingSet"),
+                        n("commit"),
+                        n("peakWorkingSet"),
+                        n("peakCommit"),
+                        n("commitChange"),
+                    ],
+                )
+            })
+            .collect()
+    };
+    let p = |v: i64| v * 4096;
+    let r = result(&a, 2);
+    assert_eq!(
+        (&r["snapshots"], &r["malformed"], &r["groupsTotal"]),
+        (&json!(2), &json!(1), &json!(258))
+    );
+    assert_eq!(
+        (r["workingSet"].as_u64(), r["commit"].as_u64()),
+        (Some(32 * P), Some(18 * P))
+    );
+    let series: Vec<(i64, u64, u64, u64)> = r["series"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|s| {
+            (
+                s["timeNs"].as_i64().unwrap(),
+                s["processes"].as_u64().unwrap(),
+                s["workingSet"].as_u64().unwrap(),
+                s["commit"].as_u64().unwrap(),
+            )
+        })
+        .collect();
+    assert_eq!(
+        series,
+        [
+            (1_000, 258, 267 * P, 277 * P),
+            (500_001_000, 2, 32 * P, 18 * P)
+        ],
+        "the split snapshot is one, at its first event's time"
+    );
+    let procs = groups(2);
+    assert_eq!(
+        procs["app.exe (100)"],
+        [p(30), p(5), p(15), p(30), p(20), p(-5)]
+    );
+    assert_eq!(
+        procs["Unknown process (1000)"],
+        [p(2), p(2), p(3), p(2), p(3), p(2)]
+    );
+    assert_eq!(
+        procs["Unknown process (1001)"],
+        [0, 0, 0, p(1), p(1), p(-1)],
+        "gone by the last"
+    );
+    let names = groups(3);
+    assert_eq!(names.len(), 2);
+    assert_eq!(names["Unknown process"][2..5], [p(3), p(257), p(257)]);
+    // The first quarter second: the first snapshot alone.
+    let early = groups(4);
+    assert_eq!(
+        early["app.exe (100)"],
+        [p(10), p(4), p(20), p(10), p(20), 0]
+    );
+    assert_eq!(result(&a, 4)["snapshots"], 1);
+    // The most commit first, and only as many as asked for.
+    let r = result(&a, 5);
+    assert_eq!(r["groups"].as_array().unwrap().len(), 1);
+    assert_eq!(r["groups"][0]["label"], "app.exe (100)");
+    assert_eq!(r["series"].as_array().unwrap().len(), 1);
+    assert!(error(&a, 6).contains("by"), "{}", error(&a, 6));
 }

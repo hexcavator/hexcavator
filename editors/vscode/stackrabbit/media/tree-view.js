@@ -818,6 +818,40 @@
     });
   }
 
+  // Memory utilization: each process's memory at the end of the time
+  // selected (from the kernel's snapshots), its peaks, and its commit's
+  // change across it.
+  const signedMb = (v) => (v > 0 ? "+" : "") + mb(v);
+  summaryTab({
+    name: "memory",
+    method: "memory",
+    reading: "Reading the trace's memory snapshots\u2026",
+    groups: [
+      { key: "label", title: "Group", cls: "cmd" },
+      { key: "workingSet", title: "Working set (MB)", num: true, text: mb },
+      { key: "privateWorkingSet", title: "Private (MB)", num: true, text: mb },
+      { key: "commit", title: "Commit (MB)", num: true, text: mb },
+      { key: "peakWorkingSet", title: "Peak working set (MB)", num: true, text: mb },
+      { key: "peakCommit", title: "Peak commit (MB)", num: true, text: mb },
+      { key: "commitChange", title: "Commit change (MB)", num: true, text: signedMb },
+    ],
+    groupSort: { key: "commit", down: true },
+    items: "series",
+    itemColumns: [
+      { key: "timeNs", title: "Time", num: true, text: at("") },
+      { key: "processes", title: "Processes", num: true },
+      { key: "workingSet", title: "Working sets (MB)", num: true, text: mb },
+      { key: "privateWorkingSet", title: "Private (MB)", num: true, text: mb },
+      { key: "commit", title: "Commit (MB)", num: true, text: mb },
+    ],
+    itemSort: { key: "timeNs", down: false },
+    title: (d, when) =>
+      d.snapshots
+        ? `${count(d.snapshots)} memory snapshots${when}; at the last, working sets ${mb(d.workingSet)} MB, ` +
+          `commit ${mb(d.commit)} MB`
+        : `No memory snapshots${when} (they come of recording with memory information)`,
+  });
+
   // Hard faults, by duration (from each fault to its read's completion).
   summaryTab({
     name: "hardfaults",
@@ -853,7 +887,7 @@
     if (name === "regions") {
       loadRegions();
     }
-    for (const t of ["stacks", "processes", "functions", "symbols", "events", "regions", "disk", "fileio", "dpc", "registry", "hardfaults", "vmem", "heap", "pool"]) {
+    for (const t of ["stacks", "processes", "functions", "symbols", "events", "regions", "disk", "fileio", "dpc", "registry", "hardfaults", "vmem", "heap", "pool", "memory"]) {
       $(`tab-${t}`).classList.toggle("active", name === t);
       $(`${t}-pane`).classList.toggle("hidden", name !== t);
     }
@@ -882,6 +916,7 @@
   $("tab-vmem").addEventListener("click", () => showTab("vmem"));
   $("tab-heap").addEventListener("click", () => showTab("heap"));
   $("tab-pool").addEventListener("click", () => showTab("pool"));
+  $("tab-memory").addEventListener("click", () => showTab("memory"));
   symbolsEl.addEventListener("click", () => showTab("symbols"));
   /**
    * The shown tab as Markdown, to the clipboard (by way of the extension):
@@ -999,7 +1034,7 @@
     if (s.lit && typeof s.lit.fn === "string") {
       lit = { fn: s.lit.fn, label: String(s.lit.label || s.lit.fn) };
     }
-    if (["stacks", "processes", "functions", "symbols", "events", "regions", "disk", "fileio", "dpc", "registry", "hardfaults", "vmem", "heap", "pool"].includes(s.tab)) {
+    if (["stacks", "processes", "functions", "symbols", "events", "regions", "disk", "fileio", "dpc", "registry", "hardfaults", "vmem", "heap", "pool", "memory"].includes(s.tab)) {
       showTab(s.tab);
     }
   }

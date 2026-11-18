@@ -149,6 +149,7 @@ window.acquireVsCodeApi = function () {
     else if (m.method === "vmem" && A.vmem) r.result = A.vmem;
     else if (m.method === "heap" && A.heap) r.result = A.heap;
     else if (m.method === "pool" && A.pool) r.result = A.pool;
+    else if (m.method === "memory" && A.memory) r.result = A.memory;
     else if (m.method === "regions") r.error = "regions: file: expected a regions file";
     else if (m.method === "events.list" && A.sampleKind && m.params.opcode === A.sampleKind.opcode && m.params.guid === A.sampleKind.guid) r.result = A.sampleList;
     else if (m.method === "events.list") r.result = A.eventList;
@@ -887,6 +888,32 @@ def main():
         rest = html.unescape(dom[start:dom.index("</table>", start)])
         assert group in rest and "still allocated" in rest and "2,048" in rest
         assert ("Paged" in rest) == (name == "pool"), (name, "the pool's types")
+    # The memory tab: each group's memory at the last snapshot, and the
+    # snapshots' totals in time order.
+    memd = json.loads(json.dumps(data))
+    memd["memory"] = {
+        "snapshots": 2, "malformed": 0, "workingSet": 3145728, "commit": 2097152, "groupsTotal": 2,
+        "groups": [{"label": "app.exe (100)", "workingSet": 2097152, "privateWorkingSet": 1048576, "commit": 2097152,
+                    "peakWorkingSet": 3145728, "peakCommit": 3145728, "commitChange": -1048576},
+                   {"label": "svc.exe (200)", "workingSet": 1048576, "privateWorkingSet": 0, "commit": 0,
+                    "peakWorkingSet": 1048576, "peakCommit": 0, "commitChange": 0}],
+        "series": [{"timeNs": 500000000, "processes": 2, "workingSet": 4194304, "privateWorkingSet": 1048576, "commit": 3145728},
+                   {"timeNs": 1000000000, "processes": 2, "workingSet": 3145728, "privateWorkingSet": 1048576, "commit": 2097152}],
+    }
+    change = ("document.getElementById('tab-memory').click();"
+              "setTimeout(function () { var b = document.getElementById('memory-by'); b.value = 'name'; b.dispatchEvent(new Event('change')); }, 100);")
+    dom = render(memd, change, shot=shot("memory"))
+    assert "2 memory snapshots; at the last, working sets 3 MB, commit 2 MB." in dom, "the memory title"
+    posted = json.loads(html.unescape(re.search(r'<pre id="posted"[^>]*>(.*?)</pre>', dom, re.S).group(1)))
+    asked = [m["params"]["by"] for m in posted if m.get("method") == "memory"]
+    assert asked == ["process", "name"], asked
+    table = dom[dom.index('id="memory-groups"'):dom.index('id="memory-series"')]
+    labels = [html.unescape(x) for x in re.findall(r'<tr data-i="\d+"><td class="cmd">([^<]*)</td>', table)]
+    assert labels == ["app.exe (100)", "svc.exe (200)"], labels
+    assert ">-1<" in table, "a signed commit change"
+    start = dom.index('id="memory-series"')
+    series = dom[start:dom.index("</table>", start)]
+    assert series.index("0.500 s") < series.index("1.000 s"), "in time order"
     print("harness: ok")
 
 

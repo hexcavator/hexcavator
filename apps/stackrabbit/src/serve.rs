@@ -74,6 +74,17 @@
 //!   allocated in it, each `{process, tid, group, kind, address, size,
 //!   allocNs, freeNs}`. (Read from the trace file the first time, then
 //!   kept.)
+//! - `memory` `{trace, by?, time?, limit?, groupLimit?}` → `{snapshots,
+//!   malformed, workingSet, commit, groupsTotal, groups, series}`: memory
+//!   utilization, from the kernel's snapshots of each process's memory in
+//!   `time` (all of the trace if none): by `by` (process or name), the
+//!   working set, private working set and commit (bytes) in the last, the
+//!   peak working set and commit, and the commit's change from the first
+//!   (the most commit first; the first `groupLimit` (10,000) of
+//!   `groupsTotal`); and each snapshot's totals (`series`: the first
+//!   `limit` (1000), each `{timeNs, processes, workingSet,
+//!   privateWorkingSet, commit}`). (Read from the trace file the first
+//!   time, then kept.)
 //! - `vmem` `{trace, by?, time?, limit?, groupLimit?}` → `{commits,
 //!   committed, decommits, decommitted, outstanding, groupsTotal, groups,
 //!   lifetimes}`: virtual memory commit lifetimes; by `by` (process or
@@ -387,6 +398,8 @@ struct State {
     heap: Option<Arc<crate::allocs::BlockTable>>,
     /// The trace's pool blocks, once read.
     pool: Option<Arc<crate::allocs::BlockTable>>,
+    /// The trace's memory snapshots, once read.
+    memory: Option<Arc<crate::memutil::MemTable>>,
     /// The trace's commit lifetimes, once read.
     vmem: Option<Arc<crate::vmem::VmemTable>>,
     /// The trace's hard faults, once read.
@@ -512,6 +525,7 @@ fn worker(
         registry: None,
         faults: None,
         vmem: None,
+        memory: None,
         heap: None,
         pool: None,
         report: SymbolsReport {
@@ -1003,6 +1017,32 @@ impl State {
                     trace,
                     &table,
                     kinds,
+                    group,
+                    ticks(trace, spec.time),
+                    limit,
+                    group_limit,
+                ))
+            }
+            "memory" => {
+                let spec = TreeSpec::from_json(params)?;
+                let group = match params.get("by").and_then(Value::as_str) {
+                    None | Some("process") => crate::memutil::GroupBy::Process,
+                    Some("name") => crate::memutil::GroupBy::Name,
+                    Some(other) => return Err(format!("by: process or name, not {other}")),
+                };
+                let limit = count(params, "limit", 1000)?;
+                let group_limit = count(params, "groupLimit", 10_000)?;
+                let table = match &self.memory {
+                    Some(t) => Arc::clone(t),
+                    None => {
+                        let t = Arc::new(crate::memutil::table(trace, &self.loaded.path)?);
+                        self.memory = Some(Arc::clone(&t));
+                        t
+                    }
+                };
+                Ok(crate::memutil::summary(
+                    trace,
+                    &table,
                     group,
                     ticks(trace, spec.time),
                     limit,

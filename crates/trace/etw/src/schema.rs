@@ -1056,6 +1056,29 @@ pub static SCHEMAS: &[Schema] = &[
         "VirtualFree",
         VIRTUAL_ALLOC,
     ),
+    // (As TDH describes them.)
+    s(
+        guids::PAGE_FAULT,
+        129,
+        2,
+        "PageFault",
+        "VirtualAllocDCEnd",
+        &[
+            ("BaseAddress", Ptr),
+            ("RegionSize", Ptr),
+            ("ProcessId", U32),
+            ("Flags", U32),
+            ("CommitSizeInBytes", Ptr),
+        ],
+    ),
+    s(
+        guids::PAGE_FAULT,
+        134,
+        2,
+        "PageFault",
+        "MemResetInfo",
+        &[("BaseAddress", Ptr), ("SizeInBytes", Ptr), ("Flags", U32)],
+    ),
     // SystemConfig.
     s(
         guids::SYSTEM_CONFIG,
