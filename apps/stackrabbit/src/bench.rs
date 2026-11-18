@@ -578,6 +578,8 @@ fn events_table(traces: &[PathBuf]) -> ExitCode {
             let mut counts: std::collections::BTreeMap<(String, u8), (u64, usize, usize)> =
                 std::collections::BTreeMap::new();
             let mut scratch = Vec::new();
+            // Events with TraceLogging schemas, by provider.
+            let mut tl: std::collections::BTreeMap<String, u64> = std::collections::BTreeMap::new();
             // Each sample's (timestamp, thread), and each stack's.
             let mut samples: Vec<(i64, u32)> = Vec::new();
             let mut stacks: std::collections::HashSet<(i64, u32)> =
@@ -601,6 +603,12 @@ fn events_table(traces: &[PathBuf]) -> ExitCode {
                         let ts = i64::from_le_bytes(u[0..8].try_into().unwrap());
                         let tid = u32::from_le_bytes(u[12..16].try_into().unwrap());
                         stacks.insert((ts, tid));
+                    }
+                    if e.extended_data()
+                        .flatten()
+                        .any(|x| x.ext_type == hexcavator_etl::event::ext_type::EVENT_SCHEMA_TL)
+                    {
+                        *tl.entry(e.provider.to_string()).or_insert(0u64) += 1;
                     }
                     let c = counts
                         .entry((e.provider.to_string(), e.descriptor.opcode))
@@ -626,6 +634,11 @@ fn events_table(traces: &[PathBuf]) -> ExitCode {
                 named,
                 named_any,
                 idle
+            );
+            println!(
+                "  TraceLogging: {} events from {} providers",
+                tl.values().sum::<u64>(),
+                tl.len()
             );
             println!(
                 "  {:<40} {:>6} {:>12} {:>8} {:>8}",
