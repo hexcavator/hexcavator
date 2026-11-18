@@ -148,6 +148,9 @@ class TraceEditorProvider {
           document.opening = null;
           panel.webview.postMessage({ type: "failed", error: e.message });
         }
+      } else if (m.type === "copy") {
+        await vscode.env.clipboard.writeText(m.text);
+        vscode.window.setStatusBarMessage(`Stackrabbit: copied ${m.what} as Markdown`, 4000);
       } else if (m.type === "request") {
         if (!VIEW_METHODS.has(m.method) || document.trace === null) {
           panel.webview.postMessage({ type: "response", id: m.id, error: `${m.method}: not available` });
@@ -207,6 +210,7 @@ function html(webview, media) {
   </select></label>
   <label><input type="checkbox" id="invert"> Callers (inverted)</label>
   <button id="hot" title="Expand the hot path under the selected row (*)">Hot path</button>
+  <button id="copy" title="Copy as Markdown: the selected row and the rows open under it, or the tab's tables (Ctrl+C)">Copy</button>
   <span id="symbols" class="symbols"></span>
   <span id="status" class="status"></span>
 </div>

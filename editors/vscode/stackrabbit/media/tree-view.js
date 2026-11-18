@@ -4,7 +4,7 @@
 "use strict";
 (function () {
   const vscode = acquireVsCodeApi();
-  const { TreeModel, formatWeight } = globalThis.StackrabbitTree;
+  const { TreeModel, formatWeight, markdownTable } = globalThis.StackrabbitTree;
   const { Graph } = globalThis.StackrabbitGraph;
   const ROW = 22;
 
@@ -156,6 +156,16 @@
     set(rows) {
       this.rows = rows;
       this.draw();
+    }
+
+    /** The table as it is sorted, as Markdown. */
+    markdown() {
+      const cells = (r) => this.columns.map((c) => (c.text ? c.text(r[c.key]) : r[c.key]));
+      return markdownTable(
+        this.columns.map((c) => c.title),
+        (this.sorted || []).map(cells),
+        this.columns.map((c) => !!c.num)
+      );
     }
 
     draw() {
@@ -325,6 +335,44 @@
       loadFunctions();
     }
   }
+  /**
+   * The shown tab as Markdown, to the clipboard (by way of the extension):
+   * the stack tree's selected row and the rows open under it (or every
+   * row shown), or the tab's tables as they are sorted.
+   */
+  function copy() {
+    let text = "";
+    let what = "";
+    if (!$("stacks-pane").classList.contains("hidden")) {
+      if (!model) {
+        return;
+      }
+      const visible = model.visible();
+      const rows = selected >= 0 && visible[selected] ? model.subtree(visible[selected].id) : visible;
+      text = model.markdown(rows, (v) => formatWeight(v, unit, ticksPerSecond));
+      what = `${rows.length} rows`;
+    } else if (!$("functions-pane").classList.contains("hidden")) {
+      text = functionsTable.markdown() + "\n" + modulesTable.markdown();
+      what = "the functions and modules";
+    } else {
+      text = processesTable.markdown();
+      what = "the processes";
+      if (processesTable.picked !== null) {
+        text += "\n" + threadsTable.markdown();
+        what += " and threads";
+      }
+    }
+    vscode.postMessage({ type: "copy", text, what });
+  }
+  $("copy").addEventListener("click", copy);
+  // Ctrl+C (or Cmd+C) copies the tab, unless text is selected.
+  document.addEventListener("keydown", (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === "c" && !String(window.getSelection() || "")) {
+      e.preventDefault();
+      copy();
+    }
+  });
+
   $("tab-stacks").addEventListener("click", () => showTab("stacks"));
   $("tab-processes").addEventListener("click", () => showTab("processes"));
   $("tab-functions").addEventListener("click", () => showTab("functions"));

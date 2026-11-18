@@ -72,6 +72,42 @@
       return out;
     }
 
+    /**
+     * The visible rows from `id` down: it and its visible descendants, in
+     * order (all the visible rows if `id` isn't one).
+     */
+    subtree(id) {
+      const rows = this.visible();
+      const at = rows.findIndex((r) => r.id === id);
+      if (at < 0) {
+        return rows;
+      }
+      let end = at + 1;
+      while (end < rows.length && rows[end].depth > rows[at].depth) {
+        end++;
+      }
+      return rows.slice(at, end);
+    }
+
+    /**
+     * `rows` (from [`visible`] or [`subtree`]) as a Markdown table: each
+     * indented by its depth below the first, with its weight, share and
+     * self weight (`weight` formats them).
+     */
+    markdown(rows, weight) {
+      const top = rows.length ? Math.min(...rows.map((r) => r.depth)) : 0;
+      return markdownTable(
+        ["Stack", "Weight", "%", "Self"],
+        rows.map((r) => [
+          "\u2003".repeat(r.depth - top) + r.label,
+          weight(r.inclusive),
+          this.share(r),
+          weight(r.exclusive),
+        ]),
+        [false, true, true, true]
+      );
+    }
+
     /** The share of the whole that `row` is, as text ("12.34%"). */
     share(row) {
       if (!this.total) {
@@ -79,6 +115,22 @@
       }
       return ((100 * row.inclusive) / this.total).toFixed(2) + "%";
     }
+  }
+
+  /**
+   * A Markdown table: `headers`, then `rows` of cells (text; a `|` in one
+   * is escaped, and line breaks become spaces); `right` says which
+   * columns are numbers (aligned right).
+   */
+  function markdownTable(headers, rows, right) {
+    const cell = (v) =>
+      String(v === null || v === undefined ? "" : v)
+        .replace(/\\/g, "\\\\")
+        .replace(/\|/g, "\\|")
+        .replace(/[\r\n]+/g, " ");
+    const line = (cells) => "| " + cells.map(cell).join(" | ") + " |";
+    const rule = "|" + headers.map((_, i) => (right && right[i] ? " ---: " : " --- ")).join("|") + "|";
+    return [line(headers), rule, ...rows.map(line)].join("\n") + "\n";
   }
 
   /** A weight as text: samples as counts, ticks as milliseconds. */
@@ -92,4 +144,5 @@
 
   exports.TreeModel = TreeModel;
   exports.formatWeight = formatWeight;
+  exports.markdownTable = markdownTable;
 })(typeof module !== "undefined" && module.exports ? module.exports : (globalThis.StackrabbitTree = {}));

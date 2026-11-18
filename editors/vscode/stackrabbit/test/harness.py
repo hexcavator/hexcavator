@@ -367,12 +367,31 @@ def main():
     table = dom[dom.index('id="functions"'):dom.index('id="modules"')]
     labels = [html.unescape(x) for x in re.findall(r'<tr data-i="\d+"><td class="">([^<]*)</td>', table)]
     assert labels == [r["label"] for r in f["functions"]], "every function, heaviest self first"
-    top = f["functions"][0]
-    share = f"{100 * top['exclusive'] / f['total']:.1f}%"
+    heaviest = f["functions"][0]
+    share = f"{100 * heaviest['exclusive'] / f['total']:.1f}%"
     assert share in table, f"the top function's share {share}"
     modules = dom[dom.index('id="modules"'):dom.index('id="processes-pane"')]
     names = [html.unescape(x) for x in re.findall(r'<tr data-i="\d+"><td class="">([^<]*)</td>', modules)]
     assert names == [m["label"] for m in f["modules"]], "every module"
+    # Copy: the functions tab's tables as Markdown, to the extension.
+    dom = render(data, "document.getElementById('tab-functions').click(); setTimeout(function () { document.getElementById('copy').click(); }, 50);")
+    posted = json.loads(html.unescape(re.search(r'<pre id="posted"[^>]*>(.*?)</pre>', dom, re.S).group(1)))
+    copies = [m for m in posted if m.get("type") == "copy"]
+    assert copies, "a copy message"
+    md = copies[-1]["text"]
+    assert md.startswith("| Function | Module | Self | Self % | Inclusive | Inclusive % |\n| --- | --- | ---: | ---: | ---: | ---: |\n"), md[:200]
+    assert f"| {f['functions'][0]['label']} | {f['functions'][0]['module']} | {f['functions'][0]['exclusive']:,} |" in md, "the heaviest function's row"
+    assert "\n| Module | Self |" in md, "then the modules"
+    # In the stacks: the selected row (the first) and the rows open under
+    # it, indented.
+    dom = render(data, down + key("Enter") + " setTimeout(function () { document.getElementById('copy').click(); }, 50);")
+    posted = json.loads(html.unescape(re.search(r'<pre id="posted"[^>]*>(.*?)</pre>', dom, re.S).group(1)))
+    md = [m for m in posted if m.get("type") == "copy"][-1]["text"]
+    lines = md.strip().split("\n")
+    assert lines[0] == "| Stack | Weight | % | Self |", lines[0]
+    assert lines[2].startswith(f"| {top[at]['label']} |"), lines[2]
+    assert len(lines) == 3 + len(first_children), f"{len(lines)} lines"
+    assert lines[3].startswith("|  " + first_children[0]["label"]), lines[3]
     print("harness: ok")
 
 

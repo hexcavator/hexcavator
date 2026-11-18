@@ -2,7 +2,7 @@
 "use strict";
 
 const assert = require("assert");
-const { TreeModel, formatWeight } = require("../media/tree-model");
+const { TreeModel, formatWeight, markdownTable } = require("../media/tree-model");
 
 const row = (id, parent, depth, inclusive, hasChildren) => ({
   id,
@@ -58,5 +58,28 @@ assert.strictEqual(new TreeModel(row(0, 0, 0, 0, false)).share(row(5, 0, 1, 0, f
 // Weights: samples as counts, ticks as milliseconds.
 assert.strictEqual(formatWeight(1234567, "samples"), "1,234,567");
 assert.strictEqual(formatWeight(15000, "ticks", 10000000), "1.500 ms");
+
+// Markdown: a table, numbers right-aligned, pipes escaped, lines joined.
+assert.strictEqual(
+  markdownTable(["Name", "N"], [["a|b", 1], ["two\nlines", null]], [false, true]),
+  "| Name | N |\n| --- | ---: |\n| a\\|b | 1 |\n| two lines |  |\n"
+);
+// A subtree: a row and the rows open under it, indented from it.
+{
+  const t = new TreeModel(row(0, 0, 0, 100, true));
+  t.setChildren(0, [row(1, 0, 1, 60, true), row(2, 0, 1, 40, true)]);
+  t.setExpanded(1, true);
+  t.setChildren(1, [row(3, 1, 2, 50, true), row(4, 1, 2, 10, false)]);
+  t.setExpanded(3, true);
+  t.setChildren(3, [row(5, 3, 3, 50, false)]);
+  assert.deepStrictEqual(t.subtree(1).map((r) => r.id), [1, 3, 5, 4]);
+  assert.deepStrictEqual(t.subtree(3).map((r) => r.id), [3, 5]);
+  assert.deepStrictEqual(t.subtree(2).map((r) => r.id), [2]);
+  assert.deepStrictEqual(t.subtree(99).map((r) => r.id), [1, 3, 5, 4, 2], "not shown: all of it");
+  assert.strictEqual(
+    t.markdown(t.subtree(3), (v) => String(v)),
+    "| Stack | Weight | % | Self |\n| --- | ---: | ---: | ---: |\n| n3 | 50 | 50.00% | 0 |\n| \u2003n5 | 50 | 50.00% | 0 |\n"
+  );
+}
 
 console.log("tree-model: ok");
