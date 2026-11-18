@@ -71,6 +71,33 @@ pub struct Loaded {
     /// The trace file's identity (what its index and saved symbols are
     /// checked against).
     pub source: index::Source,
+    /// What the recording session lost, as its file's header says.
+    pub lost: Lost,
+}
+
+/// What a recording session lost: events it had no buffer for, and
+/// buffers it couldn't write. (Either means the trace is missing some of
+/// what happened: stacks without their events, events without stacks.)
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Lost {
+    /// Events lost.
+    pub events: u32,
+    /// Buffers lost.
+    pub buffers: u32,
+}
+
+impl Lost {
+    /// What the session that wrote `data` (an ETL file) lost; nothing, if
+    /// its header can't be read.
+    pub fn of(data: &[u8]) -> Self {
+        Etl::parse(data).map_or_else(
+            |_| Self::default(),
+            |etl| Self {
+                events: etl.header().events_lost,
+                buffers: etl.header().buffers_lost,
+            },
+        )
+    }
 }
 
 impl Loaded {
@@ -90,6 +117,7 @@ pub fn open(path: &Path, options: &Options) -> Result<Loaded, String> {
     let data = map.as_slice();
     let size = data.len() as u64;
     let source = index::Source::of(data);
+    let lost = Lost::of(data);
     if options.use_index {
         for candidate in index_paths(path, options) {
             let Ok(saved) = Mmap::open(&candidate) else {
@@ -107,6 +135,7 @@ pub fn open(path: &Path, options: &Options) -> Result<Loaded, String> {
                         read: start.elapsed(),
                     },
                     source,
+                    lost,
                 });
             }
         }
@@ -134,6 +163,7 @@ pub fn open(path: &Path, options: &Options) -> Result<Loaded, String> {
             index,
         },
         source,
+        lost,
     })
 }
 

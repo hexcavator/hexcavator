@@ -422,6 +422,13 @@ def main():
     assert pdbs == [r["pdb"] for r in sy["rows"]], pdbs
     assert f"{len(sy['rows'])} PDBs: 0 with names" in dom, "the symbols' title"
     assert "not found" in table
+    # A recording that lost events says so; one that didn't, doesn't.
+    assert '<div id="lost" class="lost"></div>' in render(data), "nothing lost: no warning"
+    lossy = json.loads(json.dumps(data))
+    lossy["opened"]["summary"]["eventsLost"] = 1234
+    lossy["opened"]["summary"]["buffersLost"] = 2
+    dom = render(lossy)
+    assert "The recording lost 1,234 events and 2 buffers" in dom, "the warning"
     print("harness: ok")
 
 

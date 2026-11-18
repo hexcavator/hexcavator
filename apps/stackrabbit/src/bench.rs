@@ -40,7 +40,13 @@ Options:
              two imports that agree have the same digest.
   -read      Instead, time reading each file from the disk (evicted from the cache
              first, where the host allows): page faults through a mapping, one thread;
-             then reads of 1, 4 and 16 MB on 1, 2, 4 and 8 threads.";
+             then reads of 1, 4 and 16 MB on 1, 2, 4 and 8 threads.
+  -stacks    Instead, count each trace's samples by what their stacks hold: kernel and user
+             frames (joined), kernel only, user only, or no stack; and how often the
+             innermost frame is the sample's instruction pointer.
+  -events    Instead, count each trace's events by provider and opcode (the 40 most
+             numerous, and every StackWalk opcode), with their payloads' smallest and
+             largest sizes.";
 
 /// Runs `stackrabbit bench`.
 pub fn run(args: &[String]) -> ExitCode {
@@ -51,6 +57,8 @@ pub fn run(args: &[String]) -> ExitCode {
     let mut phases = false;
     let mut read = false;
     let mut digest = false;
+    let mut stacks = false;
+    let mut events = false;
     while let Some(arg) = a.next() {
         match arg {
             "-h" | "-help" | "--help" => {
@@ -62,6 +70,8 @@ pub fn run(args: &[String]) -> ExitCode {
             "-phases" => phases = true,
             "-read" => read = true,
             "-digest" => digest = true,
+            "-stacks" => stacks = true,
+            "-events" => events = true,
             o if o.starts_with('-') => {
                 eprintln!("stackrabbit bench: unknown option '{o}'\n\n{USAGE}");
                 return ExitCode::from(2);
@@ -88,6 +98,12 @@ pub fn run(args: &[String]) -> ExitCode {
     }
     if digest {
         return digest_table(&traces);
+    }
+    if stacks {
+        return stacks_table(&traces);
+    }
+    if events {
+        return events_table(&traces);
     }
     if !as_json {
         println!(
@@ -544,6 +560,212 @@ fn read_table(traces: &[PathBuf]) -> ExitCode {
         }
     }
     ExitCode::SUCCESS
+}
+
+/// Prints, for each trace, its events by provider and opcode.
+fn events_table(traces: &[PathBuf]) -> ExitCode {
+    let mut failed = false;
+    for path in traces {
+        let r: Result<(), String> = (|| {
+            let map = Mmap::open(path).map_err(|e| e.to_string())?;
+            let etl = Etl::parse(map.as_slice()).map_err(|e| e.to_string())?;
+            let max = usize::try_from(etl.header().buffer_size)
+                .unwrap_or(1 << 20)
+                .max(1 << 16);
+            // (provider, opcode) -> (count, smallest, largest payload).
+            let mut counts: std::collections::BTreeMap<(String, u8), (u64, usize, usize)> =
+                std::collections::BTreeMap::new();
+            let mut scratch = Vec::new();
+            // Each sample's (timestamp, thread), and each stack's.
+            let mut samples: Vec<(i64, u32)> = Vec::new();
+            let mut stacks: std::collections::HashSet<(i64, u32)> =
+                std::collections::HashSet::new();
+            for buffer in etl.buffers() {
+                let Ok(buffer) = buffer else { continue };
+                let _ = hexcavator_etl::merge::for_each_event(&buffer, max, &mut scratch, |e| {
+                    let ptr = if e.is_64bit { 8 } else { 4 };
+                    let u = e.user_data;
+                    if e.provider == hexcavator_etw::guids::PERF_INFO
+                        && e.descriptor.opcode == 46
+                        && u.len() >= ptr + 4
+                    {
+                        let tid = u32::from_le_bytes(u[ptr..ptr + 4].try_into().unwrap());
+                        samples.push((e.timestamp, tid));
+                    }
+                    if e.provider == hexcavator_etw::guids::STACK_WALK
+                        && e.descriptor.opcode == 32
+                        && u.len() >= 16
+                    {
+                        let ts = i64::from_le_bytes(u[0..8].try_into().unwrap());
+                        let tid = u32::from_le_bytes(u[12..16].try_into().unwrap());
+                        stacks.insert((ts, tid));
+                    }
+                    let c = counts
+                        .entry((e.provider.to_string(), e.descriptor.opcode))
+                        .or_insert((0, usize::MAX, 0));
+                    c.0 += 1;
+                    c.1 = c.1.min(e.user_data.len());
+                    c.2 = c.2.max(e.user_data.len());
+                });
+            }
+            let stack_walk = hexcavator_etw::guids::STACK_WALK.to_string();
+            let mut rows: Vec<_> = counts.into_iter().collect();
+            rows.sort_by(|a, b| b.1.0.cmp(&a.1.0).then_with(|| a.0.cmp(&b.0)));
+            println!("{}", path.display());
+            let named = samples.iter().filter(|k| stacks.contains(k)).count();
+            let named_any = {
+                let times: std::collections::HashSet<i64> = stacks.iter().map(|k| k.0).collect();
+                samples.iter().filter(|k| times.contains(&k.0)).count()
+            };
+            let idle = samples.iter().filter(|k| k.1 == 0).count();
+            println!(
+                "  samples {}: a stack names {} (timestamp and thread), {} (timestamp only); {} on thread 0",
+                samples.len(),
+                named,
+                named_any,
+                idle
+            );
+            println!(
+                "  {:<40} {:>6} {:>12} {:>8} {:>8}",
+                "provider", "opcode", "events", "min", "max"
+            );
+            for (i, ((provider, opcode), (n, lo, hi))) in rows.iter().enumerate() {
+                if i < 40 || *provider == stack_walk {
+                    let name = if *provider == stack_walk {
+                        "StackWalk".to_string()
+                    } else {
+                        provider.clone()
+                    };
+                    println!("  {name:<40} {opcode:>6} {n:>12} {lo:>8} {hi:>8}");
+                }
+            }
+            Ok(())
+        })();
+        if let Err(e) = r {
+            failed = true;
+            eprintln!("stackrabbit bench: {}: {e}", path.display());
+        }
+    }
+    if failed {
+        ExitCode::FAILURE
+    } else {
+        ExitCode::SUCCESS
+    }
+}
+
+/// Prints, for each trace, its samples by what their stacks hold.
+fn stacks_table(traces: &[PathBuf]) -> ExitCode {
+    println!(
+        "{:<28} {:>10} {:>9} {:>9} {:>9} {:>9} {:>11} {:>9} {:>11} {:>8}",
+        "trace",
+        "samples",
+        "joined %",
+        "kernel %",
+        "user %",
+        "none %",
+        "none,busy %",
+        "ip=leaf %",
+        "lost events",
+        "lost buf"
+    );
+    let mut failed = false;
+    for path in traces {
+        let options = crate::store::Options {
+            use_index: false,
+            cache_dir: None,
+        };
+        let loaded = match crate::store::open(path, &options) {
+            Ok(l) => l,
+            Err(e) => {
+                failed = true;
+                eprintln!("stackrabbit bench: {}: {e}", path.display());
+                continue;
+            }
+        };
+        let t = &loaded.trace;
+        if let crate::store::Opened::Imported { stats, .. } = &loaded.opened {
+            let with = |stacks: &[hexcavator_trace::StackId]| {
+                let n = stacks.iter().filter(|s| !s.is_empty()).count();
+                format!("{n} of {}", stacks.len())
+            };
+            eprintln!(
+                "  stacks: {} paired, {} continuations, {} unmatched; switches with stacks {}, readies {}",
+                stats.stacks,
+                stats.stack_continuations,
+                stats.stacks_unmatched,
+                with(&t.switches.stack),
+                with(&t.readies.stack)
+            );
+        }
+        // Kernel addresses: the top half of the address space (a 32-bit
+        // trace's images are all below 4 GB).
+        let narrow = t.images.iter().all(|i| i.base < 1 << 32);
+        let kernel = |a: u64| {
+            if narrow {
+                a >= 0x8000_0000
+            } else {
+                a >= 0xffff_8000_0000_0000
+            }
+        };
+        let s = &t.samples;
+        let (mut joined, mut kernel_only, mut user_only, mut none, mut ip_leaf) =
+            (0u64, 0u64, 0u64, 0u64, 0u64);
+        // (Samples without stacks outside the idle process.)
+        let mut none_busy = 0u64;
+        for i in 0..s.len() {
+            let stack = s.stack[i];
+            if stack.is_empty() {
+                none += 1;
+                let thread = s.thread[i];
+                let p = t.thread_process(thread);
+                let idle = (p.is_some() && t.processes[p.index()].pid == 0)
+                    || (thread.is_some() && t.threads[thread.index()].tid == 0);
+                if !idle {
+                    none_busy += 1;
+                }
+                continue;
+            }
+            let (mut k, mut u) = (false, false);
+            for f in t.stacks.frames(stack) {
+                if kernel(f) {
+                    k = true;
+                } else {
+                    u = true;
+                }
+            }
+            match (k, u) {
+                (true, true) => joined += 1,
+                (true, false) => kernel_only += 1,
+                _ => user_only += 1,
+            }
+            if t.stacks.frame(stack) == s.ip[i] {
+                ip_leaf += 1;
+            }
+        }
+        let n = s.len().max(1) as f64;
+        let pct = |x: u64| 100.0 * x as f64 / n;
+        let name = path
+            .file_name()
+            .map_or_else(String::new, |n| n.to_string_lossy().into_owned());
+        println!(
+            "{:<28} {:>10} {:>9.1} {:>9.1} {:>9.1} {:>9.1} {:>11.1} {:>9.1} {:>11} {:>8}",
+            name,
+            s.len(),
+            pct(joined),
+            pct(kernel_only),
+            pct(user_only),
+            pct(none),
+            pct(none_busy),
+            pct(ip_leaf),
+            loaded.lost.events,
+            loaded.lost.buffers
+        );
+    }
+    if failed {
+        ExitCode::FAILURE
+    } else {
+        ExitCode::SUCCESS
+    }
 }
 
 /// Prints, for each trace, a digest of its import (see `-digest`).

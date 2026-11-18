@@ -84,6 +84,17 @@
       `${secs} s · ${s.processors} processors · ${s.processes} processes · ` +
       `${s.samples.toLocaleString("en-US")} samples · ${s.switches.toLocaleString("en-US")} switches · ` +
       `${how} in ${opened.seconds.toFixed(2)} s`;
+    // What the recording lost: the trace is missing some of what happened.
+    const lost = [];
+    if (s.eventsLost) {
+      lost.push(`${s.eventsLost.toLocaleString("en-US")} events`);
+    }
+    if (s.buffersLost) {
+      lost.push(`${s.buffersLost.toLocaleString("en-US")} buffers`);
+    }
+    $("lost").textContent = lost.length
+      ? `The recording lost ${lost.join(" and ")}: some events and stacks are missing.`
+      : "";
   }
 
   /** Shows how the symbols' download goes; when it is done, makes the tree

@@ -36,7 +36,8 @@
 //!   frames are counted, in the background; `done` once its symbols are
 //!   loaded and downloaded. `wait`: answers when `done`.)
 //! - `close` `{trace}` → `{}`.
-//! - `summary` `{trace}` → the trace's summary.
+//! - `summary` `{trace}` → the trace's summary (with `eventsLost` and
+//!   `buffersLost`: what its recording session lost).
 //! - `processes` `{trace, time?}` → `{rows}`: the processes, with their
 //!   lifetimes, threads and CPU samples (in `time`), heaviest first; each
 //!   row's `index` names it to `threads`.
@@ -361,7 +362,7 @@ fn worker(
         out,
         &json!({"id": open_id, "result": {
             "trace": trace,
-            "summary": summary(&state.loaded.trace),
+            "summary": state.summary(),
             "opened": opened,
             "stackTags": state.tags.as_ref().map(StackTags::len),
             "stackTagsError": tags_error,
@@ -493,6 +494,14 @@ fn symbols_task(
 }
 
 impl State {
+    /// The trace's summary, with what its recording lost.
+    fn summary(&self) -> Value {
+        let mut s = summary(&self.loaded.trace);
+        s["eventsLost"] = json!(self.loaded.lost.events);
+        s["buffersLost"] = json!(self.loaded.lost.buffers);
+        s
+    }
+
     /// The `symbols` report.
     fn symbols_report(&self) -> Value {
         let Some(frames) = self.report.frames.get() else {
@@ -550,7 +559,7 @@ impl State {
     fn handle(&mut self, method: &str, params: &Value) -> Result<Value, String> {
         let trace = &self.loaded.trace;
         match method {
-            "summary" => Ok(summary(trace)),
+            "summary" => Ok(self.summary()),
             "processes" => {
                 let time = TreeSpec::from_json(params)?.time;
                 Ok(crate::views::processes(trace, time))

@@ -37,6 +37,13 @@ body {
   padding: 2px 10px;
   cursor: pointer;
 }
+.lost {
+  color: var(--vscode-editorWarning-foreground, #cca700);
+  padding: 0 10px;
+}
+.lost:empty {
+  display: none;
+}
 .symbols {
   cursor: pointer;
   color: var(--vscode-descriptionForeground);

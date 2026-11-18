@@ -670,3 +670,35 @@ fn hot_functions_over_the_protocol() {
     assert!(running["functions"].as_array().unwrap().len() <= 4);
     assert!(error(&a, 4).contains("limit"));
 }
+
+#[test]
+fn the_summary_says_what_the_recording_lost() {
+    let dir = scratch("serve-lost");
+    let (path, s) = write_trace(&dir, "t.etl", &small());
+    // Nothing lost.
+    let a = session(&[
+        json!({"method": "open", "params": {"path": path, "useIndex": false}}),
+        json!({"method": "summary", "params": {"trace": 1}}),
+    ]);
+    assert_eq!(result(&a, 1)["summary"]["eventsLost"], 0);
+    assert_eq!(result(&a, 2)["buffersLost"], 0);
+    // The same trace, its header saying 1234 events were lost: the logfile
+    // header event's payload, at EventsLost (0x30).
+    let etl = hexcavator_etl::Etl::parse(&s.etl).unwrap();
+    assert_eq!(etl.header().events_lost, 0);
+    let first = etl.buffers().next().unwrap().unwrap();
+    let header = first.records().unwrap().next().unwrap().unwrap();
+    let at = header.user_data.as_ptr() as usize - s.etl.as_ptr() as usize + 0x30;
+    let mut lossy = s.etl.clone();
+    lossy[at..at + 4].copy_from_slice(&1234u32.to_le_bytes());
+    let lossy_path = dir.join("lossy.etl");
+    std::fs::write(&lossy_path, &lossy).unwrap();
+    let open = json!({"method": "open", "params": {"path": lossy_path, "useIndex": true}});
+    let a = session(std::slice::from_ref(&open));
+    assert_eq!(result(&a, 1)["opened"]["how"], "import");
+    assert_eq!(result(&a, 1)["summary"]["eventsLost"], 1234);
+    // Again, from its index: still said.
+    let a = session(&[open]);
+    assert_eq!(result(&a, 1)["opened"]["how"], "index");
+    assert_eq!(result(&a, 1)["summary"]["eventsLost"], 1234);
+}

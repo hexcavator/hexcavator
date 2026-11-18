@@ -216,6 +216,7 @@ function html(webview, media) {
   <span id="status" class="status"></span>
 </div>
 <div class="graph"><canvas id="graph"></canvas><div id="legend" class="legend"></div></div>
+<div id="lost" class="lost"></div>
 <div id="selection" class="selection">All of the trace. Drag across the graph to select a time range; double-click it to clear.</div>
 <div class="tabs"><button id="tab-stacks" class="tab active">Stacks</button><button id="tab-functions" class="tab">Functions</button><button id="tab-processes" class="tab">Processes</button><button id="tab-symbols" class="tab">Symbols</button></div>
 <div id="stacks-pane" class="pane">
