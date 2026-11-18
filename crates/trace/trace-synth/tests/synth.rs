@@ -320,3 +320,56 @@ fn the_import_is_the_same_in_any_number_of_parts() {
         }
     }
 }
+
+#[test]
+fn every_kind_of_event_is_counted() {
+    use hexcavator_etw::guids;
+    let s = generate(&small());
+    let etl = Etl::parse(&s.etl).unwrap();
+    let (trace, stats) = etw::import(&etl).unwrap();
+    let truth = &s.truth;
+    // Every event read, in one kind or another; kinds sorted, distinct.
+    assert_eq!(
+        trace.events.iter().map(|e| e.count).sum::<u64>(),
+        stats.events
+    );
+    let key = |e: &hexcavator_trace::EventStats| (e.provider, e.id, e.version, e.opcode, e.task);
+    assert!(trace.events.windows(2).all(|w| key(&w[0]) < key(&w[1])));
+    let count = |provider, opcode| -> u64 {
+        trace
+            .events
+            .iter()
+            .filter(|e| e.provider == provider && e.opcode == opcode)
+            .map(|e| e.count)
+            .sum()
+    };
+    assert_eq!(count(guids::PERF_INFO, 46), truth.samples, "samples");
+    assert_eq!(count(guids::THREAD, 36), truth.switches, "context switches");
+    assert_eq!(count(guids::THREAD, 50), truth.readies, "ready threads");
+    assert_eq!(count(guids::STACK_WALK, 32), truth.stacks, "stacks");
+    for e in &trace.events {
+        assert!(e.count > 0 && e.first <= e.last);
+    }
+    let samples = trace
+        .events
+        .iter()
+        .find(|e| e.provider == guids::PERF_INFO && e.opcode == 46)
+        .unwrap();
+    // (A 64-bit sample's payload: instruction pointer, thread, count, and
+    // a reserved word.)
+    assert_eq!(samples.bytes, truth.samples * 16);
+    assert_eq!(samples.first, *trace.samples.time.first().unwrap());
+    assert_eq!(samples.last, *trace.samples.time.last().unwrap());
+    // The same on any number of threads.
+    let (one, _) = etw::import_with(&etl, 1).unwrap();
+    assert_eq!(one.events, trace.events);
+    // Saved in the index, and read back.
+    let source = hexcavator_trace::index::Source::of(&s.etl);
+    let back = hexcavator_trace::index::read(
+        &hexcavator_trace::index::write(&trace, source),
+        Some(source),
+    )
+    .unwrap();
+    assert_eq!(back.events, trace.events);
+    assert_eq!(back.provider_names, trace.provider_names);
+}

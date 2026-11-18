@@ -407,10 +407,48 @@
   }
 
   let tab = "stacks";
+  // Every kind of event in the trace (all of it: imported or not).
+  const eventsTable = new SortedTable(
+    $("events"),
+    [
+      { key: "provider", title: "Provider" },
+      { key: "event", title: "Event" },
+      { key: "id", title: "ID", num: true },
+      { key: "opcode", title: "Opcode", num: true },
+      { key: "version", title: "Version", num: true },
+      { key: "count", title: "Count", num: true, text: number(0) },
+      { key: "bytes", title: "Bytes", num: true, text: number(0) },
+      { key: "firstNs", title: "First", num: true, text: at("") },
+      { key: "lastNs", title: "Last", num: true, text: at("") },
+      { key: "guid", title: "Provider GUID", cls: "cmd" },
+    ],
+    { key: "count", down: true }
+  );
+  let eventsLoaded = false;
+  async function loadEvents() {
+    if (eventsLoaded) {
+      return;
+    }
+    try {
+      const r = await request("events", {});
+      eventsLoaded = true;
+      const total = r.rows.reduce((a, x) => a + x.count, 0);
+      $("events-title").textContent =
+        `${total.toLocaleString("en-US")} events of ${r.rows.length.toLocaleString("en-US")} kinds, in all of the trace`;
+      eventsTable.set(r.rows);
+    } catch (e) {
+      statusEl.textContent = e.message;
+      statusEl.classList.add("error");
+    }
+  }
+
   function showTab(name) {
     tab = name;
     saveState();
-    for (const t of ["stacks", "processes", "functions", "symbols"]) {
+    if (name === "events") {
+      loadEvents();
+    }
+    for (const t of ["stacks", "processes", "functions", "symbols", "events"]) {
       $(`tab-${t}`).classList.toggle("active", name === t);
       $(`${t}-pane`).classList.toggle("hidden", name !== t);
     }
@@ -425,6 +463,7 @@
     }
   }
   $("tab-symbols").addEventListener("click", () => showTab("symbols"));
+  $("tab-events").addEventListener("click", () => showTab("events"));
   symbolsEl.addEventListener("click", () => showTab("symbols"));
   /**
    * The shown tab as Markdown, to the clipboard (by way of the extension):
@@ -448,6 +487,9 @@
     } else if (!$("symbols-pane").classList.contains("hidden")) {
       text = symbolsTable.markdown();
       what = "the symbols";
+    } else if (!$("events-pane").classList.contains("hidden")) {
+      text = eventsTable.markdown();
+      what = "the events";
     } else {
       text = processesTable.markdown();
       what = "the processes";
@@ -539,7 +581,7 @@
     if (s.lit && typeof s.lit.fn === "string") {
       lit = { fn: s.lit.fn, label: String(s.lit.label || s.lit.fn) };
     }
-    if (["stacks", "processes", "functions", "symbols"].includes(s.tab)) {
+    if (["stacks", "processes", "functions", "symbols", "events"].includes(s.tab)) {
       showTab(s.tab);
     }
   }

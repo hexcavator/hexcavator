@@ -13,15 +13,15 @@
 use hexcavator_core::{Error, ErrorKind, Result};
 
 use crate::model::{
-    Clock, ContextSwitches, DebugId, Image, Process, ProcessIx, ReadyIx, ReadyThreads, Samples,
-    Thread, ThreadIx, Trace,
+    Clock, ContextSwitches, DebugId, EventStats, Image, Process, ProcessIx, ReadyIx, ReadyThreads,
+    Samples, Thread, ThreadIx, Trace,
 };
 use crate::stacks::{StackId, StackStore};
 
 /// The file's magic.
 pub const MAGIC: &[u8; 8] = b"HXTRACE\0";
 /// The format's version; any change to the layout bumps it.
-pub const VERSION: u32 = 2;
+pub const VERSION: u32 = 3;
 
 /// What an index was built from.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -187,6 +187,25 @@ pub fn write(trace: &Trace, source: Source) -> Vec<u8> {
         let id = StackId(u32::try_from(i).expect("fewer than 4G nodes"));
         w.u32(trace.stacks.parent(id).0);
         w.u64(trace.stacks.frame(id));
+    }
+
+    // Every kind of event, and the providers' names.
+    w.len(trace.events.len());
+    for e in &trace.events {
+        w.out.extend_from_slice(&e.provider.to_bytes());
+        w.u16(e.id);
+        w.u8(e.version);
+        w.u8(e.opcode);
+        w.u16(e.task);
+        w.u64(e.count);
+        w.u64(e.bytes);
+        w.i64(e.first);
+        w.i64(e.last);
+    }
+    w.len(trace.provider_names.len());
+    for (g, name) in &trace.provider_names {
+        w.out.extend_from_slice(&g.to_bytes());
+        w.str(name);
     }
     w.out
 }
@@ -433,6 +452,28 @@ pub fn read(data: &[u8], source: Option<Source>) -> Result<Trace> {
         }
         parents.push(parent);
         frames.push(frame);
+    }
+    let n = r.count(54, "event kinds")?;
+    for _ in 0..n {
+        let guid: [u8; 16] = r.bytes(16, "provider")?.try_into().expect("16 bytes");
+        trace.events.push(EventStats {
+            provider: hexcavator_etl::Guid::from_bytes(&guid),
+            id: r.u16()?,
+            version: r.u8()?,
+            opcode: r.u8()?,
+            task: r.u16()?,
+            count: r.u64()?,
+            bytes: r.u64()?,
+            first: r.i64()?,
+            last: r.i64()?,
+        });
+    }
+    let n = r.count(20, "provider names")?;
+    for _ in 0..n {
+        let guid: [u8; 16] = r.bytes(16, "provider")?.try_into().expect("16 bytes");
+        trace
+            .provider_names
+            .push((hexcavator_etl::Guid::from_bytes(&guid), r.str()?));
     }
     if r.pos != data.len() {
         return Err(r.err(ErrorKind::Malformed, "trailing data"));

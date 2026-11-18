@@ -1174,6 +1174,50 @@ pub fn threads(
     json!({"rows": rows.into_iter().map(|(_, v)| v).collect::<Vec<_>>()})
 }
 
+/// Every kind of event in the trace, as a table: each kind's provider
+/// (named where the kernel's schemas or the provider itself say), event
+/// (likewise), ID, version, opcode, task, count, payload bytes, and first
+/// and last times, most numerous first.
+pub fn events(trace: &Trace) -> Value {
+    let names: FxHashMap<hexcavator_etl::Guid, &str> = trace
+        .provider_names
+        .iter()
+        .map(|(g, n)| (*g, n.as_str()))
+        .collect();
+    let mut rows: Vec<&hexcavator_trace::EventStats> = trace.events.iter().collect();
+    rows.sort_by(|a, b| {
+        b.count.cmp(&a.count).then_with(|| {
+            (a.provider, a.id, a.version, a.opcode, a.task)
+                .cmp(&(b.provider, b.id, b.version, b.opcode, b.task))
+        })
+    });
+    let rows: Vec<Value> = rows
+        .into_iter()
+        .map(|e| {
+            let schema =
+                hexcavator_etw::schema::lookup(&e.provider, e.opcode, e.version).map(|(s, _)| s);
+            let provider = names
+                .get(&e.provider)
+                .map(|n| (*n).to_string())
+                .or_else(|| schema.map(|s| s.task.to_string()));
+            json!({
+                "provider": provider,
+                "guid": e.provider.to_string(),
+                "event": schema.map(|s| s.name),
+                "id": e.id,
+                "version": e.version,
+                "opcode": e.opcode,
+                "task": e.task,
+                "count": e.count,
+                "bytes": e.bytes,
+                "firstNs": trace.clock.nanos(e.first),
+                "lastNs": trace.clock.nanos(e.last),
+            })
+        })
+        .collect();
+    json!({"rows": rows})
+}
+
 /// The trace's processes, as a table: each one's ID, name, command line,
 /// start and end (nanoseconds from the trace's start, or null for before
 /// and after it), threads, and CPU samples in `[start, end)` (all of the

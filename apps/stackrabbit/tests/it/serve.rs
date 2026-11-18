@@ -756,3 +756,36 @@ fn the_cpu_graph_by_thread_and_for_one_process() {
     assert_eq!(whole.len(), 1, "by process, for one: one series");
     assert_eq!(whole[0]["samples"], busy["samples"]);
 }
+
+#[test]
+fn every_kind_of_event_over_the_protocol() {
+    let dir = scratch("serve-events");
+    let (path, s) = write_trace(&dir, "t.etl", &small());
+    let open = json!({"method": "open", "params": {"path": path, "useIndex": true}});
+    let events = json!({"method": "events", "params": {"trace": 1}});
+    // Imported, then from the index: the same.
+    let a = session(&[open.clone(), events.clone()]);
+    let b = session(&[open, events]);
+    assert_eq!(result(&b, 1)["opened"]["how"], "index");
+    let rows = result(&a, 2)["rows"].as_array().unwrap().clone();
+    assert_eq!(&rows, result(&b, 2)["rows"].as_array().unwrap());
+    let counts: Vec<u64> = rows.iter().map(|r| r["count"].as_u64().unwrap()).collect();
+    assert!(
+        counts.windows(2).all(|w| w[0] >= w[1]),
+        "most numerous first"
+    );
+    let total: u64 = counts.iter().sum();
+    assert_eq!(total, result(&a, 1)["opened"]["events"].as_u64().unwrap());
+    // The samples: named by the kernel's schema.
+    let perf_info = hexcavator_etw::guids::PERF_INFO.to_string();
+    let samples = rows
+        .iter()
+        .find(|r| r["guid"] == perf_info.as_str() && r["opcode"] == 46)
+        .unwrap();
+    assert_eq!(samples["count"], s.truth.samples);
+    assert!(
+        samples["provider"].is_string() && samples["event"].is_string(),
+        "{samples}"
+    );
+    assert!(samples["firstNs"].as_i64() <= samples["lastNs"].as_i64());
+}

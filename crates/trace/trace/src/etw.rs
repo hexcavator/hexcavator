@@ -49,7 +49,8 @@ use hexcavator_etw::kernel::{
 use hexcavator_etw::stacks::{StackMatcher, Stitch};
 
 use crate::model::{
-    Clock, DebugId, Image, ImageIx, Process, ProcessIx, ReadyIx, Thread, ThreadIx, Trace,
+    Clock, DebugId, EventStats, Image, ImageIx, Process, ProcessIx, ReadyIx, Thread, ThreadIx,
+    Trace,
 };
 use crate::stacks::{PathCache, StackId, StackStore};
 
@@ -132,6 +133,8 @@ pub fn import_parts(
     let shards: Vec<Mutex<Shard>> = (0..SHARDS).map(|_| Mutex::new(Shard::default())).collect();
     let slots = Slots::new(buffers.len());
     let next = AtomicUsize::new(0);
+    // Each worker's event counts and provider names, when it is done.
+    let counted: Mutex<Vec<Counted>> = Mutex::default();
     let runs = std::thread::scope(|scope| {
         for _ in 0..threads {
             scope.spawn(|| {
@@ -140,6 +143,13 @@ pub fn import_parts(
                 loop {
                     let i = next.fetch_add(1, Ordering::Relaxed);
                     let Some((buffer, _)) = buffers.get(i) else {
+                        counted
+                            .lock()
+                            .unwrap_or_else(PoisonError::into_inner)
+                            .push((
+                                std::mem::take(&mut local.counts),
+                                std::mem::take(&mut local.names),
+                            ));
                         return;
                     };
                     let decoded =
@@ -174,7 +184,9 @@ pub fn import_parts(
         .into_iter()
         .map(|m| m.into_inner().unwrap_or_else(PoisonError::into_inner))
         .collect();
-    Ok(assemble(
+    let (events, provider_names) =
+        merge_counts(counted.into_inner().unwrap_or_else(PoisonError::into_inner));
+    let (mut trace, stats) = assemble(
         built,
         shards,
         Clock {
@@ -185,7 +197,55 @@ pub fn import_parts(
         stats,
         window,
         threads,
-    ))
+    );
+    trace.events = events;
+    trace.provider_names = provider_names;
+    Ok((trace, stats))
+}
+
+/// A worker's event counts and provider names.
+type Counted = (
+    FxHashMap<EventKind, EventStats>,
+    FxHashMap<hexcavator_etl::Guid, String>,
+);
+
+/// The workers' counts as one, sorted by kind; and the providers' names,
+/// sorted by GUID (a provider named differently by two workers: the
+/// first name, by name).
+fn merge_counts(counted: Vec<Counted>) -> (Vec<EventStats>, Vec<(hexcavator_etl::Guid, String)>) {
+    let mut all: FxHashMap<EventKind, EventStats> = FxHashMap::default();
+    let mut names: FxHashMap<hexcavator_etl::Guid, String> = FxHashMap::default();
+    for (counts, n) in counted {
+        for (k, s) in counts {
+            match all.entry(k) {
+                std::collections::hash_map::Entry::Vacant(v) => {
+                    v.insert(s);
+                }
+                std::collections::hash_map::Entry::Occupied(mut o) => {
+                    let o = o.get_mut();
+                    o.count += s.count;
+                    o.bytes += s.bytes;
+                    o.first = o.first.min(s.first);
+                    o.last = o.last.max(s.last);
+                }
+            }
+        }
+        for (g, name) in n {
+            names
+                .entry(g)
+                .and_modify(|old| {
+                    if name < *old {
+                        old.clone_from(&name);
+                    }
+                })
+                .or_insert(name);
+        }
+    }
+    let mut events: Vec<EventStats> = all.into_values().collect();
+    events.sort_by_key(|s| (s.provider, s.id, s.version, s.opcode, s.task));
+    let mut names: Vec<(hexcavator_etl::Guid, String)> = names.into_iter().collect();
+    names.sort();
+    (events, names)
 }
 
 /// `f` of each of `items` (with its index), on up to `threads` threads at
@@ -1368,9 +1428,51 @@ fn intern(shards: &[Mutex<Shard>], thread: u32, frames: &[u64]) -> Piece {
 struct Local {
     frames: Vec<u64>,
     last: FxHashMap<u32, (Vec<u64>, Piece)>,
+    /// Every kind of event seen, by (provider, ID, version, opcode, task).
+    counts: FxHashMap<EventKind, EventStats>,
+    /// Providers' names seen (TraceLogging's provider traits).
+    names: FxHashMap<hexcavator_etl::Guid, String>,
 }
 
+/// A kind of event: provider, ID, version, opcode, task.
+type EventKind = (hexcavator_etl::Guid, u16, u8, u8, u16);
+
 impl Local {
+    /// Counts `e` among its kind.
+    fn count(&mut self, e: &Event<'_>) {
+        let d = &e.descriptor;
+        let s = self
+            .counts
+            .entry((e.provider, d.id, d.version, d.opcode, d.task))
+            .or_insert_with(|| EventStats {
+                provider: e.provider,
+                id: d.id,
+                version: d.version,
+                opcode: d.opcode,
+                task: d.task,
+                first: e.timestamp,
+                last: e.timestamp,
+                ..EventStats::default()
+            });
+        s.count += 1;
+        s.bytes += e.user_data.len() as u64;
+        s.first = s.first.min(e.timestamp);
+        s.last = s.last.max(e.timestamp);
+        // A TraceLogging provider's name, the first time: its traits are
+        // its total size, then its name (NUL-terminated UTF-8).
+        if !e.extended.is_empty() && !self.names.contains_key(&e.provider) {
+            for item in e.extended_data().flatten() {
+                if item.ext_type == hexcavator_etl::event::ext_type::PROV_TRAITS
+                    && let Some(rest) = item.data.get(2..)
+                    && let Some(end) = rest.iter().position(|&b| b == 0)
+                    && let Ok(name) = std::str::from_utf8(&rest[..end])
+                {
+                    self.names.insert(e.provider, name.to_string());
+                }
+            }
+        }
+    }
+
     /// Interns `self.frames` (outermost first) of `thread`'s stack.
     fn intern(&mut self, shards: &[Mutex<Shard>], thread: u32) -> Piece {
         if let Some((frames, piece)) = self.last.get(&thread)
@@ -1482,6 +1584,7 @@ fn decode_buffer(
     let result = for_each_event(buffer, max_buffer, scratch, |e| {
         let index = u32::try_from(out.times.len()).expect("fewer than 4G events in a buffer");
         out.times.push(e.timestamp);
+        local.count(e);
         if let Some(item) = keep(e, local, shards, &mut out.decode_errors) {
             out.items.push((index, item));
         }

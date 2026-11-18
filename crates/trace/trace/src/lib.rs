@@ -12,7 +12,7 @@ pub mod model;
 pub mod stacks;
 
 pub use model::{
-    Clock, ContextSwitches, DebugId, Image, ImageIx, Process, ProcessIx, ReadyIx, ReadyThreads,
-    Samples, Thread, ThreadIx, Trace,
+    Clock, ContextSwitches, DebugId, EventStats, Image, ImageIx, Process, ProcessIx, ReadyIx,
+    ReadyThreads, Samples, Thread, ThreadIx, Trace,
 };
 pub use stacks::{PathCache, StackId, StackStore};

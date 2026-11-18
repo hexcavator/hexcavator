@@ -55,6 +55,11 @@
 //!   1000 by default; heaviest exclusive first) and every module, each
 //!   row `{label, exclusive, inclusive, count}` (functions also have
 //!   `module`).
+//! - `events` `{trace}` → `{rows}`: every kind of event in the trace
+//!   (whether or not it is imported): `{provider, guid, event, id,
+//!   version, opcode, task, count, bytes, firstNs, lastNs}`, most numerous
+//!   first; `provider` and `event` named where the kernel's schemas or the
+//!   provider (TraceLogging) say, else null.
 //! - `threads` `{trace, process?, time?}` → `{rows}`: a process's threads
 //!   (or all), with their lifetimes, start addresses (named), CPU samples,
 //!   switches in and running time (precise, in ms) in `time`, heaviest
@@ -588,6 +593,7 @@ impl State {
                 let time = TreeSpec::from_json(params)?.time;
                 Ok(crate::views::processes(trace, time))
             }
+            "events" => Ok(crate::views::events(trace)),
             "threads" => {
                 let time = TreeSpec::from_json(params)?.time;
                 let process = match params.get("process") {

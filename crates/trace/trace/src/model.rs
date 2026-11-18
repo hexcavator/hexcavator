@@ -269,6 +269,35 @@ pub struct Trace {
     pub readies: ReadyThreads,
     /// Every stack.
     pub stacks: StackStore,
+    /// Every kind of event the trace has (whether or not the import keeps
+    /// them), by provider, ID, version, opcode and task.
+    pub events: Vec<EventStats>,
+    /// Providers' names, where the trace gives them (TraceLogging's
+    /// provider traits), by GUID.
+    pub provider_names: Vec<(hexcavator_etl::Guid, String)>,
+}
+
+/// How many of one kind of event a trace has.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct EventStats {
+    /// The provider (for classic kernel events, the event class).
+    pub provider: hexcavator_etl::Guid,
+    /// The event ID (zero for classic events).
+    pub id: u16,
+    /// The event's version.
+    pub version: u8,
+    /// The opcode.
+    pub opcode: u8,
+    /// The task.
+    pub task: u16,
+    /// How many.
+    pub count: u64,
+    /// Their payloads' bytes.
+    pub bytes: u64,
+    /// The first's timestamp.
+    pub first: i64,
+    /// The last's.
+    pub last: i64,
 }
 
 impl Trace {
@@ -285,6 +314,8 @@ impl Trace {
             switches: ContextSwitches::default(),
             readies: ReadyThreads::default(),
             stacks: StackStore::new(),
+            events: Vec::new(),
+            provider_names: Vec::new(),
         }
     }
 
