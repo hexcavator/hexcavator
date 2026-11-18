@@ -16,5 +16,9 @@ hexcavator-demangle.workspace = true
 hexcavator-mmap.workspace = true
 hexcavator-pdb.workspace = true
 
+[dev-dependencies]
+hexcavator-pdb.workspace = true
+hexcavator-mmap.workspace = true
+
 [lints]
 workspace = true

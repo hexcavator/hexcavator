@@ -3,14 +3,17 @@
 //! [`SymbolPath`] finds the PDB that matches an image's debug identity
 //! (GUID and age), looking only on this machine: at the path the image
 //! recorded, and in directories laid out like a symbol store or a flat
-//! folder. It never downloads anything; a symbol server's local cache works
-//! if `_NT_SYMBOL_PATH` names it. A found PDB is checked against the
-//! identity before it is used.
+//! folder; a symbol server's local cache works if `_NT_SYMBOL_PATH` names
+//! it. It never downloads anything: [`server`] does that, when asked, into
+//! such a cache. A found PDB is checked against the identity before it is
+//! used.
 //!
 //! [`FunctionTable`] is a PDB's public symbols sorted by address, with
 //! undecorated names, for finding the function an address is in.
 
 use std::path::{Path, PathBuf};
+
+pub mod server;
 
 use hexcavator_codeview::Symbol;
 use hexcavator_core::Result;
