@@ -15,7 +15,10 @@
 //! - a context switch: the thread switched in (the stack shows where it was
 //!   waiting);
 //! - a ready-thread event: the thread running on that processor, which is
-//!   the one doing the readying (the stack shows why).
+//!   the one doing the readying (the stack shows why). Before the
+//!   processor's first context switch that thread is unknown; the event
+//!   then takes a stack of any thread with its timestamp, and the stack
+//!   names the readying thread ([`StackMatch::thread`]).
 
 use std::collections::VecDeque;
 
@@ -37,6 +40,10 @@ pub struct StackMatch {
     /// Whether the event already had a piece (this is the user-mode part
     /// of a split stack).
     pub continuation: bool,
+    /// The stack's thread, when the event's own thread wasn't known (a
+    /// ready-thread event before its processor's first context switch):
+    /// the thread the event is about.
+    pub thread: Option<u32>,
 }
 
 /// One candidate: an event that may get a stack.
@@ -56,8 +63,9 @@ pub struct StackMatcher {
     recent: Vec<VecDeque<Candidate>>,
     /// The thread running on each processor, by its context switches.
     running: Vec<u32>,
-    /// Events that got a piece, by (timestamp, thread), for continuations.
-    matched: FxHashMap<(i64, u32), u64>,
+    /// Events that got a piece, by (timestamp, thread), for continuations:
+    /// the event, and whether it took any thread's stack.
+    matched: FxHashMap<(i64, u32), (u64, bool)>,
     /// `matched`'s keys in the order they were added, to forget old ones.
     matched_order: VecDeque<(i64, (i64, u32))>,
     /// How long (in clock ticks) to wait for a continuation.
@@ -94,6 +102,8 @@ impl StackMatcher {
         let thread = match decoded {
             Some(KernelEvent::Sample(s)) => s.thread_id,
             Some(KernelEvent::ContextSwitch(c)) => c.new_thread_id,
+            // (Unknown before the first switch: any thread's stack.)
+            Some(KernelEvent::ReadyThread(_)) if self.running[cpu] == u32::MAX => ANY,
             Some(KernelEvent::ReadyThread(_)) => self.running[cpu],
             _ => event.thread_id,
         };
@@ -119,25 +129,27 @@ impl StackMatcher {
     pub fn stack(&mut self, processor: u16, now: i64, stack: &StackWalk<'_>) -> Option<StackMatch> {
         self.forget_before(now.saturating_sub(self.window));
         let key = (stack.event_timestamp, stack.thread_id);
-        if let Some(&id) = self.matched.get(&key) {
+        if let Some(&(id, any)) = self.matched.get(&key) {
             return Some(StackMatch {
                 id,
                 continuation: true,
+                thread: any.then_some(stack.thread_id),
             });
         }
         let cpu = self.cpu(processor);
-        let found = find(&self.recent[cpu], key).or_else(|| {
+        let (found, any) = find(&self.recent[cpu], key).or_else(|| {
             self.recent
                 .iter()
                 .enumerate()
                 .filter(|&(i, _)| i != cpu)
                 .find_map(|(_, ring)| find(ring, key))
         })?;
-        self.matched.insert(key, found);
+        self.matched.insert(key, (found, any));
         self.matched_order.push_back((now, key));
         Some(StackMatch {
             id: found,
             continuation: false,
+            thread: any.then_some(stack.thread_id),
         })
     }
 
@@ -152,10 +164,20 @@ impl StackMatcher {
     }
 }
 
-/// The newest candidate in `ring` with the stack's timestamp and thread.
-fn find(ring: &VecDeque<Candidate>, (timestamp, thread): (i64, u32)) -> Option<u64> {
-    ring.iter()
-        .rev()
-        .find(|c| c.timestamp == timestamp && c.thread == thread)
-        .map(|c| c.id)
+/// A candidate's thread when any thread's stack goes with it.
+const ANY: u32 = u32::MAX - 1;
+
+/// The newest candidate in `ring` with the stack's timestamp and thread,
+/// or else with its timestamp and any thread; and whether it was the
+/// latter.
+fn find(ring: &VecDeque<Candidate>, (timestamp, thread): (i64, u32)) -> Option<(u64, bool)> {
+    let newest = |want: u32| {
+        ring.iter()
+            .rev()
+            .find(|c| c.timestamp == timestamp && c.thread == want)
+            .map(|c| c.id)
+    };
+    newest(thread)
+        .map(|id| (id, false))
+        .or_else(|| newest(ANY).map(|id| (id, true)))
 }

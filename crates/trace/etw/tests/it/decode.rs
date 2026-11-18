@@ -492,6 +492,17 @@ fn garbage_payloads_never_panic() {
 
 /// Events for the matcher: (cpu, provider, opcode, timestamp, payload).
 fn match_all(records: &[(u16, Guid, u8, i64, Vec<u8>)], window: i64) -> Vec<Option<(u64, bool)>> {
+    match_threads(records, window)
+        .into_iter()
+        .map(|m| m.map(|(id, continuation, _)| (id, continuation)))
+        .collect()
+}
+
+/// [`match_all`], with the thread a match took from its stack.
+fn match_threads(
+    records: &[(u16, Guid, u8, i64, Vec<u8>)],
+    window: i64,
+) -> Vec<Option<(u64, bool, Option<u32>)>> {
     let data = trace(
         &records
             .iter()
@@ -511,7 +522,7 @@ fn match_all(records: &[(u16, Guid, u8, i64, Vec<u8>)], window: i64) -> Vec<Opti
                 out.push(
                     matcher
                         .stack(e.context.processor, e.timestamp, &s)
-                        .map(|m| (m.id, m.continuation)),
+                        .map(|m| (m.id, m.continuation, m.thread)),
                 );
             }
             d => matcher.event(id, &e, d.as_ref()),
@@ -563,4 +574,34 @@ fn forgets_old_stacks() {
         100,
     );
     assert_eq!(r, [Some((2, false)), Some((2, false))]);
+}
+
+#[test]
+fn a_ready_before_the_first_switch_takes_its_stacks_thread() {
+    const K: u64 = 0xffff_f800_0000_1000;
+    const U: u64 = 0x7ff0_0000_1000;
+    let r = match_threads(
+        &[
+            // Event 2: on cpu 0, before any switch, thread 9 is readied by
+            // a thread the matcher doesn't know.
+            (0, guids::THREAD, 50, 10, ready_payload(9)),
+            // Event 3: a sample of thread 7 with the same timestamp.
+            (0, guids::PERF_INFO, 46, 10, sample_payload(K, 7)),
+            // The sample's stack goes to the sample, not the ready event.
+            (0, guids::STACK_WALK, 32, 11, stack_payload(10, 1, 7, &[K])),
+            // The ready event's stack names thread 5: the readier.
+            (0, guids::STACK_WALK, 32, 12, stack_payload(10, 1, 5, &[K])),
+            // Its user part, later: a continuation, with the same thread.
+            (1, guids::STACK_WALK, 32, 13, stack_payload(10, 1, 5, &[U])),
+        ],
+        1000,
+    );
+    assert_eq!(
+        r,
+        [
+            Some((3, false, None)),
+            Some((2, false, Some(5))),
+            Some((2, true, Some(5))),
+        ]
+    );
 }

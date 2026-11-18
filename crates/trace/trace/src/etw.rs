@@ -163,7 +163,17 @@ impl Builder {
                 match m.id & !ROW {
                     SAMPLE => self.trace.samples.stack[r] = stack,
                     SWITCH => self.trace.switches.stack[r] = stack,
-                    _ => self.trace.readies.stack[r] = stack,
+                    _ => {
+                        self.trace.readies.stack[r] = stack;
+                        // A ready event whose readier wasn't known (before
+                        // its processor's first switch): the stack's thread.
+                        if let Some(tid) = m.thread
+                            && !self.trace.readies.readier[r].is_some()
+                        {
+                            let readier = self.thread(tid);
+                            self.trace.readies.readier[r] = readier;
+                        }
+                    }
                 }
             }
             KernelEvent::Sample(s) => {
