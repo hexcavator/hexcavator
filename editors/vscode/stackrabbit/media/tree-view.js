@@ -25,12 +25,18 @@
   let model = null;
   let selection = null; // [startNs, endNs], or null for all of it
   const selectionEl = $("selection");
-  const graph = new Graph($("graph"), $("legend"), (range) => {
-    selection = range;
+  /** Says what is selected (a time range, or all of the trace). */
+  function showSelection() {
+    const range = selection;
     selectionEl.textContent = range
       ? `Selected ${(range[0] / 1e9).toFixed(3)} s to ${(range[1] / 1e9).toFixed(3)} s ` +
         `(${((range[1] - range[0]) / 1e9).toFixed(3)} s). Double-click the graph to clear.`
       : "All of the trace. Drag across the graph to select a time range; double-click it to clear.";
+  }
+  const graph = new Graph($("graph"), $("legend"), (range) => {
+    selection = range;
+    showSelection();
+    saveState();
     createTree();
     loadProcesses();
     loadFunctions();
@@ -66,6 +72,8 @@
       }
     } else if (m.type === "opened") {
       showSummary(m.summary, m.opened);
+      // Where this trace was left, if it was opened before.
+      restoreState(m.state);
       createTree();
       loadGraph();
       loadProcesses();
@@ -390,7 +398,10 @@
     }
   }
 
+  let tab = "stacks";
   function showTab(name) {
+    tab = name;
+    saveState();
     for (const t of ["stacks", "processes", "functions", "symbols"]) {
       $(`tab-${t}`).classList.toggle("active", name === t);
       $(`${t}-pane`).classList.toggle("hidden", name !== t);
@@ -466,7 +477,54 @@
       return;
     }
     lit = lit && lit.fn === row.fn ? null : { fn: row.fn, label: row.label };
+    saveState();
     loadGraph();
+  }
+
+  /**
+   * The view's settings, for the extension to keep with the trace (so it
+   * reopens where it was left): what the tree weighs and groups by, its
+   * frames, callers or not, the tab, the time selected and the function
+   * highlighted.
+   */
+  function saveState() {
+    vscode.postMessage({
+      type: "state",
+      state: {
+        source: controls.source.value,
+        group: controls.group.value,
+        frames: controls.frames.value,
+        invert: controls.invert.checked,
+        tab,
+        selection,
+        lit,
+      },
+    });
+  }
+
+  /** Puts back settings `saveState` kept (those that still make sense). */
+  function restoreState(s) {
+    if (!s || typeof s !== "object") {
+      return;
+    }
+    for (const k of ["source", "group", "frames"]) {
+      const c = controls[k];
+      if (typeof s[k] === "string" && [...c.options].some((o) => o.value === s[k])) {
+        c.value = s[k];
+      }
+    }
+    controls.invert.checked = s.invert === true;
+    if (Array.isArray(s.selection) && s.selection.length === 2 && s.selection.every(Number.isFinite)) {
+      selection = s.selection;
+      graph.selection = selection;
+      showSelection();
+    }
+    if (s.lit && typeof s.lit.fn === "string") {
+      lit = { fn: s.lit.fn, label: String(s.lit.label || s.lit.fn) };
+    }
+    if (["stacks", "processes", "functions", "symbols"].includes(s.tab)) {
+      showTab(s.tab);
+    }
   }
 
   /** Asks for the graph, as many buckets as it has pixels. */
@@ -694,6 +752,7 @@
   });
   for (const c of Object.values(controls)) {
     c.addEventListener("change", createTree);
+    c.addEventListener("change", saveState);
   }
   // The graph shows what the tree weighs: sampled or precise CPU.
   controls.source.addEventListener("change", loadGraph);

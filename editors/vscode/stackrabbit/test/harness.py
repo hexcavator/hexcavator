@@ -138,7 +138,7 @@ window.acquireVsCodeApi = function () {
       document.getElementById("posted").textContent = JSON.stringify(window.__posted);
       if (m.type === "ready") {
         setTimeout(function () {
-          window.postMessage({ type: "opened", summary: A.opened.summary, opened: A.opened.opened }, "*");
+          window.postMessage({ type: "opened", summary: A.opened.summary, opened: A.opened.opened, state: A.state }, "*");
         }, 0);
       } else if (m.type === "request") {
         answer(m);
@@ -429,6 +429,32 @@ def main():
     lossy["opened"]["summary"]["buffersLost"] = 2
     dom = render(lossy)
     assert "The recording lost 1,234 events and 2 buffers" in dom, "the warning"
+    # Reopened where it was left: the settings, tab and time selection
+    # the extension kept, put back before the first tree is asked for.
+    left = json.loads(json.dumps(data))
+    left["state"] = {"source": "running", "group": "thread", "frames": "module", "invert": True,
+                     "tab": "functions", "selection": [100000000, 200000000], "lit": None}
+    dom = render(left)
+    posted = json.loads(html.unescape(re.search(r'<pre id="posted"[^>]*>(.*?)</pre>', dom, re.S).group(1)))
+    first = next(m for m in posted if m.get("method") == "tree.create")["params"]
+    assert first == {"source": "running", "groupBy": ["thread"], "frames": "module", "invert": True,
+                     "time": [100000000, 200000000]}, first
+    assert 'id="functions-pane" class="pane"' in dom, "the tab it was left on"
+    assert "Selected 0.100 s to 0.200 s" in dom, "the time it was left on"
+    assert any(m.get("method") == "functions" and m["params"].get("time") == [100000000, 200000000] for m in posted)
+    # Nonsense kept from before is ignored.
+    odd = json.loads(json.dumps(data))
+    odd["state"] = {"source": "bogus", "tab": "nowhere", "selection": ["a", 1]}
+    dom = render(odd)
+    posted = json.loads(html.unescape(re.search(r'<pre id="posted"[^>]*>(.*?)</pre>', dom, re.S).group(1)))
+    first = next(m for m in posted if m.get("method") == "tree.create")["params"]
+    assert first["source"] == "samples" and "time" not in first, first
+    # Changing a setting says so, for the extension to keep.
+    change = "var c = document.getElementById('source'); c.value = 'waits'; c.dispatchEvent(new Event('change'));"
+    dom = render(data, change)
+    posted = json.loads(html.unescape(re.search(r'<pre id="posted"[^>]*>(.*?)</pre>', dom, re.S).group(1)))
+    states = [m["state"] for m in posted if m.get("type") == "state"]
+    assert states and states[-1]["source"] == "waits" and states[-1]["tab"] == "stacks", states
     print("harness: ok")
 
 

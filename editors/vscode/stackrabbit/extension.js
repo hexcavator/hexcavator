@@ -133,6 +133,7 @@ class TraceEditorProvider {
       return document.opening;
     };
     let listening = false;
+    const stateKey = `stackrabbit.view:${document.uri.fsPath.toLowerCase()}`;
     const listener = (method, params) => {
       panel.webview.postMessage({ type: "notification", method, params });
       // (PDBs loaded: the source lines have names now.)
@@ -160,11 +161,14 @@ class TraceEditorProvider {
         }
         try {
           const r = await open();
-          panel.webview.postMessage({ type: "opened", summary: r.summary, opened: r.opened });
+          panel.webview.postMessage({ type: "opened", summary: r.summary, opened: r.opened, state: this.context.globalState.get(stateKey) });
         } catch (e) {
           document.opening = null;
           panel.webview.postMessage({ type: "failed", error: e.message });
         }
+      } else if (m.type === "state") {
+        // (Kept with the trace's path: it reopens where it was left.)
+        this.context.globalState.update(stateKey, m.state);
       } else if (m.type === "copy") {
         await vscode.env.clipboard.writeText(m.text);
         vscode.window.setStatusBarMessage(`Stackrabbit: copied ${m.what} as Markdown`, 4000);
