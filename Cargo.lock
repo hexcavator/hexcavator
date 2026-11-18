@@ -1072,6 +1072,7 @@ dependencies = [
  "hexcavator-etl",
  "hexcavator-etw",
  "hexcavator-mmap",
+ "hexcavator-pdb",
  "hexcavator-symbolize",
  "hexcavator-trace",
  "hexcavator-trace-analysis",

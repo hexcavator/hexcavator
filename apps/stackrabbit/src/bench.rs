@@ -30,7 +30,8 @@ its index; and building the first stack trees (CPU samples by process, inverted,
 expanding the top level and the hot path. Prints timings and counts only.
 
 Options:
-  -symbols   Name functions with the PDBs _NT_SYMBOL_PATH finds (default: by module).
+  -symbols   Name functions with the PDBs _NT_SYMBOL_PATH finds (default: by module); then
+             also time saving their names for the trace, and its first tree from those.
   -json      One JSON object per trace instead of a table.
   -phases    Instead, time the import's phases: reading the events in time order
              (buffers merged, decompressed), then decoding them too, then the import.
@@ -113,6 +114,15 @@ pub fn run(args: &[String]) -> ExitCode {
                     println!("{}", m.to_json(path));
                 } else {
                     println!("{}", m.line(path));
+                    if let Some(n) = &m.saved {
+                        println!(
+                            "    names saved: {} PDBs, {:.1} KB, in {:.3} s; first tree from them {:.3} s",
+                            n.pdbs,
+                            mb(n.bytes) * 1e3,
+                            n.save.as_secs_f64(),
+                            n.tree.as_secs_f64()
+                        );
+                    }
                 }
             }
             Err(e) => {
@@ -166,6 +176,20 @@ struct Measured {
     expand: Duration,
     waits: Duration,
     stacks_unmatched: u64,
+    /// With symbols: the names saved for the trace.
+    saved: Option<SavedNames>,
+}
+
+/// Saving a trace's function names, and its first tree from them.
+struct SavedNames {
+    /// PDBs found.
+    pdbs: usize,
+    /// The saved file's size.
+    bytes: u64,
+    /// Finding the frames' addresses, cutting the tables down and writing them.
+    save: Duration,
+    /// Reading them back and the first tree (as a reopened trace does).
+    tree: Duration,
 }
 
 fn mb(n: u64) -> f64 {
@@ -219,6 +243,12 @@ impl Measured {
             "treeSeconds": self.tree.as_secs_f64(),
             "expandSeconds": self.expand.as_secs_f64(),
             "waitsSeconds": self.waits.as_secs_f64(),
+            "savedNames": self.saved.as_ref().map(|n| json!({
+                "pdbs": n.pdbs,
+                "bytes": n.bytes,
+                "saveSeconds": n.save.as_secs_f64(),
+                "treeSeconds": n.tree.as_secs_f64(),
+            })),
         })
     }
 }
@@ -244,13 +274,8 @@ fn measure(path: &Path, symbols: bool) -> Result<Measured, String> {
     let index_read = start.elapsed();
     drop(reread);
 
-    let pdbs;
-    let symbolizer: &dyn Symbolizer = if symbols {
-        pdbs = PdbSymbolizer::new(SymbolPath::from_env());
-        &pdbs
-    } else {
-        &NoSymbols
-    };
+    let pdbs = PdbSymbolizer::new(SymbolPath::from_env());
+    let symbolizer: &dyn Symbolizer = if symbols { &pdbs } else { &NoSymbols };
     let resolver = Resolver::new(&trace);
     let frames = if symbols {
         FrameMode::Function
@@ -306,6 +331,11 @@ fn measure(path: &Path, symbols: bool) -> Result<Measured, String> {
     );
     waits.children(&trace, symbolizer, NodeId::ROOT);
     let waits = start.elapsed();
+    let names = if symbols {
+        Some(save_names(&trace, index::Source::of(data), &pdbs)?)
+    } else {
+        None
+    };
 
     Ok(Measured {
         size: data.len() as u64,
@@ -321,6 +351,57 @@ fn measure(path: &Path, symbols: bool) -> Result<Measured, String> {
         expand,
         waits,
         stacks_unmatched: stats.stacks_unmatched,
+        saved: names,
+    })
+}
+
+/// Saves `trace`'s function names from `pdbs` (into the temporary
+/// directory, removed after), and builds its first tree from them.
+fn save_names(
+    trace: &Trace,
+    source: index::Source,
+    pdbs: &PdbSymbolizer,
+) -> Result<SavedNames, String> {
+    let path =
+        std::env::temp_dir().join(format!("stackrabbit-bench-{}.hxsyms", std::process::id()));
+    let start = Instant::now();
+    let frames = crate::symbols::frames(trace);
+    let tables: Vec<crate::symbols::Table> = pdbs
+        .found()
+        .into_iter()
+        .map(|(guid, age, t)| ((guid, age), t))
+        .collect();
+    crate::symbols::save(&path, source, &frames, &tables).map_err(|e| e.to_string())?;
+    let save = start.elapsed();
+    let bytes = std::fs::metadata(&path).map_or(0, |m| m.len());
+    let start = Instant::now();
+    let seeded = PdbSymbolizer::new(SymbolPath::default());
+    seeded.set_waiting(false);
+    for ((guid, age), t) in crate::symbols::load_saved(&path, source) {
+        seeded.seed(&guid, age, t);
+    }
+    let resolver = Resolver::new(trace);
+    let mut view = TreeView::build(
+        trace,
+        &resolver,
+        &seeded,
+        None,
+        TreeSpec {
+            source: Source::Samples,
+            groups: vec![GroupBy::Process],
+            frames: FrameMode::Function,
+            invert: false,
+            time: None,
+        },
+    );
+    view.children(trace, &seeded, NodeId::ROOT);
+    let tree = start.elapsed();
+    let _ = std::fs::remove_file(&path);
+    Ok(SavedNames {
+        pdbs: tables.len(),
+        bytes,
+        save,
+        tree,
     })
 }
 

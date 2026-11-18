@@ -3,4 +3,5 @@
 mod cli;
 mod common;
 mod protocol;
+mod saved_symbols;
 mod serve;

@@ -68,6 +68,20 @@ pub struct Loaded {
     pub trace: Trace,
     /// How it was opened.
     pub opened: Opened,
+    /// The trace file's identity (what its index and saved symbols are
+    /// checked against).
+    pub source: index::Source,
+}
+
+impl Loaded {
+    /// The trace's index: the one it was opened from, or the one saved
+    /// after its import (none if indexes are off or it couldn't be saved).
+    pub fn index(&self) -> Option<&Path> {
+        match &self.opened {
+            Opened::Indexed { index, .. } => Some(index),
+            Opened::Imported { index, .. } => index.as_ref().ok().map(|(p, _)| p.as_path()),
+        }
+    }
 }
 
 /// Opens the trace at `path`.
@@ -92,6 +106,7 @@ pub fn open(path: &Path, options: &Options) -> Result<Loaded, String> {
                         index: candidate,
                         read: start.elapsed(),
                     },
+                    source,
                 });
             }
         }
@@ -118,6 +133,7 @@ pub fn open(path: &Path, options: &Options) -> Result<Loaded, String> {
             import,
             index,
         },
+        source,
     })
 }
 

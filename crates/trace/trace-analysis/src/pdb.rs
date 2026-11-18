@@ -1,7 +1,7 @@
 //! A [`Symbolizer`] from PDBs found on this machine.
 
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{Arc, Mutex, OnceLock, PoisonError};
+use std::sync::{Arc, OnceLock, PoisonError, RwLock};
 
 use rustc_hash::FxHashMap;
 
@@ -21,11 +21,18 @@ pub struct PdbSymbolizer {
     path: SymbolPath,
     /// By (GUID, age): the same DLL is loaded in many processes. Each is
     /// loaded once: a thread that wants one being loaded waits for it.
-    tables: Mutex<FxHashMap<DebugKey, Slot>>,
+    tables: RwLock<FxHashMap<DebugKey, Slot>>,
     /// Whether lookups wait for a PDB to load (else they use only those
     /// loaded already: see [`PdbSymbolizer::set_waiting`]).
     waiting: AtomicBool,
+    /// By image: each image's found table, once a lookup has found it, so
+    /// that later lookups take no lock (a tree's threads look up millions
+    /// of frames at once). With its PDB's identity, checked on each use.
+    by_image: OnceLock<Vec<OnceLock<Found>>>,
 }
+
+/// A table found for an image, with its PDB's identity.
+type Found = (DebugKey, Arc<FunctionTable>);
 
 /// A PDB's slot in a [`PdbSymbolizer`].
 type Slot = Arc<OnceLock<Option<Arc<FunctionTable>>>>;
@@ -36,8 +43,9 @@ impl PdbSymbolizer {
     pub fn new(path: SymbolPath) -> Self {
         Self {
             path,
-            tables: Mutex::new(FxHashMap::default()),
+            tables: RwLock::new(FxHashMap::default()),
             waiting: AtomicBool::new(true),
+            by_image: OnceLock::new(),
         }
     }
 
@@ -48,6 +56,47 @@ impl PdbSymbolizer {
             return self.load(&id.pdb_path, &id.guid, id.age);
         }
         self.tables().get(&(id.guid, id.age))?.get()?.clone()
+    }
+
+    /// `f` of the function table of `image`'s PDB, if found: as
+    /// [`Self::table`], but a PDB loaded already is only borrowed (lookups
+    /// on many threads at once share nothing they write).
+    fn with_table<R>(
+        &self,
+        trace: &Trace,
+        image: ImageIx,
+        f: impl FnOnce(&FunctionTable) -> R,
+    ) -> Option<R> {
+        let id = trace.images[image.index()].debug_id.as_ref()?;
+        let key = (id.guid, id.age);
+        let cache = self
+            .by_image
+            .get_or_init(|| (0..trace.images.len()).map(|_| OnceLock::new()).collect());
+        let cached = cache.get(image.index());
+        if let Some((k, table)) = cached.and_then(OnceLock::get)
+            && *k == key
+        {
+            return Some(f(table));
+        }
+        let found = {
+            let tables = self.tables();
+            match tables.get(&key).and_then(|slot| slot.get()) {
+                // (Looked for already: found, or not.)
+                Some(done) => Some(done.clone()?),
+                None if !self.waiting.load(Ordering::Relaxed) => return None,
+                None => None,
+            }
+        };
+        // (Not found yet: perhaps it is later, after a download. Found: it
+        // stays found.)
+        let table = match found {
+            Some(t) => t,
+            None => self.load(&id.pdb_path, &id.guid, id.age)?,
+        };
+        if let Some(c) = cached {
+            let _ = c.set((key, Arc::clone(&table)));
+        }
+        Some(f(&table))
     }
 
     /// Whether lookups wait for a PDB to load (they do, at first). Without
@@ -71,7 +120,7 @@ impl PdbSymbolizer {
     /// thread; others asking meanwhile wait for it, and others' other
     /// PDBs load at once).
     pub fn load(&self, pdb_path: &str, guid: &[u8; 16], age: u32) -> Option<Arc<FunctionTable>> {
-        let slot: Slot = Arc::clone(self.tables().entry((*guid, age)).or_default());
+        let slot: Slot = Arc::clone(self.tables_mut().entry((*guid, age)).or_default());
         slot.get_or_init(|| {
             self.path
                 .find_pdb(pdb_path, guid, age)
@@ -83,14 +132,40 @@ impl PdbSymbolizer {
         .clone()
     }
 
-    fn tables(&self) -> std::sync::MutexGuard<'_, FxHashMap<DebugKey, Slot>> {
-        self.tables.lock().unwrap_or_else(PoisonError::into_inner)
+    /// Gives the PDB with `guid` and `age` the table `table` (one saved
+    /// for this trace: see [`FunctionTable::subset`]) instead of loading
+    /// it. A PDB loaded or seeded already keeps what it has.
+    pub fn seed(&self, guid: &[u8; 16], age: u32, table: Arc<FunctionTable>) {
+        let slot: Slot = Arc::clone(self.tables_mut().entry((*guid, age)).or_default());
+        let _ = slot.set(Some(table));
+    }
+
+    /// The PDBs loaded (or seeded) and found: each one's GUID, age and
+    /// table, in GUID order.
+    pub fn found(&self) -> Vec<([u8; 16], u32, Arc<FunctionTable>)> {
+        let mut out: Vec<_> = self
+            .tables()
+            .iter()
+            .filter_map(|(&(guid, age), slot)| Some((guid, age, Arc::clone(slot.get()?.as_ref()?))))
+            .collect();
+        out.sort_by_key(|a| (a.0, a.1));
+        out
+    }
+
+    /// The PDBs, to read: a lookup's (many threads at once).
+    fn tables(&self) -> std::sync::RwLockReadGuard<'_, FxHashMap<DebugKey, Slot>> {
+        self.tables.read().unwrap_or_else(PoisonError::into_inner)
+    }
+
+    /// The PDBs, to add or remove one.
+    fn tables_mut(&self) -> std::sync::RwLockWriteGuard<'_, FxHashMap<DebugKey, Slot>> {
+        self.tables.write().unwrap_or_else(PoisonError::into_inner)
     }
 
     /// Forgets the PDBs that weren't found, so that they are looked for
     /// again (after a download).
     pub fn forget_missing(&self) {
-        self.tables()
+        self.tables_mut()
             .retain(|_, t| t.get().is_none_or(Option::is_some));
     }
 
@@ -108,48 +183,51 @@ impl PdbSymbolizer {
 
 impl Symbolizer for PdbSymbolizer {
     fn function(&self, trace: &Trace, image: ImageIx, offset: u64) -> Option<(u64, String)> {
-        let table = self.table(trace, image)?;
-        let (start, name) = table.function(u32::try_from(offset).ok()?)?;
-        Some((u64::from(start), name.to_string()))
+        let rva = u32::try_from(offset).ok()?;
+        self.with_table(trace, image, |t| {
+            t.function(rva)
+                .map(|(start, name)| (u64::from(start), name.to_string()))
+        })?
     }
 
     fn function_start(&self, trace: &Trace, image: ImageIx, offset: u64) -> Option<u64> {
-        let table = self.table(trace, image)?;
-        let (start, _) = table.function(u32::try_from(offset).ok()?)?;
-        Some(u64::from(start))
+        let rva = u32::try_from(offset).ok()?;
+        self.with_table(trace, image, |t| {
+            t.function(rva).map(|(start, _)| u64::from(start))
+        })?
     }
 
     fn inline_sites(&self, trace: &Trace, image: ImageIx, offset: u64) -> Vec<u32> {
-        let (Some(table), Ok(rva)) = (self.table(trace, image), u32::try_from(offset)) else {
+        let Ok(rva) = u32::try_from(offset) else {
             return Vec::new();
         };
-        table
-            .inlines(rva)
-            .into_iter()
-            .map(|(site, _)| site)
-            .collect()
+        self.with_table(trace, image, |t| {
+            t.inlines(rva).into_iter().map(|(site, _)| site).collect()
+        })
+        .unwrap_or_default()
     }
 
     fn inlines(&self, trace: &Trace, image: ImageIx, offset: u64) -> Vec<(u32, String)> {
-        let (Some(table), Ok(rva)) = (self.table(trace, image), u32::try_from(offset)) else {
+        let Ok(rva) = u32::try_from(offset) else {
             return Vec::new();
         };
-        table
-            .inlines(rva)
-            .into_iter()
-            .map(|(site, name)| (site, name.to_string()))
-            .collect()
+        self.with_table(trace, image, |t| {
+            t.inlines(rva)
+                .into_iter()
+                .map(|(site, name)| (site, name.to_string()))
+                .collect()
+        })
+        .unwrap_or_default()
     }
 
     fn inline_name(&self, trace: &Trace, image: ImageIx, site: u32) -> Option<String> {
-        self.table(trace, image)?
-            .site_name(site)
-            .map(str::to_string)
+        self.with_table(trace, image, |t| t.site_name(site).map(str::to_string))?
     }
 
     fn line(&self, trace: &Trace, image: ImageIx, offset: u64) -> Option<(String, u32)> {
-        let table = self.table(trace, image)?;
-        let (file, line) = table.line(u32::try_from(offset).ok()?)?;
-        Some((file.to_string(), line))
+        let rva = u32::try_from(offset).ok()?;
+        self.with_table(trace, image, |t| {
+            t.line(rva).map(|(file, line)| (file.to_string(), line))
+        })?
     }
 }

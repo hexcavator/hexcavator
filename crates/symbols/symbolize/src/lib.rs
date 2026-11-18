@@ -13,6 +13,7 @@
 
 use std::path::{Path, PathBuf};
 
+mod saved;
 pub mod server;
 
 use hexcavator_codeview::Symbol;
@@ -79,7 +80,7 @@ fn matches(path: &Path, guid: &[u8; 16], age: u32) -> bool {
 /// A PDB's functions, by address: its procedures (with their code
 /// ranges), and public symbols for code no procedure covers (each running
 /// to the next function).
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct FunctionTable {
     /// (start RVA, end RVA, name), sorted by start, not overlapping.
     entries: Vec<(u32, u32, String)>,

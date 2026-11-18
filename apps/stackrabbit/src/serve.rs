@@ -11,7 +11,7 @@
 //! - `hello` → `{version}`.
 //! - `open` `{path, useIndex?, symbolCache?, symbolServers?,
 //!   downloadSymbols?, stackTags?}` → `{trace, summary, opened, stackTags,
-//!   stackTagsError}`: `stackTags` is a file of WPA's stack tags, for
+//!   stackTagsError, savedSymbols}`: `stackTags` is a file of WPA's stack tags, for
 //!   grouping by `tag` (its count, or the error that kept it out, comes
 //!   back). `trace` names it in
 //!   the requests below. Then, if `downloadSymbols` is true, the PDBs its
@@ -22,7 +22,10 @@
 //!   answer at once, with the PDBs loaded so far; they load in the
 //!   background, and a note `symbols` `{trace, loaded, wanted}` says when
 //!   they have (after the download too): trees made after it name the
-//!   functions.
+//!   functions. Their names for the trace's stacks are saved beside its
+//!   index (a `.hxsyms`) each time more are found, and read back when it
+//!   reopens (`savedSymbols`: how many PDBs' names were), so that its
+//!   trees name its functions from the start, without its PDBs.
 //! - `close` `{trace}` → `{}`.
 //! - `summary` `{trace}` → the trace's summary.
 //! - `processes` `{trace, time?}` → `{rows}`: the processes, with their
@@ -50,6 +53,7 @@ use std::sync::{Arc, Mutex, PoisonError};
 use std::thread::JoinHandle;
 
 use hexcavator_trace_analysis::{NodeId, PdbSymbolizer, Resolver, StackTags};
+use rustc_hash::FxHashSet;
 use serde_json::{Value, json};
 
 use crate::protocol::{Frame, read_frame, write_frame};
@@ -215,11 +219,12 @@ fn send(out: &Output, header: &Value) {
 
 /// An open trace's state, owned by its thread.
 struct State {
-    loaded: Loaded,
+    /// Shared with the symbols' background thread.
+    loaded: Arc<Loaded>,
     resolver: Resolver,
     /// Shared with the symbols' download, which makes it look again for
     /// what was missing.
-    symbols: std::sync::Arc<PdbSymbolizer>,
+    symbols: Arc<PdbSymbolizer>,
     /// The stack tags, if a file of them was given.
     tags: Option<StackTags>,
     views: HashMap<u64, TreeView>,
@@ -285,17 +290,24 @@ fn worker(
             Err(e) => (None, Some(format!("{}: {e}", p.display()))),
         },
     };
+    // Trees answer at once with the PDBs loaded so far; the editor hears
+    // when more are (a `symbols` note), and asks again. The names saved
+    // beside the index the last time are there from the start.
+    let symbolizer = PdbSymbolizer::new(symbols.path.clone());
+    symbolizer.set_waiting(false);
+    let saved_path = loaded.index().map(symbols::saved_path);
+    let saved = saved_path
+        .as_deref()
+        .map(|p| symbols::load_saved(p, loaded.source))
+        .unwrap_or_default();
+    for ((guid, age), table) in &saved {
+        symbolizer.seed(guid, *age, Arc::clone(table));
+    }
     let mut state = State {
         tags,
         resolver: Resolver::new(&loaded.trace),
-        symbols: {
-            // Trees answer at once with the PDBs loaded so far; the editor
-            // hears when more are (a `symbols` note), and asks again.
-            let s = PdbSymbolizer::new(symbols.path.clone());
-            s.set_waiting(false);
-            std::sync::Arc::new(s)
-        },
-        loaded,
+        symbols: Arc::new(symbolizer),
+        loaded: Arc::new(loaded),
         views: HashMap::new(),
         next_view: 1,
     };
@@ -307,13 +319,17 @@ fn worker(
             "opened": opened,
             "stackTags": state.tags.as_ref().map(StackTags::len),
             "stackTagsError": tags_error,
+            "savedSymbols": saved.len(),
         }}),
     );
-    // What is here already loads at once; the rest downloads meanwhile.
-    let mut background = vec![preload_symbols(trace, &state, out)];
-    if symbols.download {
-        background.push(download_symbols(trace, &state, symbols, out));
-    }
+    let background = symbols_task(
+        trace,
+        &state,
+        symbols,
+        saved_path,
+        saved.iter().map(|(k, _)| *k).collect(),
+        out,
+    );
     for r in rx {
         let response = match state.handle(&r.method, &r.params) {
             Ok(result) => json!({"id": r.id, "result": result}),
@@ -322,91 +338,99 @@ fn worker(
         send(out, &response);
     }
     // (The download's last notification is sent before the trace closes.)
-    for b in background {
-        let _ = b.join();
-    }
+    let _ = background.join();
 }
 
-/// Downloads the PDBs the trace's stacks need, in the background, telling
-/// the editor how it goes; then the symbolizer looks again for what was
-/// missing.
-fn download_symbols(trace: u64, state: &State, symbols: &Symbols, out: &Output) -> JoinHandle<()> {
-    let ids = symbols::wanted(&state.loaded.trace);
-    let servers = symbols.servers.clone();
-    let symbolizer = std::sync::Arc::clone(&state.symbols);
-    let out = std::sync::Arc::clone(out);
+/// The trace's symbols, in the background: finds the PDBs its stacks need
+/// and loads those here already, telling the editor how many it has (a
+/// `symbols` note with `loaded`, so that it asks for trees with their
+/// names); meanwhile, if asked to, downloads the rest, telling the editor
+/// how that goes, and loads them. Each time it has PDBs it hadn't saved,
+/// it saves their names for the trace's stacks at `saved_path` (beside
+/// the index), so that the trace reopens with its names.
+fn symbols_task(
+    trace: u64,
+    state: &State,
+    symbols: &Symbols,
+    saved_path: Option<std::path::PathBuf>,
+    saved: FxHashSet<symbols::DebugKey>,
+    out: &Output,
+) -> JoinHandle<()> {
+    let loaded = Arc::clone(&state.loaded);
+    let symbolizer = Arc::clone(&state.symbols);
+    let out = Arc::clone(out);
+    let servers = symbols.download.then(|| symbols.servers.clone());
     std::thread::spawn(move || {
-        let note = |d: &symbols::Downloaded, done: bool| {
+        let frames = symbols::frames(&loaded.trace);
+        let ids = &frames.wanted;
+        let saved = Mutex::new(saved);
+        let save = || {
+            let Some(path) = &saved_path else { return };
+            let mut saved = saved.lock().unwrap_or_else(PoisonError::into_inner);
+            let found: Vec<symbols::Table> = symbolizer
+                .found()
+                .into_iter()
+                .map(|(guid, age, t)| ((guid, age), t))
+                .filter(|(k, _)| frames.addresses.contains_key(k))
+                .collect();
+            if found.iter().all(|(k, _)| saved.contains(k)) {
+                return;
+            }
+            // (A trace whose index is read-only keeps what it has.)
+            if symbols::save(path, loaded.source, &frames, &found).is_ok() {
+                *saved = found.iter().map(|(k, _)| *k).collect();
+            }
+        };
+        let loaded_note = || {
             send(
                 &out,
                 &json!({"method": "symbols", "params": {
                     "trace": trace,
-                    "wanted": d.wanted,
-                    "cached": d.cached,
-                    "downloaded": d.downloaded,
-                    "missing": d.missing,
-                    "done": done,
+                    "loaded": symbolizer.loaded_count(),
+                    "wanted": ids.len(),
                 }}),
             );
         };
-        // (At most a few notes a second.)
-        let last = std::sync::Mutex::new(std::time::Instant::now());
-        let d = symbols::download(&servers, &ids, |d| {
-            let mut l = last.lock().unwrap_or_else(PoisonError::into_inner);
-            if l.elapsed().as_millis() >= 250 {
-                *l = std::time::Instant::now();
-                note(d, false);
-            }
-        });
-        symbolizer.forget_missing();
-        preload(&symbolizer, &ids);
-        note(&d, true);
-        send(
-            &out,
-            &json!({"method": "symbols", "params": {
-                "trace": trace,
-                "loaded": symbolizer.loaded_count(),
-                "wanted": ids.len(),
-            }}),
-        );
-    })
-}
-
-/// Loads the PDBs the trace's stacks need that are here already, in the
-/// background, then tells the editor how many it has (a `symbols` note
-/// with `loaded`), so that it asks for trees with their names.
-fn preload_symbols(trace: u64, state: &State, out: &Output) -> JoinHandle<()> {
-    let ids = symbols::wanted(&state.loaded.trace);
-    let symbolizer = std::sync::Arc::clone(&state.symbols);
-    let out = std::sync::Arc::clone(out);
-    std::thread::spawn(move || {
-        preload(&symbolizer, &ids);
-        send(
-            &out,
-            &json!({"method": "symbols", "params": {
-                "trace": trace,
-                "loaded": symbolizer.loaded_count(),
-                "wanted": ids.len(),
-            }}),
-        );
-    })
-}
-
-/// Loads `ids`' PDBs (those found), on every core.
-fn preload(symbolizer: &PdbSymbolizer, ids: &[hexcavator_symbolize::server::PdbId]) {
-    let next = std::sync::atomic::AtomicUsize::new(0);
-    let threads = std::thread::available_parallelism().map_or(4, std::num::NonZero::get);
-    std::thread::scope(|scope| {
-        for _ in 0..threads.min(ids.len()) {
+        std::thread::scope(|scope| {
+            // What is here already loads at once; the rest downloads
+            // meanwhile.
             scope.spawn(|| {
-                loop {
-                    let i = next.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-                    let Some(id) = ids.get(i) else { return };
-                    symbolizer.load(&id.name, &id.guid, id.age);
-                }
+                symbols::preload(&symbolizer, ids);
+                loaded_note();
+                save();
             });
-        }
-    });
+            let Some(servers) = &servers else { return };
+            scope.spawn(|| {
+                let note = |d: &symbols::Downloaded, done: bool| {
+                    send(
+                        &out,
+                        &json!({"method": "symbols", "params": {
+                            "trace": trace,
+                            "wanted": d.wanted,
+                            "cached": d.cached,
+                            "downloaded": d.downloaded,
+                            "missing": d.missing,
+                            "done": done,
+                        }}),
+                    );
+                };
+                // (At most a few notes a second.)
+                let last = Mutex::new(std::time::Instant::now());
+                let d = symbols::download(servers, ids, |d| {
+                    let mut l = last.lock().unwrap_or_else(PoisonError::into_inner);
+                    if l.elapsed().as_millis() >= 250 {
+                        *l = std::time::Instant::now();
+                        note(d, false);
+                    }
+                });
+                symbolizer.forget_missing();
+                symbols::preload(&symbolizer, ids);
+                note(&d, true);
+                loaded_note();
+                save();
+            });
+        });
+    })
 }
 
 impl State {
