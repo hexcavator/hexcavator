@@ -147,6 +147,8 @@ window.acquireVsCodeApi = function () {
     else if (m.method === "registry" && A.registry) r.result = A.registry;
     else if (m.method === "hardfaults" && A.hardfaults) r.result = A.hardfaults;
     else if (m.method === "vmem" && A.vmem) r.result = A.vmem;
+    else if (m.method === "heap" && A.heap) r.result = A.heap;
+    else if (m.method === "pool" && A.pool) r.result = A.pool;
     else if (m.method === "regions") r.error = "regions: file: expected a regions file";
     else if (m.method === "events.list" && A.sampleKind && m.params.opcode === A.sampleKind.opcode && m.params.guid === A.sampleKind.guid) r.result = A.sampleList;
     else if (m.method === "events.list") r.result = A.eventList;
@@ -859,6 +861,32 @@ def main():
     assert labels == ["app.exe (100)", "svc.exe (200)"], labels
     rest = html.unescape(dom[dom.index('id="vmem-lifetimes"'):])
     assert "0x10000" in rest and "still committed" in rest
+    # The heap and pool tabs: allocations by the grouping chosen, and the
+    # largest blocks (the pool's with their type).
+    for name, first, second, group in [("heap", "process", "heap", "0x1000 in app.exe (100)"), ("pool", "tag", "type", "Abcd")]:
+        alloc = json.loads(json.dumps(data))
+        alloc[name] = {
+            "allocs": 4, "allocated": 4096, "frees": 2, "freed": 1024, "outstandingCount": 2, "outstanding": 3072,
+            "groupsTotal": 2,
+            "groups": [{"label": "g1", "allocs": 3, "allocated": 3072, "frees": 1, "freed": 512, "outstandingCount": 2, "outstanding": 2560},
+                       {"label": "g2", "allocs": 1, "allocated": 1024, "frees": 1, "freed": 512, "outstandingCount": 0, "outstanding": 512}],
+            "blocks": [{"process": "app.exe (100)", "tid": 7, "group": group, "kind": "Paged", "address": "0xb1", "size": 2048,
+                        "allocNs": 1000000, "freeNs": None}],
+        }
+        change = (f"document.getElementById('tab-{name}').click();"
+                  f"setTimeout(function () {{ var b = document.getElementById('{name}-by'); b.value = '{second}'; b.dispatchEvent(new Event('change')); }}, 100);")
+        dom = render(alloc, change, shot=shot(name))
+        assert f"4 {name} allocations (4 KB) and 2 frees (1 KB); 2 (3 KB) still allocated at the end." in dom, f"the {name} title"
+        posted = json.loads(html.unescape(re.search(r'<pre id="posted"[^>]*>(.*?)</pre>', dom, re.S).group(1)))
+        asked = [m["params"]["by"] for m in posted if m.get("method") == name]
+        assert asked == [first, second], asked
+        table = dom[dom.index(f'id="{name}-groups"'):dom.index(f'id="{name}-blocks"')]
+        labels = [html.unescape(x) for x in re.findall(r'<tr data-i="\d+"><td class="cmd">([^<]*)</td>', table)]
+        assert labels == ["g1", "g2"], labels
+        start = dom.index(f'id="{name}-blocks"')
+        rest = html.unescape(dom[start:dom.index("</table>", start)])
+        assert group in rest and "still allocated" in rest and "2,048" in rest
+        assert ("Paged" in rest) == (name == "pool"), (name, "the pool's types")
     print("harness: ok")
 
 

@@ -1933,7 +1933,8 @@ fn answers_too_large_to_send_are_errors() {
 type KernelRecord = (hexcavator_etl::Guid, u8, u16, i64, Vec<u8>, u32);
 
 /// A trace (a counter at 10 MHz: 100 ns a tick) of process 100 (app.exe)
-/// and its thread 200 (run down at the start), then `events`.
+/// and its thread 200 (run down at the start), then `events` (those of
+/// thread 200 are process 100's, by their headers).
 fn app_trace(dir: &std::path::Path, events: Vec<KernelRecord>) -> std::path::PathBuf {
     use hexcavator_etl::classic;
     use hexcavator_etl::write::{self, Kernel, Writer, WriterOptions};
@@ -1972,7 +1973,7 @@ fn app_trace(dir: &std::path::Path, events: Vec<KernelRecord>) -> std::path::Pat
             hook,
             version,
             thread_id: tid,
-            process_id: u32::MAX,
+            process_id: if tid == 200 { 100 } else { u32::MAX },
             timestamp: ts,
             ..Kernel::default()
         };
@@ -2245,4 +2246,205 @@ fn virtual_memory_commit_lifetimes() {
     assert_eq!(r["groups"].as_array().unwrap().len(), 1);
     assert_eq!(r["groups"][0]["label"], "app.exe (100)");
     assert!(error(&a, 6).contains("by"), "{}", error(&a, 6));
+}
+
+/// An allocation summary's totals: `[allocs, allocated, frees, freed,
+/// outstandingCount, outstanding]`.
+fn block_counts(v: &Value) -> [u64; 6] {
+    let n = |k: &str| v[k].as_u64().unwrap();
+    [
+        n("allocs"),
+        n("allocated"),
+        n("frees"),
+        n("freed"),
+        n("outstandingCount"),
+        n("outstanding"),
+    ]
+}
+
+/// An allocation summary's groups' counts, by label.
+fn block_groups(v: &Value) -> std::collections::BTreeMap<String, [u64; 6]> {
+    v["groups"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|g| (g["label"].as_str().unwrap().to_string(), block_counts(g)))
+        .collect()
+}
+
+#[test]
+fn heap_blocks_by_process_heap_and_thread() {
+    use hexcavator_etw::guids;
+    let dir = scratch("serve-heap");
+    let ptrs = |v: &[u64]| v.iter().flat_map(|v| v.to_le_bytes()).collect::<Vec<u8>>();
+    let with_source = |mut p: Vec<u8>| {
+        p.extend_from_slice(&0u32.to_le_bytes());
+        p
+    };
+    let (h1, h2, h3) = (0x1000, 0x2000, 0x3000);
+    let alloc = |ts: i64, heap: u64, size: u64, address: u64, tid: u32| {
+        (
+            guids::HEAP,
+            33,
+            2,
+            ts,
+            with_source(ptrs(&[heap, size, address])),
+            tid,
+        )
+    };
+    let free = |ts: i64, heap: u64, address: u64| {
+        (
+            guids::HEAP,
+            36,
+            2,
+            ts,
+            with_source(ptrs(&[heap, address])),
+            200,
+        )
+    };
+    let path = app_trace(
+        &dir,
+        vec![
+            alloc(10, h1, 100, 0xa1, 200),
+            alloc(20, h1, 200, 0xa2, 200),
+            // A realloc: 0xa2 ends, 0xa3 (300 bytes) starts.
+            (
+                guids::HEAP,
+                34,
+                2,
+                30,
+                with_source(ptrs(&[h1, 0xa3, 0xa2, 300, 200])),
+                200,
+            ),
+            free(40, h1, 0xa1),
+            alloc(50, h2, 1000, 0xa4, 200),
+            alloc(60, h1, 50, 0xa5, 200),
+            // Destroying heap 1 ends its blocks (0xa3, 0xa5).
+            (guids::HEAP, 35, 2, 70, ptrs(&[h1]), 200),
+            // A free of what we didn't see allocated.
+            free(80, h1, 0xa9),
+            // A thread (and so process) we don't know.
+            alloc(90, h3, 10, 0xa6, 999),
+        ],
+    );
+    let req = |by: Option<&str>, extra: Value| {
+        let mut p = json!({"trace": 1});
+        if let Some(by) = by {
+            p["by"] = json!(by);
+        }
+        for (k, v) in extra.as_object().unwrap() {
+            p[k] = v.clone();
+        }
+        json!({"method": "heap", "params": p})
+    };
+    let a = session(&[
+        json!({"method": "open", "params": {"path": path, "useIndex": true}}),
+        req(None, json!({})),
+        req(Some("heap"), json!({})),
+        req(Some("thread"), json!({"limit": 2})),
+        req(Some("process"), json!({"time": [0, 4_500]})),
+        req(Some("tag"), json!({})),
+    ]);
+    // Blocks: 0xa1 (100, freed), 0xa2 (200, realloc'd), 0xa3 (300) and
+    // 0xa5 (50) (destroyed), 0xa4 (1000) and 0xa6 (10) still allocated.
+    let r = result(&a, 2);
+    assert_eq!(block_counts(r), [6, 1660, 4, 650, 2, 1010]);
+    let procs = block_groups(r);
+    assert_eq!(procs["app.exe (100)"], [5, 1650, 4, 650, 1, 1000]);
+    assert_eq!(procs["Unknown process"], [1, 10, 0, 0, 1, 10]);
+    let heaps = block_groups(result(&a, 3));
+    assert_eq!(heaps["0x1000 in app.exe (100)"], [4, 650, 4, 650, 0, 0]);
+    assert_eq!(heaps["0x2000 in app.exe (100)"], [1, 1000, 0, 0, 1, 1000]);
+    assert_eq!(heaps["0x3000 in Unknown process"], [1, 10, 0, 0, 1, 10]);
+    let r = result(&a, 4);
+    assert_eq!(block_groups(r)["200 in app.exe (100)"][0], 5);
+    // The largest, a limit of them.
+    let blocks = r["blocks"].as_array().unwrap();
+    assert_eq!(blocks.len(), 2);
+    assert_eq!(
+        (
+            &blocks[0]["size"],
+            &blocks[0]["freeNs"],
+            &blocks[0]["group"],
+            &blocks[0]["kind"]
+        ),
+        (
+            &json!(1000),
+            &Value::Null,
+            &json!("0x2000 in app.exe (100)"),
+            &json!("Heap")
+        )
+    );
+    assert_eq!(
+        (
+            &blocks[1]["address"],
+            &blocks[1]["allocNs"],
+            &blocks[1]["freeNs"],
+            &blocks[1]["tid"]
+        ),
+        (&json!("0xa3"), &json!(3_000), &json!(7_000), &json!(200))
+    );
+    // To 4.5 us: 0xa1, 0xa2 and 0xa3 allocated; 0xa2 and 0xa1 freed; 0xa3
+    // still allocated at its end.
+    assert_eq!(block_counts(result(&a, 5)), [3, 600, 2, 300, 1, 300]);
+    assert!(error(&a, 6).contains("by"), "{}", error(&a, 6));
+}
+
+#[test]
+fn pool_blocks_by_tag_type_and_process() {
+    use hexcavator_etw::guids;
+    let dir = scratch("serve-pool");
+    let tag = |t: &[u8; 4]| u32::from_le_bytes(*t);
+    // Pool Alloc (32) and Free (34) v2: type, tag, size, address.
+    let block = |op: u8, ts: i64, pool_type: u32, tag: u32, size: u64, address: u64| {
+        let mut p = pool_type.to_le_bytes().to_vec();
+        p.extend_from_slice(&tag.to_le_bytes());
+        p.extend_from_slice(&size.to_le_bytes());
+        p.extend_from_slice(&address.to_le_bytes());
+        (guids::POOL, op, 2, ts, p, 200)
+    };
+    let abcd = tag(b"Abcd");
+    let path = app_trace(
+        &dir,
+        vec![
+            block(32, 10, 0, abcd, 64, 0xb1),
+            block(32, 20, 1, abcd, 128, 0xb2),
+            // Paged session pool; a protected tag, padded with spaces.
+            block(32, 30, 33, tag(b"Xy  ") | 0x8000_0000, 32, 0xb3),
+            block(34, 40, 0, abcd, 0, 0xb1),
+            block(34, 50, 0, abcd, 0, 0xb9),
+            // An allocation where one still is: that one ends.
+            block(32, 60, 0, abcd, 256, 0xb2),
+        ],
+    );
+    let req = |by: Option<&str>| {
+        let mut p = json!({"trace": 1});
+        if let Some(by) = by {
+            p["by"] = json!(by);
+        }
+        json!({"method": "pool", "params": p})
+    };
+    let a = session(&[
+        json!({"method": "open", "params": {"path": path, "useIndex": true}}),
+        req(None),
+        req(Some("type")),
+        req(Some("process")),
+        req(Some("heap")),
+    ]);
+    let r = result(&a, 2);
+    assert_eq!(block_counts(r), [4, 480, 2, 192, 2, 288]);
+    let tags = block_groups(r);
+    assert_eq!(tags["Abcd"], [3, 448, 2, 192, 1, 256]);
+    assert_eq!(tags["Xy"], [1, 32, 0, 0, 1, 32]);
+    let types = block_groups(result(&a, 3));
+    assert_eq!(types["Nonpaged"][..2], [2, 320]);
+    assert_eq!(types["Paged"][..2], [1, 128]);
+    assert_eq!(types["Paged (session)"][..2], [1, 32]);
+    assert_eq!(block_groups(result(&a, 4))["app.exe (100)"][0], 4);
+    let largest = &result(&a, 2)["blocks"][0];
+    assert_eq!(
+        (&largest["size"], &largest["kind"], &largest["group"]),
+        (&json!(256), &json!("Nonpaged"), &json!("Abcd"))
+    );
+    assert!(error(&a, 5).contains("by"), "{}", error(&a, 5));
 }

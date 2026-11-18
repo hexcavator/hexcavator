@@ -778,6 +778,46 @@
       `(${mb(d.decommitted)} MB)${when}; ${mb(d.outstanding)} MB of it still committed at the end`,
   });
 
+  // Heap and pool: what was allocated and freed in the time selected, and
+  // what of it is still allocated at its end.
+  for (const [name, what, group] of [
+    ["heap", "heap", "Heap"],
+    ["pool", "pool", "Tag"],
+  ]) {
+    summaryTab({
+      name,
+      method: name,
+      reading: `Reading the trace's ${what} allocations\u2026`,
+      groups: [
+        { key: "label", title: "Group", cls: "cmd" },
+        { key: "allocs", title: "Allocations", num: true, text: number(0) },
+        { key: "allocated", title: "Allocated (KB)", num: true, text: kb },
+        { key: "frees", title: "Frees", num: true, text: number(0) },
+        { key: "freed", title: "Freed (KB)", num: true, text: kb },
+        { key: "outstandingCount", title: "Still allocated", num: true, text: number(0) },
+        { key: "outstanding", title: "Still allocated (KB)", num: true, text: kb },
+      ],
+      groupSort: { key: "outstanding", down: true },
+      items: "blocks",
+      itemColumns: [
+        { key: "process", title: "Process" },
+        { key: "tid", title: "TID", num: true },
+        { key: "group", title: group, cls: "cmd" },
+      ]
+        .concat(name === "pool" ? [{ key: "kind", title: "Type" }] : [])
+        .concat([
+          { key: "address", title: "Address", cls: "cmd" },
+          { key: "size", title: "Bytes", num: true, text: number(0) },
+          { key: "allocNs", title: "Allocated", num: true, text: at("") },
+          { key: "freeNs", title: "Freed", num: true, text: at("still allocated") },
+        ]),
+      itemSort: { key: "size", down: true },
+      title: (d, when) =>
+        `${count(d.allocs)} ${what} allocations (${kb(d.allocated)} KB) and ${count(d.frees)} frees ` +
+        `(${kb(d.freed)} KB)${when}; ${count(d.outstandingCount)} (${kb(d.outstanding)} KB) still allocated at the end`,
+    });
+  }
+
   // Hard faults, by duration (from each fault to its read's completion).
   summaryTab({
     name: "hardfaults",
@@ -813,7 +853,7 @@
     if (name === "regions") {
       loadRegions();
     }
-    for (const t of ["stacks", "processes", "functions", "symbols", "events", "regions", "disk", "fileio", "dpc", "registry", "hardfaults", "vmem"]) {
+    for (const t of ["stacks", "processes", "functions", "symbols", "events", "regions", "disk", "fileio", "dpc", "registry", "hardfaults", "vmem", "heap", "pool"]) {
       $(`tab-${t}`).classList.toggle("active", name === t);
       $(`${t}-pane`).classList.toggle("hidden", name !== t);
     }
@@ -840,6 +880,8 @@
   $("tab-registry").addEventListener("click", () => showTab("registry"));
   $("tab-hardfaults").addEventListener("click", () => showTab("hardfaults"));
   $("tab-vmem").addEventListener("click", () => showTab("vmem"));
+  $("tab-heap").addEventListener("click", () => showTab("heap"));
+  $("tab-pool").addEventListener("click", () => showTab("pool"));
   symbolsEl.addEventListener("click", () => showTab("symbols"));
   /**
    * The shown tab as Markdown, to the clipboard (by way of the extension):
@@ -957,7 +999,7 @@
     if (s.lit && typeof s.lit.fn === "string") {
       lit = { fn: s.lit.fn, label: String(s.lit.label || s.lit.fn) };
     }
-    if (["stacks", "processes", "functions", "symbols", "events", "regions", "disk", "fileio", "dpc", "registry", "hardfaults", "vmem"].includes(s.tab)) {
+    if (["stacks", "processes", "functions", "symbols", "events", "regions", "disk", "fileio", "dpc", "registry", "hardfaults", "vmem", "heap", "pool"].includes(s.tab)) {
       showTab(s.tab);
     }
   }

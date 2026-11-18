@@ -782,3 +782,71 @@ fn page_faults_and_virtual_allocations() {
         assert_eq!(props[3].1, 0x3000u32.to_le_bytes());
     }
 }
+
+#[test]
+fn heap_and_pool_events() {
+    let names = |op: u8, version: u16, provider: Guid, payload: Vec<u8>| {
+        let (name, props, rest) = properties_of(provider, op, version, payload);
+        assert!(rest.is_empty(), "{name}");
+        (name, props.into_iter().map(|(n, _)| n).collect::<Vec<_>>())
+    };
+    let heap = |op, version, payload| names(op, version, guids::HEAP, payload);
+    assert_eq!(
+        heap(32, 3, P::default().u64(1).u32(2).u64(3).u64(4).u64(5).0),
+        (
+            "Create".to_string(),
+            [
+                "HeapHandle",
+                "HeapFlags",
+                "ReserveSize",
+                "CommitSize",
+                "AllocatedSize"
+            ]
+            .map(String::from)
+            .to_vec()
+        )
+    );
+    assert_eq!(
+        heap(33, 2, P::default().u64(1).u64(2).u64(3).u32(4).0).1[1],
+        "AllocSize"
+    );
+    let realloc = heap(
+        34,
+        2,
+        P::default().u64(1).u64(2).u64(3).u64(4).u64(5).u32(6).0,
+    );
+    assert_eq!(realloc.0, "ReAlloc");
+    assert_eq!(realloc.1[1..3], ["NewAllocAddress", "OldAllocAddress"]);
+    assert_eq!(heap(35, 2, P::default().u64(1).0).0, "Destroy");
+    assert_eq!(
+        heap(36, 2, P::default().u64(1).u64(2).u32(3).0).1[1],
+        "FreeAddress"
+    );
+    let expand = heap(
+        37,
+        3,
+        P::default()
+            .u64(1)
+            .u64(2)
+            .u64(3)
+            .u64(4)
+            .u64(5)
+            .u64(6)
+            .u32(7)
+            .u64(8)
+            .0,
+    );
+    assert_eq!((expand.0.as_str(), expand.1.len()), ("Expand", 8));
+    assert_eq!(heap(43, 2, P::default().u64(1).0).0, "Lock");
+    assert_eq!(heap(44, 2, P::default().u64(1).0).0, "Unlock");
+    for (op, want) in [(32, "Alloc"), (34, "Free")] {
+        let (name, props) = names(
+            op,
+            2,
+            guids::POOL,
+            P::default().u32(0).u32(0x6463_6241).u64(64).u64(0xb1).0,
+        );
+        assert_eq!(name, want);
+        assert_eq!(props, ["Type", "Tag", "NumberOfBytes", "Entry"]);
+    }
+}

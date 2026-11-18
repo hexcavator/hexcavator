@@ -487,6 +487,57 @@ const REGISTRY_COUNTERS: &[(&str, Field)] = &[
     ("Counter11", U64),
 ];
 
+/// `Heap_Create`.
+const HEAP_CREATE: &[(&str, Field)] = &[
+    ("HeapHandle", Ptr),
+    ("HeapFlags", U32),
+    ("ReserveSize", Ptr),
+    ("CommitSize", Ptr),
+    ("AllocatedSize", Ptr),
+];
+
+/// `Heap_Alloc`.
+const HEAP_ALLOC: &[(&str, Field)] = &[
+    ("HeapHandle", Ptr),
+    ("AllocSize", Ptr),
+    ("AllocAddress", Ptr),
+    ("SourceId", U32),
+];
+
+/// `Heap_ReAlloc`.
+const HEAP_REALLOC: &[(&str, Field)] = &[
+    ("HeapHandle", Ptr),
+    ("NewAllocAddress", Ptr),
+    ("OldAllocAddress", Ptr),
+    ("NewAllocSize", Ptr),
+    ("OldAllocSize", Ptr),
+    ("SourceId", U32),
+];
+
+/// `Heap_Free`.
+const HEAP_FREE: &[(&str, Field)] = &[("HeapHandle", Ptr), ("FreeAddress", Ptr), ("SourceId", U32)];
+
+/// `Heap_Expand`.
+const HEAP_EXPAND: &[(&str, Field)] = &[
+    ("HeapHandle", Ptr),
+    ("ExtendedSize", Ptr),
+    ("Address", Ptr),
+    ("Size", Ptr),
+    ("CommittedSize", Ptr),
+    ("ReserveSize", Ptr),
+    ("NoOfUCRs", U32),
+    ("AllocatedSize", Ptr),
+];
+
+/// `PoolAlloc` and `PoolFree`: a block of the kernel's pool, its type
+/// (`POOL_TYPE`) and tag.
+const POOL_BLOCK: &[(&str, Field)] = &[
+    ("Type", U32),
+    ("Tag", U32),
+    ("NumberOfBytes", Ptr),
+    ("Entry", Ptr),
+];
+
 /// `PageFault_TypeGroup1`: a fault's address, and the instruction's.
 const PAGE_FAULT: &[(&str, Field)] = &[("VirtualAddress", Ptr), ("ProgramCounter", Ptr)];
 
@@ -864,6 +915,25 @@ pub static SCHEMAS: &[Schema] = &[
         "Config",
         &[("CurrentControlSet", U32)],
     ),
+    // Heap.
+    s(guids::HEAP, 32, 3, "Heap", "Create", HEAP_CREATE),
+    s(guids::HEAP, 33, 2, "Heap", "Alloc", HEAP_ALLOC),
+    s(guids::HEAP, 34, 2, "Heap", "ReAlloc", HEAP_REALLOC),
+    s(
+        guids::HEAP,
+        35,
+        2,
+        "Heap",
+        "Destroy",
+        &[("HeapHandle", Ptr)],
+    ),
+    s(guids::HEAP, 36, 2, "Heap", "Free", HEAP_FREE),
+    s(guids::HEAP, 37, 3, "Heap", "Expand", HEAP_EXPAND),
+    s(guids::HEAP, 43, 2, "Heap", "Lock", &[("HeapHandle", Ptr)]),
+    s(guids::HEAP, 44, 2, "Heap", "Unlock", &[("HeapHandle", Ptr)]),
+    // Pool.
+    s(guids::POOL, 32, 2, "Pool", "Alloc", POOL_BLOCK),
+    s(guids::POOL, 34, 2, "Pool", "Free", POOL_BLOCK),
     // StackWalk.
     s(
         guids::STACK_WALK,

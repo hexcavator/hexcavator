@@ -62,6 +62,18 @@
 //!   (10,000) of `groupsTotal`) and the `limit` (1000) longest, each
 //!   `{startNs, durationNs, size, offset, address, process, tid, file}`.
 //!   (Read from the trace file the first time, then kept.)
+//! - `heap` `{trace, by?, time?, limit?, groupLimit?}` and `pool` (the
+//!   same) → `{allocs, allocated, frees, freed, outstandingCount,
+//!   outstanding, groupsTotal, groups, blocks}`: heap (processes heap
+//!   tracing was on for) or kernel pool allocations; by `by` (heap:
+//!   process, heap or thread; pool: tag, type, process or thread), how
+//!   many blocks and bytes were allocated and freed in `time` (all of the
+//!   trace if none), and how many of those allocated in it are still
+//!   allocated at its end (the most bytes first; the first `groupLimit`
+//!   (10,000) of `groupsTotal`); and the `limit` (1000) largest blocks
+//!   allocated in it, each `{process, tid, group, kind, address, size,
+//!   allocNs, freeNs}`. (Read from the trace file the first time, then
+//!   kept.)
 //! - `vmem` `{trace, by?, time?, limit?, groupLimit?}` → `{commits,
 //!   committed, decommits, decommitted, outstanding, groupsTotal, groups,
 //!   lifetimes}`: virtual memory commit lifetimes; by `by` (process or
@@ -371,6 +383,10 @@ struct State {
     disk: Option<Arc<crate::disk::DiskTable>>,
     /// The trace's file operations, once read.
     files: Option<Arc<crate::fileio::FileTable>>,
+    /// The trace's heap blocks, once read.
+    heap: Option<Arc<crate::allocs::BlockTable>>,
+    /// The trace's pool blocks, once read.
+    pool: Option<Arc<crate::allocs::BlockTable>>,
     /// The trace's commit lifetimes, once read.
     vmem: Option<Arc<crate::vmem::VmemTable>>,
     /// The trace's hard faults, once read.
@@ -496,6 +512,8 @@ fn worker(
         registry: None,
         faults: None,
         vmem: None,
+        heap: None,
+        pool: None,
         report: SymbolsReport {
             frames: Arc::default(),
             saved: saved.iter().map(|(k, _)| *k).collect(),
@@ -930,6 +948,61 @@ impl State {
                 Ok(crate::hardfault::summary(
                     trace,
                     &table,
+                    group,
+                    ticks(trace, spec.time),
+                    limit,
+                    group_limit,
+                ))
+            }
+            "heap" | "pool" => {
+                let spec = TreeSpec::from_json(params)?;
+                let is_heap = method == "heap";
+                let by = params.get("by").and_then(Value::as_str);
+                let group = match (is_heap, by) {
+                    (true, None | Some("process")) | (false, Some("process")) => {
+                        crate::allocs::GroupBy::Process
+                    }
+                    (_, Some("thread")) => crate::allocs::GroupBy::Thread,
+                    (true, Some("heap")) | (false, None | Some("tag")) => {
+                        crate::allocs::GroupBy::Group
+                    }
+                    (false, Some("type")) => crate::allocs::GroupBy::Kind,
+                    (_, Some(other)) => {
+                        return Err(if is_heap {
+                            format!("by: process, heap or thread, not {other}")
+                        } else {
+                            format!("by: tag, type, process or thread, not {other}")
+                        });
+                    }
+                };
+                let limit = count(params, "limit", 1000)?;
+                let group_limit = count(params, "groupLimit", 10_000)?;
+                let slot = if is_heap {
+                    &mut self.heap
+                } else {
+                    &mut self.pool
+                };
+                let table = match slot {
+                    Some(t) => Arc::clone(t),
+                    None => {
+                        let t = Arc::new(if is_heap {
+                            crate::allocs::heap(trace, &self.loaded.path)?
+                        } else {
+                            crate::allocs::pool(trace, &self.loaded.path)?
+                        });
+                        *slot = Some(Arc::clone(&t));
+                        t
+                    }
+                };
+                let kinds: &[&str] = if is_heap {
+                    &["Heap"]
+                } else {
+                    &crate::allocs::POOL_KINDS
+                };
+                Ok(crate::allocs::summary(
+                    trace,
+                    &table,
+                    kinds,
                     group,
                     ticks(trace, spec.time),
                     limit,
