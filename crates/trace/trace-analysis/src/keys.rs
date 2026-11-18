@@ -79,6 +79,16 @@ impl Keys {
     pub fn find(&self, key: &Key) -> Option<KeyId> {
         self.ids.get(key).copied()
     }
+
+    /// The number of keys (their IDs are below it).
+    pub fn len(&self) -> usize {
+        self.keys.len()
+    }
+
+    /// Whether there are none.
+    pub fn is_empty(&self) -> bool {
+        self.keys.is_empty()
+    }
 }
 
 /// How finely frames are told apart.
@@ -93,8 +103,9 @@ pub enum FrameMode {
     Address,
 }
 
-/// Finds the function an address is in.
-pub trait Symbolizer {
+/// Finds the function an address is in. (Shared by the threads that build
+/// a query.)
+pub trait Symbolizer: Sync {
     /// The start offset and name of the function at `offset` in `image`.
     fn function(&self, trace: &Trace, image: ImageIx, offset: u64) -> Option<(u64, String)>;
 
@@ -244,6 +255,22 @@ impl<'a> Framer<'a> {
                 .map(|(site, _)| Key::Inline { image, site })
                 .collect()
         })
+    }
+
+    /// A framer like this one (same trace, symbols, mode, tags and folding
+    /// rules), with caches of its own: for another thread.
+    pub fn fork(&self) -> Self {
+        Self {
+            trace: self.trace,
+            resolver: self.resolver,
+            symbolizer: self.symbolizer,
+            mode: self.mode,
+            cache: FxHashMap::default(),
+            tags: self.tags.clone(),
+            folds: self.folds.clone(),
+            classes: FxHashMap::default(),
+            inlines: FxHashMap::default(),
+        }
     }
 
     /// Uses `tags` for [`crate::GroupBy::StackTag`].

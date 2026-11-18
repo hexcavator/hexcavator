@@ -54,6 +54,21 @@ impl Instances {
         self.counts.push(count);
     }
 
+    /// Adds `other`'s instances, their keys renamed by `rename` (indexed by
+    /// key ID).
+    pub fn append_renamed(&mut self, other: &Instances, rename: &[KeyId]) {
+        let base = self.keys.len();
+        self.keys
+            .extend(other.keys.iter().map(|k| rename[k.0 as usize]));
+        self.starts.extend(
+            other.starts[1..]
+                .iter()
+                .map(|&s| u32::try_from(base + s as usize).expect("fewer than 4G keys")),
+        );
+        self.weights.extend_from_slice(&other.weights);
+        self.counts.extend_from_slice(&other.counts);
+    }
+
     /// Instance `i`'s event count.
     pub fn count(&self, i: usize) -> u64 {
         self.counts[i]

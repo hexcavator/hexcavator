@@ -63,7 +63,14 @@ impl Filter {
 /// a stack, and for a sample without a stack, its instruction pointer.
 type Bucket = (ThreadIx, u16, StackId, u64);
 
-/// Turns aggregated buckets into instances.
+/// How many buckets a thread turns into instances at a time. (Fixed, not
+/// by the number of threads, so that keys are numbered the same on any
+/// machine.)
+const CHUNK: usize = 4096;
+
+/// Turns aggregated buckets into instances: in chunks, on every core, each
+/// with a framer and keys of its own; the chunks' keys are then numbered
+/// in chunk order, so the result is the same on any number of threads.
 fn instances(
     trace: &Trace,
     framer: &mut Framer<'_>,
@@ -71,15 +78,64 @@ fn instances(
     groups: &[GroupBy],
     buckets: FxHashMap<Bucket, (u64, u64)>,
 ) -> Instances {
-    let mut out = Instances::new(groups.len());
-    let mut seq: Vec<KeyId> = Vec::new();
-    let mut frames: Vec<u64> = Vec::new();
     // Deterministic order: by bucket.
     let mut buckets: Vec<(Bucket, (u64, u64))> = buckets.into_iter().collect();
     buckets.sort_unstable_by_key(|&(b, _)| b);
+    if buckets.len() <= CHUNK {
+        return chunk_instances(trace, framer, keys, groups, &buckets);
+    }
+    let chunks: Vec<&[(Bucket, (u64, u64))]> = buckets.chunks(CHUNK).collect();
+    let threads = std::thread::available_parallelism()
+        .map_or(4, std::num::NonZero::get)
+        .min(chunks.len());
+    let next = std::sync::atomic::AtomicUsize::new(0);
+    let done: Vec<std::sync::Mutex<Option<(Instances, Keys)>>> =
+        chunks.iter().map(|_| std::sync::Mutex::new(None)).collect();
+    let template = &*framer;
+    std::thread::scope(|scope| {
+        for _ in 0..threads {
+            scope.spawn(|| {
+                let mut framer = template.fork();
+                loop {
+                    let i = next.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                    let Some(chunk) = chunks.get(i) else { return };
+                    let mut local = Keys::default();
+                    let inst = chunk_instances(trace, &mut framer, &mut local, groups, chunk);
+                    *done[i]
+                        .lock()
+                        .unwrap_or_else(std::sync::PoisonError::into_inner) = Some((inst, local));
+                }
+            });
+        }
+    });
+    let mut out = Instances::new(groups.len());
+    for slot in done {
+        let (inst, local) = slot
+            .into_inner()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .expect("every chunk is done");
+        let rename: Vec<KeyId> = (0..local.len())
+            .map(|k| keys.intern(local.get(KeyId(u32::try_from(k).expect("a key")))))
+            .collect();
+        out.append_renamed(&inst, &rename);
+    }
+    out
+}
+
+/// Turns buckets into instances.
+fn chunk_instances(
+    trace: &Trace,
+    framer: &mut Framer<'_>,
+    keys: &mut Keys,
+    groups: &[GroupBy],
+    buckets: &[(Bucket, (u64, u64))],
+) -> Instances {
+    let mut out = Instances::new(groups.len());
+    let mut seq: Vec<KeyId> = Vec::new();
+    let mut frames: Vec<u64> = Vec::new();
     let by_tag = groups.contains(&GroupBy::StackTag) && framer.has_tags();
     let folding = framer.has_folds();
-    for ((thread, cpu, stack, ip), (weight, count)) in buckets {
+    for &((thread, cpu, stack, ip), (weight, count)) in buckets {
         let process = trace.thread_process(thread);
         frames.clear();
         if stack.is_empty() {
