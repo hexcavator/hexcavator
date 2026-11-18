@@ -22,6 +22,7 @@ pub mod generic;
 pub mod hardfault;
 pub mod mcp;
 pub mod memutil;
+pub mod profile;
 pub mod protocol;
 pub mod query;
 pub mod reading;
@@ -47,6 +48,9 @@ Commands:
                             threads, ...); print the answer as JSON, or a list of it as CSV.
   mcp                       A Model Context Protocol server on standard input and output:
                             tools for AI assistants to open traces and query them.
+  profile <file.wpaProfile>...
+                            Show how WPA profiles' views open in Stackrabbit: each graph's
+                            tab, what of its preset applies, and what doesn't.
   bench <trace or dir>...   Time opening and querying traces: import, index, trees.
                             Prints timings and counts only, never what the traces hold.
   symbols <trace> [options] Download the PDBs a trace's stacks need, many at once.
@@ -67,6 +71,7 @@ pub fn run(args: &[String]) -> ExitCode {
         "tree" => tree::run(rest),
         "query" => query::run(rest),
         "mcp" => mcp::run(rest),
+        "profile" => profile::run(rest),
         "bench" => bench::run(rest),
         "synth" => synth::run(rest),
         "symbols" => symbols::run(rest),

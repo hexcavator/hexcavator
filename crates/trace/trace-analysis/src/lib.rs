@@ -17,6 +17,7 @@ pub mod regions;
 pub mod shape;
 pub mod sources;
 pub mod tree;
+pub mod wpa_profile;
 pub mod xml;
 
 pub use keys::{FrameMode, Framer, Key, KeyId, Keys, NoSymbols, Resolver, Symbolizer, label};
