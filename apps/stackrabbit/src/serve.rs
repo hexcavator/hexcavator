@@ -27,9 +27,11 @@
 //! - `summary` `{trace}` → the trace's summary.
 //! - `processes` `{trace, time?}` → `{rows}`: the processes, with their
 //!   lifetimes, threads and CPU samples (in `time`), heaviest first.
-//! - `graph` `{trace, buckets?, time?, top?}` → `{startNs, endNs, buckets,
-//!   series}`: CPU usage (sampled) over time, by process, each series's
-//!   values the share of all the processors it used in each bucket.
+//! - `graph` `{trace, source?, buckets?, time?, top?}` → `{source, startNs,
+//!   endNs, buckets, series}`: CPU usage over time, by process, sampled
+//!   (`samples`) or precise (`running`, or `waits`: both from context
+//!   switches), each series's values the share of all the processors it
+//!   used in each bucket.
 //! - `tree.create` `{trace, source?, groupBy?, frames?, invert?, time?}` →
 //!   `{view, unit, root}`: a stack tree and its root row.
 //! - `tree.children` `{trace, view, node}` → `{rows}`: a node's children,
@@ -425,8 +427,14 @@ impl State {
                     .get("top")
                     .and_then(Value::as_u64)
                     .map_or(8, |t| usize::try_from(t).unwrap_or(8));
-                let time = TreeSpec::from_json(params)?.time;
-                Ok(crate::views::cpu_graph(trace, buckets, time, top))
+                let spec = TreeSpec::from_json(params)?;
+                Ok(crate::views::cpu_graph(
+                    trace,
+                    spec.source,
+                    buckets,
+                    spec.time,
+                    top,
+                ))
             }
             "tree.create" => {
                 let spec = TreeSpec::from_json(params)?;

@@ -170,11 +170,13 @@
       if (!this.legend || !d) {
         return;
       }
-      const total = d.series.reduce((a, s) => a + s.samples, 0) || 1;
+      // (Sampled series weigh samples; precise ones, nanoseconds.)
+      const weight = (s) => (s.samples !== undefined ? s.samples : s.ns);
+      const total = d.series.reduce((a, s) => a + weight(s), 0) || 1;
       this.legend.innerHTML = d.series
         .map((s, i) => {
           const color = s.label === "Other" ? OTHER : COLORS[i % COLORS.length];
-          const share = ((100 * s.samples) / total).toFixed(1);
+          const share = ((100 * weight(s)) / total).toFixed(1);
           return `<span class="key"><span class="swatch" style="background:${color}"></span>${escape(s.label)} ${share}%</span>`;
         })
         .join("");

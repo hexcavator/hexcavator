@@ -198,7 +198,8 @@
   /** Asks for the graph, as many buckets as it has pixels. */
   async function loadGraph() {
     try {
-      graph.set(await request("graph", { buckets: graph.plotWidth(), top: 8 }));
+      const source = controls.source.value === "samples" ? "samples" : "running";
+      graph.set(await request("graph", { source, buckets: graph.plotWidth(), top: 8 }));
     } catch (e) {
       statusEl.textContent = e.message;
       statusEl.classList.add("error");
@@ -412,6 +413,8 @@
   for (const c of Object.values(controls)) {
     c.addEventListener("change", createTree);
   }
+  // The graph shows what the tree weighs: sampled or precise CPU.
+  controls.source.addEventListener("change", loadGraph);
   $("hot").addEventListener("click", () => {
     hotPath();
     viewport.focus();

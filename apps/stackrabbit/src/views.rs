@@ -323,13 +323,23 @@ pub fn span(trace: &Trace) -> Option<(i64, i64)> {
     (first <= last).then_some((first, last))
 }
 
-/// CPU usage (sampled) over time, by process: the share of all the
-/// processors each process used, in `buckets` equal intervals of `[start,
-/// end)` nanoseconds from the trace's start (by default, all of it). The
-/// `top` heaviest processes are series of their own, the rest one
-/// ("Other"); the idle process isn't in it. (Fewer buckets, if fewer hold
-/// four sampling intervals each.)
-pub fn cpu_graph(trace: &Trace, buckets: usize, time: Option<(i64, i64)>, top: usize) -> Value {
+/// CPU usage over time, by process, from `source`: sampled (each sample
+/// a sampling interval of CPU) or precise (`Source::Running`: each
+/// switch-in's running time, split across the buckets it overlaps). Each
+/// series's values are the share of all the processors the process used,
+/// in `buckets` equal intervals of `[start, end)` nanoseconds from the
+/// trace's start (by default, all of it). The `top` heaviest processes are
+/// series of their own, the rest one ("Other"); the idle process isn't in
+/// it. (Sampled: fewer buckets, if fewer hold four sampling intervals
+/// each.) Each series also says its weight: `samples` (sampled) or `ns`
+/// (precise).
+pub fn cpu_graph(
+    trace: &Trace,
+    source: Source,
+    buckets: usize,
+    time: Option<(i64, i64)>,
+    top: usize,
+) -> Value {
     let buckets = buckets.clamp(1, 10_000);
     let (first, last) = span(trace).unwrap_or((trace.clock.origin, trace.clock.origin));
     let (start, end) = match time {
@@ -337,44 +347,113 @@ pub fn cpu_graph(trace: &Trace, buckets: usize, time: Option<(i64, i64)>, top: u
         None => (first, last + 1),
     };
     let width = (end - start).max(1);
-    // At least four sampling intervals a bucket: fewer, and each bucket
-    // holds a sample or none, and the graph is all spikes.
     let span_ns = (trace.clock.nanos(end) - trace.clock.nanos(start)).max(1);
-    let fit = usize::try_from(
-        span_ns / (4 * i64::try_from(trace.sample_interval_ns()).unwrap_or(i64::MAX)).max(1),
-    )
-    .unwrap_or(usize::MAX)
-    .max(1);
-    let buckets = buckets.min(fit);
-    let s = &trace.samples;
-    // The samples in range: they are in time order.
-    let from = s.time.partition_point(|&t| t < start);
-    let to = s.time.partition_point(|&t| t < end);
+    let precise = source != Source::Samples;
+    // Sampled: at least four sampling intervals a bucket; fewer, and each
+    // bucket holds a sample or none, and the graph is all spikes.
+    let buckets = if precise {
+        buckets
+    } else {
+        let fit = usize::try_from(
+            span_ns / (4 * i64::try_from(trace.sample_interval_ns()).unwrap_or(i64::MAX)).max(1),
+        )
+        .unwrap_or(usize::MAX)
+        .max(1);
+        buckets.min(fit)
+    };
+    let is_idle = |p: ProcessIx| p.is_some() && trace.processes[p.index()].pid == 0;
+    let bucket_of = |t: i64| {
+        usize::try_from(i128::from(t - start) * buckets as i128 / i128::from(width))
+            .unwrap_or(0)
+            .min(buckets - 1)
+    };
+    // Each process's weight per bucket: samples, or clock ticks running.
     let mut by_process: FxHashMap<ProcessIx, Vec<u64>> = FxHashMap::default();
-    for i in from..to {
-        let p = trace.thread_process(s.thread[i]);
-        if p.is_some() && trace.processes[p.index()].pid == 0 {
-            continue; // Idle.
+    if precise {
+        let p = Precise::new(trace);
+        let sw = &trace.switches;
+        let to = sw.time.partition_point(|&t| t < end);
+        // A bucket's first tick.
+        let edge = |b: usize| {
+            start
+                + i64::try_from(i128::from(width) * b as i128 / buckets as i128).unwrap_or(i64::MAX)
+        };
+        for i in 0..to {
+            let run = i64::try_from(p.running[i]).unwrap_or(i64::MAX);
+            let (a, z) = (
+                sw.time[i].max(start),
+                sw.time[i].saturating_add(run).min(end),
+            );
+            let process = trace.thread_process(sw.new_thread[i]);
+            if a >= z || is_idle(process) {
+                continue;
+            }
+            let v = by_process
+                .entry(process)
+                .or_insert_with(|| vec![0; buckets]);
+            let mut b = bucket_of(a);
+            let mut t = a;
+            while t < z {
+                let next = if b + 1 < buckets {
+                    edge(b + 1).min(z)
+                } else {
+                    z
+                };
+                v[b] += u64::try_from(next - t).unwrap_or(0);
+                t = next;
+                b += 1;
+            }
         }
-        let b =
-            usize::try_from(i128::from(s.time[i] - start) * buckets as i128 / i128::from(width))
-                .unwrap_or(0)
-                .min(buckets - 1);
-        by_process.entry(p).or_insert_with(|| vec![0; buckets])[b] += u64::from(s.weight[i]);
+    } else {
+        let s = &trace.samples;
+        // The samples in range: they are in time order.
+        let from = s.time.partition_point(|&t| t < start);
+        let to = s.time.partition_point(|&t| t < end);
+        for i in from..to {
+            let process = trace.thread_process(s.thread[i]);
+            if is_idle(process) {
+                continue;
+            }
+            by_process
+                .entry(process)
+                .or_insert_with(|| vec![0; buckets])[bucket_of(s.time[i])] +=
+                u64::from(s.weight[i]);
+        }
     }
     let mut totals: Vec<(ProcessIx, u64)> = by_process
         .iter()
         .map(|(&p, v)| (p, v.iter().sum()))
         .collect();
     totals.sort_by(|a, b| b.1.cmp(&a.1).then(a.0.cmp(&b.0)));
-    // A bucket's sample count as a share of all the processors' time in it.
-    let bucket_ns = (trace.clock.nanos(end) - trace.clock.nanos(start)) as f64 / buckets as f64;
+    // A bucket's weight as a share of all the processors' time in it.
+    let bucket_ns = span_ns as f64 / buckets as f64;
     let capacity = bucket_ns * f64::from(trace.processors.max(1));
-    let interval = trace.sample_interval_ns() as f64;
+    let unit_ns = if precise {
+        1e9 / trace.clock.ticks_per_second.max(1) as f64
+    } else {
+        trace.sample_interval_ns() as f64
+    };
     let share = |v: &[u64]| -> Vec<f64> {
         v.iter()
-            .map(|&n| ((n as f64 * interval / capacity) * 10_000.0).round() / 10_000.0)
+            .map(|&n| ((n as f64 * unit_ns / capacity).min(1.0) * 10_000.0).round() / 10_000.0)
             .collect()
+    };
+    let weight = |v: &[u64]| {
+        let sum: u64 = v.iter().sum();
+        if precise {
+            // (In integers: exactly the ticks' nanoseconds.)
+            let ns =
+                u128::from(sum) * 1_000_000_000 / u128::from(trace.clock.ticks_per_second.max(1));
+            json!({"ns": u64::try_from(ns).unwrap_or(u64::MAX)})
+        } else {
+            json!({"samples": sum})
+        }
+    };
+    let series_of = |label: String, v: &[u64]| {
+        let mut o = weight(v);
+        o["label"] = json!(label);
+        o["values"] = json!(share(v));
+        o
     };
     let mut series = Vec::new();
     let mut other = vec![0u64; buckets];
@@ -387,8 +466,7 @@ pub fn cpu_graph(trace: &Trace, buckets: usize, time: Option<(i64, i64)>, top: u
             } else {
                 "Unknown process".to_string()
             };
-            let samples: u64 = v.iter().sum();
-            series.push(json!({"label": label, "samples": samples, "values": share(v)}));
+            series.push(series_of(label, v));
         } else {
             for (o, &x) in other.iter_mut().zip(v) {
                 *o += x;
@@ -396,10 +474,10 @@ pub fn cpu_graph(trace: &Trace, buckets: usize, time: Option<(i64, i64)>, top: u
         }
     }
     if totals.len() > top {
-        let samples: u64 = other.iter().sum();
-        series.push(json!({"label": "Other", "samples": samples, "values": share(&other)}));
+        series.push(series_of("Other".to_string(), &other));
     }
     json!({
+        "source": if precise { "running" } else { "samples" },
         "startNs": trace.clock.nanos(start),
         "endNs": trace.clock.nanos(end),
         "buckets": buckets,

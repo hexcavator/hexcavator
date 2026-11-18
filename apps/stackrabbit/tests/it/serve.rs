@@ -503,3 +503,45 @@ fn the_processes_table_has_lifetimes_threads_and_samples() {
     assert_eq!(empty.len(), rows.len());
     assert!(empty.iter().all(|r| r["samples"] == 0));
 }
+
+#[test]
+fn the_precise_cpu_graph_adds_up_to_the_running_time() {
+    let dir = scratch("serve-precise-graph");
+    let (path, _) = write_trace(&dir, "t.etl", &small());
+    let a = session(&[
+        json!({"method": "open", "params": {"path": path, "useIndex": false}}),
+        json!({"method": "graph", "params": {"trace": 1, "source": "running", "buckets": 333, "top": 100}}),
+        json!({"method": "tree.create", "params": {"trace": 1, "source": "running", "groupBy": ["process"]}}),
+        json!({"method": "tree.children", "params": {"trace": 1, "view": 1, "node": 0}}),
+    ]);
+    let g = result(&a, 2);
+    assert_eq!(g["source"], "running");
+    assert_eq!(g["buckets"], 333, "precise: as many buckets as asked");
+    let ticks_per_ns = 100; // 100 ns ticks.
+    // Each process's running time in the graph is its running time in the
+    // tree (the tree counts it by switch, the graph by bucket).
+    for row in result(&a, 4)["rows"].as_array().unwrap() {
+        let label = row["label"].as_str().unwrap();
+        if label == "Idle (0)" {
+            continue;
+        }
+        let series = g["series"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|x| x["label"] == label)
+            .unwrap_or_else(|| panic!("{label} in the graph"));
+        assert_eq!(
+            series["ns"].as_u64().unwrap(),
+            row["inclusive"].as_u64().unwrap() * ticks_per_ns,
+            "{label}"
+        );
+        let values = series["values"].as_array().unwrap();
+        assert_eq!(values.len(), 333);
+        assert!(
+            values
+                .iter()
+                .all(|v| (0.0..=1.0).contains(&v.as_f64().unwrap()))
+        );
+    }
+}
