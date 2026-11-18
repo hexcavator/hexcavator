@@ -41,6 +41,14 @@
 //!   the most service time, each `{kind, disk, offset, size, completeNs,
 //!   ioNs, serviceNs, process, tid, file}`. (Read from the trace file the
 //!   first time, then kept.)
+//! - `dpc` `{trace, by?, time?, limit?}` → `{count, durationNs, groups,
+//!   bucketsNs, histogram, runs}`: the DPCs and ISRs started in `time`,
+//!   totals by `by` (module, function, processor or type: count, total
+//!   and longest duration, the most time first), how many of each type
+//!   took how long (`histogram` counts by `bucketsNs` upper bounds, then
+//!   any longer), and the `limit` (1000) longest, each `{type, processor,
+//!   startNs, durationNs, module, function, vector}`. (Read from the
+//!   trace file the first time, then kept.)
 //! - `fileio` `{trace, by?, time?, limit?}` → `{count, unended, bytes,
 //!   groups, ops}`: the file operations requested in `time`, totals by
 //!   `by` (process, file or operation: count, bytes, total duration, the
@@ -300,6 +308,8 @@ struct State {
     disk: Option<Arc<crate::disk::DiskTable>>,
     /// The trace's file operations, once read.
     files: Option<Arc<crate::fileio::FileTable>>,
+    /// The trace's DPCs and ISRs, once read.
+    dpcs: Option<Arc<crate::dpc::DpcTable>>,
     /// The last line totals worked out: for which (source, time), with
     /// what symbols (how many PDBs were loaded).
     lines: Option<(LinesKey, Arc<LinesValue>)>,
@@ -413,6 +423,7 @@ fn worker(
         lines: None,
         disk: None,
         files: None,
+        dpcs: None,
         report: SymbolsReport {
             frames: Arc::default(),
             saved: saved.iter().map(|(k, _)| *k).collect(),
@@ -820,6 +831,54 @@ impl State {
                     (t(s), t(e))
                 });
                 Ok(crate::disk::summary(trace, &table, group, time, limit))
+            }
+            "dpc" => {
+                let spec = TreeSpec::from_json(params)?;
+                let group = match params.get("by").and_then(Value::as_str) {
+                    None | Some("module") => crate::dpc::GroupBy::Module,
+                    Some("function") => crate::dpc::GroupBy::Function,
+                    Some("processor") => crate::dpc::GroupBy::Processor,
+                    Some("type") => crate::dpc::GroupBy::Type,
+                    Some(other) => {
+                        return Err(format!(
+                            "by: module, function, processor or type, not {other}"
+                        ));
+                    }
+                };
+                let limit = match params.get("limit") {
+                    None | Some(Value::Null) => 1000,
+                    Some(v) => v
+                        .as_u64()
+                        .and_then(|v| usize::try_from(v).ok())
+                        .ok_or("limit: expected a count")?,
+                };
+                let table = match &self.dpcs {
+                    Some(t) => Arc::clone(t),
+                    None => {
+                        let t = Arc::new(crate::dpc::table(trace, &self.loaded.path)?);
+                        self.dpcs = Some(Arc::clone(&t));
+                        t
+                    }
+                };
+                let time = spec.time.map(|(s, e)| {
+                    let tps = i128::from(trace.clock.ticks_per_second.max(1));
+                    let t = |ns: i64| {
+                        i64::try_from(
+                            i128::from(trace.clock.origin) + i128::from(ns) * tps / 1_000_000_000,
+                        )
+                        .unwrap_or(i64::MAX)
+                    };
+                    (t(s), t(e))
+                });
+                Ok(crate::dpc::summary(
+                    trace,
+                    &table,
+                    &self.resolver,
+                    &*self.symbols,
+                    group,
+                    time,
+                    limit,
+                ))
             }
             "fileio" => {
                 let spec = TreeSpec::from_json(params)?;

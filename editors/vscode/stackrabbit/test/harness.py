@@ -143,6 +143,7 @@ window.acquireVsCodeApi = function () {
     else if (m.method === "regions" && A.regions) r.result = A.regions;
     else if (m.method === "disk" && A.disk) r.result = A.disk;
     else if (m.method === "fileio" && A.fileio) r.result = A.fileio;
+    else if (m.method === "dpc" && A.dpc) r.result = A.dpc;
     else if (m.method === "regions") r.error = "regions: file: expected a regions file";
     else if (m.method === "events.list" && A.sampleKind && m.params.opcode === A.sampleKind.opcode && m.params.guid === A.sampleKind.guid) r.result = A.sampleList;
     else if (m.method === "events.list") r.result = A.eventList;
@@ -762,6 +763,33 @@ def main():
     assert labels == ["app.exe (100)", "System (4)"], labels
     rest = html.unescape(dom[dom.index('id="fileio-ops"'):])
     assert "C:\f.txt" in rest and "0x00000000" in rest
+    # The DPC/ISR tab: totals by the grouping chosen, the histogram, and
+    # the longest; changing the grouping asks again.
+    dpced = json.loads(json.dumps(data))
+    dpced["dpc"] = {
+        "count": 3, "durationNs": 1500000,
+        "groups": [{"label": "drv.sys", "count": 2, "durationNs": 1200000, "maxNs": 1000000},
+                   {"label": "net.sys", "count": 1, "durationNs": 300000, "maxNs": 300000}],
+        "bucketsNs": [1000, 10000, 100000, 1000000, 10000000],
+        "histogram": [{"type": "ISR", "counts": [0, 1, 0, 0, 0, 0]}, {"type": "DPC", "counts": [0, 0, 0, 1, 1, 0]}],
+        "runs": [{"type": "DPC", "processor": 3, "startNs": 1000000, "durationNs": 1000000, "module": "drv.sys", "function": "drv.sys!Work", "vector": None}],
+    }
+    change = ("document.getElementById('tab-dpc').click();"
+              "setTimeout(function () { var b = document.getElementById('dpc-by'); b.value = 'function'; b.dispatchEvent(new Event('change')); }, 100);")
+    dom = render(dpced, change, shot=shot("dpc"))
+    assert "3 DPCs and ISRs, 1.5 ms." in dom, "the DPC/ISR title"
+    posted = json.loads(html.unescape(re.search(r'<pre id="posted"[^>]*>(.*?)</pre>', dom, re.S).group(1)))
+    asked = [m["params"]["by"] for m in posted if m.get("method") == "dpc"]
+    assert asked == ["module", "function"], asked
+    table = dom[dom.index('id="dpc-groups"'):dom.index('id="dpc-histogram"')]
+    labels = [html.unescape(x) for x in re.findall(r'<tr data-i="\d+"><td class="cmd">([^<]*)</td>', table)]
+    assert labels == ["drv.sys", "net.sys"], labels
+    hist = html.unescape(dom[dom.index('id="dpc-histogram"'):dom.index('id="dpc-runs"')])
+    assert "0.1–1 ms" in hist and "≥ 10 ms" in hist, "the buckets"
+    hist_rows = re.findall(r'<tr data-i="\d+">(.*?)</tr>', hist, re.S)
+    cells = [re.findall(r'<td[^>]*>([^<]*)</td>', r) for r in hist_rows]
+    assert cells == [["DPC", "0", "0", "0", "1", "1", "0"], ["ISR", "0", "1", "0", "0", "0", "0"]], cells
+    assert "drv.sys!Work" in html.unescape(dom[dom.index('id="dpc-runs"'):])
     print("harness: ok")
 
 

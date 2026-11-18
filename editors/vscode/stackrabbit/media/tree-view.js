@@ -48,6 +48,7 @@
     loadFunctions();
     loadDisk();
     loadFileIo();
+    loadDpc();
     if (listedKind) {
       loadEventList(listedKind);
     }
@@ -679,6 +680,68 @@
   }
   $("fileio-by").addEventListener("change", loadFileIo);
 
+  // DPCs and ISRs: totals grouped as chosen, how long they took, and the
+  // longest, in the time selected. Loaded while the tab shows; otherwise
+  // when it next does.
+  const us = (ns) => (ns / 1e3).toLocaleString("en-US", { maximumFractionDigits: 1 });
+  const dpcGroups = new SortedTable(
+    $("dpc-groups"),
+    [
+      { key: "label", title: "Group", cls: "cmd" },
+      { key: "count", title: "Count", num: true, text: number(0) },
+      { key: "durationNs", title: "Duration (ms)", num: true, text: ms },
+      { key: "maxNs", title: "Longest (µs)", num: true, text: us },
+    ],
+    { key: "durationNs", down: true }
+  );
+  const BUCKET_TITLES = ["< 1 µs", "1–10 µs", "10–100 µs", "0.1–1 ms", "1–10 ms", "≥ 10 ms"];
+  const dpcHistogram = new SortedTable(
+    $("dpc-histogram"),
+    [{ key: "type", title: "Type" }].concat(
+      BUCKET_TITLES.map((title, i) => ({ key: `b${i}`, title, num: true, text: number(0) }))
+    ),
+    { key: "type", down: false }
+  );
+  const dpcRuns = new SortedTable(
+    $("dpc-runs"),
+    [
+      { key: "type", title: "Type" },
+      { key: "function", title: "Function", cls: "cmd" },
+      { key: "processor", title: "CPU", num: true },
+      { key: "vector", title: "Vector", num: true },
+      { key: "startNs", title: "Started", num: true, text: at("") },
+      { key: "durationNs", title: "Duration (µs)", num: true, text: us },
+    ],
+    { key: "durationNs", down: true }
+  );
+  let dpcStale = true;
+  async function loadDpc() {
+    if ($("dpc-pane").classList.contains("hidden")) {
+      dpcStale = true;
+      return;
+    }
+    dpcStale = false;
+    $("dpc-title").textContent = "Reading the trace's DPCs and ISRs…";
+    try {
+      const params = { by: $("dpc-by").value, limit: 1000 };
+      if (selection) {
+        params.time = selection;
+      }
+      const d = await request("dpc", params);
+      $("dpc-title").textContent =
+        `${d.count.toLocaleString("en-US")} DPCs and ISRs, ${ms(d.durationNs)} ms` +
+        `${selection ? " in the time selected" : ""}.`;
+      dpcGroups.set(d.groups);
+      dpcHistogram.set(
+        d.histogram.map((h) => Object.fromEntries([["type", h.type]].concat(h.counts.map((n, i) => [`b${i}`, n]))))
+      );
+      dpcRuns.set(d.runs);
+    } catch (e) {
+      $("dpc-title").textContent = e.message;
+    }
+  }
+  $("dpc-by").addEventListener("change", loadDpc);
+
   function showTab(name) {
     tab = name;
     saveState();
@@ -688,7 +751,7 @@
     if (name === "regions") {
       loadRegions();
     }
-    for (const t of ["stacks", "processes", "functions", "symbols", "events", "regions", "disk", "fileio"]) {
+    for (const t of ["stacks", "processes", "functions", "symbols", "events", "regions", "disk", "fileio", "dpc"]) {
       $(`tab-${t}`).classList.toggle("active", name === t);
       $(`${t}-pane`).classList.toggle("hidden", name !== t);
     }
@@ -708,12 +771,16 @@
     if (name === "fileio" && fileStale) {
       loadFileIo();
     }
+    if (name === "dpc" && dpcStale) {
+      loadDpc();
+    }
   }
   $("tab-symbols").addEventListener("click", () => showTab("symbols"));
   $("tab-events").addEventListener("click", () => showTab("events"));
   $("tab-regions").addEventListener("click", () => showTab("regions"));
   $("tab-disk").addEventListener("click", () => showTab("disk"));
   $("tab-fileio").addEventListener("click", () => showTab("fileio"));
+  $("tab-dpc").addEventListener("click", () => showTab("dpc"));
   symbolsEl.addEventListener("click", () => showTab("symbols"));
   /**
    * The shown tab as Markdown, to the clipboard (by way of the extension):
@@ -831,7 +898,7 @@
     if (s.lit && typeof s.lit.fn === "string") {
       lit = { fn: s.lit.fn, label: String(s.lit.label || s.lit.fn) };
     }
-    if (["stacks", "processes", "functions", "symbols", "events", "regions", "disk", "fileio"].includes(s.tab)) {
+    if (["stacks", "processes", "functions", "symbols", "events", "regions", "disk", "fileio", "dpc"].includes(s.tab)) {
       showTab(s.tab);
     }
   }

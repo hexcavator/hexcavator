@@ -1517,3 +1517,182 @@ fn file_io_by_process_file_and_operation() {
     assert_eq!(result(&a, 5)["count"], 2);
     assert!(error(&a, 6).contains("by"), "{}", error(&a, 6));
 }
+
+#[test]
+fn dpcs_and_isrs_by_module_function_processor_and_type() {
+    use hexcavator_etl::classic;
+    use hexcavator_etl::write::{self, Kernel, Writer, WriterOptions};
+    use hexcavator_etw::guids;
+    let dir = scratch("serve-dpc");
+    // A counter at 10 MHz: 10 ticks a microsecond.
+    let mut w = Writer::new(WriterOptions {
+        processors: 2,
+        perf_freq: 10_000_000,
+        ..WriterOptions::default()
+    });
+    let mut kernel = |cpu: u16, provider, op: u8, version: u16, ts: i64, payload: Vec<u8>| {
+        let hook = classic::guid_group(&provider).unwrap() << 8 | u16::from(op);
+        let k = Kernel {
+            hook,
+            version,
+            thread_id: u32::MAX,
+            process_id: u32::MAX,
+            timestamp: ts,
+            ..Kernel::default()
+        };
+        w.record(cpu, &write::system(&k, true, &payload));
+    };
+    let base = 0xffff_f800_0000_0000u64;
+    // A driver (an image of no process: the kernel's).
+    kernel(0, guids::IMAGE, 3, 3, 1, {
+        let mut p = Vec::new();
+        for v in [base, 0x1_0000] {
+            p.extend_from_slice(&v.to_le_bytes());
+        }
+        for v in [0u32, 0, 0x5000, 0] {
+            p.extend_from_slice(&v.to_le_bytes());
+        }
+        p.extend_from_slice(&base.to_le_bytes());
+        p.extend_from_slice(&[0; 16]);
+        for u in r"\SystemRoot\drv.sys".encode_utf16().chain([0]) {
+            p.extend_from_slice(&u.to_le_bytes());
+        }
+        p
+    });
+    let dpc = |start: u64, routine: u64| {
+        let mut p = start.to_le_bytes().to_vec();
+        p.extend_from_slice(&routine.to_le_bytes());
+        p
+    };
+    let isr = |start: u64, routine: u64, vector: u16, msi: bool| {
+        let mut p = dpc(start, routine);
+        p.push(1);
+        p.extend_from_slice(&vector.to_le_bytes());
+        p.push(0);
+        if msi {
+            p.extend_from_slice(&7u32.to_le_bytes());
+        }
+        p
+    };
+    // Processor 0: an ISR of 5 us, a DPC of 20 us, an MSI ISR of 1 us.
+    // Processor 1: a timer DPC of 0.5 us in no known module, a DPC of
+    // 1 ms.
+    kernel(
+        0,
+        guids::PERF_INFO,
+        67,
+        2,
+        1_050,
+        isr(1_000, base + 0x100, 0x51, false),
+    );
+    kernel(0, guids::PERF_INFO, 68, 2, 1_260, dpc(1_060, base + 0x200));
+    kernel(
+        0,
+        guids::PERF_INFO,
+        50,
+        2,
+        4_010,
+        isr(4_000, base + 0x100, 0x60, true),
+    );
+    kernel(1, guids::PERF_INFO, 69, 2, 2_005, dpc(2_000, 0x1234));
+    kernel(1, guids::PERF_INFO, 68, 2, 13_000, dpc(3_000, base + 0x200));
+    let path = dir.join("t.etl");
+    std::fs::write(&path, w.finish()).unwrap();
+
+    let req = |by: &str, extra: Value| {
+        let mut p = json!({"trace": 1, "by": by});
+        for (k, v) in extra.as_object().unwrap() {
+            p[k] = v.clone();
+        }
+        json!({"method": "dpc", "params": p})
+    };
+    let a = session(&[
+        json!({"method": "open", "params": {"path": path, "useIndex": true}}),
+        req("module", json!({})),
+        req("function", json!({})),
+        req("processor", json!({})),
+        req("type", json!({"limit": 2})),
+        req("type", json!({"time": [0, 150_000]})),
+        req("nonsense", json!({})),
+    ]);
+    let by = |id: u64| -> std::collections::BTreeMap<String, (u64, u64, u64)> {
+        result(&a, id)["groups"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|g| {
+                let n = |k: &str| g[k].as_u64().unwrap();
+                (
+                    g["label"].as_str().unwrap().to_string(),
+                    (n("count"), n("durationNs"), n("maxNs")),
+                )
+            })
+            .collect()
+    };
+    let r = result(&a, 2);
+    assert_eq!(r["count"], 5);
+    assert_eq!(r["durationNs"], 1_026_500);
+    let modules = by(2);
+    assert_eq!(modules["drv.sys"], (4, 1_026_000, 1_000_000));
+    assert_eq!(modules["Unknown module"], (1, 500, 500));
+    let functions = by(3);
+    assert_eq!(functions["drv.sys+0x200"], (2, 1_020_000, 1_000_000));
+    assert_eq!(functions["drv.sys+0x100"], (2, 6_000, 5_000));
+    assert_eq!(functions["0x1234"], (1, 500, 500));
+    let cpus = by(4);
+    assert_eq!(cpus["CPU 0"], (3, 26_000, 20_000));
+    assert_eq!(cpus["CPU 1"], (2, 1_000_500, 1_000_000));
+    let types = by(5);
+    assert_eq!(
+        (types["ISR"].0, types["DPC"].0, types["Timer DPC"].0),
+        (2, 2, 1)
+    );
+    let r = result(&a, 5);
+    assert_eq!(
+        r["bucketsNs"],
+        json!([1_000, 10_000, 100_000, 1_000_000, 10_000_000])
+    );
+    let histogram: Vec<(String, Value)> = r["histogram"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|h| (h["type"].as_str().unwrap().to_string(), h["counts"].clone()))
+        .collect();
+    assert_eq!(
+        histogram,
+        [
+            ("ISR".to_string(), json!([0, 2, 0, 0, 0, 0])),
+            ("DPC".to_string(), json!([0, 0, 1, 0, 1, 0])),
+            ("Timer DPC".to_string(), json!([1, 0, 0, 0, 0, 0])),
+        ]
+    );
+    // The longest, a limit of them.
+    let runs = r["runs"].as_array().unwrap();
+    assert_eq!(runs.len(), 2);
+    assert_eq!(
+        (
+            &runs[0]["type"],
+            &runs[0]["processor"],
+            &runs[0]["durationNs"],
+            &runs[0]["startNs"]
+        ),
+        (&json!("DPC"), &json!(1), &json!(1_000_000), &json!(300_000))
+    );
+    assert_eq!(runs[0]["function"], "drv.sys+0x200");
+    assert_eq!(runs[0]["vector"], Value::Null);
+    assert_eq!(runs[1]["type"], "DPC");
+    let isr = result(&a, 2)["runs"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|r| r["durationNs"] == 5_000)
+        .unwrap()
+        .clone();
+    assert_eq!(
+        (isr["type"].as_str(), isr["vector"].as_u64()),
+        (Some("ISR"), Some(0x51))
+    );
+    // A time range: those started by 150 us (the first ISR and DPC).
+    assert_eq!(result(&a, 6)["count"], 2);
+    assert!(error(&a, 7).contains("by"), "{}", error(&a, 7));
+}
