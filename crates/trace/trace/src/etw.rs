@@ -108,14 +108,14 @@ pub fn import_with(etl: &Etl<'_>, threads: usize) -> Result<(Trace, ImportStats)
         for _ in 0..threads.max(1) {
             scope.spawn(|| {
                 let mut scratch = Vec::new();
-                let mut frames = Vec::new();
+                let mut local = Local::default();
                 loop {
                     let i = next.fetch_add(1, Ordering::Relaxed);
                     let Some((buffer, _)) = buffers.get(i) else {
                         return;
                     };
                     let decoded =
-                        decode_buffer(buffer, max_buffer, &mut scratch, &mut frames, &shards);
+                        decode_buffer(buffer, max_buffer, &mut scratch, &mut local, &shards);
                     slots.put(i, decoded);
                 }
             });
@@ -198,6 +198,32 @@ fn intern(shards: &[Mutex<Shard>], thread: u32, frames: &[u64]) -> Piece {
     let Shard { store, caches } = &mut *shard;
     let id = store.intern_outermost_first(frames, caches.entry(thread).or_default());
     piece(s, id)
+}
+
+/// A decoding worker's own state: scratch space, and each thread's last
+/// stack and its piece, so that a thread's stack that repeats (as stacks
+/// do: a thread sampled in the same place, switched out at the same wait)
+/// is found without taking a shard's lock.
+#[derive(Default)]
+struct Local {
+    frames: Vec<u64>,
+    last: FxHashMap<u32, (Vec<u64>, Piece)>,
+}
+
+impl Local {
+    /// Interns `self.frames` (outermost first) of `thread`'s stack.
+    fn intern(&mut self, shards: &[Mutex<Shard>], thread: u32) -> Piece {
+        if let Some((frames, piece)) = self.last.get(&thread)
+            && *frames == self.frames
+        {
+            return *piece;
+        }
+        let piece = intern(shards, thread, &self.frames);
+        let entry = self.last.entry(thread).or_default();
+        entry.0.clone_from(&self.frames);
+        entry.1 = piece;
+        piece
+    }
 }
 
 /// `piece`'s frames, outermost first, into `out`.
@@ -286,7 +312,7 @@ fn decode_buffer(
     buffer: &Buffer<'_>,
     max_buffer: usize,
     scratch: &mut Vec<u8>,
-    frames: &mut Vec<u64>,
+    local: &mut Local,
     shards: &[Mutex<Shard>],
 ) -> Decoded {
     let mut out = Decoded {
@@ -296,7 +322,7 @@ fn decode_buffer(
     let result = for_each_event(buffer, max_buffer, scratch, |e| {
         let index = u32::try_from(out.times.len()).expect("fewer than 4G events in a buffer");
         out.times.push(e.timestamp);
-        if let Some(item) = keep(e, frames, shards, &mut out.decode_errors) {
+        if let Some(item) = keep(e, local, shards, &mut out.decode_errors) {
             out.items.push((index, item));
         }
     });
@@ -307,7 +333,7 @@ fn decode_buffer(
 /// What the import keeps of `e`, if anything.
 fn keep(
     e: &Event<'_>,
-    frames: &mut Vec<u64>,
+    local: &mut Local,
     shards: &[Mutex<Shard>],
     decode_errors: &mut u64,
 ) -> Option<Item> {
@@ -332,13 +358,13 @@ fn keep(
     Some(match decoded {
         KernelEvent::Stack(s) => {
             // The frames, outermost first.
-            frames.clear();
-            frames.extend(s.frames.iter());
-            frames.reverse();
+            local.frames.clear();
+            local.frames.extend(s.frames.iter());
+            local.frames.reverse();
             Item::Stack {
                 event_timestamp: s.event_timestamp,
                 thread_id: s.thread_id,
-                piece: intern(shards, s.thread_id, frames),
+                piece: local.intern(shards, s.thread_id),
             }
         }
         KernelEvent::Sample(s) => Item::Sample(s),
