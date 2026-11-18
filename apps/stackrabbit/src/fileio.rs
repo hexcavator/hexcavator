@@ -239,8 +239,9 @@ pub fn summary(
     table: &FileTable,
     group: GroupBy,
     time: Option<(i64, i64)>,
-    limit: usize,
+    limits: crate::reading::Limits,
 ) -> Value {
+    let (limit, group_limit) = (limits.items, limits.groups);
     let (start, end) = time.unwrap_or((i64::MIN, i64::MAX));
     let from = table.ops.partition_point(|o| o.start < start);
     let to = table.ops.partition_point(|o| o.start < end);
@@ -279,6 +280,8 @@ pub fn summary(
             .then(b.1.0.cmp(&a.1.0))
             .then_with(|| a.0.cmp(&b.0))
     });
+    let groups_total = groups.len();
+    groups.truncate(group_limit);
     let mut longest: Vec<&FileOp> = ops.iter().collect();
     longest.sort_by(|a, b| {
         b.duration_ns
@@ -291,6 +294,7 @@ pub fn summary(
         "count": ops.len(),
         "unended": ops.iter().filter(|o| o.duration_ns.is_none()).count(),
         "bytes": ops.iter().map(|o| u64::from(o.size)).sum::<u64>(),
+        "groupsTotal": groups_total,
         "groups": groups.iter().map(|(label, (n, bytes, ns))| json!({
             "label": label, "count": n, "bytes": bytes, "durationNs": ns,
         })).collect::<Vec<_>>(),

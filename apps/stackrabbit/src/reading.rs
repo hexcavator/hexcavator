@@ -213,3 +213,12 @@ impl Interner {
         i
     }
 }
+
+/// How much of a summary to answer.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Limits {
+    /// The items (the longest, largest or heaviest) to list.
+    pub items: usize,
+    /// The groups to list (the most first).
+    pub groups: usize,
+}

@@ -176,3 +176,63 @@ fn unknown_commands_and_help() {
     let v = stackrabbit(&["version"]);
     assert!(text(&v).starts_with("stackrabbit "));
 }
+
+#[test]
+fn query_answers_a_request_as_json_or_csv() {
+    let dir = scratch("cli-query");
+    let (path, _) = write_trace(&dir, "q.etl", &small());
+    let path = path.to_str().unwrap();
+    // JSON: the answer, the trace filled in.
+    let o = stackrabbit(&["query", path, "processes"]);
+    assert!(o.status.success(), "{}", String::from_utf8_lossy(&o.stderr));
+    let answer: Value = serde_json::from_str(&text(&o)).unwrap();
+    let rows = answer["rows"].as_array().unwrap();
+    // (Its 4 processes, and the idle and system processes.)
+    assert_eq!(rows.len(), 6);
+    // CSV: a list of it, a column per field (in the first row's order).
+    let o = stackrabbit(&["query", "-csv", "rows", path, "processes"]);
+    assert!(o.status.success(), "{}", String::from_utf8_lossy(&o.stderr));
+    let csv = text(&o);
+    let lines: Vec<&str> = csv.split("\r\n").filter(|l| !l.is_empty()).collect();
+    assert_eq!(lines.len(), rows.len() + 1);
+    let header: Vec<&str> = lines[0].split(',').collect();
+    let first: Vec<&str> = rows[0]
+        .as_object()
+        .unwrap()
+        .keys()
+        .map(String::as_str)
+        .collect();
+    assert_eq!(header, first);
+    // Parameters: JSON where they read as it (a time range), else text.
+    let o = stackrabbit(&["query", "-no-index", path, "processes", "time=[0, 1000000]"]);
+    assert!(o.status.success(), "{}", String::from_utf8_lossy(&o.stderr));
+    let narrow: Value = serde_json::from_str(&text(&o)).unwrap();
+    let samples = |v: &Value| -> u64 {
+        v["rows"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|r| r["samples"].as_u64().unwrap_or(0))
+            .sum()
+    };
+    assert!(samples(&narrow) < samples(&answer), "1 ms of 300");
+    // Errors: the request's, the trace's, the command line's.
+    let o = stackrabbit(&["query", path, "nosuch"]);
+    assert_eq!(o.status.code(), Some(1));
+    assert!(String::from_utf8_lossy(&o.stderr).contains("nosuch"));
+    let o = stackrabbit(&["query", path, "disk", "by=nonsense"]);
+    assert_eq!(o.status.code(), Some(1));
+    let missing = dir.join("missing.etl");
+    let o = stackrabbit(&["query", missing.to_str().unwrap(), "processes"]);
+    assert_eq!(o.status.code(), Some(1));
+    let o = stackrabbit(&["query", "-csv", "nolist", path, "processes"]);
+    assert_eq!(o.status.code(), Some(2));
+    assert!(
+        String::from_utf8_lossy(&o.stderr).contains("rows"),
+        "names the lists there are"
+    );
+    let o = stackrabbit(&["query", path, "processes", "novalue"]);
+    assert_eq!(o.status.code(), Some(2));
+    let o = stackrabbit(&["query", path]);
+    assert_eq!(o.status.code(), Some(2));
+}

@@ -34,25 +34,28 @@
 //!   lines (`{line, exclusive, inclusive, count}`, in order). Exclusive:
 //!   where the line is the innermost frame; inclusive: where it is on the
 //!   stack (a call's line, for a caller).
-//! - `disk` `{trace, by?, time?, limit?}` → `{count, bytes, groups, ios}`:
-//!   the disk I/Os completed in `time`, totals by `by`
-//!   (process, file, disk or type: count, bytes, I/O time, disk service
-//!   time, heaviest service time first) and the `limit` (1000) I/Os with
+//! - `disk` `{trace, by?, time?, limit?, groupLimit?}` → `{count, bytes,
+//!   groupsTotal, groups, ios}`: the disk I/Os completed in `time`, totals
+//!   by `by` (process, file, disk or type: count, bytes, I/O time, disk
+//!   service time, heaviest service time first; the first `groupLimit`
+//!   (10,000) of `groupsTotal`) and the `limit` (1000) I/Os with
 //!   the most service time, each `{kind, disk, offset, size, completeNs,
 //!   ioNs, serviceNs, process, tid, file}`. (Read from the trace file the
 //!   first time, then kept.)
-//! - `dpc` `{trace, by?, time?, limit?}` → `{count, durationNs, groups,
-//!   bucketsNs, histogram, runs}`: the DPCs and ISRs started in `time`,
-//!   totals by `by` (module, function, processor or type: count, total
-//!   and longest duration, the most time first), how many of each type
+//! - `dpc` `{trace, by?, time?, limit?, groupLimit?}` → `{count,
+//!   durationNs, groupsTotal, groups, bucketsNs, histogram, runs}`: the
+//!   DPCs and ISRs started in `time`, totals by `by` (module, function,
+//!   processor or type: count, total and longest duration, the most time
+//!   first; the first `groupLimit` (10,000) of `groupsTotal`), how many of each type
 //!   took how long (`histogram` counts by `bucketsNs` upper bounds, then
 //!   any longer), and the `limit` (1000) longest, each `{type, processor,
 //!   startNs, durationNs, module, function, vector}`. (Read from the
 //!   trace file the first time, then kept.)
-//! - `fileio` `{trace, by?, time?, limit?}` → `{count, unended, bytes,
-//!   groups, ops}`: the file operations requested in `time`, totals by
-//!   `by` (process, file or operation: count, bytes, total duration, the
-//!   most time first) and the `limit` (1000) longest, each `{op, startNs,
+//! - `fileio` `{trace, by?, time?, limit?, groupLimit?}` → `{count,
+//!   unended, bytes, groupsTotal, groups, ops}`: the file operations
+//!   requested in `time`, totals by `by` (process, file or operation:
+//!   count, bytes, total duration, the most time first; the first
+//!   `groupLimit` (10,000) of `groupsTotal`) and the `limit` (1000) longest, each `{op, startNs,
 //!   durationNs, status, size, process, tid, file}`. (Read from the trace
 //!   file the first time, then kept.)
 //! - `hardfaults` `{trace, by?, time?, limit?, groupLimit?}` → `{count,
@@ -904,7 +907,16 @@ impl State {
                     }
                 };
                 let time = ticks(trace, spec.time);
-                Ok(crate::disk::summary(trace, &table, group, time, limit))
+                Ok(crate::disk::summary(
+                    trace,
+                    &table,
+                    group,
+                    time,
+                    crate::reading::Limits {
+                        items: limit,
+                        groups: count(params, "groupLimit", 10_000)?,
+                    },
+                ))
             }
             "dpc" => {
                 let spec = TreeSpec::from_json(params)?;
@@ -936,7 +948,10 @@ impl State {
                     &*self.symbols,
                     group,
                     time,
-                    limit,
+                    crate::reading::Limits {
+                        items: limit,
+                        groups: count(params, "groupLimit", 10_000)?,
+                    },
                 ))
             }
             "hardfaults" => {
@@ -964,8 +979,10 @@ impl State {
                     &table,
                     group,
                     ticks(trace, spec.time),
-                    limit,
-                    group_limit,
+                    crate::reading::Limits {
+                        items: limit,
+                        groups: group_limit,
+                    },
                 ))
             }
             "heap" | "pool" => {
@@ -1019,8 +1036,10 @@ impl State {
                     kinds,
                     group,
                     ticks(trace, spec.time),
-                    limit,
-                    group_limit,
+                    crate::reading::Limits {
+                        items: limit,
+                        groups: group_limit,
+                    },
                 ))
             }
             "memory" => {
@@ -1045,8 +1064,10 @@ impl State {
                     &table,
                     group,
                     ticks(trace, spec.time),
-                    limit,
-                    group_limit,
+                    crate::reading::Limits {
+                        items: limit,
+                        groups: group_limit,
+                    },
                 ))
             }
             "vmem" => {
@@ -1071,8 +1092,10 @@ impl State {
                     &table,
                     group,
                     ticks(trace, spec.time),
-                    limit,
-                    group_limit,
+                    crate::reading::Limits {
+                        items: limit,
+                        groups: group_limit,
+                    },
                 ))
             }
             "registry" => {
@@ -1101,8 +1124,10 @@ impl State {
                     &table,
                     group,
                     time,
-                    limit,
-                    group_limit,
+                    crate::reading::Limits {
+                        items: limit,
+                        groups: group_limit,
+                    },
                 ))
             }
             "fileio" => {
@@ -1125,7 +1150,16 @@ impl State {
                     }
                 };
                 let time = ticks(trace, spec.time);
-                Ok(crate::fileio::summary(trace, &table, group, time, limit))
+                Ok(crate::fileio::summary(
+                    trace,
+                    &table,
+                    group,
+                    time,
+                    crate::reading::Limits {
+                        items: limit,
+                        groups: count(params, "groupLimit", 10_000)?,
+                    },
+                ))
             }
             "regions" => {
                 let file = params

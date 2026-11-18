@@ -2588,3 +2588,19 @@ fn memory_utilization_by_process_and_name() {
     assert_eq!(r["series"].as_array().unwrap().len(), 1);
     assert!(error(&a, 6).contains("by"), "{}", error(&a, 6));
 }
+
+#[test]
+fn csv_quotes_what_needs_it() {
+    use stackrabbit::query::to_csv;
+    let rows = vec![
+        json!({"a": "plain", "b": 1, "c": null}),
+        json!({"a": "with, comma", "b": "say \"hi\"", "d": [1, 2]}),
+        json!({"a": "two\nlines", "b": " padded"}),
+    ];
+    assert_eq!(
+        to_csv(&rows),
+        "a,b,c,d\r\nplain,1,,\r\n\"with, comma\",\"say \"\"hi\"\"\",,\"[1,2]\"\r\n\"two\nlines\",\" padded\",,\r\n"
+    );
+    assert_eq!(to_csv(&[json!(1), json!("x")]), "value\r\n1\r\nx\r\n");
+    assert_eq!(to_csv(&[]), "value\r\n");
+}

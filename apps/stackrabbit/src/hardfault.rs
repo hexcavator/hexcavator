@@ -184,9 +184,9 @@ pub fn summary(
     table: &FaultTable,
     group: GroupBy,
     time: Option<(i64, i64)>,
-    limit: usize,
-    group_limit: usize,
+    limits: crate::reading::Limits,
 ) -> Value {
+    let (limit, group_limit) = (limits.items, limits.groups);
     let (start, end) = time.unwrap_or((i64::MIN, i64::MAX));
     let from = table.faults.partition_point(|f| f.start < start);
     let to = table.faults.partition_point(|f| f.start < end);

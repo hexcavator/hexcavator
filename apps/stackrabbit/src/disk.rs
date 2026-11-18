@@ -246,8 +246,9 @@ pub fn summary(
     table: &DiskTable,
     group: GroupBy,
     time: Option<(i64, i64)>,
-    limit: usize,
+    limits: crate::reading::Limits,
 ) -> Value {
+    let (limit, group_limit) = (limits.items, limits.groups);
     let (start, end) = time.unwrap_or((i64::MIN, i64::MAX));
     let from = table.ios.partition_point(|io| io.complete < start);
     let to = table.ios.partition_point(|io| io.complete < end);
@@ -284,6 +285,8 @@ pub fn summary(
     }
     let mut groups: Vec<(String, (u64, u64, u64, u64))> = groups.into_iter().collect();
     groups.sort_by(|a, b| b.1.3.cmp(&a.1.3).then_with(|| a.0.cmp(&b.0)));
+    let groups_total = groups.len();
+    groups.truncate(group_limit);
     let mut heaviest: Vec<&DiskIo> = ios.iter().collect();
     heaviest.sort_by(|a, b| {
         b.service_ns
@@ -294,6 +297,7 @@ pub fn summary(
     json!({
         "count": ios.len(),
         "bytes": ios.iter().map(|io| u64::from(io.size)).sum::<u64>(),
+        "groupsTotal": groups_total,
         "groups": groups.iter().map(|(label, (n, bytes, io_ns, service_ns))| json!({
             "label": label,
             "count": n,

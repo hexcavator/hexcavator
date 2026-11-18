@@ -134,8 +134,9 @@ pub fn summary(
     symbols: &dyn Symbolizer,
     group: GroupBy,
     time: Option<(i64, i64)>,
-    limit: usize,
+    limits: crate::reading::Limits,
 ) -> Value {
+    let (limit, group_limit) = (limits.items, limits.groups);
     let (start, end) = time.unwrap_or((i64::MIN, i64::MAX));
     let from = table.runs.partition_point(|r| r.start < start);
     let to = table.runs.partition_point(|r| r.start < end);
@@ -194,12 +195,15 @@ pub fn summary(
     });
     let mut histogram: Vec<(Type, [u64; BUCKETS.len()])> = histogram.into_iter().collect();
     histogram.sort_by_key(|(t, _)| *t);
+    let groups_total = groups.len();
+    groups.truncate(group_limit);
     let mut longest: Vec<&Run> = runs.iter().collect();
     longest.sort_by(|a, b| ns(b).cmp(&ns(a)).then(a.start.cmp(&b.start)));
     longest.truncate(limit);
     json!({
         "count": runs.len(),
         "durationNs": total,
+        "groupsTotal": groups_total,
         "groups": groups.iter().map(|(label, (n, d, max))| json!({
             "label": label, "count": n, "durationNs": d, "maxNs": max,
         })).collect::<Vec<_>>(),
