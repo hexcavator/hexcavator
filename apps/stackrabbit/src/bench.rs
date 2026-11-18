@@ -51,6 +51,9 @@ Options:
              (EventMetadata): how many there are, and how many of the events they
              describe decode exactly (every payload byte a property's).";
 
+/// Payload sizes and the bytes left over from them (none: too few).
+type Sizes = std::collections::BTreeSet<(usize, Option<usize>)>;
+
 /// Runs `stackrabbit bench`.
 pub fn run(args: &[String]) -> ExitCode {
     let mut a = Args::new(args);
@@ -617,11 +620,14 @@ fn metadata_table(traces: &[PathBuf]) -> ExitCode {
             let (mut exact, mut left, mut errors, mut undescribed) = (0u64, 0u64, 0u64, 0u64);
             // Undescribed events by provider: by a kernel schema of their
             // version, of an older version, or none.
-            let mut by_provider: std::collections::BTreeMap<String, [u64; 3]> =
+            let mut by_provider: std::collections::BTreeMap<String, [u64; 4]> =
                 std::collections::BTreeMap::new();
             // TraceLogging events, by their own schemas.
             let (mut tl_exact, mut tl_inexact, mut tl_unreadable) = (0u64, 0u64, 0u64);
             let mut why: std::collections::BTreeMap<String, u64> =
+                std::collections::BTreeMap::new();
+            // (Each kind's payload sizes and bytes left over, a few.)
+            let mut kernel_inexact_kinds: std::collections::BTreeMap<(String, u8, u8), Sizes> =
                 std::collections::BTreeMap::new();
             let mut left_kinds: std::collections::BTreeSet<(String, u16, u8, u8)> =
                 std::collections::BTreeSet::new();
@@ -650,19 +656,43 @@ fn metadata_table(traces: &[PathBuf]) -> ExitCode {
                     let Some(info) = infos.get(e) else {
                         undescribed += 1;
                         // The kernel's schemas, then nothing.
+                        let mut inexact_size = None;
                         let how = match hexcavator_etw::schema::lookup(
                             &e.provider,
                             e.descriptor.opcode,
                             e.descriptor.version,
                         ) {
-                            Some((_, true)) => 0,
+                            // (Of their version: decoded, every byte used?)
+                            Some((_, true)) => match hexcavator_etw::schema::Properties::of(e) {
+                                Some(Ok(p)) if p.rest.is_empty() => 0,
+                                Some(Ok(p)) => {
+                                    inexact_size = Some((e.user_data.len(), Some(p.rest.len())));
+                                    3
+                                }
+                                _ => {
+                                    inexact_size = Some((e.user_data.len(), None));
+                                    3
+                                }
+                            },
                             Some((_, false)) => 1,
                             None => 2,
                         };
                         let c = by_provider
                             .entry(e.provider.to_string())
-                            .or_insert([0u64; 3]);
+                            .or_insert([0u64; 4]);
                         c[how] += 1;
+                        if let Some(size) = inexact_size {
+                            let sizes = kernel_inexact_kinds
+                                .entry((
+                                    e.provider.to_string(),
+                                    e.descriptor.opcode,
+                                    e.descriptor.version,
+                                ))
+                                .or_default();
+                            if sizes.len() < 6 {
+                                sizes.insert(size);
+                            }
+                        }
                         return;
                     };
                     match info.decode(e) {
@@ -716,18 +746,27 @@ fn metadata_table(traces: &[PathBuf]) -> ExitCode {
                 println!("    errors: {why:?}");
             }
             let kernel_exact: u64 = by_provider.values().map(|c| c[0]).sum();
+            let kernel_inexact: u64 = by_provider.values().map(|c| c[3]).sum();
             let kernel_older: u64 = by_provider.values().map(|c| c[1]).sum();
             let none: u64 = by_provider.values().map(|c| c[2]).sum();
             println!(
-                "  undescribed: {kernel_exact} by a kernel schema of their version, {kernel_older} of an older one, {none} by nothing"
+                "  undescribed: {} by a kernel schema of their version ({kernel_exact} exactly, {kernel_inexact} not: bytes left over or too few), {kernel_older} of an older one, {none} by nothing",
+                kernel_exact + kernel_inexact
             );
-            let mut worst: Vec<(&String, &[u64; 3])> = by_provider
+            let mut worst: Vec<(&String, &[u64; 4])> = by_provider
                 .iter()
-                .filter(|(_, c)| c[1] + c[2] > 0)
+                .filter(|(_, c)| c[1] + c[2] + c[3] > 0)
                 .collect();
-            worst.sort_by(|a, b| (b.1[1] + b.1[2]).cmp(&(a.1[1] + a.1[2])));
+            worst.sort_by(|a, b| (b.1[1] + b.1[2] + b.1[3]).cmp(&(a.1[1] + a.1[2] + a.1[3])));
             for (g, c) in worst.iter().take(12) {
-                println!("    {g}: {} older-version, {} nothing", c[1], c[2]);
+                println!(
+                    "    {g}: {} older-version, {} nothing, {} not exactly",
+                    c[1], c[2], c[3]
+                );
+            }
+            for ((g, op, v), sizes) in &kernel_inexact_kinds {
+                // (Payload size, and bytes left over: none if too few.)
+                println!("    not exactly by its kernel schema: {g} op {op} v{v}: {sizes:?}");
             }
             if tl_exact + tl_inexact + tl_unreadable > 0 {
                 println!(

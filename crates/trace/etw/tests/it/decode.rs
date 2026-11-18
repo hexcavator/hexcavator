@@ -605,3 +605,147 @@ fn a_ready_before_the_first_switch_takes_its_stacks_thread() {
         ]
     );
 }
+
+/// Decodes one kernel event's payload by its schema.
+fn properties_of(
+    provider: Guid,
+    op: u8,
+    version: u16,
+    payload: Vec<u8>,
+) -> (String, Vec<(String, Vec<u8>)>, Vec<u8>) {
+    let data = trace(&[(0, provider, op, version, 1, 0, payload)]);
+    let etl = Etl::parse(&data).unwrap();
+    let b = etl.buffers().nth(1).unwrap().unwrap();
+    let e = b.records().unwrap().next().unwrap().unwrap();
+    let p = Properties::of(&e).unwrap().unwrap();
+    assert!(p.exact);
+    (
+        p.schema.name.to_string(),
+        p.properties
+            .iter()
+            .map(|p| (p.name.clone(), p.data.to_vec()))
+            .collect(),
+        p.rest.to_vec(),
+    )
+}
+
+#[test]
+fn registry_operations_and_key_control_blocks() {
+    let key = |op: u8, name: &str| {
+        let payload = P::default()
+            .u64(1_000)
+            .u32(0xc000_0034)
+            .u32(2)
+            .u64(0xffff_8000_1234_0000)
+            .utf16z(name)
+            .0;
+        properties_of(guids::REGISTRY, op, 2, payload)
+    };
+    let (name, props, rest) = key(16, "Value");
+    assert_eq!(name, "QueryValue");
+    let names: Vec<&str> = props.iter().map(|(n, _)| n.as_str()).collect();
+    assert_eq!(
+        names,
+        ["InitialTime", "Status", "Index", "KeyHandle", "KeyName"]
+    );
+    assert_eq!(props[1].1, 0xc000_0034u32.to_le_bytes());
+    assert_eq!(props[4].1, b"V\0a\0l\0u\0e\0\0\0");
+    assert!(rest.is_empty());
+    // Every operation, and the key control blocks, by that layout.
+    let ops = [
+        (10, "Create"),
+        (11, "Open"),
+        (12, "Delete"),
+        (13, "Query"),
+        (14, "SetValue"),
+        (15, "DeleteValue"),
+        (17, "EnumerateKey"),
+        (18, "EnumerateValueKey"),
+        (19, "QueryMultipleValue"),
+        (20, "SetInformation"),
+        (21, "Flush"),
+        (22, "KCBCreate"),
+        (23, "KCBDelete"),
+        (24, "KCBRundownBegin"),
+        (25, "KCBRundownEnd"),
+        (26, "Virtualize"),
+        (27, "Close"),
+        (28, "SetSecurity"),
+        (29, "QuerySecurity"),
+    ];
+    for (op, want) in ops {
+        let (name, _, rest) = key(op, r"\REGISTRY\MACHINE");
+        assert_eq!((name.as_str(), rest.len()), (want, 0), "{op}");
+    }
+    // An unnamed key (an empty string).
+    assert_eq!(key(27, "").1[4].1, [0, 0]);
+    // The counters and the configuration.
+    let mut counters = P::default();
+    for i in 0..11u64 {
+        counters = counters.u64(i);
+    }
+    let (name, props, rest) = properties_of(guids::REGISTRY, 34, 2, counters.0);
+    assert_eq!(
+        (name.as_str(), props.len(), rest.len()),
+        ("Counters", 11, 0)
+    );
+    assert_eq!(
+        props[10],
+        ("Counter11".to_string(), 10u64.to_le_bytes().to_vec())
+    );
+    let (name, props, _) = properties_of(guids::REGISTRY, 35, 2, 1u32.to_le_bytes().to_vec());
+    assert_eq!(
+        (name.as_str(), props[0].0.as_str()),
+        ("Config", "CurrentControlSet")
+    );
+}
+
+#[test]
+fn thread_version_3_names_may_follow() {
+    // Older systems end version 3 at the flags; current ones add the name.
+    for op in [1u8, 2, 3, 4] {
+        let (_, props, rest) = properties_of(guids::THREAD, op, 3, thread_payload(1, 2));
+        assert_eq!(
+            props.last().unwrap(),
+            &("ThreadName".to_string(), Vec::new())
+        );
+        assert!(rest.is_empty());
+        let mut named = thread_payload(1, 2);
+        named.extend_from_slice(b"w\0\0\0");
+        let (_, props, rest) = properties_of(guids::THREAD, op, 3, named);
+        assert_eq!(props.last().unwrap().1, b"w\0\0\0");
+        assert!(rest.is_empty());
+    }
+}
+
+#[test]
+fn file_reads_and_writes_may_be_padded() {
+    let rw = P::default()
+        .u64(4096)
+        .u64(0xa1)
+        .u64(0xb1)
+        .u64(0xc1)
+        .u32(7)
+        .u32(512)
+        .u32(0x20)
+        .0;
+    for op in [67u8, 68] {
+        // As some systems log them, and padded to 8 bytes as others do.
+        let (_, props, rest) = properties_of(guids::FILE_IO, op, 3, rw.clone());
+        assert_eq!(props.last().unwrap(), &("Padding".to_string(), Vec::new()));
+        assert!(rest.is_empty());
+        let mut padded = rw.clone();
+        padded.extend_from_slice(&[0; 4]);
+        let (_, props, rest) = properties_of(guids::FILE_IO, op, 3, padded);
+        assert_eq!(props.last().unwrap().1, [0; 4]);
+        assert_eq!(
+            props[5],
+            ("IoSize".to_string(), 512u32.to_le_bytes().to_vec())
+        );
+        assert!(rest.is_empty());
+        // More than that is left over.
+        let mut more = rw.clone();
+        more.extend_from_slice(&[0; 6]);
+        assert_eq!(properties_of(guids::FILE_IO, op, 3, more).2, [0, 0]);
+    }
+}

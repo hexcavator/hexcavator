@@ -39,6 +39,10 @@ pub enum Field {
     Sid,
     /// A fixed number of bytes (fixed-size character arrays, padding).
     Bytes(usize),
+    /// Padding at the end of a payload: up to this many bytes, if there
+    /// are any (a struct's size rounded up to its alignment on some
+    /// systems, not on others).
+    Padding(usize),
     /// Pointers to the end of the payload, named `<name>1`, `<name>2`, ...
     Pointers,
     /// A manifest property, by its TDH input and output types (decoded by
@@ -197,6 +201,7 @@ fn field_len(field: Field, data: &[u8], ptr: usize) -> Option<usize> {
         Field::Ptr => fixed(ptr),
         Field::Guid => fixed(16),
         Field::Bytes(n) => fixed(n),
+        Field::Padding(n) => Some(n.min(data.len())),
         Field::Utf16z => {
             let mut i = 0;
             while i + 2 <= data.len() {
@@ -298,22 +303,10 @@ const PROCESS_PERFCTR: &[(&str, Field)] = &[
     ("PrivatePageCount", Ptr),
 ];
 
-const THREAD_V3: &[(&str, Field)] = &[
-    ("ProcessId", U32),
-    ("TThreadId", U32),
-    ("StackBase", Ptr),
-    ("StackLimit", Ptr),
-    ("UserStackBase", Ptr),
-    ("UserStackLimit", Ptr),
-    ("Affinity", Ptr),
-    ("Win32StartAddr", Ptr),
-    ("TebBase", Ptr),
-    ("SubProcessTag", U32),
-    ("BasePriority", U8),
-    ("PagePriority", U8),
-    ("IoPriority", U8),
-    ("ThreadFlags", U8),
-];
+/// Version 3 is version 4's layout: current systems log the thread's
+/// name after it at version 3 too (in Start, End and DCEnd: seen in the
+/// corpus), older ones end before it (an empty name; DCStart).
+const THREAD_V3: &[(&str, Field)] = THREAD_V4;
 
 const THREAD_V4: &[(&str, Field)] = &[
     ("ProcessId", U32),
@@ -404,6 +397,7 @@ const DISK_FLUSH: &[(&str, Field)] = &[
     ("IssuingThreadId", U32),
 ];
 
+/// (Padded to 8 bytes on 64-bit systems: always zero in the corpus.)
 const FILE_RW: &[(&str, Field)] = &[
     ("Offset", U64),
     ("IrpPtr", Ptr),
@@ -412,6 +406,7 @@ const FILE_RW: &[(&str, Field)] = &[
     ("TTID", U32),
     ("IoSize", U32),
     ("IoFlags", U32),
+    ("Padding", Padding(4)),
 ];
 
 const FILE_SIMPLE: &[(&str, Field)] = &[
@@ -464,6 +459,33 @@ const FILE_CREATE: &[(&str, Field)] = &[
 const FILE_NAME: &[(&str, Field)] = &[("FileObject", Ptr), ("FileName", Utf16z)];
 
 const FILE_OP_END: &[(&str, Field)] = &[("IrpPtr", Ptr), ("ExtraInfo", Ptr), ("NtStatus", U32)];
+
+/// `Registry_TypeGroup1`: an operation on a key (logged when it ends:
+/// `InitialTime` is when it began), and the kernel's key control blocks
+/// (`KeyHandle`) as they are created, deleted and run down. `KeyName` is
+/// relative to the key `KeyHandle` names, if any.
+const REGISTRY_KEY: &[(&str, Field)] = &[
+    ("InitialTime", U64),
+    ("Status", U32),
+    ("Index", U32),
+    ("KeyHandle", Ptr),
+    ("KeyName", Utf16z),
+];
+
+/// `Registry_Counters`.
+const REGISTRY_COUNTERS: &[(&str, Field)] = &[
+    ("Counter1", U64),
+    ("Counter2", U64),
+    ("Counter3", U64),
+    ("Counter4", U64),
+    ("Counter5", U64),
+    ("Counter6", U64),
+    ("Counter7", U64),
+    ("Counter8", U64),
+    ("Counter9", U64),
+    ("Counter10", U64),
+    ("Counter11", U64),
+];
 
 const HARD_FAULT: &[(&str, Field)] = &[
     ("InitialTime", U64),
@@ -702,6 +724,134 @@ pub static SCHEMAS: &[Schema] = &[
     ),
     s(guids::PERF_INFO, 96, 2, "PerfInfo", "WdfISR", ROUTINE),
     s(guids::PERF_INFO, 98, 2, "PerfInfo", "WdfDPC", ROUTINE),
+    // Registry.
+    s(guids::REGISTRY, 10, 2, "Registry", "Create", REGISTRY_KEY),
+    s(guids::REGISTRY, 11, 2, "Registry", "Open", REGISTRY_KEY),
+    s(guids::REGISTRY, 12, 2, "Registry", "Delete", REGISTRY_KEY),
+    s(guids::REGISTRY, 13, 2, "Registry", "Query", REGISTRY_KEY),
+    s(guids::REGISTRY, 14, 2, "Registry", "SetValue", REGISTRY_KEY),
+    s(
+        guids::REGISTRY,
+        15,
+        2,
+        "Registry",
+        "DeleteValue",
+        REGISTRY_KEY,
+    ),
+    s(
+        guids::REGISTRY,
+        16,
+        2,
+        "Registry",
+        "QueryValue",
+        REGISTRY_KEY,
+    ),
+    s(
+        guids::REGISTRY,
+        17,
+        2,
+        "Registry",
+        "EnumerateKey",
+        REGISTRY_KEY,
+    ),
+    s(
+        guids::REGISTRY,
+        18,
+        2,
+        "Registry",
+        "EnumerateValueKey",
+        REGISTRY_KEY,
+    ),
+    s(
+        guids::REGISTRY,
+        19,
+        2,
+        "Registry",
+        "QueryMultipleValue",
+        REGISTRY_KEY,
+    ),
+    s(
+        guids::REGISTRY,
+        20,
+        2,
+        "Registry",
+        "SetInformation",
+        REGISTRY_KEY,
+    ),
+    s(guids::REGISTRY, 21, 2, "Registry", "Flush", REGISTRY_KEY),
+    s(
+        guids::REGISTRY,
+        22,
+        2,
+        "Registry",
+        "KCBCreate",
+        REGISTRY_KEY,
+    ),
+    s(
+        guids::REGISTRY,
+        23,
+        2,
+        "Registry",
+        "KCBDelete",
+        REGISTRY_KEY,
+    ),
+    s(
+        guids::REGISTRY,
+        24,
+        2,
+        "Registry",
+        "KCBRundownBegin",
+        REGISTRY_KEY,
+    ),
+    s(
+        guids::REGISTRY,
+        25,
+        2,
+        "Registry",
+        "KCBRundownEnd",
+        REGISTRY_KEY,
+    ),
+    s(
+        guids::REGISTRY,
+        26,
+        2,
+        "Registry",
+        "Virtualize",
+        REGISTRY_KEY,
+    ),
+    s(guids::REGISTRY, 27, 2, "Registry", "Close", REGISTRY_KEY),
+    s(
+        guids::REGISTRY,
+        28,
+        2,
+        "Registry",
+        "SetSecurity",
+        REGISTRY_KEY,
+    ),
+    s(
+        guids::REGISTRY,
+        29,
+        2,
+        "Registry",
+        "QuerySecurity",
+        REGISTRY_KEY,
+    ),
+    s(
+        guids::REGISTRY,
+        34,
+        2,
+        "Registry",
+        "Counters",
+        REGISTRY_COUNTERS,
+    ),
+    s(
+        guids::REGISTRY,
+        35,
+        2,
+        "Registry",
+        "Config",
+        &[("CurrentControlSet", U32)],
+    ),
     // StackWalk.
     s(
         guids::STACK_WALK,

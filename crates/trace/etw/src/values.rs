@@ -30,7 +30,7 @@ pub fn format(p: &Property<'_>, ptr: usize) -> String {
             .data
             .get(if p.data.len() > 4 { 8 + ptr } else { 0 }..)
             .unwrap_or(&[])),
-        Field::Bytes(_) => bytes(p.data),
+        Field::Bytes(_) | Field::Padding(_) => bytes(p.data),
     }
 }
 
