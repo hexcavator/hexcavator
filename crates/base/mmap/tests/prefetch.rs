@@ -12,7 +12,9 @@ fn scratch(name: &str, bytes: &[u8]) -> std::path::PathBuf {
 }
 
 fn pattern(len: usize) -> Vec<u8> {
-    (0..len).map(|i| u8::try_from(i * 7 % 251).unwrap()).collect()
+    (0..len)
+        .map(|i| u8::try_from(i * 7 % 251).unwrap())
+        .collect()
 }
 
 #[test]

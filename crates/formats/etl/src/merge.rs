@@ -52,6 +52,70 @@ enum Current<'a> {
     },
 }
 
+/// The order in which streams' events are delivered: by timestamp, and on
+/// a tie, the stream queued most recently (see the module's notes on
+/// ties). [`EventCursor`] uses it, and so can a reader that decodes
+/// buffers apart (in parallel) and merges them afterwards: it gets the
+/// same order.
+///
+/// Queue each stream's first event with [`Order::push`], last stream to
+/// first; then repeatedly [`Order::pop`] the stream whose event is next,
+/// deliver that event, and push the stream's following event, if any.
+#[derive(Clone, Debug, Default)]
+pub struct Order {
+    heap: BinaryHeap<Reverse<(i64, Reverse<u64>, usize)>>,
+    pushes: u64,
+}
+
+impl Order {
+    /// An empty order.
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Queues stream `stream`'s next event, at `timestamp`.
+    pub fn push(&mut self, stream: usize, timestamp: i64) {
+        self.pushes += 1;
+        self.heap
+            .push(Reverse((timestamp, Reverse(self.pushes), stream)));
+    }
+
+    /// The timestamp of the queued event that comes next.
+    pub fn peek(&self) -> Option<i64> {
+        self.heap.peek().map(|Reverse((t, _, _))| *t)
+    }
+
+    /// The stream whose queued event comes next, and its timestamp.
+    pub fn pop(&mut self) -> Option<(usize, i64)> {
+        let Reverse((timestamp, _, stream)) = self.heap.pop()?;
+        Some((stream, timestamp))
+    }
+}
+
+/// A file's buffers grouped into streams, as [`EventCursor`] reads them:
+/// each processor's buffers in file order, and the header buffer as a
+/// stream of its own (it claims processor 0, but its events aren't in that
+/// processor's time order). Streams are in the order of their first
+/// buffer in the file.
+pub fn streams<'a>(etl: &Etl<'a>) -> Result<Vec<Vec<Buffer<'a>>>> {
+    let mut streams: Vec<Vec<Buffer<'a>>> = Vec::new();
+    let mut index_of = std::collections::HashMap::new();
+    for buffer in etl.buffers() {
+        let buffer = buffer?;
+        let key = if buffer.header.buffer_type == BufferType::Header {
+            None
+        } else {
+            Some(buffer.header.processor)
+        };
+        let i = *index_of.entry(key).or_insert_with(|| {
+            streams.push(Vec::new());
+            streams.len() - 1
+        });
+        streams[i].push(buffer);
+    }
+    Ok(streams)
+}
+
 /// A cursor over a file's events in timestamp order.
 ///
 /// It is a lending iterator: each event borrows the cursor (decompressed
@@ -61,9 +125,7 @@ pub struct EventCursor<'a> {
     /// The next event of each stream: smallest timestamp first, and on a
     /// tie the stream queued most recently. That is how `ProcessTrace`
     /// orders ties: a stream keeps going while its events tie with others'.
-    heap: BinaryHeap<Reverse<(i64, Reverse<u64>, usize)>>,
-    /// Counts pushes onto the heap, to order ties.
-    pushes: u64,
+    order: Order,
     /// A stored error, reported once in place of the next event.
     error: Option<Error>,
     /// Reused for decompression.
@@ -76,31 +138,17 @@ pub struct EventCursor<'a> {
 
 impl<'a> EventCursor<'a> {
     pub(crate) fn new(etl: &Etl<'a>) -> Result<Self> {
-        let mut streams: Vec<Stream<'a>> = Vec::new();
-        let mut index_of = std::collections::HashMap::new();
-        for buffer in etl.buffers() {
-            let buffer = buffer?;
-            // The header buffer is a stream of its own: it claims processor
-            // 0, but its events aren't in that processor's time order.
-            let key = if buffer.header.buffer_type == BufferType::Header {
-                None
-            } else {
-                Some(buffer.header.processor)
-            };
-            let i = *index_of.entry(key).or_insert_with(|| {
-                streams.push(Stream {
-                    buffers: Vec::new(),
-                    next: 0,
-                    current: Current::None,
-                });
-                streams.len() - 1
-            });
-            streams[i].buffers.push(buffer);
-        }
+        let streams = streams(etl)?
+            .into_iter()
+            .map(|buffers| Stream {
+                buffers,
+                next: 0,
+                current: Current::None,
+            })
+            .collect();
         let mut cursor = Self {
             streams,
-            heap: BinaryHeap::new(),
-            pushes: 0,
+            order: Order::new(),
             error: None,
             spare: Vec::new(),
             pending: None,
@@ -118,9 +166,7 @@ impl<'a> EventCursor<'a> {
     /// it by timestamp. Errors are stored and reported by `next`.
     fn refill(&mut self, i: usize) {
         if let Some(timestamp) = self.head(i) {
-            self.pushes += 1;
-            self.heap
-                .push(Reverse((timestamp, Reverse(self.pushes), i)));
+            self.order.push(i, timestamp);
         }
     }
 
@@ -213,7 +259,7 @@ impl<'a> EventCursor<'a> {
         if let Some(e) = self.error.take() {
             return Some(Err(e));
         }
-        let Reverse((_, _, i)) = self.heap.pop()?;
+        let (i, _) = self.order.pop()?;
         self.pending = Some(i);
         let (data, base, context, pos) = self.streams[i].current.parts();
         let mut records = Records::new(data, pos.get(), base, context);
@@ -243,6 +289,32 @@ impl<'a> Current<'a> {
     }
 }
 
+/// Calls `f` with each of `buffer`'s events, in order: what
+/// [`EventCursor`] reads of it. A compressed buffer is decompressed into
+/// `scratch` first (and no buffer decompresses to more than `max_buffer`,
+/// the session's buffer size). An error ends the buffer: its later events
+/// are skipped, as the cursor skips them. Returns the number of events.
+pub fn for_each_event(
+    buffer: &Buffer<'_>,
+    max_buffer: usize,
+    scratch: &mut Vec<u8>,
+    mut f: impl FnMut(&Event<'_>),
+) -> Result<u64> {
+    let context = buffer.context();
+    let data: &[u8] = if buffer.header.is_compressed() {
+        decompress(buffer, max_buffer, scratch)?;
+        scratch
+    } else {
+        buffer.payload()?
+    };
+    let mut count = 0;
+    for event in Records::new(data, BUFFER_HEADER_SIZE, buffer.file_offset, context) {
+        f(&event?);
+        count += 1;
+    }
+    Ok(count)
+}
+
 /// The largest decompressed buffer we accept. ETW's buffers are at most a
 /// few MB; this bounds what a hostile size can make us allocate.
 const MAX_DECOMPRESSED: usize = 64 << 20;
@@ -251,7 +323,7 @@ const MAX_DECOMPRESSED: usize = 64 << 20;
 ///
 /// A buffer can't hold more than the session's buffer size (`max`), and
 /// never more than [`MAX_DECOMPRESSED`].
-pub(crate) fn decompress(buffer: &Buffer<'_>, max: usize, out: &mut Vec<u8>) -> Result<()> {
+pub fn decompress(buffer: &Buffer<'_>, max: usize, out: &mut Vec<u8>) -> Result<()> {
     let used = buffer.header.offset as usize;
     if used < BUFFER_HEADER_SIZE || used > max.min(MAX_DECOMPRESSED) {
         return Err(Error::new(

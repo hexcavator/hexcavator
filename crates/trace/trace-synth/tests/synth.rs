@@ -258,3 +258,32 @@ fn function_lookup_finds_what_the_table_holds() {
     }
     assert_eq!(t.function_at(0, 0), None, "before the first function");
 }
+
+#[test]
+fn the_import_is_the_same_on_any_number_of_threads() {
+    use hexcavator_trace::index;
+    for config in [
+        small(),
+        Config {
+            processors: 16,
+            processes: 12,
+            threads_per_process: 6,
+            duration_ms: 200,
+            sample_interval_us: 125,
+            switch_per_mille: 400,
+            ..Config::default()
+        },
+    ] {
+        let s = generate(&config);
+        let etl = Etl::parse(&s.etl).unwrap();
+        let source = index::Source::of(&s.etl);
+        let saved: Vec<Vec<u8>> = [1, 2, 8, 33]
+            .into_iter()
+            .map(|threads| {
+                let (trace, _) = etw::import_with(&etl, threads).unwrap();
+                index::write(&trace, source)
+            })
+            .collect();
+        assert!(saved.windows(2).all(|w| w[0] == w[1]));
+    }
+}

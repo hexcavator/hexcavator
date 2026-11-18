@@ -149,7 +149,7 @@ impl<'a> Buffer<'a> {
     /// The buffer's events, in the order they were written.
     ///
     /// Compressed buffers must be decompressed first (see
-    /// [`crate::Etl::decompress`]); for them this returns an error.
+    /// [`crate::decompress`]); for them this returns an error.
     pub fn records(&self) -> Result<Records<'a>> {
         if self.header.is_compressed() {
             return Err(Error::new(

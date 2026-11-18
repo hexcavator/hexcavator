@@ -22,7 +22,7 @@ pub mod event;
 mod guid;
 pub mod logfile;
 pub mod lz77;
-mod merge;
+pub mod merge;
 pub mod write;
 
 use hexcavator_core::{Error, ErrorKind, Result};
@@ -31,7 +31,7 @@ pub use buffer::{Buffer, BufferContext, BufferHeader, BufferType};
 pub use event::{Event, EventDescriptor, ExtendedItem, ExtendedItems, HeaderKind, Records};
 pub use guid::Guid;
 pub use logfile::{ClockType, LogfileHeader};
-pub use merge::EventCursor;
+pub use merge::{EventCursor, Order, decompress, for_each_event, streams};
 
 use buffer::BUFFER_HEADER_SIZE;
 use bytes::u32_at;

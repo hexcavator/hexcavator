@@ -34,6 +34,9 @@ Options:
   -json      One JSON object per trace instead of a table.
   -phases    Instead, time the import's phases: reading the events in time order
              (buffers merged, decompressed), then decoding them too, then the import.
+  -digest    Instead, print a digest of each trace's import: a hash of what it holds (rows,
+             their stacks' frames, processes, threads, images), not of how it is stored;
+             two imports that agree have the same digest.
   -read      Instead, time reading each file from the disk (evicted from the cache
              first, where the host allows): page faults through a mapping, one thread;
              then reads of 1, 4 and 16 MB on 1, 2, 4 and 8 threads.";
@@ -46,6 +49,7 @@ pub fn run(args: &[String]) -> ExitCode {
     let mut as_json = false;
     let mut phases = false;
     let mut read = false;
+    let mut digest = false;
     while let Some(arg) = a.next() {
         match arg {
             "-h" | "-help" | "--help" => {
@@ -56,6 +60,7 @@ pub fn run(args: &[String]) -> ExitCode {
             "-json" => as_json = true,
             "-phases" => phases = true,
             "-read" => read = true,
+            "-digest" => digest = true,
             o if o.starts_with('-') => {
                 eprintln!("stackrabbit bench: unknown option '{o}'\n\n{USAGE}");
                 return ExitCode::from(2);
@@ -79,6 +84,9 @@ pub fn run(args: &[String]) -> ExitCode {
     }
     if read {
         return read_table(&traces);
+    }
+    if digest {
+        return digest_table(&traces);
     }
     if !as_json {
         println!(
@@ -452,4 +460,99 @@ fn read_table(traces: &[PathBuf]) -> ExitCode {
         }
     }
     ExitCode::SUCCESS
+}
+
+/// Prints, for each trace, a digest of its import (see `-digest`).
+fn digest_table(traces: &[PathBuf]) -> ExitCode {
+    for path in traces {
+        let result = (|| -> Result<String, String> {
+            let map = Mmap::open(path).map_err(|e| e.to_string())?;
+            let etl = Etl::parse(map.as_slice()).map_err(|e| e.to_string())?;
+            let start = Instant::now();
+            let (trace, stats) = etw::import(&etl).map_err(|e| e.to_string())?;
+            let secs = start.elapsed().as_secs_f64();
+            Ok(format!(
+                "{:<28} {:016x} samples {} switches {} readies {} stacks {}+{} unmatched {} errors {}/{} ({secs:.3} s)",
+                path.file_name()
+                    .map_or_else(String::new, |n| n.to_string_lossy().into_owned()),
+                digest(&trace),
+                trace.samples.len(),
+                trace.switches.len(),
+                trace.readies.len(),
+                stats.stacks,
+                stats.stack_continuations,
+                stats.stacks_unmatched,
+                stats.read_errors,
+                stats.decode_errors,
+            ))
+        })();
+        match result {
+            Ok(line) => println!("{line}"),
+            Err(e) => {
+                eprintln!("stackrabbit bench: {}: {e}", path.display());
+                return ExitCode::FAILURE;
+            }
+        }
+    }
+    ExitCode::SUCCESS
+}
+
+/// A hash of what `trace` holds, independent of how its stacks are
+/// numbered.
+fn digest(trace: &Trace) -> u64 {
+    use std::hash::{Hash, Hasher};
+    let mut h = rustc_hash::FxHasher::default();
+    let tid = |t: hexcavator_trace::ThreadIx| {
+        if t.is_some() {
+            trace.threads[t.index()].tid
+        } else {
+            u32::MAX
+        }
+    };
+    let frames = |s: hexcavator_trace::StackId| trace.stacks.frames(s).collect::<Vec<u64>>();
+    let s = &trace.samples;
+    for i in 0..s.len() {
+        (s.time[i], s.cpu[i], tid(s.thread[i]), s.ip[i], s.weight[i]).hash(&mut h);
+        frames(s.stack[i]).hash(&mut h);
+    }
+    let w = &trace.switches;
+    for i in 0..w.len() {
+        (
+            w.time[i],
+            w.cpu[i],
+            tid(w.new_thread[i]),
+            tid(w.old_thread[i]),
+        )
+            .hash(&mut h);
+        (w.wait_reason[i], w.old_state[i], w.ready[i].0).hash(&mut h);
+        frames(w.stack[i]).hash(&mut h);
+    }
+    let r = &trace.readies;
+    for i in 0..r.len() {
+        (r.time[i], r.cpu[i], tid(r.thread[i]), tid(r.readier[i])).hash(&mut h);
+        frames(r.stack[i]).hash(&mut h);
+    }
+    for p in &trace.processes {
+        (
+            p.pid,
+            &p.name,
+            &p.command_line,
+            p.start,
+            p.end,
+            p.exit_status,
+        )
+            .hash(&mut h);
+    }
+    for t in &trace.threads {
+        (t.tid, t.process.0, &t.name, t.start, t.end).hash(&mut h);
+    }
+    for im in &trace.images {
+        (im.process.0, im.base, im.size, &im.path, im.load, im.unload).hash(&mut h);
+        im.debug_id
+            .as_ref()
+            .map(|d| (d.guid, d.age, &d.pdb_path))
+            .hash(&mut h);
+    }
+    (trace.clock.origin, trace.sample_interval).hash(&mut h);
+    h.finish()
 }

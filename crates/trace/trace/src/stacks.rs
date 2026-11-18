@@ -6,6 +6,12 @@
 //! [`StackId`] names the node of a stack's innermost frame. Stacks that
 //! share callers share nodes, so a trace's millions of stacks take little
 //! space, and the top-down call tree is the trie itself.
+//!
+//! A store built in parts (an import interns in parallel, in shards, and
+//! joins them; see [`StackStore::from_nodes`]) may hold the same stack at
+//! more than one node, one per part: a stack is then named by any of them,
+//! and [`StackStore::push`] finds the first. Queries compare stacks by
+//! their frames, so this changes no answer.
 
 use rustc_hash::FxHashMap;
 
@@ -29,7 +35,9 @@ pub struct StackStore {
     parent: Vec<StackId>,
     frame: Vec<u64>,
     depth: Vec<u32>,
-    children: FxHashMap<(StackId, u64), StackId>,
+    /// Each node by its parent and frame, for [`StackStore::push`]: built
+    /// on its first use when the store came from [`StackStore::from_nodes`].
+    children: Option<FxHashMap<(StackId, u64), StackId>>,
 }
 
 impl Default for StackStore {
@@ -45,8 +53,54 @@ impl StackStore {
             parent: vec![StackId::EMPTY],
             frame: vec![0],
             depth: vec![0],
-            children: FxHashMap::default(),
+            children: Some(FxHashMap::default()),
         }
+    }
+
+    /// A store of the nodes `parent` and `frame` describe: node 0 the
+    /// empty stack, and each other node's parent before it. Returns `None`
+    /// if they don't (the columns differ in length, node 0 isn't the empty
+    /// stack, or a parent doesn't come before its child). The same stack
+    /// may be at more than one node (see the module's notes).
+    pub fn from_nodes(parent: Vec<StackId>, frame: Vec<u64>) -> Option<Self> {
+        if parent.len() != frame.len()
+            || parent.first() != Some(&StackId::EMPTY)
+            || frame.first() != Some(&0)
+            || u32::try_from(parent.len()).is_err()
+        {
+            return None;
+        }
+        let mut depth = Vec::with_capacity(parent.len());
+        depth.push(0u32);
+        for (i, p) in parent.iter().enumerate().skip(1) {
+            let p = p.0 as usize;
+            if p >= i {
+                return None;
+            }
+            depth.push(depth[p] + 1);
+        }
+        Some(Self {
+            parent,
+            frame,
+            depth,
+            children: None,
+        })
+    }
+
+    /// The lookup of nodes by parent and frame, built if it isn't (the
+    /// first node of each wins).
+    fn children(&mut self) -> &mut FxHashMap<(StackId, u64), StackId> {
+        let (parent, frame) = (&self.parent, &self.frame);
+        self.children.get_or_insert_with(|| {
+            let mut map = FxHashMap::default();
+            map.reserve(parent.len());
+            for i in (1..parent.len()).rev() {
+                // In reverse, so that the first node of a stack wins.
+                let id = StackId(u32::try_from(i).expect("fewer than 4G nodes"));
+                map.insert((parent[i], frame[i]), id);
+            }
+            map
+        })
     }
 
     /// The number of nodes, the empty stack included.
@@ -61,15 +115,26 @@ impl StackStore {
 
     /// The stack `parent` with `frame` called from its innermost frame.
     pub fn push(&mut self, parent: StackId, frame: u64) -> StackId {
-        if let Some(&id) = self.children.get(&(parent, frame)) {
+        if let Some(&id) = self.children().get(&(parent, frame)) {
             return id;
         }
         let id = StackId(u32::try_from(self.parent.len()).expect("fewer than 4G stack nodes"));
         self.parent.push(parent);
         self.frame.push(frame);
         self.depth.push(self.depth[parent.0 as usize] + 1);
-        self.children.insert((parent, frame), id);
+        self.children().insert((parent, frame), id);
         id
+    }
+
+    /// The nodes' parents, node 0 the empty stack's (see
+    /// [`StackStore::from_nodes`]).
+    pub fn parents(&self) -> &[StackId] {
+        &self.parent
+    }
+
+    /// The nodes' frames, node 0 the empty stack's (0).
+    pub fn frame_column(&self) -> &[u64] {
+        &self.frame
     }
 
     /// The stack of `frames`, given innermost first (as traces log them).
@@ -181,6 +246,30 @@ mod tests {
             s.frames_outermost_first(cached, &mut out);
             assert_eq!(out, frames);
         }
+    }
+
+    #[test]
+    fn stores_from_nodes() {
+        // Two parts with the same stack [1, 2] (nodes 2 and 4).
+        let parent = vec![StackId(0), StackId(0), StackId(1), StackId(0), StackId(3)];
+        let frame = vec![0, 1, 2, 1, 2];
+        let mut s = StackStore::from_nodes(parent, frame).unwrap();
+        assert_eq!(s.frames(StackId(4)).collect::<Vec<_>>(), [2, 1]);
+        assert_eq!(s.depth(StackId(4)), 2);
+        // Interning finds the first of the two.
+        assert_eq!(s.intern_innermost_first(&[2, 1]), StackId(2));
+        assert_eq!(s.intern_innermost_first(&[3, 2, 1]), StackId(5));
+        assert_eq!(s.len(), 6);
+        // A parent after its child, mismatched columns, a bad node 0.
+        let bad = |p: Vec<u32>, f: Vec<u64>| {
+            StackStore::from_nodes(p.into_iter().map(StackId).collect(), f).is_none()
+        };
+        assert!(bad(vec![0, 2, 0], vec![0, 1, 1]));
+        assert!(bad(vec![0, 1], vec![0, 1]), "a node its own parent");
+        assert!(bad(vec![0, 0], vec![0]));
+        assert!(bad(vec![1], vec![0]));
+        assert!(bad(vec![0], vec![7]));
+        assert!(bad(vec![], vec![]));
     }
 
     #[test]

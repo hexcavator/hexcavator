@@ -417,25 +417,28 @@ pub fn read(data: &[u8], source: Option<Source>) -> Result<Trace> {
         stack: r.column(4, stack)?,
     };
 
+    // The trie's nodes after the empty stack, each with its parent before
+    // it: loaded as they are (a stack may be at more than one node; see
+    // `StackStore::from_nodes`).
     let n = r.count(12, "stack nodes")?;
-    let mut stacks = StackStore::new();
+    let mut parents = Vec::with_capacity(n + 1);
+    let mut frames = Vec::with_capacity(n + 1);
+    parents.push(StackId::EMPTY);
+    frames.push(0);
     for i in 0..n {
         let parent = StackId(r.u32()?);
         let frame = r.u64()?;
-        // Parents come before children, so a trie read in order is the
-        // trie that was written.
         if parent.0 as usize > i {
             return Err(r.err(ErrorKind::Malformed, "stack parent"));
         }
-        let id = stacks.push(parent, frame);
-        if id.0 as usize != i + 1 {
-            return Err(r.err(ErrorKind::Malformed, "duplicate stack node"));
-        }
+        parents.push(parent);
+        frames.push(frame);
     }
     if r.pos != data.len() {
         return Err(r.err(ErrorKind::Malformed, "trailing data"));
     }
-    trace.stacks = stacks;
+    trace.stacks = StackStore::from_nodes(parents, frames)
+        .ok_or_else(|| Error::new(ErrorKind::Malformed, 0, "stack nodes"))?;
     check(&trace).map_err(|what| Error::new(ErrorKind::Malformed, 0, what))?;
     Ok(trace)
 }

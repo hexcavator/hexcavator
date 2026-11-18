@@ -98,14 +98,33 @@ impl StackMatcher {
     /// the caller's name for it. `decoded` is its decoding, if it's a kernel
     /// event.
     pub fn event(&mut self, id: u64, event: &Event<'_>, decoded: Option<&KernelEvent<'_>>) {
-        let cpu = self.cpu(event.context.processor);
+        self.event_at(
+            id,
+            event.context.processor,
+            event.timestamp,
+            event.thread_id,
+            decoded,
+        );
+    }
+
+    /// [`StackMatcher::event`], given the event's processor, timestamp and
+    /// header thread (for a reader that keeps those rather than events).
+    pub fn event_at(
+        &mut self,
+        id: u64,
+        processor: u16,
+        timestamp: i64,
+        header_thread: u32,
+        decoded: Option<&KernelEvent<'_>>,
+    ) {
+        let cpu = self.cpu(processor);
         let thread = match decoded {
             Some(KernelEvent::Sample(s)) => s.thread_id,
             Some(KernelEvent::ContextSwitch(c)) => c.new_thread_id,
             // (Unknown before the first switch: any thread's stack.)
             Some(KernelEvent::ReadyThread(_)) if self.running[cpu] == u32::MAX => ANY,
             Some(KernelEvent::ReadyThread(_)) => self.running[cpu],
-            _ => event.thread_id,
+            _ => header_thread,
         };
         if let Some(KernelEvent::ContextSwitch(c)) = decoded {
             self.running[cpu] = c.new_thread_id;
@@ -118,7 +137,7 @@ impl StackMatcher {
             ring.pop_front();
         }
         ring.push_back(Candidate {
-            timestamp: event.timestamp,
+            timestamp,
             thread,
             id,
         });
@@ -127,13 +146,25 @@ impl StackMatcher {
     /// The event a stack piece belongs to, if any; `processor` is the
     /// processor that logged the stack and `now` its timestamp.
     pub fn stack(&mut self, processor: u16, now: i64, stack: &StackWalk<'_>) -> Option<StackMatch> {
+        self.stack_at(processor, now, stack.event_timestamp, stack.thread_id)
+    }
+
+    /// [`StackMatcher::stack`], given the stack's event timestamp and
+    /// thread (for a reader that keeps those rather than events).
+    pub fn stack_at(
+        &mut self,
+        processor: u16,
+        now: i64,
+        event_timestamp: i64,
+        thread_id: u32,
+    ) -> Option<StackMatch> {
         self.forget_before(now.saturating_sub(self.window));
-        let key = (stack.event_timestamp, stack.thread_id);
+        let key = (event_timestamp, thread_id);
         if let Some(&(id, any)) = self.matched.get(&key) {
             return Some(StackMatch {
                 id,
                 continuation: true,
-                thread: any.then_some(stack.thread_id),
+                thread: any.then_some(thread_id),
             });
         }
         let cpu = self.cpu(processor);
@@ -149,7 +180,7 @@ impl StackMatcher {
         Some(StackMatch {
             id: found,
             continuation: false,
-            thread: any.then_some(stack.thread_id),
+            thread: any.then_some(thread_id),
         })
     }
 
