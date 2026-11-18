@@ -3,4 +3,5 @@
 
 mod decode;
 mod encode;
+mod event_info;
 mod manifest;

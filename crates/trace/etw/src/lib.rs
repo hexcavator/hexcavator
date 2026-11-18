@@ -9,12 +9,15 @@
 //! - [`schema`]: the layouts of the kernel's classic events and of the
 //!   trace-control events, for any event, by name;
 //! - [`stacks`]: which event each stack belongs to;
-//! - [`encode`]: the inverse of [`kernel::decode`], to build traces.
+//! - [`encode`]: the inverse of [`kernel::decode`], to build traces;
+//! - [`event_info`]: any provider's events, by the descriptions
+//!   (`TRACE_EVENT_INFO`) recorded with the trace.
 //!
 //! The layouts are those TDH reports for the kernel's MOF classes, and the
 //! tests check them against TDH on real traces (see `tools/etwdump`).
 
 pub mod encode;
+pub mod event_info;
 pub mod guids;
 pub mod kernel;
 pub mod manifest;

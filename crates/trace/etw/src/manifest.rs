@@ -421,6 +421,53 @@ pub fn decode<'a>(template: &Template, data: &'a [u8], ptr: usize) -> Result<Vec
     Ok(out)
 }
 
+/// What [`decode_partial`] found.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Decoded<'a> {
+    /// The top-level properties that fit, in order.
+    pub properties: Vec<Property<'a>>,
+    /// How many top-level properties didn't fit (the payload ended first:
+    /// a sender of an older layout).
+    pub missing: usize,
+    /// Payload bytes after the last property (a sender of a newer layout,
+    /// or a description that doesn't say all there is).
+    pub rest: &'a [u8],
+}
+
+/// Decodes a payload by a template as far as it goes: the properties that
+/// fit, how many didn't, and what is left after them. (`decode` is the
+/// strict form: an error where a property doesn't fit.)
+pub fn decode_partial<'a>(template: &Template, data: &'a [u8], ptr: usize) -> Decoded<'a> {
+    let mut d = Decoder { data, pos: 0, ptr };
+    let mut properties: Vec<Property<'a>> = Vec::with_capacity(template.items.len());
+    let mut values: Vec<u64> = Vec::with_capacity(template.items.len());
+    for (i, item) in template.items.iter().enumerate() {
+        let start = d.pos;
+        if d.item(item, &values, 0).is_err() {
+            return Decoded {
+                properties,
+                missing: template.items.len() - i,
+                rest: &data[start..],
+            };
+        }
+        let bytes = &data[start..d.pos];
+        values.push(int_value(item.in_type, bytes));
+        properties.push(Property {
+            name: item.name.clone(),
+            field: Field::Typed {
+                in_type: item.in_type,
+                out_type: item.out_type,
+            },
+            data: bytes,
+        });
+    }
+    Decoded {
+        properties,
+        missing: 0,
+        rest: &data[d.pos..],
+    }
+}
+
 /// A property's value as an integer, for counts and lengths that refer to
 /// it (0 for what isn't an integer).
 fn int_value(in_type: u8, b: &[u8]) -> u64 {

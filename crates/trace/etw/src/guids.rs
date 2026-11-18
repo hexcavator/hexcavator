@@ -84,3 +84,11 @@ pub const KERNEL_TRACE_CONTROL: Guid = g(
     0x4f18,
     [0x83, 0x0b, 0x27, 0x62, 0x73, 0x25, 0x60, 0xde],
 );
+/// `EventMetadata`: the events' descriptions (`TRACE_EVENT_INFO`) that WPR
+/// and xperf record when they merge a trace (see [`crate::event_info`]).
+pub const EVENT_METADATA: Guid = g(
+    0xbbccf6c1,
+    0x6cd1,
+    0x48c4,
+    [0x80, 0xff, 0x83, 0x94, 0x82, 0xe3, 0x76, 0x71],
+);

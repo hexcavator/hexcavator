@@ -46,7 +46,10 @@ Options:
              innermost frame is the sample's instruction pointer.
   -events    Instead, count each trace's events by provider and opcode (the 40 most
              numerous, and every StackWalk opcode), with their payloads' smallest and
-             largest sizes.";
+             largest sizes.
+  -metadata  Instead, check decoding by the descriptions recorded with each trace
+             (EventMetadata): how many there are, and how many of the events they
+             describe decode exactly (every payload byte a property's).";
 
 /// Runs `stackrabbit bench`.
 pub fn run(args: &[String]) -> ExitCode {
@@ -59,6 +62,7 @@ pub fn run(args: &[String]) -> ExitCode {
     let mut digest = false;
     let mut stacks = false;
     let mut events = false;
+    let mut metadata = false;
     while let Some(arg) = a.next() {
         match arg {
             "-h" | "-help" | "--help" => {
@@ -72,6 +76,7 @@ pub fn run(args: &[String]) -> ExitCode {
             "-digest" => digest = true,
             "-stacks" => stacks = true,
             "-events" => events = true,
+            "-metadata" => metadata = true,
             o if o.starts_with('-') => {
                 eprintln!("stackrabbit bench: unknown option '{o}'\n\n{USAGE}");
                 return ExitCode::from(2);
@@ -104,6 +109,9 @@ pub fn run(args: &[String]) -> ExitCode {
     }
     if events {
         return events_table(&traces);
+    }
+    if metadata {
+        return metadata_table(&traces);
     }
     if !as_json {
         println!(
@@ -562,6 +570,170 @@ fn read_table(traces: &[PathBuf]) -> ExitCode {
         }
     }
     ExitCode::SUCCESS
+}
+
+/// A kind of event, as `-metadata` reports it: provider, ID, version,
+/// opcode.
+type EventKind = (String, u16, u8, u8);
+
+/// Prints, for each trace, how its events decode by the descriptions
+/// recorded with it.
+fn metadata_table(traces: &[PathBuf]) -> ExitCode {
+    use hexcavator_etw::event_info::EventInfos;
+    let mut failed = false;
+    for path in traces {
+        let r: Result<(), String> = (|| {
+            let map = Mmap::open(path).map_err(|e| e.to_string())?;
+            let etl = Etl::parse(map.as_slice()).map_err(|e| e.to_string())?;
+            let max = usize::try_from(etl.header().buffer_size)
+                .unwrap_or(1 << 20)
+                .max(1 << 16);
+            let mut scratch = Vec::new();
+            // First the descriptions (the merge writes them at the end).
+            let mut infos = EventInfos::default();
+            let (mut meta, mut bad_meta) = (0u64, 0u64);
+            let mut bad_why: std::collections::BTreeMap<String, u64> =
+                std::collections::BTreeMap::new();
+            for buffer in etl.buffers() {
+                let Ok(buffer) = buffer else { continue };
+                let _ = hexcavator_etl::merge::for_each_event(&buffer, max, &mut scratch, |e| {
+                    if e.provider == hexcavator_etw::guids::EVENT_METADATA {
+                        meta += 1;
+                        if let Err(err) = infos.add_metadata(e) {
+                            bad_meta += 1;
+                            *bad_why
+                                .entry(format!("{:?} {}", err.kind, err.what))
+                                .or_default() += 1;
+                        }
+                    }
+                });
+            }
+            let mut by_source: std::collections::BTreeMap<u32, u64> =
+                std::collections::BTreeMap::new();
+            for i in infos.iter() {
+                *by_source.entry(i.decoding_source).or_default() += 1;
+            }
+            // Then every event they describe.
+            let (mut exact, mut left, mut errors, mut undescribed) = (0u64, 0u64, 0u64, 0u64);
+            let mut why: std::collections::BTreeMap<String, u64> =
+                std::collections::BTreeMap::new();
+            let mut left_kinds: std::collections::BTreeSet<(String, u16, u8, u8)> =
+                std::collections::BTreeSet::new();
+            let mut error_kinds: std::collections::BTreeSet<(String, u16, u8, u8)> =
+                std::collections::BTreeSet::new();
+            // (Each kind with bytes left over: some (used, payload) sizes.)
+            let mut sizes: std::collections::BTreeMap<EventKind, Vec<(usize, usize)>> =
+                std::collections::BTreeMap::new();
+            for buffer in etl.buffers() {
+                let Ok(buffer) = buffer else { continue };
+                let _ = hexcavator_etl::merge::for_each_event(&buffer, max, &mut scratch, |e| {
+                    let Some(info) = infos.get(e) else {
+                        undescribed += 1;
+                        return;
+                    };
+                    match info.decode(e) {
+                        Ok(props) => {
+                            let used: usize = props.iter().map(|p| p.data.len()).sum();
+                            if used == e.user_data.len() {
+                                exact += 1;
+                            } else {
+                                left += 1;
+                                let k = (
+                                    e.provider.to_string(),
+                                    e.descriptor.id,
+                                    e.descriptor.version,
+                                    e.descriptor.opcode,
+                                );
+                                let z = sizes.entry(k.clone()).or_default();
+                                if z.len() < 6 && !z.contains(&(used, e.user_data.len())) {
+                                    z.push((used, e.user_data.len()));
+                                }
+                                left_kinds.insert(k);
+                            }
+                        }
+                        Err(err) => {
+                            errors += 1;
+                            error_kinds.insert((
+                                e.provider.to_string(),
+                                e.descriptor.id,
+                                e.descriptor.version,
+                                e.descriptor.opcode,
+                            ));
+                            *why.entry(format!("{:?} {}", err.kind, err.what))
+                                .or_default() += 1;
+                        }
+                    }
+                });
+            }
+            println!("{}", path.display());
+            println!(
+                "  metadata events {meta} ({bad_meta} unreadable); {} descriptions by source {by_source:?}",
+                infos.len()
+            );
+            if !bad_why.is_empty() {
+                println!("    unreadable: {bad_why:?}");
+            }
+            let described = exact + left + errors;
+            println!(
+                "  events described {described}: {exact} exact, {left} with bytes left over ({} kinds), {errors} errors; {undescribed} undescribed",
+                left_kinds.len()
+            );
+            if !why.is_empty() {
+                println!("    errors: {why:?}");
+            }
+            if std::env::var_os("SR_META_DETAIL").is_some() {
+                for (g, id, v, op) in &left_kinds {
+                    println!("    left over: {g} id {id} v{v} op {op}");
+                }
+                for (g, id, v, op) in &error_kinds {
+                    println!("    error: {g} id {id} v{v} op {op}");
+                }
+                for (g, id, v, op) in left_kinds.iter().chain(&error_kinds) {
+                    if let Some(i) = infos.iter().find(|i| {
+                        i.provider.to_string() == *g
+                            && i.id == *id
+                            && i.version == *v
+                            && i.opcode == *op
+                    }) {
+                        let items: Vec<String> = i
+                            .template
+                            .items
+                            .iter()
+                            .map(|it| {
+                                format!(
+                                    "{}:{}/{:?}/{:?}/{}",
+                                    it.name,
+                                    it.in_type,
+                                    it.count,
+                                    it.length,
+                                    it.members.len()
+                                )
+                            })
+                            .collect();
+                        println!(
+                            "      {:?} {:?}: {}",
+                            i.provider_name,
+                            i.task_name,
+                            items.join(", ")
+                        );
+                    }
+                }
+                for (k, sizes) in &sizes {
+                    println!("    payload sizes {k:?}: {sizes:?}");
+                }
+            }
+            Ok(())
+        })();
+        if let Err(e) = r {
+            failed = true;
+            eprintln!("stackrabbit bench: {}: {e}", path.display());
+        }
+    }
+    if failed {
+        ExitCode::FAILURE
+    } else {
+        ExitCode::SUCCESS
+    }
 }
 
 /// Prints, for each trace, its events by provider and opcode.
