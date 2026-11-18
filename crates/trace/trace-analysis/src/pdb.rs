@@ -1,6 +1,6 @@
 //! A [`Symbolizer`] from PDBs found on this machine.
 
-use std::sync::{Arc, Mutex, PoisonError};
+use std::sync::{Arc, Mutex, OnceLock, PoisonError};
 
 use rustc_hash::FxHashMap;
 
@@ -18,9 +18,13 @@ type DebugKey = ([u8; 16], u32);
 /// it.
 pub struct PdbSymbolizer {
     path: SymbolPath,
-    /// By (GUID, age): the same DLL is loaded in many processes.
-    tables: Mutex<FxHashMap<DebugKey, Option<Arc<FunctionTable>>>>,
+    /// By (GUID, age): the same DLL is loaded in many processes. Each is
+    /// loaded once: a thread that wants one being loaded waits for it.
+    tables: Mutex<FxHashMap<DebugKey, Arc<OnceLock<Option<Arc<FunctionTable>>>>>>,
 }
+
+/// A PDB's slot in a [`PdbSymbolizer`].
+type Slot = Arc<OnceLock<Option<Arc<FunctionTable>>>>;
 
 impl PdbSymbolizer {
     /// A symbolizer that searches `path` (and each image's recorded PDB
@@ -35,36 +39,46 @@ impl PdbSymbolizer {
     /// The function table of `image`'s PDB, if found.
     pub fn table(&self, trace: &Trace, image: ImageIx) -> Option<Arc<FunctionTable>> {
         let id = trace.images[image.index()].debug_id.as_ref()?;
-        let key = (id.guid, id.age);
-        if let Some(t) = self.tables().get(&key) {
-            return t.clone();
-        }
-        // (Loaded without the lock held, so that other threads' lookups go
-        // on; two threads may load the same PDB at once, and both get it.)
-        let table = self
-            .path
-            .find_pdb(&id.pdb_path, &id.guid, id.age)
-            // (Perhaps the path the trace records: see `open_named`.)
-            .and_then(|p| hexcavator_mmap::Mmap::open_named(p).ok())
-            .and_then(|map| FunctionTable::from_pdb(&map).ok())
-            .map(Arc::new);
-        self.tables().entry(key).or_insert(table).clone()
+        self.load(&id.pdb_path, &id.guid, id.age)
     }
 
-    fn tables(&self) -> std::sync::MutexGuard<'_, FxHashMap<DebugKey, Option<Arc<FunctionTable>>>> {
+    /// The function table of the PDB recorded at `pdb_path` with `guid`
+    /// and `age`, if found: loaded the first time it is asked for (by one
+    /// thread; others asking meanwhile wait for it, and others' other
+    /// PDBs load at once).
+    pub fn load(&self, pdb_path: &str, guid: &[u8; 16], age: u32) -> Option<Arc<FunctionTable>> {
+        let slot: Slot = Arc::clone(self.tables().entry((*guid, age)).or_default());
+        slot.get_or_init(|| {
+            self.path
+                .find_pdb(pdb_path, guid, age)
+                // (Perhaps the path the trace records: see `open_named`.)
+                .and_then(|p| hexcavator_mmap::Mmap::open_named(p).ok())
+                .and_then(|map| FunctionTable::from_pdb(&map).ok())
+                .map(Arc::new)
+        })
+        .clone()
+    }
+
+    fn tables(&self) -> std::sync::MutexGuard<'_, FxHashMap<DebugKey, Slot>> {
         self.tables.lock().unwrap_or_else(PoisonError::into_inner)
     }
 
     /// Forgets the PDBs that weren't found, so that they are looked for
     /// again (after a download).
     pub fn forget_missing(&self) {
-        self.tables().retain(|_, t| t.is_some());
+        self.tables()
+            .retain(|_, t| t.get().is_none_or(Option::is_some));
     }
 
     /// How many PDBs were looked for, and how many found.
     pub fn loaded(&self) -> (usize, usize) {
         let t = self.tables();
-        (t.len(), t.values().filter(|v| v.is_some()).count())
+        (
+            t.len(),
+            t.values()
+                .filter(|v| v.get().is_some_and(Option::is_some))
+                .count(),
+        )
     }
 }
 

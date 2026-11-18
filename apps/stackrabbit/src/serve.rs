@@ -257,9 +257,11 @@ fn worker(
             "opened": opened,
         }}),
     );
-    let download = symbols
-        .download
-        .then(|| download_symbols(trace, &state, symbols, out));
+    // What is here already loads at once; the rest downloads meanwhile.
+    let mut background = vec![preload_symbols(&state)];
+    if symbols.download {
+        background.push(download_symbols(trace, &state, symbols, out));
+    }
     for r in rx {
         let response = match state.handle(&r.method, &r.params) {
             Ok(result) => json!({"id": r.id, "result": result}),
@@ -268,8 +270,8 @@ fn worker(
         send(out, &response);
     }
     // (The download's last notification is sent before the trace closes.)
-    if let Some(d) = download {
-        let _ = d.join();
+    for b in background {
+        let _ = b.join();
     }
 }
 
@@ -305,8 +307,34 @@ fn download_symbols(trace: u64, state: &State, symbols: &Symbols, out: &Output) 
             }
         });
         symbolizer.forget_missing();
+        preload(&symbolizer, &ids);
         note(&d, true);
     })
+}
+
+/// Loads the PDBs the trace's stacks need that are here already, in the
+/// background, so that trees don't wait for them.
+fn preload_symbols(state: &State) -> JoinHandle<()> {
+    let ids = symbols::wanted(&state.loaded.trace);
+    let symbolizer = std::sync::Arc::clone(&state.symbols);
+    std::thread::spawn(move || preload(&symbolizer, &ids))
+}
+
+/// Loads `ids`' PDBs (those found), on every core.
+fn preload(symbolizer: &PdbSymbolizer, ids: &[hexcavator_symbolize::server::PdbId]) {
+    let next = std::sync::atomic::AtomicUsize::new(0);
+    let threads = std::thread::available_parallelism().map_or(4, std::num::NonZero::get);
+    std::thread::scope(|scope| {
+        for _ in 0..threads.min(ids.len()) {
+            scope.spawn(|| {
+                loop {
+                    let i = next.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                    let Some(id) = ids.get(i) else { return };
+                    symbolizer.load(&id.name, &id.guid, id.age);
+                }
+            });
+        }
+    });
 }
 
 impl State {
