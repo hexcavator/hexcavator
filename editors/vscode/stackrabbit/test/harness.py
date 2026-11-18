@@ -472,6 +472,19 @@ def main():
     assert graphs[-1].get("by") == "thread" and graphs[-1].get("process") == heaviest["index"], graphs[-1]
     states = [m["state"] for m in posted if m.get("type") == "state"]
     assert states[-1]["graphBy"] == "picked", states[-1]
+    # Hovering the graph: a tip with the time and the busiest series
+    # there; leaving it, none.
+    move = ("var c = document.getElementById('graph'); var r = c.getBoundingClientRect();"
+            "c.dispatchEvent(new MouseEvent('mousemove', {clientX: r.left + r.width / 2, clientY: r.top + 40, bubbles: true}));")
+    dom = render(data, move, shot=shot("hover"))
+    tip = re.search(r'<div id="graph-tip" class="([^"]*)"[^>]*>(.*?)</div></div>', dom, re.S)
+    assert tip and "hidden" not in tip.group(1), "the tip shows"
+    assert "% busy" in tip.group(2), tip.group(2)[:300]
+    labels = [html.escape(x["label"]) for x in data["graph"]["series"]]
+    assert any(l in tip.group(2) for l in labels), "a series in it"
+    dom = render(data, move + " c.dispatchEvent(new MouseEvent('mouseleave'));")
+    tip = re.search(r'<div id="graph-tip" class="([^"]*)"', dom)
+    assert "hidden" in tip.group(1), "gone when the mouse leaves"
     print("harness: ok")
 
 

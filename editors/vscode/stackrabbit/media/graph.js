@@ -13,9 +13,10 @@
      * A graph on `canvas`; `onSelect(range)` hears of selections, as
      * [startNs, endNs], or null when cleared.
      */
-    constructor(canvas, legend, onSelect) {
+    constructor(canvas, legend, onSelect, tip) {
       this.canvas = canvas;
       this.legend = legend;
+      this.tip = tip || null;
       this.onSelect = onSelect;
       this.data = null;
       this.selection = null; // [startNs, endNs]
@@ -35,7 +36,9 @@
             this.draw();
           }
         }
+        this.hover(e.offsetX, e.offsetY);
       });
+      canvas.addEventListener("mouseleave", () => this.hover(null));
       const finish = () => {
         if (!this.drag) {
           return;
@@ -79,6 +82,65 @@
       this.litLabel = litLabel || "";
       this.draw();
       this.drawLegend();
+    }
+
+    /**
+     * What the graph shows at bucket `b`: its time range, and each
+     * series's share there (busiest first, none that is idle), then the
+     * highlighted function's. Null outside the graph.
+     */
+    at(b) {
+      const d = this.data;
+      if (!d || b < 0 || b >= d.buckets) {
+        return null;
+      }
+      const span = d.endNs - d.startNs;
+      const from = d.startNs + (b / d.buckets) * span;
+      const to = d.startNs + ((b + 1) / d.buckets) * span;
+      const rows = d.series
+        .map((s) => ({ label: s.label, share: s.values[b] }))
+        .filter((r) => r.share > 0)
+        .sort((x, y) => y.share - x.share);
+      const lit = d.highlight ? { label: this.litLabel, share: d.highlight.values[b] } : null;
+      return { from, to, rows, lit };
+    }
+
+    /** The bucket under x (CSS pixels), or -1. */
+    bucketAt(x) {
+      const d = this.data;
+      if (!d || x < AXIS) {
+        return -1;
+      }
+      return Math.floor(((x - AXIS) / this.plotWidth()) * d.buckets);
+    }
+
+    /** Shows what is under (x, y) in the tip (or hides it: null). */
+    hover(x, y) {
+      if (!this.tip) {
+        return;
+      }
+      const what = x === null ? null : this.at(this.bucketAt(x));
+      if (!what) {
+        this.tip.classList.add("hidden");
+        return;
+      }
+      const pct = (v) => (100 * v).toFixed(1) + "%";
+      const lines = what.rows.slice(0, 6).map((r) => `<div>${escape(r.label)} <b>${pct(r.share)}</b></div>`);
+      if (what.rows.length > 6) {
+        lines.push(`<div class="more">and ${what.rows.length - 6} more</div>`);
+      }
+      if (what.lit) {
+        lines.push(`<div class="lit">${escape(what.lit.label)} <b>${pct(what.lit.share)}</b></div>`);
+      }
+      const total = what.rows.reduce((a, r) => a + r.share, 0);
+      this.tip.innerHTML =
+        `<div class="when">${(what.from / 1e9).toFixed(3)} to ${(what.to / 1e9).toFixed(3)} s: ${pct(total)} busy</div>` +
+        lines.join("");
+      this.tip.classList.remove("hidden");
+      // Beside the cursor, kept inside the window.
+      const left = Math.min(x + 14, Math.max(0, this.canvas.clientWidth - this.tip.offsetWidth - 4));
+      this.tip.style.left = `${left}px`;
+      this.tip.style.top = `${y + 14}px`;
     }
 
     /** The time at x (CSS pixels), within the graph, or null. */

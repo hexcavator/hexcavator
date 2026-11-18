@@ -40,7 +40,7 @@
     createTree();
     loadProcesses();
     loadFunctions();
-  });
+  }, $("graph-tip"));
   let view = null; // the engine's view ID
   let unit = "samples";
   let ticksPerSecond = 10000000;

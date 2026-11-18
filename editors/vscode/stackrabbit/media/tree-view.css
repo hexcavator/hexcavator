@@ -53,6 +53,28 @@ body {
 }
 .graph {
   padding: 4px 10px 0;
+  position: relative;
+}
+.graph-tip {
+  position: absolute;
+  z-index: 10;
+  pointer-events: none;
+  padding: 4px 8px;
+  background: var(--vscode-editorHoverWidget-background, #252526);
+  color: var(--vscode-editorHoverWidget-foreground, inherit);
+  border: 1px solid var(--vscode-editorHoverWidget-border, #454545);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.graph-tip.hidden {
+  display: none;
+}
+.graph-tip .when,
+.graph-tip .more {
+  color: var(--vscode-descriptionForeground);
+}
+.graph-tip .lit {
+  color: #ffd400;
 }
 .graph canvas {
   width: 100%;
