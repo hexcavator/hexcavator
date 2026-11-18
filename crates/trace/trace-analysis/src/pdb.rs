@@ -1,5 +1,6 @@
 //! A [`Symbolizer`] from PDBs found on this machine.
 
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex, OnceLock, PoisonError};
 
 use rustc_hash::FxHashMap;
@@ -21,6 +22,9 @@ pub struct PdbSymbolizer {
     /// By (GUID, age): the same DLL is loaded in many processes. Each is
     /// loaded once: a thread that wants one being loaded waits for it.
     tables: Mutex<FxHashMap<DebugKey, Slot>>,
+    /// Whether lookups wait for a PDB to load (else they use only those
+    /// loaded already: see [`PdbSymbolizer::set_waiting`]).
+    waiting: AtomicBool,
 }
 
 /// A PDB's slot in a [`PdbSymbolizer`].
@@ -33,13 +37,33 @@ impl PdbSymbolizer {
         Self {
             path,
             tables: Mutex::new(FxHashMap::default()),
+            waiting: AtomicBool::new(true),
         }
     }
 
     /// The function table of `image`'s PDB, if found.
     pub fn table(&self, trace: &Trace, image: ImageIx) -> Option<Arc<FunctionTable>> {
         let id = trace.images[image.index()].debug_id.as_ref()?;
-        self.load(&id.pdb_path, &id.guid, id.age)
+        if self.waiting.load(Ordering::Relaxed) {
+            return self.load(&id.pdb_path, &id.guid, id.age);
+        }
+        self.tables().get(&(id.guid, id.age))?.get()?.clone()
+    }
+
+    /// Whether lookups wait for a PDB to load (they do, at first). Without
+    /// waiting, a lookup uses only the PDBs loaded already ([`Self::load`]
+    /// loads them, as a background preload does), so that a query answers
+    /// at once and a later one has the names.
+    pub fn set_waiting(&self, waiting: bool) {
+        self.waiting.store(waiting, Ordering::Relaxed);
+    }
+
+    /// How many PDBs are loaded and found.
+    pub fn loaded_count(&self) -> usize {
+        self.tables()
+            .values()
+            .filter(|v| v.get().is_some_and(Option::is_some))
+            .count()
     }
 
     /// The function table of the PDB recorded at `pdb_path` with `guid`
@@ -87,6 +111,23 @@ impl Symbolizer for PdbSymbolizer {
         let table = self.table(trace, image)?;
         let (start, name) = table.function(u32::try_from(offset).ok()?)?;
         Some((u64::from(start), name.to_string()))
+    }
+
+    fn function_start(&self, trace: &Trace, image: ImageIx, offset: u64) -> Option<u64> {
+        let table = self.table(trace, image)?;
+        let (start, _) = table.function(u32::try_from(offset).ok()?)?;
+        Some(u64::from(start))
+    }
+
+    fn inline_sites(&self, trace: &Trace, image: ImageIx, offset: u64) -> Vec<u32> {
+        let (Some(table), Ok(rva)) = (self.table(trace, image), u32::try_from(offset)) else {
+            return Vec::new();
+        };
+        table
+            .inlines(rva)
+            .into_iter()
+            .map(|(site, _)| site)
+            .collect()
     }
 
     fn inlines(&self, trace: &Trace, image: ImageIx, offset: u64) -> Vec<(u32, String)> {

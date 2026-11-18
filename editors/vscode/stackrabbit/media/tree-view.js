@@ -86,15 +86,22 @@
   /** Shows how the symbols' download goes; when it is done, makes the tree
    * again, with the new names. */
   function symbolsNote(p) {
+    if (p.loaded !== undefined) {
+      // PDBs loaded: the tree again, with their names.
+      if (p.loaded > 0 && model) {
+        createTree();
+      }
+      if (!symbolsEl.textContent) {
+        symbolsEl.textContent = `Symbols: ${p.loaded} of ${p.wanted} loaded`;
+      }
+      return;
+    }
     const have = p.cached + p.downloaded;
     if (!p.done) {
       symbolsEl.textContent = `Symbols: ${have + p.missing} of ${p.wanted}…`;
       return;
     }
     symbolsEl.textContent = `Symbols: ${have} of ${p.wanted}` + (p.missing ? ` (${p.missing} not found)` : "");
-    if (p.downloaded > 0 && model) {
-      createTree();
-    }
   }
 
   function spec() {

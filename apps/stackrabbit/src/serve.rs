@@ -18,8 +18,11 @@
 //!   stacks need are downloaded in the background (into
 //!   `symbolCache`, from `symbolServers`; by default `_NT_SYMBOL_PATH`'s,
 //!   else WinDbg's cache and Microsoft's server), with notifications
-//!   `symbols` `{trace, wanted, cached, downloaded, missing, done}`; when
-//!   `done`, trees made after it name the new functions.
+//!   `symbols` `{trace, wanted, cached, downloaded, missing, done}`. Trees
+//!   answer at once, with the PDBs loaded so far; they load in the
+//!   background, and a note `symbols` `{trace, loaded, wanted}` says when
+//!   they have (after the download too): trees made after it name the
+//!   functions.
 //! - `close` `{trace}` → `{}`.
 //! - `summary` `{trace}` → the trace's summary.
 //! - `graph` `{trace, buckets?, time?, top?}` → `{startNs, endNs, buckets,
@@ -281,7 +284,13 @@ fn worker(
     let mut state = State {
         tags,
         resolver: Resolver::new(&loaded.trace),
-        symbols: std::sync::Arc::new(PdbSymbolizer::new(symbols.path.clone())),
+        symbols: {
+            // Trees answer at once with the PDBs loaded so far; the editor
+            // hears when more are (a `symbols` note), and asks again.
+            let s = PdbSymbolizer::new(symbols.path.clone());
+            s.set_waiting(false);
+            std::sync::Arc::new(s)
+        },
         loaded,
         views: HashMap::new(),
         next_view: 1,
@@ -297,7 +306,7 @@ fn worker(
         }}),
     );
     // What is here already loads at once; the rest downloads meanwhile.
-    let mut background = vec![preload_symbols(&state)];
+    let mut background = vec![preload_symbols(trace, &state, out)];
     if symbols.download {
         background.push(download_symbols(trace, &state, symbols, out));
     }
@@ -348,15 +357,35 @@ fn download_symbols(trace: u64, state: &State, symbols: &Symbols, out: &Output) 
         symbolizer.forget_missing();
         preload(&symbolizer, &ids);
         note(&d, true);
+        send(
+            &out,
+            &json!({"method": "symbols", "params": {
+                "trace": trace,
+                "loaded": symbolizer.loaded_count(),
+                "wanted": ids.len(),
+            }}),
+        );
     })
 }
 
 /// Loads the PDBs the trace's stacks need that are here already, in the
-/// background, so that trees don't wait for them.
-fn preload_symbols(state: &State) -> JoinHandle<()> {
+/// background, then tells the editor how many it has (a `symbols` note
+/// with `loaded`), so that it asks for trees with their names.
+fn preload_symbols(trace: u64, state: &State, out: &Output) -> JoinHandle<()> {
     let ids = symbols::wanted(&state.loaded.trace);
     let symbolizer = std::sync::Arc::clone(&state.symbols);
-    std::thread::spawn(move || preload(&symbolizer, &ids))
+    let out = std::sync::Arc::clone(out);
+    std::thread::spawn(move || {
+        preload(&symbolizer, &ids);
+        send(
+            &out,
+            &json!({"method": "symbols", "params": {
+                "trace": trace,
+                "loaded": symbolizer.loaded_count(),
+                "wanted": ids.len(),
+            }}),
+        );
+    })
 }
 
 /// Loads `ids`' PDBs (those found), on every core.

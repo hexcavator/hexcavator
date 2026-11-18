@@ -115,6 +115,22 @@ pub trait Symbolizer: Sync {
         Vec::new()
     }
 
+    /// The start offset of the function at `offset` in `image`: what
+    /// [`Symbolizer::function`] gives, without the name (which a tree's
+    /// keys don't need; labels ask for it).
+    fn function_start(&self, trace: &Trace, image: ImageIx, offset: u64) -> Option<u64> {
+        self.function(trace, image, offset).map(|(start, _)| start)
+    }
+
+    /// The sites of the calls inlined at `offset` in `image`, outermost
+    /// first: what [`Symbolizer::inlines`] gives, without the names.
+    fn inline_sites(&self, trace: &Trace, image: ImageIx, offset: u64) -> Vec<u32> {
+        self.inlines(trace, image, offset)
+            .into_iter()
+            .map(|(site, _)| site)
+            .collect()
+    }
+
     /// The inlined function's name of an inline site.
     fn inline_name(&self, _trace: &Trace, _image: ImageIx, _site: u32) -> Option<String> {
         None
@@ -250,9 +266,9 @@ impl<'a> Framer<'a> {
             };
             let offset = lookup - trace.images[image.index()].base;
             symbolizer
-                .inlines(trace, image, offset)
+                .inline_sites(trace, image, offset)
                 .into_iter()
-                .map(|(site, _)| Key::Inline { image, site })
+                .map(|site| Key::Inline { image, site })
                 .collect()
         })
     }
@@ -374,8 +390,8 @@ impl<'a> Framer<'a> {
                     FrameMode::Module => Key::MODULE,
                     FrameMode::Function => self
                         .symbolizer
-                        .function(self.trace, image, offset)
-                        .map_or(Key::MODULE, |(start, _)| start),
+                        .function_start(self.trace, image, offset)
+                        .unwrap_or(Key::MODULE),
                 };
                 Key::Frame { image, offset }
             }

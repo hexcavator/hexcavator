@@ -28,7 +28,11 @@ fn session(requests: &[Value]) -> HashMap<u64, Value> {
     let mut r = Cursor::new(data);
     let mut answers = HashMap::new();
     while let Some(f) = read_frame(&mut r).unwrap() {
-        let id = f.header["id"].as_u64().expect("answers have IDs");
+        // (Notifications, such as symbols loaded, are not answers.)
+        let Some(id) = f.header["id"].as_u64() else {
+            assert!(f.header["method"].is_string(), "a notification");
+            continue;
+        };
         assert!(
             answers.insert(id, f.header).is_none(),
             "one answer per request"
@@ -262,7 +266,9 @@ fn the_binary_serves_on_standard_input_and_output() {
     let mut r = Cursor::new(out.stdout);
     let mut answers = HashMap::new();
     while let Some(f) = read_frame(&mut r).unwrap() {
-        answers.insert(f.header["id"].as_u64().unwrap(), f.header);
+        if let Some(id) = f.header["id"].as_u64() {
+            answers.insert(id, f.header);
+        }
     }
     // (Shutdown can come before the trace's answers: they are on its own
     // thread, which finishes before the engine exits.)
@@ -313,8 +319,11 @@ fn symbols_are_downloaded_when_asked_and_reported() {
         1,
         "the session goes on while it downloads"
     );
-    let last = notes.last().expect("notes on the download");
-    assert_eq!(last["method"], "symbols");
+    assert!(notes.iter().all(|n| n["method"] == "symbols"));
+    let last = notes
+        .iter()
+        .rfind(|n| n["params"]["done"] == true)
+        .expect("the download's last note");
     let p = &last["params"];
     assert_eq!(p["trace"], 1);
     assert_eq!(p["done"], true);
@@ -333,7 +342,13 @@ fn symbols_are_not_downloaded_unless_asked() {
     let (_, notes) = session_with_notes(&[
         json!({"method": "open", "params": {"path": path, "useIndex": false}}),
     ]);
-    assert!(notes.is_empty(), "no download, no notes");
+    // Only the note that the PDBs here are loaded (none: they are the
+    // synthetic machine's): none about a download.
+    assert_eq!(notes.len(), 1, "{notes:?}");
+    let p = &notes[0]["params"];
+    assert_eq!(p["loaded"], 0);
+    assert!(p["wanted"].as_u64().unwrap() >= 4);
+    assert!(p.get("done").is_none());
 }
 
 #[test]
