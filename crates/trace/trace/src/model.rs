@@ -279,6 +279,25 @@ pub struct Trace {
     /// `EventMetadata` event's `TRACE_EVENT_INFO`, as it is; see
     /// `hexcavator_etw::event_info`), distinct, sorted.
     pub event_infos: Vec<Vec<u8>>,
+    /// The trace file's buffers that hold events, in file order: where
+    /// each is, its first and last timestamps, and which kinds of event it
+    /// holds (so that a reader of one kind reads only its buffers).
+    pub buffers: Vec<BufferSpan>,
+}
+
+/// Where a trace file's buffer is and what it holds.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct BufferSpan {
+    /// Its offset in the file.
+    pub offset: u64,
+    /// Its number among the file's buffers.
+    pub index: u32,
+    /// Its earliest event's timestamp.
+    pub first: i64,
+    /// Its latest's.
+    pub last: i64,
+    /// The kinds of event in it, as indexes of [`Trace::events`], sorted.
+    pub kinds: Vec<u32>,
 }
 
 /// How many of one kind of event a trace has.
@@ -321,6 +340,7 @@ impl Trace {
             events: Vec::new(),
             provider_names: Vec::new(),
             event_infos: Vec::new(),
+            buffers: Vec::new(),
         }
     }
 

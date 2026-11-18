@@ -13,15 +13,15 @@
 use hexcavator_core::{Error, ErrorKind, Result};
 
 use crate::model::{
-    Clock, ContextSwitches, DebugId, EventStats, Image, Process, ProcessIx, ReadyIx, ReadyThreads,
-    Samples, Thread, ThreadIx, Trace,
+    BufferSpan, Clock, ContextSwitches, DebugId, EventStats, Image, Process, ProcessIx, ReadyIx,
+    ReadyThreads, Samples, Thread, ThreadIx, Trace,
 };
 use crate::stacks::{StackId, StackStore};
 
 /// The file's magic.
 pub const MAGIC: &[u8; 8] = b"HXTRACE\0";
 /// The format's version; any change to the layout bumps it.
-pub const VERSION: u32 = 4;
+pub const VERSION: u32 = 5;
 
 /// What an index was built from.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -211,6 +211,17 @@ pub fn write(trace: &Trace, source: Source) -> Vec<u8> {
     for info in &trace.event_infos {
         w.len(info.len());
         w.out.extend_from_slice(info);
+    }
+    w.len(trace.buffers.len());
+    for b in &trace.buffers {
+        w.u64(b.offset);
+        w.u32(b.index);
+        w.i64(b.first);
+        w.i64(b.last);
+        w.len(b.kinds.len());
+        for &k in &b.kinds {
+            w.u32(k);
+        }
     }
     w.out
 }
@@ -486,6 +497,25 @@ pub fn read(data: &[u8], source: Option<Source>) -> Result<Trace> {
         trace
             .event_infos
             .push(r.bytes(len, "event description")?.to_vec());
+    }
+    let n = r.count(36, "buffers")?;
+    for _ in 0..n {
+        let mut b = BufferSpan {
+            offset: r.u64()?,
+            index: r.u32()?,
+            first: r.i64()?,
+            last: r.i64()?,
+            kinds: Vec::new(),
+        };
+        let kinds = r.count(4, "buffer kinds")?;
+        for _ in 0..kinds {
+            let k = r.u32()?;
+            if k as usize >= trace.events.len() {
+                return Err(r.err(ErrorKind::Malformed, "buffer kind"));
+            }
+            b.kinds.push(k);
+        }
+        trace.buffers.push(b);
     }
     if r.pos != data.len() {
         return Err(r.err(ErrorKind::Malformed, "trailing data"));

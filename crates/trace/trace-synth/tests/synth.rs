@@ -372,4 +372,36 @@ fn every_kind_of_event_is_counted() {
     .unwrap();
     assert_eq!(back.events, trace.events);
     assert_eq!(back.provider_names, trace.provider_names);
+    assert_eq!(back.buffers, trace.buffers);
+    assert_eq!(one.buffers, trace.buffers);
+
+    // The buffers: in file order, each with its kinds; reading only the
+    // buffers a kind is in finds every one of it, and each of those has
+    // some.
+    assert!(!trace.buffers.is_empty());
+    assert!(trace.buffers.windows(2).all(|w| w[0].offset < w[1].offset));
+    let max = etl.header().buffer_size as usize;
+    let mut scratch = Vec::new();
+    for (k, kind) in trace.events.iter().enumerate() {
+        let k = u32::try_from(k).unwrap();
+        let mut found = 0u64;
+        for b in trace.buffers.iter().filter(|b| b.kinds.contains(&k)) {
+            assert!(b.first <= b.last);
+            let buffer = etl.buffer_at(b.offset, b.index).unwrap();
+            let mut here = 0u64;
+            hexcavator_etl::merge::for_each_event(&buffer, max.max(1 << 16), &mut scratch, |e| {
+                let d = &e.descriptor;
+                if (e.provider, d.id, d.version, d.opcode, d.task)
+                    == (kind.provider, kind.id, kind.version, kind.opcode, kind.task)
+                {
+                    assert!((b.first..=b.last).contains(&e.timestamp));
+                    here += 1;
+                }
+            })
+            .unwrap();
+            assert!(here > 0, "a buffer listed for a kind it doesn't have");
+            found += here;
+        }
+        assert_eq!(found, kind.count, "kind {k}");
+    }
 }

@@ -964,3 +964,49 @@ fn one_kind_of_events_listed_and_decoded() {
     assert!(error(&a, 6).contains("guid"));
     assert!(error(&a, 7).contains("limit"));
 }
+
+#[test]
+fn listing_by_the_buffer_index_is_listing_every_buffer() {
+    use stackrabbit::generic::{Kind, list};
+    let dir = scratch("serve-events-index");
+    // (Small buffers: many of them, each with few kinds.)
+    let config = hexcavator_trace_synth::Config {
+        buffer_size: 4096,
+        ..small()
+    };
+    let (path, _) = write_trace(&dir, "t.etl", &config);
+    let loaded = stackrabbit::store::open(
+        &path,
+        &stackrabbit::store::Options {
+            use_index: false,
+            cache_dir: None,
+        },
+    )
+    .unwrap();
+    let trace = &loaded.trace;
+    assert!(trace.buffers.len() > 20, "{} buffers", trace.buffers.len());
+    let mut whole = trace.clone();
+    whole.buffers.clear();
+    let span = trace.clock.ticks_per_second as i64 / 10; // 100 ms
+    let origin = trace.clock.origin;
+    for e in &trace.events {
+        let kind = Kind {
+            provider: e.provider,
+            id: e.id,
+            version: e.version,
+            opcode: e.opcode,
+        };
+        for (time, offset, limit) in [
+            (None, 0, 1),
+            (None, 0, 7),
+            (None, 3, 50),
+            (None, 0, 100_000),
+            (Some((origin + span, origin + 2 * span)), 0, 10),
+            (Some((origin, origin + 3 * span)), 5, 100_000),
+        ] {
+            let a = list(trace, &path, kind, time, offset, limit).unwrap();
+            let b = list(&whole, &path, kind, time, offset, limit).unwrap();
+            assert_eq!(a, b, "{kind:?} {time:?} {offset} {limit}");
+        }
+    }
+}

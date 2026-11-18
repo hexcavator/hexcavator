@@ -7,12 +7,12 @@ use std::path::Path;
 use std::sync::Mutex;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-use hexcavator_etl::{Etl, Event, Guid, merge::for_each_event};
+use hexcavator_etl::{Buffer, Etl, Event, Guid, merge::for_each_event};
 use hexcavator_etw::event_info::{EventInfo, EventInfos};
 use hexcavator_etw::schema::{Properties, Property, pointer_size};
 use hexcavator_etw::values;
 use hexcavator_mmap::Mmap;
-use hexcavator_trace::Trace;
+use hexcavator_trace::{BufferSpan, Trace};
 use rustc_hash::FxHashMap;
 use serde_json::{Value, json};
 
@@ -47,8 +47,11 @@ const CHUNK: usize = 64;
 
 /// The events of `kind` in `trace` (read from the file at `path`), in
 /// `[start, end)` clock ticks (all, if none), in time order: how many, and
-/// those from `offset`, `limit` of them, decoded. On every core: each
-/// worker keeps only the earliest `offset + limit` it finds.
+/// those from `offset`, `limit` of them, decoded. Only the buffers the
+/// trace's buffer index says hold the kind in the range are read, the
+/// earliest first, in batches on every core; without a range, reading
+/// stops once the next buffer starts after the last event to list (the
+/// count is the trace's).
 pub fn list(
     trace: &Trace,
     path: &Path,
@@ -62,7 +65,6 @@ pub fn list(
     let max = usize::try_from(etl.header().buffer_size)
         .unwrap_or(1 << 20)
         .max(1 << 16);
-    let buffers: Vec<_> = etl.buffers().flatten().collect();
     let mut infos = EventInfos::default();
     for b in &trace.event_infos {
         if let Ok(i) = EventInfo::parse(b) {
@@ -71,71 +73,77 @@ pub fn list(
     }
     let (start, end) = time.unwrap_or((i64::MIN, i64::MAX));
     let keep = offset.saturating_add(limit);
-    let next = AtomicUsize::new(0);
-    let found: Mutex<(u64, Vec<Row>)> = Mutex::new((0, Vec::new()));
-    let threads = std::thread::available_parallelism()
-        .map_or(4, std::num::NonZero::get)
-        .min(buffers.len().div_ceil(CHUNK).max(1));
-    std::thread::scope(|scope| {
-        for _ in 0..threads {
-            scope.spawn(|| {
-                let mut scratch = Vec::new();
-                let mut rows: Vec<Row> = Vec::new();
-                let mut count = 0u64;
-                let mut cutoff = i64::MAX;
-                loop {
-                    let c = next.fetch_add(1, Ordering::Relaxed);
-                    let Some(chunk) = buffers.get(c * CHUNK..((c + 1) * CHUNK).min(buffers.len()))
-                    else {
-                        break;
-                    };
-                    if chunk.is_empty() {
-                        break;
-                    }
-                    for buffer in chunk {
-                        let _ = for_each_event(buffer, max, &mut scratch, |e| {
-                            let d = &e.descriptor;
-                            if e.provider != kind.provider
-                                || d.id != kind.id
-                                || d.version != kind.version
-                                || d.opcode != kind.opcode
-                                || e.timestamp < start
-                                || e.timestamp >= end
-                            {
-                                return;
-                            }
-                            count += 1;
-                            // (Only the earliest are kept: once `keep`
-                            // are at or before `cutoff`, nothing after it
-                            // can be, and isn't decoded.)
-                            if e.timestamp > cutoff {
-                                return;
-                            }
-                            rows.push(decode(e, &infos));
-                            if rows.len() >= 2 * keep.max(1) {
-                                rows.sort_by_key(|r| (r.timestamp, r.processor, r.thread_id));
-                                rows.truncate(keep);
-                                cutoff = rows.last().map_or(i64::MAX, |r| r.timestamp);
-                            }
-                        });
-                    }
-                }
-                rows.sort_by_key(|r| (r.timestamp, r.processor, r.thread_id));
-                rows.truncate(keep);
-                let mut f = found
-                    .lock()
-                    .unwrap_or_else(std::sync::PoisonError::into_inner);
-                f.0 += count;
-                f.1.append(&mut rows);
-            });
+    // The kind's entries in the trace's event kinds (one a task).
+    let kinds: Vec<u32> = trace
+        .events
+        .iter()
+        .enumerate()
+        .filter(|(_, e)| {
+            (e.provider, e.id, e.version, e.opcode)
+                == (kind.provider, kind.id, kind.version, kind.opcode)
+        })
+        .filter_map(|(i, _)| u32::try_from(i).ok())
+        .collect();
+    // The buffers to read: those the kind is in, in the time range, the
+    // earliest first (every buffer, for a trace without the buffers'
+    // index).
+    let buffers: Vec<Buffer<'_>> = if trace.buffers.is_empty() {
+        etl.buffers().flatten().collect()
+    } else {
+        let mut spans: Vec<&BufferSpan> = trace
+            .buffers
+            .iter()
+            .filter(|b| {
+                b.kinds.iter().any(|k| kinds.contains(k)) && b.last >= start && b.first < end
+            })
+            .collect();
+        spans.sort_by_key(|b| (b.first, b.offset));
+        spans
+            .into_iter()
+            .filter_map(|b| etl.buffer_at(b.offset, b.index).ok())
+            .collect()
+    };
+    let firsts: Vec<i64> = if trace.buffers.is_empty() {
+        Vec::new()
+    } else {
+        let by_offset: FxHashMap<u64, i64> =
+            trace.buffers.iter().map(|b| (b.offset, b.first)).collect();
+        buffers
+            .iter()
+            .map(|b| by_offset.get(&b.file_offset).copied().unwrap_or(i64::MIN))
+            .collect()
+    };
+    // Without a time range, how many is known, and reading can stop once
+    // the next buffer starts after the last event kept; with one, every
+    // buffer in it is read, to count.
+    let known_total: Option<u64> = (time.is_none() && !trace.buffers.is_empty())
+        .then(|| kinds.iter().map(|&k| trace.events[k as usize].count).sum());
+    let threads = std::thread::available_parallelism().map_or(4, std::num::NonZero::get);
+    let batch = if known_total.is_some() {
+        (threads * 8).max(CHUNK)
+    } else {
+        buffers.len().max(1)
+    };
+    let mut total = 0u64;
+    let mut rows: Vec<Row> = Vec::new();
+    let mut at = 0;
+    while at < buffers.len() {
+        let these = &buffers[at..(at + batch).min(buffers.len())];
+        let (n, mut found) = scan(these, max, kind, (start, end), keep, &infos, threads);
+        total += n;
+        rows.append(&mut found);
+        rows.sort_by_key(|r| (r.timestamp, r.processor, r.thread_id));
+        rows.truncate(keep);
+        at += these.len();
+        if known_total.is_some()
+            && rows.len() >= keep
+            && let Some(&next_first) = firsts.get(at)
+            && next_first > rows.last().map_or(i64::MAX, |r| r.timestamp)
+        {
+            break;
         }
-    });
-    let (total, mut rows) = found
-        .into_inner()
-        .unwrap_or_else(std::sync::PoisonError::into_inner);
-    // In time order (and, for the same time, by processor then thread:
-    // the same on any number of threads).
-    rows.sort_by_key(|r| (r.timestamp, r.processor, r.thread_id));
+    }
+    let total = known_total.unwrap_or(total);
     let rows: Vec<&Row> = rows.iter().skip(offset).take(limit).collect();
     // The columns: every field name, in the order first seen.
     let mut columns: Vec<&str> = Vec::new();
@@ -167,6 +175,78 @@ pub fn list(
             "extra": r.extra,
         })).collect::<Vec<_>>(),
     }))
+}
+
+/// Reads `buffers` on up to `threads` threads, a chunk at a time: how many
+/// events of `kind` in `[start, end)` they hold, and the earliest `keep`
+/// of them (by time, processor, thread), decoded. Each worker decodes only
+/// events that can still be among its earliest `keep`.
+fn scan(
+    buffers: &[Buffer<'_>],
+    max: usize,
+    kind: Kind,
+    (start, end): (i64, i64),
+    keep: usize,
+    infos: &EventInfos,
+    threads: usize,
+) -> (u64, Vec<Row>) {
+    let next = AtomicUsize::new(0);
+    let found: Mutex<(u64, Vec<Row>)> = Mutex::new((0, Vec::new()));
+    let threads = threads.min(buffers.len().div_ceil(CHUNK).max(1));
+    std::thread::scope(|scope| {
+        for _ in 0..threads {
+            scope.spawn(|| {
+                let mut scratch = Vec::new();
+                let mut rows: Vec<Row> = Vec::new();
+                let mut count = 0u64;
+                let mut cutoff = i64::MAX;
+                loop {
+                    let c = next.fetch_add(1, Ordering::Relaxed);
+                    let from = c.saturating_mul(CHUNK);
+                    if from >= buffers.len() {
+                        break;
+                    }
+                    for buffer in &buffers[from..(from + CHUNK).min(buffers.len())] {
+                        let _ = for_each_event(buffer, max, &mut scratch, |e| {
+                            let d = &e.descriptor;
+                            if e.provider != kind.provider
+                                || d.id != kind.id
+                                || d.version != kind.version
+                                || d.opcode != kind.opcode
+                                || e.timestamp < start
+                                || e.timestamp >= end
+                            {
+                                return;
+                            }
+                            count += 1;
+                            // (Once `keep` are at or before `cutoff`,
+                            // nothing after it can be one, and isn't
+                            // decoded.)
+                            if e.timestamp > cutoff {
+                                return;
+                            }
+                            rows.push(decode(e, infos));
+                            if rows.len() >= 2 * keep.max(1) {
+                                rows.sort_by_key(|r| (r.timestamp, r.processor, r.thread_id));
+                                rows.truncate(keep);
+                                cutoff = rows.last().map_or(i64::MAX, |r| r.timestamp);
+                            }
+                        });
+                    }
+                }
+                rows.sort_by_key(|r| (r.timestamp, r.processor, r.thread_id));
+                rows.truncate(keep);
+                let mut f = found
+                    .lock()
+                    .unwrap_or_else(std::sync::PoisonError::into_inner);
+                f.0 += count;
+                f.1.append(&mut rows);
+            });
+        }
+    });
+    found
+        .into_inner()
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
 }
 
 /// One event decoded: by its recorded description, else the kernel's

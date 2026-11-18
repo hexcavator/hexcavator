@@ -313,6 +313,18 @@ fn buffers_with_their_own_sizes() {
         .collect();
     assert_eq!(sizes.len(), 3);
     assert!(sizes[1] != 0x100 && sizes[1] != sizes[2]);
+    // Each buffer again by where it is: the same buffer.
+    for b in etl.buffers().map(Result::unwrap) {
+        let again = etl.buffer_at(b.file_offset, b.index).unwrap();
+        assert_eq!(
+            (again.file_offset, again.index, again.data),
+            (b.file_offset, b.index, b.data)
+        );
+    }
+    // Past the end, or not at a buffer: errors.
+    assert!(etl.buffer_at(data.len() as u64, 9).is_err());
+    assert!(etl.buffer_at(u64::MAX, 9).is_err());
+    assert!(etl.buffer_at(data.len() as u64 - 8, 9).is_err());
 }
 
 #[test]

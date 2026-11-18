@@ -49,8 +49,8 @@ use hexcavator_etw::kernel::{
 use hexcavator_etw::stacks::{StackMatcher, Stitch};
 
 use crate::model::{
-    Clock, DebugId, EventStats, Image, ImageIx, Process, ProcessIx, ReadyIx, Thread, ThreadIx,
-    Trace,
+    BufferSpan, Clock, DebugId, EventStats, Image, ImageIx, Process, ProcessIx, ReadyIx, Thread,
+    ThreadIx, Trace,
 };
 use crate::stacks::{PathCache, StackId, StackStore};
 
@@ -167,6 +167,27 @@ pub fn import_parts(
         order(&stream_buffers, &slots)
     });
     let decoded = slots.into_inner();
+    // Each buffer's place, times and kinds (kinds numbered once all are
+    // known).
+    let buffer_spans: Vec<(BufferSpan, Vec<EventKind>)> = decoded
+        .iter()
+        .zip(&buffers)
+        .filter(|(d, _)| !d.times.is_empty())
+        .map(|(d, (b, _))| {
+            let first = d.times.iter().copied().min().unwrap_or(0);
+            let last = d.times.iter().copied().max().unwrap_or(0);
+            (
+                BufferSpan {
+                    offset: b.file_offset,
+                    index: b.index,
+                    first,
+                    last,
+                    kinds: Vec::new(),
+                },
+                d.kinds.clone(),
+            )
+        })
+        .collect();
 
     let mut stats = ImportStats::default();
     for d in &decoded {
@@ -210,6 +231,26 @@ pub fn import_parts(
     infos.sort_unstable();
     infos.dedup();
     trace.event_infos = infos;
+    trace.buffers = buffer_spans
+        .into_iter()
+        .map(|(mut span, kinds)| {
+            span.kinds = kinds
+                .iter()
+                .filter_map(|k| {
+                    trace
+                        .events
+                        .binary_search_by_key(k, |e| {
+                            (e.provider, e.id, e.version, e.opcode, e.task)
+                        })
+                        .ok()
+                        .and_then(|i| u32::try_from(i).ok())
+                })
+                .collect();
+            span.kinds.sort_unstable();
+            span
+        })
+        .collect();
+    trace.buffers.sort_by_key(|b| b.offset);
     Ok((trace, stats))
 }
 
@@ -1584,6 +1625,8 @@ struct Decoded {
     error: bool,
     /// Kernel events whose payloads were malformed.
     decode_errors: u64,
+    /// The kinds of event in it, in the order first seen.
+    kinds: Vec<EventKind>,
 }
 
 /// Decodes `buffer`, interning its stacks in `shards`.
@@ -1602,6 +1645,11 @@ fn decode_buffer(
         let index = u32::try_from(out.times.len()).expect("fewer than 4G events in a buffer");
         out.times.push(e.timestamp);
         local.count(e);
+        let d = &e.descriptor;
+        let kind = (e.provider, d.id, d.version, d.opcode, d.task);
+        if out.kinds.last() != Some(&kind) && !out.kinds.contains(&kind) {
+            out.kinds.push(kind);
+        }
         if let Some(item) = keep(e, local, shards, &mut out.decode_errors) {
             out.items.push((index, item));
         }
