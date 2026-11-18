@@ -20,7 +20,7 @@ pub struct PdbSymbolizer {
     path: SymbolPath,
     /// By (GUID, age): the same DLL is loaded in many processes. Each is
     /// loaded once: a thread that wants one being loaded waits for it.
-    tables: Mutex<FxHashMap<DebugKey, Arc<OnceLock<Option<Arc<FunctionTable>>>>>>,
+    tables: Mutex<FxHashMap<DebugKey, Slot>>,
 }
 
 /// A PDB's slot in a [`PdbSymbolizer`].
