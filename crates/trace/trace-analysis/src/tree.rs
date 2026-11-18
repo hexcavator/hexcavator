@@ -15,6 +15,20 @@ use rustc_hash::FxHashMap;
 
 use crate::keys::KeyId;
 
+/// A key's bin for [`Instances::totals`]: none.
+pub const NO_BIN: u32 = u32::MAX;
+
+/// A bin's totals (see [`Instances::totals`]).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct BinTotals {
+    /// The weight its keys are the innermost frame of.
+    pub exclusive: u64,
+    /// The weight with one of its keys among the frames.
+    pub inclusive: u64,
+    /// The events with one of its keys among the frames.
+    pub count: u64,
+}
+
 /// Weighted key sequences.
 #[derive(Clone, Debug, Default)]
 pub struct Instances {
@@ -126,6 +140,70 @@ impl Instances {
     /// The total weight.
     pub fn total(&self) -> u64 {
         self.weights.iter().sum()
+    }
+
+    /// Each bin's totals, where `bins` says each key's bin (by key ID;
+    /// [`NO_BIN`] for none, as for keys past its end): how much weight its
+    /// keys are the innermost frame of (exclusive), and how much and how
+    /// many events have one of its keys in their frames (inclusive: once
+    /// per instance, however many times it recurs). Grouping keys aren't
+    /// frames. On every core, in chunks.
+    pub fn totals(&self, bins: &[u32], n_bins: usize) -> Vec<BinTotals> {
+        const CHUNK: usize = 1 << 14;
+        let chunks = self.len().div_ceil(CHUNK);
+        let next = std::sync::atomic::AtomicUsize::new(0);
+        let threads = std::thread::available_parallelism()
+            .map_or(4, std::num::NonZero::get)
+            .min(chunks);
+        let bin = |k: KeyId| bins.get(k.0 as usize).copied().unwrap_or(NO_BIN);
+        let partials: Vec<Vec<BinTotals>> = std::thread::scope(|scope| {
+            let workers: Vec<_> = (0..threads)
+                .map(|_| {
+                    scope.spawn(|| {
+                        let mut out = vec![BinTotals::default(); n_bins];
+                        // Which instance last counted each bin (plus one).
+                        let mut seen = vec![0usize; n_bins];
+                        loop {
+                            let c = next.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                            if c >= chunks {
+                                return out;
+                            }
+                            for i in c * CHUNK..((c + 1) * CHUNK).min(self.len()) {
+                                let (w, n) = (self.weight(i), self.count(i));
+                                let frames = &self.keys(i)[self.groups.min(self.keys(i).len())..];
+                                for &k in frames {
+                                    let b = bin(k);
+                                    if b != NO_BIN && seen[b as usize] != i + 1 {
+                                        seen[b as usize] = i + 1;
+                                        out[b as usize].inclusive += w;
+                                        out[b as usize].count += n;
+                                    }
+                                }
+                                if let Some(&last) = frames.last() {
+                                    let b = bin(last);
+                                    if b != NO_BIN {
+                                        out[b as usize].exclusive += w;
+                                    }
+                                }
+                            }
+                        }
+                    })
+                })
+                .collect();
+            workers
+                .into_iter()
+                .map(|w| w.join().expect("a totals worker"))
+                .collect()
+        });
+        let mut out = vec![BinTotals::default(); n_bins];
+        for p in partials {
+            for (o, x) in out.iter_mut().zip(p) {
+                o.exclusive += x.exclusive;
+                o.inclusive += x.inclusive;
+                o.count += x.count;
+            }
+        }
+        out
     }
 
     /// The same instances with the frames reversed: innermost first, so

@@ -637,3 +637,36 @@ fn the_threads_table_has_samples_switches_and_running_time() {
     assert!(in_half > 0 && in_half < samples.iter().sum::<u64>());
     assert!(error(&a, 8).contains("process"));
 }
+
+#[test]
+fn hot_functions_over_the_protocol() {
+    let dir = scratch("serve-functions");
+    let (path, s) = write_trace(&dir, "t.etl", &small());
+    let a = session(&[
+        json!({"method": "open", "params": {"path": path, "useIndex": false}}),
+        json!({"method": "functions", "params": {"trace": 1, "frames": "module"}}),
+        json!({"method": "functions", "params": {"trace": 1, "source": "running", "limit": 2}}),
+        json!({"method": "functions", "params": {"trace": 1, "limit": "all"}}),
+    ]);
+    let by_module = result(&a, 2);
+    assert_eq!(by_module["total"], s.truth.samples);
+    let ex: u64 = by_module["modules"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|m| m["exclusive"].as_u64().unwrap())
+        .sum();
+    assert_eq!(ex, s.truth.samples);
+    // By module, each "function" is a module.
+    assert!(
+        by_module["functions"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|f| f["label"].as_str().unwrap().ends_with("!<module>") || f["label"] == "?")
+    );
+    let running = result(&a, 3);
+    assert_eq!(running["unit"], "ticks");
+    assert!(running["functions"].as_array().unwrap().len() <= 4);
+    assert!(error(&a, 4).contains("limit"));
+}

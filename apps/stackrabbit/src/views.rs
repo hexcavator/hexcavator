@@ -7,8 +7,8 @@
 
 use hexcavator_trace::{ProcessIx, ThreadIx, Trace};
 use hexcavator_trace_analysis::{
-    Filter, FrameMode, Framer, GroupBy, Key, Keys, NodeId, Precise, Resolver, StackTags,
-    SwitchWeight, Symbolizer, Tree, label, sources,
+    BinTotals, Filter, FrameMode, Framer, GroupBy, Instances, Key, KeyId, Keys, NO_BIN, NodeId,
+    Precise, Resolver, StackTags, SwitchWeight, Symbolizer, Tree, label, sources,
 };
 use rustc_hash::FxHashMap;
 use serde_json::{Value, json};
@@ -185,6 +185,188 @@ impl Row {
     }
 }
 
+/// The instances `spec` weighs (not inverted: [`TreeView::build`] inverts
+/// them for callers), their keys, their unit, and the stack tags' names.
+fn weighed(
+    trace: &Trace,
+    resolver: &Resolver,
+    symbols: &dyn Symbolizer,
+    tags: Option<&StackTags>,
+    spec: &TreeSpec,
+) -> (Instances, Keys, Unit, Vec<String>) {
+    let mut framer = Framer::new(trace, resolver, symbols, spec.frames);
+    if let Some(t) = tags {
+        framer = framer.with_tags(t.clone());
+    }
+    let tag_names = tags.map_or_else(Vec::new, |t| {
+        (0..u32::try_from(t.len()).expect("few tags"))
+            .map(|i| t.name(i).to_string())
+            .collect()
+    });
+    let mut keys = Keys::default();
+    let filter = Filter {
+        time: spec.time.map(|(s, e)| (ticks(trace, s), ticks(trace, e))),
+        ..Filter::default()
+    };
+    let (instances, unit) = match spec.source {
+        Source::Samples => (
+            sources::samples(trace, &mut framer, &mut keys, &spec.groups, &filter),
+            Unit::Samples,
+        ),
+        Source::Running | Source::Waits => {
+            let precise = Precise::new(trace);
+            let weight = if spec.source == Source::Running {
+                SwitchWeight::Running
+            } else {
+                SwitchWeight::Waited
+            };
+            (
+                sources::switches(
+                    trace,
+                    &precise,
+                    &mut framer,
+                    &mut keys,
+                    &spec.groups,
+                    &filter,
+                    weight,
+                ),
+                Unit::Ticks,
+            )
+        }
+    };
+    (instances, keys, unit, tag_names)
+}
+
+/// The hot functions and modules: every function (by `spec`'s frames, so
+/// by module or address too) and every module, with how much of `spec`'s
+/// weight is in it (exclusive: where it is the innermost frame) and under
+/// it (inclusive: in its callees too, counted once in a recursion), in
+/// `spec`'s time range; its grouping columns and inversion don't matter.
+/// The `limit` heaviest functions by each, heaviest exclusive first; all
+/// the modules.
+pub fn functions(
+    trace: &Trace,
+    resolver: &Resolver,
+    symbols: &dyn Symbolizer,
+    spec: &TreeSpec,
+    limit: usize,
+) -> Value {
+    let spec = TreeSpec {
+        groups: Vec::new(),
+        invert: false,
+        ..spec.clone()
+    };
+    let (instances, keys, unit, _) = weighed(trace, resolver, symbols, None, &spec);
+    let total = instances.total();
+    let key_of = |k: usize| keys.get(KeyId(u32::try_from(k).expect("a key")));
+    // Functions: by module file name and place in it (a DLL is an image
+    // in each process it is in: its functions are one row each), and
+    // modules by file name; addresses in no image are one of each.
+    let mut function_ids: FxHashMap<(&str, u8, u64), u32> = FxHashMap::default();
+    let mut function_key: Vec<usize> = Vec::new();
+    let mut module_ids: FxHashMap<&str, u32> = FxHashMap::default();
+    let mut module_names: Vec<&str> = Vec::new();
+    let mut function_bins = vec![NO_BIN; keys.len()];
+    let mut module_bins = vec![NO_BIN; keys.len()];
+    for k in 0..keys.len() {
+        let (module, kind, place) = match key_of(k) {
+            Key::Frame { image, offset } => (trace.images[image.index()].file_name(), 0, offset),
+            Key::Inline { image, site } => {
+                (trace.images[image.index()].file_name(), 1, u64::from(site))
+            }
+            Key::Unknown(a) => ("?", 2, a),
+            _ => continue,
+        };
+        let next = u32::try_from(function_key.len()).expect("fewer than 4G functions");
+        function_bins[k] = *function_ids
+            .entry((module, kind, place))
+            .or_insert_with(|| {
+                function_key.push(k);
+                next
+            });
+        let next = u32::try_from(module_names.len()).expect("fewer than 4G modules");
+        module_bins[k] = *module_ids.entry(module).or_insert_with(|| {
+            module_names.push(module);
+            next
+        });
+    }
+    let by_function = instances.totals(&function_bins, function_key.len());
+    let by_module = instances.totals(&module_bins, module_names.len());
+    let row = |label: String, t: &BinTotals| {
+        json!({
+            "label": label,
+            "exclusive": t.exclusive,
+            "inclusive": t.inclusive,
+            "count": t.count,
+        })
+    };
+    // The heaviest by each measure.
+    let mut order: Vec<usize> = (0..function_key.len())
+        .filter(|&f| by_function[f].inclusive > 0)
+        .collect();
+    let mut keep = vec![false; function_key.len()];
+    order.sort_by(|&a, &b| {
+        by_function[b]
+            .inclusive
+            .cmp(&by_function[a].inclusive)
+            .then(a.cmp(&b))
+    });
+    for &f in order.iter().take(limit) {
+        keep[f] = true;
+    }
+    order.sort_by(|&a, &b| {
+        by_function[b]
+            .exclusive
+            .cmp(&by_function[a].exclusive)
+            .then(by_function[b].inclusive.cmp(&by_function[a].inclusive))
+            .then(a.cmp(&b))
+    });
+    for &f in order.iter().take(limit) {
+        keep[f] = true;
+    }
+    let functions: Vec<Value> = order
+        .iter()
+        .filter(|&&f| keep[f])
+        .map(|&f| {
+            let key = key_of(function_key[f]);
+            let mut r = row(label(trace, key, symbols), &by_function[f]);
+            r["module"] = match key {
+                Key::Frame { image, .. } | Key::Inline { image, .. } => {
+                    json!(trace.images[image.index()].file_name())
+                }
+                _ => json!("?"),
+            };
+            r
+        })
+        .collect();
+    let mut modules: Vec<(usize, &BinTotals)> = by_module
+        .iter()
+        .enumerate()
+        .filter(|(_, t)| t.inclusive > 0)
+        .collect();
+    modules.sort_by(|a, b| {
+        b.1.exclusive
+            .cmp(&a.1.exclusive)
+            .then(b.1.inclusive.cmp(&a.1.inclusive))
+            .then(a.0.cmp(&b.0))
+    });
+    let modules: Vec<Value> = modules
+        .into_iter()
+        .map(|(i, t)| row(module_names[i].to_string(), t))
+        .collect();
+    json!({
+        "unit": match unit {
+            Unit::Samples => "samples",
+            Unit::Ticks => "ticks",
+        },
+        "ticksPerSecond": trace.clock.ticks_per_second,
+        "total": total,
+        "functionCount": order.len(),
+        "functions": functions,
+        "modules": modules,
+    })
+}
+
 /// Clock ticks of `ns` nanoseconds from the trace's start.
 fn ticks(trace: &Trace, ns: i64) -> i64 {
     let tps = i128::from(trace.clock.ticks_per_second.max(1));
@@ -201,46 +383,7 @@ impl TreeView {
         tags: Option<&StackTags>,
         spec: TreeSpec,
     ) -> Self {
-        let mut framer = Framer::new(trace, resolver, symbols, spec.frames);
-        if let Some(t) = tags {
-            framer = framer.with_tags(t.clone());
-        }
-        let tag_names = tags.map_or_else(Vec::new, |t| {
-            (0..u32::try_from(t.len()).expect("few tags"))
-                .map(|i| t.name(i).to_string())
-                .collect()
-        });
-        let mut keys = Keys::default();
-        let filter = Filter {
-            time: spec.time.map(|(s, e)| (ticks(trace, s), ticks(trace, e))),
-            ..Filter::default()
-        };
-        let (instances, unit) = match spec.source {
-            Source::Samples => (
-                sources::samples(trace, &mut framer, &mut keys, &spec.groups, &filter),
-                Unit::Samples,
-            ),
-            Source::Running | Source::Waits => {
-                let precise = Precise::new(trace);
-                let weight = if spec.source == Source::Running {
-                    SwitchWeight::Running
-                } else {
-                    SwitchWeight::Waited
-                };
-                (
-                    sources::switches(
-                        trace,
-                        &precise,
-                        &mut framer,
-                        &mut keys,
-                        &spec.groups,
-                        &filter,
-                        weight,
-                    ),
-                    Unit::Ticks,
-                )
-            }
-        };
+        let (instances, keys, unit, tag_names) = weighed(trace, resolver, symbols, tags, &spec);
         let instances = if spec.invert {
             instances.inverted()
         } else {

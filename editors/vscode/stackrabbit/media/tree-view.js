@@ -33,6 +33,7 @@
       : "All of the trace. Drag across the graph to select a time range; double-click it to clear.";
     createTree();
     loadProcesses();
+    loadFunctions();
   });
   let view = null; // the engine's view ID
   let unit = "samples";
@@ -258,17 +259,75 @@
     }
   }
 
+  // The hot functions and modules: what the tree weighs, by function
+  // (or module, or address: as Frames says), in the selected time range.
+  // Loaded while their tab shows; otherwise when it next does.
+  let functionsUnit = "samples";
+  let functionsTps = 10000000;
+  let functionsStale = true;
+  const weight = (v) => formatWeight(v, functionsUnit, functionsTps);
+  const percent = (v) => v.toFixed(1) + "%";
+  const weightColumns = [
+    { key: "exclusive", title: "Self", num: true, text: weight },
+    { key: "selfPct", title: "Self %", num: true, text: percent },
+    { key: "inclusive", title: "Inclusive", num: true, text: weight },
+    { key: "inclusivePct", title: "Inclusive %", num: true, text: percent },
+  ];
+  const functionsTable = new SortedTable(
+    $("functions"),
+    [{ key: "label", title: "Function" }, { key: "module", title: "Module" }, ...weightColumns],
+    { key: "exclusive", down: true }
+  );
+  const modulesTable = new SortedTable($("modules"), [{ key: "label", title: "Module" }, ...weightColumns], {
+    key: "exclusive",
+    down: true,
+  });
+
+  async function loadFunctions() {
+    if ($("functions-pane").classList.contains("hidden")) {
+      functionsStale = true;
+      return;
+    }
+    functionsStale = false;
+    try {
+      const params = { source: controls.source.value, frames: controls.frames.value };
+      if (selection) {
+        params.time = selection;
+      }
+      const f = await request("functions", params);
+      functionsUnit = f.unit;
+      functionsTps = f.ticksPerSecond;
+      const share = (rows) =>
+        rows.map((r) => ({
+          ...r,
+          selfPct: f.total ? (100 * r.exclusive) / f.total : 0,
+          inclusivePct: f.total ? (100 * r.inclusive) / f.total : 0,
+        }));
+      const shown = f.functions.length < f.functionCount ? ` (the heaviest ${f.functions.length.toLocaleString("en-US")})` : "";
+      $("functions-title").textContent = `${f.functionCount.toLocaleString("en-US")} functions${shown}`;
+      functionsTable.set(share(f.functions));
+      modulesTable.set(share(f.modules));
+    } catch (e) {
+      statusEl.textContent = e.message;
+      statusEl.classList.add("error");
+    }
+  }
+
   function showTab(name) {
-    $("tab-stacks").classList.toggle("active", name === "stacks");
-    $("tab-processes").classList.toggle("active", name === "processes");
-    $("stacks-pane").classList.toggle("hidden", name !== "stacks");
-    $("processes-pane").classList.toggle("hidden", name !== "processes");
+    for (const t of ["stacks", "processes", "functions"]) {
+      $(`tab-${t}`).classList.toggle("active", name === t);
+      $(`${t}-pane`).classList.toggle("hidden", name !== t);
+    }
     if (name === "stacks") {
       requestAnimationFrame(draw);
+    }
+    if (name === "functions" && functionsStale) {
+      loadFunctions();
     }
   }
   $("tab-stacks").addEventListener("click", () => showTab("stacks"));
   $("tab-processes").addEventListener("click", () => showTab("processes"));
+  $("tab-functions").addEventListener("click", () => showTab("functions"));
 
   /** Asks for the graph, as many buckets as it has pixels. */
   async function loadGraph() {
@@ -490,6 +549,8 @@
   }
   // The graph shows what the tree weighs: sampled or precise CPU.
   controls.source.addEventListener("change", loadGraph);
+  controls.source.addEventListener("change", loadFunctions);
+  controls.frames.addEventListener("change", loadFunctions);
   $("hot").addEventListener("click", () => {
     hotPath();
     viewport.focus();

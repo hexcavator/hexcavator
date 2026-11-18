@@ -21,4 +21,4 @@ pub use keys::{FrameMode, Framer, Key, KeyId, Keys, NoSymbols, Resolver, Symboli
 pub use pdb::PdbSymbolizer;
 pub use shape::{Folds, Glob, StackTags};
 pub use sources::{Filter, GroupBy, Precise, SwitchWeight};
-pub use tree::{Instances, NodeId, Tree};
+pub use tree::{BinTotals, Instances, NO_BIN, NodeId, Tree};

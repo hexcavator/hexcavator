@@ -527,3 +527,62 @@ fn inlined_calls_are_nodes() {
     let lib = tree.children(inl)[0];
     assert_eq!(name(&tree, lib), "lib.dll!f0");
 }
+
+#[test]
+fn totals_by_bin_count_recursion_once() {
+    use hexcavator_trace_analysis::{BinTotals, Instances, KeyId, NO_BIN};
+    // One grouping key (0, binned: it must not count), then frames.
+    let mut inst = Instances::new(1);
+    inst.push_counted(&[KeyId(0), KeyId(1), KeyId(2), KeyId(1), KeyId(3)], 10, 2);
+    inst.push_counted(&[KeyId(0), KeyId(2)], 5, 1);
+    inst.push_counted(&[KeyId(0)], 7, 1); // no frames
+    inst.push_counted(&[KeyId(0), KeyId(4)], 3, 1); // key 4: no bin
+    // Bins: key 1 and key 3 together (bin 0), key 2 alone (bin 1).
+    let bins = [1, 0, 1, 0, NO_BIN];
+    let t = inst.totals(&bins, 2);
+    assert_eq!(
+        t,
+        [
+            BinTotals {
+                exclusive: 10,
+                inclusive: 10,
+                count: 2
+            },
+            BinTotals {
+                exclusive: 5,
+                inclusive: 15,
+                count: 3
+            },
+        ]
+    );
+    // Many instances (many chunks): the same as counting one at a time.
+    let mut big = Instances::new(0);
+    let mut x = 0x2545_f491_4f6c_dd1du64;
+    let mut want = vec![BinTotals::default(); 50];
+    for _ in 0..100_000 {
+        x ^= x << 13;
+        x ^= x >> 7;
+        x ^= x << 17;
+        let len = (x % 9) as usize;
+        let keys: Vec<KeyId> = (0..len)
+            .map(|j| KeyId(u32::try_from((x >> (j * 6)) % 60).unwrap()))
+            .collect();
+        let (w, n) = (x % 1000, 1 + x % 3);
+        big.push_counted(&keys, w, n);
+        let bin = |k: KeyId| (k.0 < 50).then_some(k.0 as usize);
+        let mut seen = std::collections::HashSet::new();
+        for &k in &keys {
+            if let Some(b) = bin(k)
+                && seen.insert(b)
+            {
+                want[b].inclusive += w;
+                want[b].count += n;
+            }
+        }
+        if let Some(b) = keys.last().and_then(|&k| bin(k)) {
+            want[b].exclusive += w;
+        }
+    }
+    let bins: Vec<u32> = (0..50).collect();
+    assert_eq!(big.totals(&bins, 50), want);
+}

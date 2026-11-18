@@ -31,6 +31,12 @@
 //! - `processes` `{trace, time?}` → `{rows}`: the processes, with their
 //!   lifetimes, threads and CPU samples (in `time`), heaviest first; each
 //!   row's `index` names it to `threads`.
+//! - `functions` `{trace, source?, frames?, time?, limit?}` → `{unit,
+//!   ticksPerSecond, total, functionCount, functions, modules}`: the hot
+//!   functions (the `limit` heaviest by exclusive and by inclusive weight,
+//!   1000 by default; heaviest exclusive first) and every module, each
+//!   row `{label, exclusive, inclusive, count}` (functions also have
+//!   `module`).
 //! - `threads` `{trace, process?, time?}` → `{rows}`: a process's threads
 //!   (or all), with their lifetimes, start addresses (named), CPU samples,
 //!   switches in and running time (precise, in ms) in `time`, heaviest
@@ -484,6 +490,23 @@ impl State {
                     buckets,
                     spec.time,
                     top,
+                ))
+            }
+            "functions" => {
+                let spec = TreeSpec::from_json(params)?;
+                let limit = match params.get("limit") {
+                    None | Some(Value::Null) => 1000,
+                    Some(v) => v
+                        .as_u64()
+                        .and_then(|v| usize::try_from(v).ok())
+                        .ok_or("limit: expected a count")?,
+                };
+                Ok(crate::views::functions(
+                    trace,
+                    &self.resolver,
+                    &*self.symbols,
+                    &spec,
+                    limit,
                 ))
             }
             "tree.create" => {

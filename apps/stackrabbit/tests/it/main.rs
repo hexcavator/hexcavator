@@ -2,6 +2,7 @@
 
 mod cli;
 mod common;
+mod functions;
 mod protocol;
 mod saved_symbols;
 mod serve;

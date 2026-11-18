@@ -106,9 +106,10 @@ def answers(engine, path, spec, depth=4, limit=4000):
     graph = engine.request("graph", {"trace": trace, "buckets": 1000, "top": 8})
     processes = engine.request("processes", {"trace": trace})
     threads = {str(p["index"]): engine.request("threads", {"trace": trace, "process": p["index"]}) for p in processes["rows"]}
+    functions = engine.request("functions", {"trace": trace, "source": "samples", "frames": "function"})
     # (The view's view IDs: its first tree is view 1 of its own.)
     tree = dict(tree, view=1)
-    return {"opened": opened, "tree": tree, "children": children, "hot": hot, "graph": graph, "processes": processes, "threads": threads}
+    return {"opened": opened, "tree": tree, "children": children, "hot": hot, "graph": graph, "processes": processes, "threads": threads, "functions": functions}
 
 
 STUB = """
@@ -123,6 +124,7 @@ window.acquireVsCodeApi = function () {
     else if (m.method === "tree.close") r.result = {};
     else if (m.method === "graph") r.result = A.graph;
     else if (m.method === "processes") r.result = A.processes;
+    else if (m.method === "functions") r.result = A.functions;
     else if (m.method === "threads" && A.threads[m.params.process]) r.result = A.threads[m.params.process];
     else r.error = m.method + ": no answer for " + JSON.stringify(m.params);
     setTimeout(function () { window.postMessage(r, "*"); }, 0);
@@ -356,6 +358,21 @@ def main():
     tids = re.findall(r'<tr data-i="\d+"><td class="num">(\d+)</td>', table)
     assert len(want) == first["threads"] and len(tids) == len(want), f"{len(tids)} thread rows, {len(want)} threads"
     assert tids == [str(t["tid"]) for t in want], "heaviest first"
+    # The functions tab: every function, heaviest self first, with shares;
+    # then the modules.
+    dom = render(data, "document.getElementById('tab-functions').click();", shot=shot("functions"))
+    assert 'id="functions-pane" class="pane"' in dom, "the functions shown"
+    f = data["functions"]
+    assert f"{f['functionCount']:,} functions" in dom, "the functions' title"
+    table = dom[dom.index('id="functions"'):dom.index('id="modules"')]
+    labels = [html.unescape(x) for x in re.findall(r'<tr data-i="\d+"><td class="">([^<]*)</td>', table)]
+    assert labels == [r["label"] for r in f["functions"]], "every function, heaviest self first"
+    top = f["functions"][0]
+    share = f"{100 * top['exclusive'] / f['total']:.1f}%"
+    assert share in table, f"the top function's share {share}"
+    modules = dom[dom.index('id="modules"'):dom.index('id="processes-pane"')]
+    names = [html.unescape(x) for x in re.findall(r'<tr data-i="\d+"><td class="">([^<]*)</td>', modules)]
+    assert names == [m["label"] for m in f["modules"]], "every module"
     print("harness: ok")
 
 
