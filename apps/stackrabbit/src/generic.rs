@@ -8,11 +8,13 @@ use std::sync::Mutex;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use hexcavator_etl::{Buffer, Etl, Event, Guid, merge::for_each_event};
+use hexcavator_etw::KernelEvent;
 use hexcavator_etw::event_info::{EventInfo, EventInfos};
 use hexcavator_etw::schema::{Properties, Property, pointer_size};
 use hexcavator_etw::values;
 use hexcavator_mmap::Mmap;
-use hexcavator_trace::{BufferSpan, Trace};
+use hexcavator_trace::{BufferSpan, ProcessIx, Trace};
+use hexcavator_trace_analysis::{Resolver, Symbolizer};
 use rustc_hash::FxHashMap;
 use serde_json::{Value, json};
 
@@ -59,6 +61,7 @@ pub fn list(
     time: Option<(i64, i64)>,
     offset: usize,
     limit: usize,
+    stacks: Option<(&Resolver, &dyn Symbolizer)>,
 ) -> Result<Value, String> {
     let map = Mmap::open(path).map_err(|e| format!("{}: {e}", path.display()))?;
     let etl = Etl::parse(map.as_slice()).map_err(|e| format!("{}: {e}", path.display()))?;
@@ -160,11 +163,17 @@ pub fn list(
         .map(|p| (p.pid, p.name.as_str()))
         .collect();
     let known = |id: u32| (id != u32::MAX).then_some(id);
+    // Their stacks, if asked for.
+    let found_stacks: Vec<Option<Vec<String>>> = match stacks {
+        Some((resolver, symbols)) => stacks_of(trace, &etl, max, &rows, resolver, symbols),
+        None => Vec::new(),
+    };
     Ok(json!({
         "total": total,
         "offset": offset,
         "columns": columns,
-        "rows": rows.iter().map(|r| json!({
+        "rows": rows.iter().enumerate().map(|(i, r)| json!({
+            "stack": found_stacks.get(i).cloned().flatten(),
             "timeNs": trace.clock.nanos(r.timestamp),
             "cpu": r.processor,
             "pid": known(r.process_id),
@@ -175,6 +184,193 @@ pub fn list(
             "extra": r.extra,
         })).collect::<Vec<_>>(),
     }))
+}
+
+/// How long after its event a stack's second (user-mode) part may come:
+/// the import's window, in seconds.
+const STACK_WINDOW_SECONDS: u64 = 5;
+
+/// The stacks of `rows` (each's frames, innermost first, named by
+/// `symbols`; none for an event without one): their pieces are the
+/// StackWalk events naming each row's timestamp (and its thread, where
+/// several rows share one), the kernel part and then the user part; read
+/// from the buffers holding stacks, from the first row's time to a window
+/// after the last's, on every core.
+fn stacks_of(
+    trace: &Trace,
+    etl: &Etl<'_>,
+    max: usize,
+    rows: &[&Row],
+    resolver: &Resolver,
+    symbols: &dyn Symbolizer,
+) -> Vec<Option<Vec<String>>> {
+    if rows.is_empty() {
+        return Vec::new();
+    }
+    let stack_kinds: Vec<u32> = trace
+        .events
+        .iter()
+        .enumerate()
+        .filter(|(_, e)| e.provider == hexcavator_etw::guids::STACK_WALK)
+        .filter_map(|(i, _)| u32::try_from(i).ok())
+        .collect();
+    let first = rows.iter().map(|r| r.timestamp).min().unwrap_or(0);
+    let window = i64::try_from(
+        trace
+            .clock
+            .ticks_per_second
+            .saturating_mul(STACK_WINDOW_SECONDS),
+    )
+    .unwrap_or(i64::MAX);
+    let last = rows
+        .iter()
+        .map(|r| r.timestamp)
+        .max()
+        .unwrap_or(0)
+        .saturating_add(window);
+    let buffers: Vec<Buffer<'_>> = if trace.buffers.is_empty() {
+        etl.buffers().flatten().collect()
+    } else {
+        trace
+            .buffers
+            .iter()
+            .filter(|b| {
+                b.kinds.iter().any(|k| stack_kinds.contains(k))
+                    && b.last >= first
+                    && b.first <= last
+            })
+            .filter_map(|b| etl.buffer_at(b.offset, b.index).ok())
+            .collect()
+    };
+    // The rows by timestamp.
+    let mut by_time: FxHashMap<i64, Vec<usize>> = FxHashMap::default();
+    for (i, r) in rows.iter().enumerate() {
+        by_time.entry(r.timestamp).or_default().push(i);
+    }
+    // Each piece found: (row, the piece's own timestamp, its process, its
+    // frames).
+    type Piece = (usize, i64, u32, Vec<u64>);
+    let next = AtomicUsize::new(0);
+    let pieces: Mutex<Vec<Piece>> = Mutex::default();
+    let threads = std::thread::available_parallelism()
+        .map_or(4, std::num::NonZero::get)
+        .min(buffers.len().div_ceil(CHUNK).max(1));
+    std::thread::scope(|scope| {
+        for _ in 0..threads {
+            scope.spawn(|| {
+                let mut scratch = Vec::new();
+                let mut mine: Vec<Piece> = Vec::new();
+                loop {
+                    let c = next.fetch_add(1, Ordering::Relaxed);
+                    let from = c.saturating_mul(CHUNK);
+                    if from >= buffers.len() {
+                        break;
+                    }
+                    for buffer in &buffers[from..(from + CHUNK).min(buffers.len())] {
+                        let _ = for_each_event(buffer, max, &mut scratch, |e| {
+                            if e.provider != hexcavator_etw::guids::STACK_WALK
+                                || e.timestamp < first
+                                || e.timestamp > last
+                            {
+                                return;
+                            }
+                            let Some(Ok(KernelEvent::Stack(st))) = hexcavator_etw::decode(e) else {
+                                return;
+                            };
+                            let Some(candidates) = by_time.get(&st.event_timestamp) else {
+                                return;
+                            };
+                            // (Several rows at that time: the one on the
+                            // stack's thread, else the first.)
+                            let row = candidates
+                                .iter()
+                                .copied()
+                                .find(|&i| rows[i].thread_id == st.thread_id)
+                                .unwrap_or(candidates[0]);
+                            mine.push((
+                                row,
+                                e.timestamp,
+                                st.process_id,
+                                st.frames.iter().collect(),
+                            ));
+                        });
+                    }
+                }
+                pieces
+                    .lock()
+                    .unwrap_or_else(std::sync::PoisonError::into_inner)
+                    .append(&mut mine);
+            });
+        }
+    });
+    let mut pieces = pieces
+        .into_inner()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    // Each row's pieces in the order they were logged: the kernel part,
+    // then the user part.
+    pieces.sort_by_key(|p| (p.0, p.1));
+    let mut out: Vec<Option<Vec<String>>> = vec![None; rows.len()];
+    let mut framer_cache: FxHashMap<(ProcessIx, u64), String> = FxHashMap::default();
+    for (row, _, pid, frames) in pieces {
+        let process = process_at(trace, pid, rows[row].timestamp);
+        let stack = out[row].get_or_insert_with(Vec::new);
+        for (j, f) in frames.into_iter().enumerate() {
+            // (Return addresses, all but the innermost: looked up a byte
+            // back, as trees do.)
+            let lookup = if j == 0 && stack.is_empty() {
+                f
+            } else {
+                f.wrapping_sub(1)
+            };
+            let text = framer_cache
+                .entry((process, lookup))
+                .or_insert_with(|| frame_label(trace, resolver, symbols, process, lookup, f))
+                .clone();
+            stack.push(text);
+        }
+    }
+    out
+}
+
+/// The process with ID `pid` at `time`: the one alive then, else the
+/// last with that ID.
+fn process_at(trace: &Trace, pid: u32, time: i64) -> ProcessIx {
+    let mut last = ProcessIx::NONE;
+    for (i, p) in trace.processes.iter().enumerate() {
+        if p.pid != pid {
+            continue;
+        }
+        let ix = ProcessIx(u32::try_from(i).unwrap_or(u32::MAX));
+        if p.start.is_none_or(|s| s <= time) && p.end.is_none_or(|e| e >= time) {
+            return ix;
+        }
+        last = ix;
+    }
+    last
+}
+
+/// A frame's text: its function (and offset in it), else its module and
+/// offset, else its address.
+fn frame_label(
+    trace: &Trace,
+    resolver: &Resolver,
+    symbols: &dyn Symbolizer,
+    process: ProcessIx,
+    lookup: u64,
+    address: u64,
+) -> String {
+    let Some(image) = resolver.image(process, lookup) else {
+        return format!("{address:#x}");
+    };
+    let offset = lookup - trace.images[image.index()].base;
+    let file = trace.images[image.index()].file_name();
+    match symbols.function(trace, image, offset) {
+        Some((start, name)) => format!(
+            "{file}!{name}+{:#x}",
+            address - trace.images[image.index()].base - start
+        ),
+        None => format!("{file}+{:#x}", address - trace.images[image.index()].base),
+    }
 }
 
 /// Reads `buffers` on up to `threads` threads, a chunk at a time: how many

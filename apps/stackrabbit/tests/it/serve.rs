@@ -1004,9 +1004,84 @@ fn listing_by_the_buffer_index_is_listing_every_buffer() {
             (Some((origin + span, origin + 2 * span)), 0, 10),
             (Some((origin, origin + 3 * span)), 5, 100_000),
         ] {
-            let a = list(trace, &path, kind, time, offset, limit).unwrap();
-            let b = list(&whole, &path, kind, time, offset, limit).unwrap();
+            let a = list(trace, &path, kind, time, offset, limit, None).unwrap();
+            let b = list(&whole, &path, kind, time, offset, limit, None).unwrap();
             assert_eq!(a, b, "{kind:?} {time:?} {offset} {limit}");
         }
     }
+}
+
+#[test]
+fn listed_events_have_their_stacks() {
+    let dir = scratch("serve-events-stacks");
+    let (path, _) = write_trace(&dir, "t.etl", &small());
+    let perf_info = hexcavator_etw::guids::PERF_INFO.to_string();
+    let image = hexcavator_etw::guids::IMAGE.to_string();
+    let a = session(&[
+        json!({"method": "open", "params": {"path": path, "useIndex": false}}),
+        json!({"method": "events.list", "params": {"trace": 1, "guid": perf_info, "version": 2, "opcode": 46, "limit": 300, "stacks": true}}),
+        json!({"method": "events.list", "params": {"trace": 1, "guid": image, "version": 3, "opcode": 3, "limit": 5, "stacks": true}}),
+        json!({"method": "events.list", "params": {"trace": 1, "guid": perf_info, "version": 2, "opcode": 46, "limit": 3}}),
+    ]);
+    let loaded = stackrabbit::store::open(
+        &path,
+        &stackrabbit::store::Options {
+            use_index: false,
+            cache_dir: None,
+        },
+    )
+    .unwrap();
+    let t = &loaded.trace;
+    let resolver = hexcavator_trace_analysis::Resolver::new(t);
+    // (No symbols: a frame is its module and offset, else its address.)
+    let label = |process, address: u64, lookup: u64| match resolver.image(process, lookup) {
+        Some(image) => format!(
+            "{}+{:#x}",
+            t.images[image.index()].file_name(),
+            address - t.images[image.index()].base
+        ),
+        None => format!("{address:#x}"),
+    };
+    let rows = result(&a, 2)["rows"].as_array().unwrap().clone();
+    assert_eq!(rows.len(), 300);
+    let mut with = 0;
+    for (i, r) in rows.iter().enumerate() {
+        // The import's stack of the same sample (samples are in time order).
+        let stack = t.samples.stack[i];
+        if stack.is_empty() {
+            assert!(r["stack"].is_null(), "sample {i}: no stack");
+            continue;
+        }
+        let process = t.thread_process(t.samples.thread[i]);
+        let want: Vec<String> = t
+            .stacks
+            .frames(stack)
+            .enumerate()
+            .map(|(j, f)| label(process, f, if j == 0 { f } else { f - 1 }))
+            .collect();
+        let got: Vec<String> = r["stack"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|x| x.as_str().unwrap().to_string())
+            .collect();
+        assert_eq!(got, want, "sample {i}");
+        with += 1;
+    }
+    assert!(with > 200, "{with} samples with stacks");
+    // A kind that has none; and not asked for.
+    assert!(
+        result(&a, 3)["rows"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|r| r["stack"].is_null())
+    );
+    assert!(
+        result(&a, 4)["rows"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|r| r["stack"].is_null())
+    );
 }

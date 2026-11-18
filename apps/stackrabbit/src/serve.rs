@@ -61,13 +61,15 @@
 //!   first; `provider` and `event` named where the kernel's schemas or the
 //!   provider (TraceLogging) say, else null.
 //! - `events.list` `{trace, guid, id?, version?, opcode?, time?, offset?,
-//!   limit?}` → `{total, offset, columns, rows}`: one kind of event's
+//!   limit?, stacks?}` → `{total, offset, columns, rows}`: one kind of event's
 //!   occurrences (in `time`), read from the trace file, in time order:
 //!   how many, and `limit` (1000) from `offset`, each `{timeNs, cpu, pid,
 //!   process, tid, fields, missing, extra}` with its fields as `[name,
 //!   value]` (decoded by the description recorded with the trace, else
 //!   the kernel's schema, else bytes); `missing`, the properties its
-//!   payload ended before, `extra`, the bytes after its last.
+//!   payload ended before, `extra`, the bytes after its last; with
+//!   `stacks`, each row's `stack` (its frames, innermost first, named by
+//!   the trace's symbols; null for none).
 //! - `threads` `{trace, process?, time?}` → `{rows}`: a process's threads
 //!   (or all), with their lifetimes, start addresses (named), CPU samples,
 //!   switches in and running time (precise, in ms) in `time`, heaviest
@@ -638,7 +640,19 @@ impl State {
                     None | Some(Value::Null) => 1000,
                     Some(_) => usize::try_from(small("limit", 100_000)?).unwrap_or(1000),
                 };
-                crate::generic::list(trace, &self.loaded.path, kind, time, offset, limit)
+                let stacks = params.get("stacks").and_then(Value::as_bool) == Some(true);
+                crate::generic::list(
+                    trace,
+                    &self.loaded.path,
+                    kind,
+                    time,
+                    offset,
+                    limit,
+                    stacks.then_some((
+                        &self.resolver,
+                        &*self.symbols as &dyn hexcavator_trace_analysis::Symbolizer,
+                    )),
+                )
             }
             "threads" => {
                 let time = TreeSpec::from_json(params)?.time;

@@ -111,7 +111,9 @@ def answers(engine, path, spec, depth=4, limit=4000):
     symbols = engine.request("symbols", {"trace": trace, "wait": True})
     events = engine.request("events", {"trace": trace})
     top_kind = events["rows"][0]
-    event_list = engine.request("events.list", {"trace": trace, "guid": top_kind["guid"], "id": top_kind["id"], "version": top_kind["version"], "opcode": top_kind["opcode"], "limit": 1000})
+    event_list = engine.request("events.list", {"trace": trace, "guid": top_kind["guid"], "id": top_kind["id"], "version": top_kind["version"], "opcode": top_kind["opcode"], "limit": 1000, "stacks": True})
+    perf_info = next(k for k in events["rows"] if k["event"] == "SampleProf")
+    sample_list = engine.request("events.list", {"trace": trace, "guid": perf_info["guid"], "id": perf_info["id"], "version": perf_info["version"], "opcode": perf_info["opcode"], "limit": 1000, "stacks": True})
     # A function's callers, and their hot path (for the hover card).
     heavy = functions["functions"][0]
     focus_tree = engine.request("tree.create", {"trace": trace, "focus": heavy["fn"], "invert": True, "groupBy": []})
@@ -119,7 +121,7 @@ def answers(engine, path, spec, depth=4, limit=4000):
     focus_tree = dict(focus_tree, view=99)
     # (The view's view IDs: its first tree is view 1 of its own.)
     tree = dict(tree, view=1)
-    return {"opened": opened, "tree": tree, "children": children, "hot": hot, "graph": graph, "processes": processes, "threads": threads, "functions": functions, "lit": lit, "symbols": symbols, "focusTree": focus_tree, "focusHot": focus_hot, "events": events, "eventList": event_list}
+    return {"opened": opened, "tree": tree, "children": children, "hot": hot, "graph": graph, "processes": processes, "threads": threads, "functions": functions, "lit": lit, "symbols": symbols, "focusTree": focus_tree, "focusHot": focus_hot, "events": events, "eventList": event_list, "sampleList": sample_list, "sampleKind": perf_info}
 
 
 STUB = """
@@ -138,6 +140,7 @@ window.acquireVsCodeApi = function () {
     else if (m.method === "processes") r.result = A.processes;
     else if (m.method === "functions") r.result = A.functions;
     else if (m.method === "events") r.result = A.events;
+    else if (m.method === "events.list" && A.sampleKind && m.params.opcode === A.sampleKind.opcode && m.params.guid === A.sampleKind.guid) r.result = A.sampleList;
     else if (m.method === "events.list") r.result = A.eventList;
     else if (m.method === "symbols") r.result = A.symbols;
     else if (m.method === "threads" && A.threads[m.params.process]) r.result = A.threads[m.params.process];
@@ -675,6 +678,19 @@ def main():
     assert [h.strip() for h in heads] == el["columns"], (heads, el["columns"])
     n = len(re.findall(r'<tr data-i="\d+"', table[:table.index("</table>")]))
     assert n == len(el["rows"]), f"{n} rows"
+    # The samples listed, with their stacks; clicking one shows its stack.
+    sl = data["sampleList"]
+    first_with = next(i for i, x in enumerate(sl["rows"]) if x["stack"])
+    sample_row = [k["event"] for k in data["events"]["rows"]].index("SampleProf")
+    click = ("document.getElementById('tab-events').click();"
+             f"setTimeout(function () {{ document.querySelectorAll('#events tbody tr')[{sample_row}].click(); }}, 50);"
+             f"setTimeout(function () {{ document.querySelector('#event-list tbody tr[data-i=\"{first_with}\"]').click(); }}, 300);")
+    dom = render(data, click, wait=800)
+    m = re.search(r'<div id="event-stack" class="event-stack">(.*?)</div>', dom, re.S)
+    assert m, "the stack pane"
+    shown = html.unescape(m.group(1)).split("\n")
+    assert shown[0] == "Stack (innermost first):" and shown[1:] == sl["rows"][first_with]["stack"], shown[:3]
+    assert 'data-key="frames"' in dom, "a column of stack depths"
     print("harness: ok")
 
 

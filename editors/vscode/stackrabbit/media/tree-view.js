@@ -439,7 +439,7 @@
     const title = $("event-list-title");
     title.textContent = `Reading the trace for ${kind.provider || kind.guid} ${kind.event || ""}…`;
     try {
-      const params = { guid: kind.guid, id: kind.id, version: kind.version, opcode: kind.opcode, limit: 1000 };
+      const params = { guid: kind.guid, id: kind.id, version: kind.version, opcode: kind.opcode, limit: 1000, stacks: true };
       if (selection) {
         params.time = selection;
       }
@@ -462,14 +462,29 @@
         { key: "tid", title: "TID", num: true },
         ...r.columns.map((c, i) => ({ key: `f${i}`, title: c })),
       ];
-      const rows = r.rows.map((x) => {
-        const o = { timeNs: x.timeNs, cpu: x.cpu, process: x.process, pid: x.pid, tid: x.tid };
+      const rows = r.rows.map((x, i) => {
+        const o = { timeNs: x.timeNs, cpu: x.cpu, process: x.process, pid: x.pid, tid: x.tid, stack: x.stack, pick: i };
         for (const [name, value] of x.fields) {
           o[`f${r.columns.indexOf(name)}`] = value;
         }
         return o;
       });
-      eventListTable = new SortedTable(table, columns, { key: "timeNs", down: false });
+      const stackColumn = { key: "frames", title: "Stack", num: true };
+      if (rows.some((x) => x.stack)) {
+        columns.splice(5, 0, stackColumn);
+        for (const x of rows) {
+          x.frames = x.stack ? x.stack.length : null;
+        }
+      }
+      $("event-stack").textContent = "";
+      // Clicking an event: its stack, innermost frame first.
+      eventListTable = new SortedTable(table, columns, { key: "timeNs", down: false }, (row) => {
+        eventListTable.picked = row.pick;
+        eventListTable.draw();
+        $("event-stack").textContent = row.stack
+          ? `Stack (innermost first):\n${row.stack.join("\n")}`
+          : "This event has no stack.";
+      });
       eventListTable.set(rows);
     } catch (e) {
       title.textContent = e.message;
