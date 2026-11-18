@@ -11,6 +11,7 @@
 //! [`Symbolizer`]), by image, or by address.
 
 pub mod keys;
+pub mod lines;
 pub mod pdb;
 pub mod shape;
 pub mod sources;

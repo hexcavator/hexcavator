@@ -7,6 +7,7 @@ const fs = require("fs");
 const path = require("path");
 const { spawn } = require("child_process");
 const { Session } = require("./lib/protocol");
+const { LineHeat } = require("./lib/line-heat");
 
 /** The requests a view may make of the engine about its trace. */
 const VIEW_METHODS = new Set(["summary", "graph", "processes", "threads", "functions", "symbols", "tree.create", "tree.children", "tree.hotPath", "tree.close"]);
@@ -95,9 +96,10 @@ class TraceDocument {
 }
 
 class TraceEditorProvider {
-  constructor(context, engine) {
+  constructor(context, engine, heat) {
     this.context = context;
     this.engine = engine;
+    this.heat = heat;
   }
 
   openCustomDocument(uri) {
@@ -122,13 +124,28 @@ class TraceEditorProvider {
           })
           .then((r) => {
             document.trace = r.trace;
+            if (panel.active) {
+              this.heat.setTrace(r.trace, path.basename(document.uri.fsPath));
+            }
             return r;
           });
       }
       return document.opening;
     };
     let listening = false;
-    const listener = (method, params) => panel.webview.postMessage({ type: "notification", method, params });
+    const listener = (method, params) => {
+      panel.webview.postMessage({ type: "notification", method, params });
+      // (PDBs loaded: the source lines have names now.)
+      if (method === "symbols" && params.loaded !== undefined) {
+        this.heat.changed(params.trace);
+      }
+    };
+    // The source files show the active trace's line times.
+    panel.onDidChangeViewState(() => {
+      if (panel.active && document.trace !== null) {
+        this.heat.setTrace(document.trace, path.basename(document.uri.fsPath));
+      }
+    });
     panel.webview.onDidReceiveMessage(async (m) => {
       if (m.type === "ready") {
         if (!listening) {
@@ -165,6 +182,7 @@ class TraceEditorProvider {
       }
     });
     panel.onDidDispose(() => {
+      this.heat.forget(document.trace);
       const set = this.engine.listeners.get(document.trace);
       if (set) {
         set.delete(listener);
@@ -238,10 +256,18 @@ function html(webview, media) {
 function activate(context) {
   channel = vscode.window.createOutputChannel("Stackrabbit");
   const engine = new Engine(context);
+  const heat = new LineHeat(vscode, engine, (line) => channel.appendLine(line));
   context.subscriptions.push(
     channel,
     { dispose: () => engine.dispose() },
-    vscode.window.registerCustomEditorProvider("stackrabbit.trace", new TraceEditorProvider(context, engine), {
+    heat,
+    vscode.window.onDidChangeVisibleTextEditors(() => heat.refresh()),
+    vscode.workspace.onDidChangeConfiguration((e) => {
+      if (e.affectsConfiguration("stackrabbit.lineHeat")) {
+        heat.refresh();
+      }
+    }),
+    vscode.window.registerCustomEditorProvider("stackrabbit.trace", new TraceEditorProvider(context, engine, heat), {
       webviewOptions: { retainContextWhenHidden: true },
       supportsMultipleEditorsPerDocument: true,
     }),

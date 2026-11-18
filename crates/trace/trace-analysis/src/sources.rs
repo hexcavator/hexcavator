@@ -72,10 +72,10 @@ impl Filter {
 
 /// A distinct thing to weigh: a thread, a processor (when grouping by it),
 /// a stack, and for a sample without a stack, its instruction pointer.
-type Bucket = (ThreadIx, u16, StackId, u64);
+pub type Bucket = (ThreadIx, u16, StackId, u64);
 
 /// Buckets, each with its weight and count, sorted by bucket.
-type Run = Vec<(Bucket, (u64, u64))>;
+pub type Run = Vec<(Bucket, (u64, u64))>;
 
 /// How many buckets a thread turns into instances at a time. (Fixed, not
 /// by the number of threads, so that keys are numbered the same on any
@@ -315,9 +315,16 @@ pub fn samples(
     groups: &[GroupBy],
     filter: &Filter,
 ) -> Instances {
-    let by_cpu = groups.contains(&GroupBy::Cpu);
+    let buckets = sample_buckets(trace, filter, groups.contains(&GroupBy::Cpu));
+    instances(trace, framer, keys, groups, &buckets)
+}
+
+/// CPU samples, aggregated: each distinct (thread, processor if
+/// `by_cpu`, stack, and instruction pointer for a sample without a stack)
+/// with its samples' weight and count, sorted. On every core.
+pub fn sample_buckets(trace: &Trace, filter: &Filter, by_cpu: bool) -> Run {
     let s = &trace.samples;
-    let buckets = aggregate(filter.rows(&s.time), |i| {
+    aggregate(filter.rows(&s.time), |i| {
         if !filter.keeps(trace, s.time[i], s.thread[i]) {
             return None;
         }
@@ -325,8 +332,7 @@ pub fn samples(
         let ip = if stack.is_empty() { s.ip[i] } else { 0 };
         let cpu = if by_cpu { s.cpu[i] } else { 0 };
         Some(((s.thread[i], cpu, stack, ip), u64::from(s.weight[i])))
-    });
-    instances(trace, framer, keys, groups, &buckets)
+    })
 }
 
 /// Each context switch's derived times, in clock ticks.
@@ -384,9 +390,27 @@ pub fn switches(
     filter: &Filter,
     weight: SwitchWeight,
 ) -> Instances {
-    let by_cpu = groups.contains(&GroupBy::Cpu);
+    let buckets = switch_buckets(
+        trace,
+        precise,
+        filter,
+        groups.contains(&GroupBy::Cpu),
+        weight,
+    );
+    instances(trace, framer, keys, groups, &buckets)
+}
+
+/// Context switches, aggregated as [`sample_buckets`] aggregates samples,
+/// weighted by `weight` (switches that weigh nothing left out).
+pub fn switch_buckets(
+    trace: &Trace,
+    precise: &Precise,
+    filter: &Filter,
+    by_cpu: bool,
+    weight: SwitchWeight,
+) -> Run {
     let sw = &trace.switches;
-    let buckets = aggregate(filter.rows(&sw.time), |i| {
+    aggregate(filter.rows(&sw.time), |i| {
         let thread = sw.new_thread[i];
         if !filter.keeps(trace, sw.time[i], thread) {
             return None;
@@ -400,8 +424,7 @@ pub fn switches(
         }
         let cpu = if by_cpu { sw.cpu[i] } else { 0 };
         Some(((thread, cpu, sw.stack[i], 0), w))
-    });
-    instances(trace, framer, keys, groups, &buckets)
+    })
 }
 
 #[cfg(test)]

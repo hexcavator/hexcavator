@@ -27,6 +27,14 @@ impl Symbolizer for TruthSymbols<'_> {
         let f = self.0.function_at(module, offset)?;
         Some((u64::from(f.rva), f.name.clone()))
     }
+
+    /// A line for each 16 bytes of a function, in a file named for its
+    /// module.
+    fn line(&self, trace: &Trace, image: ImageIx, offset: u64) -> Option<(String, u32)> {
+        self.function(trace, image, offset)?;
+        let name = trace.images[image.index()].file_name();
+        Some((format!("{name}.cpp"), u32::try_from(offset / 16).ok()?))
+    }
 }
 
 fn by_label(rows: &Value) -> FxHashMap<String, (u64, u64)> {
@@ -221,4 +229,120 @@ fn a_highlighted_function_is_its_inclusive_cpu_over_time() {
     let none = Highlight::new(trace, &resolver, &symbols, "nothere.dll|10").unwrap();
     let g = cpu_graph(trace, Source::Samples, 50, None, 8, Some(&none));
     assert_eq!(g["highlight"]["samples"], 0);
+}
+
+#[test]
+fn time_by_source_line_is_every_samples_lines() {
+    use stackrabbit::views::{line_totals, lines};
+    let dir = scratch("functions-lines");
+    let (path, s) = write_trace(&dir, "t.etl", &small());
+    let truth = &s.truth;
+    let loaded = store::open(
+        &path,
+        &store::Options {
+            use_index: false,
+            cache_dir: None,
+        },
+    )
+    .unwrap();
+    let trace = &loaded.trace;
+    let resolver = Resolver::new(trace);
+    let symbols = TruthSymbols(truth);
+    // The reference: each sample's frames' lines, one at a time (callers'
+    // return addresses a byte back), each line once a sample.
+    let line_of = |process, address: u64| {
+        let image = resolver.image(process, address)?;
+        symbols.line(trace, image, address - trace.images[image.index()].base)
+    };
+    let mut want: FxHashMap<(String, u32), (u64, u64)> = FxHashMap::default();
+    let samples = &trace.samples;
+    for i in 0..samples.len() {
+        let process = trace.thread_process(samples.thread[i]);
+        let frames: Vec<u64> = if samples.stack[i].is_empty() {
+            vec![samples.ip[i]]
+        } else {
+            trace.stacks.frames(samples.stack[i]).collect()
+        };
+        let mut seen = std::collections::HashSet::new();
+        for (j, &f) in frames.iter().enumerate() {
+            let Some(at) = line_of(process, if j == 0 { f } else { f - 1 }) else {
+                continue;
+            };
+            let w = want.entry(at.clone()).or_default();
+            if j == 0 {
+                w.0 += u64::from(samples.weight[i]);
+            }
+            if seen.insert(at) {
+                w.1 += u64::from(samples.weight[i]);
+            }
+        }
+    }
+    assert!(want.len() > 50, "{} lines", want.len());
+
+    let (totals, unit, total) = line_totals(trace, &resolver, &symbols, &TreeSpec::default());
+    assert_eq!(total, truth.samples);
+    let files = lines(&totals, unit, total, 10_000_000, None, usize::MAX);
+    assert_eq!(files["unit"], "samples");
+    let mut got: FxHashMap<(String, u32), (u64, u64)> = FxHashMap::default();
+    let rows = files["files"].as_array().unwrap();
+    assert_eq!(files["fileCount"], rows.len());
+    assert!(
+        rows.windows(2)
+            .all(|w| w[0]["inclusive"].as_u64() >= w[1]["inclusive"].as_u64())
+    );
+    for f in rows {
+        let name = f["path"].as_str().unwrap();
+        let r = lines(&totals, unit, total, 10_000_000, Some(name), 0);
+        let ls = r["lines"].as_array().unwrap();
+        assert!(
+            ls.windows(2)
+                .all(|w| w[0]["line"].as_u64() < w[1]["line"].as_u64()),
+            "in order"
+        );
+        let ex: u64 = ls.iter().map(|l| l["exclusive"].as_u64().unwrap()).sum();
+        assert_eq!(
+            ex,
+            f["exclusive"].as_u64().unwrap(),
+            "{name}: its lines' self time"
+        );
+        let most = ls
+            .iter()
+            .map(|l| l["inclusive"].as_u64().unwrap())
+            .max()
+            .unwrap();
+        assert!(
+            f["inclusive"].as_u64().unwrap() >= most,
+            "{name}: at least its heaviest line"
+        );
+        for l in ls {
+            got.insert(
+                (
+                    name.to_string(),
+                    u32::try_from(l["line"].as_u64().unwrap()).unwrap(),
+                ),
+                (
+                    l["exclusive"].as_u64().unwrap(),
+                    l["inclusive"].as_u64().unwrap(),
+                ),
+            );
+        }
+    }
+    assert_eq!(got, want);
+    // A limit; a file that isn't there.
+    assert_eq!(
+        lines(&totals, unit, total, 1, None, 2)["files"]
+            .as_array()
+            .unwrap()
+            .len(),
+        2
+    );
+    assert_eq!(
+        lines(&totals, unit, total, 1, Some("nothere.cpp"), 0)["lines"],
+        json!([])
+    );
+    // Precise: in ticks.
+    let running = TreeSpec::from_json(&json!({"source": "running"})).unwrap();
+    let (_, unit, total) = line_totals(trace, &resolver, &symbols, &running);
+    assert!(total > 0);
+    assert_eq!(lines(&totals, unit, total, 1, None, 1)["unit"], "ticks");
 }

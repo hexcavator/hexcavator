@@ -26,6 +26,14 @@
 //!   index (a `.hxsyms`) each time more are found, and read back when it
 //!   reopens (`savedSymbols`: how many PDBs' names were), so that its
 //!   trees name its functions from the start, without its PDBs.
+//! - `lines` `{trace, source?, time?, file?, limit?}` → `{unit,
+//!   ticksPerSecond, total, fileCount, files}` or, with `file`, `{unit,
+//!   ticksPerSecond, total, file, lines}`: time by source line, from the
+//!   symbols' line tables: the `limit` (200) heaviest source files by
+//!   inclusive weight (`{path, exclusive, inclusive, count}`), or a file's
+//!   lines (`{line, exclusive, inclusive, count}`, in order). Exclusive:
+//!   where the line is the innermost frame; inclusive: where it is on the
+//!   stack (a call's line, for a caller).
 //! - `symbols` `{trace, wait?}` → `{ready, done, cache, rows, noDebug}`:
 //!   the PDBs the
 //!   trace's stacks need, most wanted first, each `{pdb, path, identity,
@@ -253,11 +261,25 @@ struct State {
     tags: Option<StackTags>,
     views: HashMap<u64, TreeView>,
     next_view: u64,
+    /// The last line totals worked out: for which (source, time), with
+    /// what symbols (how many PDBs were loaded).
+    lines: Option<(LinesKey, Arc<LinesValue>)>,
     /// The symbols' report: what the stacks need (once the background
     /// thread has found it), the PDBs whose names were saved, what became
     /// of downloads, and where they go.
     report: SymbolsReport,
 }
+
+/// What line totals were worked out for: the source, the time range,
+/// and how many PDBs were loaded.
+type LinesKey = (crate::views::Source, Option<(i64, i64)>, usize);
+
+/// Line totals, their unit, and the total weight.
+type LinesValue = (
+    hexcavator_trace_analysis::lines::LineTotals,
+    crate::views::Unit,
+    u64,
+);
 
 /// What `symbols` reports from.
 struct SymbolsReport {
@@ -349,6 +371,7 @@ fn worker(
         loaded: Arc::new(loaded),
         views: HashMap::new(),
         next_view: 1,
+        lines: None,
         report: SymbolsReport {
             frames: Arc::default(),
             saved: saved.iter().map(|(k, _)| *k).collect(),
@@ -611,6 +634,44 @@ impl State {
                     spec.time,
                     top,
                     highlight.as_ref(),
+                ))
+            }
+            "lines" => {
+                let spec = TreeSpec::from_json(params)?;
+                let limit = match params.get("limit") {
+                    None | Some(Value::Null) => 200,
+                    Some(v) => v
+                        .as_u64()
+                        .and_then(|v| usize::try_from(v).ok())
+                        .ok_or("limit: expected a count")?,
+                };
+                let file = match params.get("file") {
+                    None | Some(Value::Null) => None,
+                    Some(v) => Some(v.as_str().ok_or("file: expected a path")?),
+                };
+                // (Worked out again when the source, the time or the PDBs
+                // loaded change.)
+                let key = (spec.source, spec.time, self.symbols.loaded_count());
+                let value = match &self.lines {
+                    Some((k, v)) if *k == key => Arc::clone(v),
+                    _ => {
+                        let v = Arc::new(crate::views::line_totals(
+                            trace,
+                            &self.resolver,
+                            &*self.symbols,
+                            &spec,
+                        ));
+                        self.lines = Some((key, Arc::clone(&v)));
+                        v
+                    }
+                };
+                Ok(crate::views::lines(
+                    &value.0,
+                    value.1,
+                    value.2,
+                    trace.clock.ticks_per_second,
+                    file,
+                    limit,
                 ))
             }
             "symbols" => {

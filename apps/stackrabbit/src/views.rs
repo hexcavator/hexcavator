@@ -372,6 +372,110 @@ pub fn functions(
     })
 }
 
+/// Each source line's weight, by what `spec` weighs and in its time range
+/// (its grouping and frames don't matter): see
+/// [`hexcavator_trace_analysis::lines::line_totals`].
+pub fn line_totals(
+    trace: &Trace,
+    resolver: &Resolver,
+    symbols: &dyn Symbolizer,
+    spec: &TreeSpec,
+) -> (hexcavator_trace_analysis::lines::LineTotals, Unit, u64) {
+    let filter = Filter {
+        time: spec.time.map(|(s, e)| (ticks(trace, s), ticks(trace, e))),
+        ..Filter::default()
+    };
+    let (buckets, unit) = match spec.source {
+        Source::Samples => (
+            sources::sample_buckets(trace, &filter, false),
+            Unit::Samples,
+        ),
+        Source::Running | Source::Waits => {
+            let weight = if spec.source == Source::Running {
+                SwitchWeight::Running
+            } else {
+                SwitchWeight::Waited
+            };
+            (
+                sources::switch_buckets(trace, &Precise::new(trace), &filter, false, weight),
+                Unit::Ticks,
+            )
+        }
+    };
+    let total = buckets.iter().map(|(_, (w, _))| w).sum();
+    (
+        hexcavator_trace_analysis::lines::line_totals(trace, resolver, symbols, &buckets),
+        unit,
+        total,
+    )
+}
+
+/// Time by source line, from `totals` (see [`line_totals`]): with no
+/// `file`, the `limit` heaviest source files (by inclusive weight); with
+/// one (as the symbols name it), its lines, in order.
+pub fn lines(
+    totals: &hexcavator_trace_analysis::lines::LineTotals,
+    unit: Unit,
+    total: u64,
+    ticks_per_second: u64,
+    file: Option<&str>,
+    limit: usize,
+) -> Value {
+    let unit = match unit {
+        Unit::Samples => "samples",
+        Unit::Ticks => "ticks",
+    };
+    let weights = |t: &BinTotals| json!({"exclusive": t.exclusive, "inclusive": t.inclusive, "count": t.count});
+    match file {
+        None => {
+            let mut files: Vec<usize> = (0..totals.files.len()).collect();
+            files.sort_by(|&a, &b| {
+                totals.by_file[b]
+                    .inclusive
+                    .cmp(&totals.by_file[a].inclusive)
+                    .then(a.cmp(&b))
+            });
+            let rows: Vec<Value> = files
+                .iter()
+                .take(limit)
+                .map(|&f| {
+                    let mut r = weights(&totals.by_file[f]);
+                    r["path"] = json!(totals.files[f]);
+                    r
+                })
+                .collect();
+            json!({
+                "unit": unit,
+                "ticksPerSecond": ticks_per_second,
+                "total": total,
+                "fileCount": totals.files.len(),
+                "files": rows,
+            })
+        }
+        Some(name) => {
+            let id = totals.files.iter().position(|f| f == name);
+            let mut rows: Vec<(u32, &BinTotals)> = totals
+                .lines
+                .iter()
+                .filter(|((f, _), _)| Some(*f as usize) == id)
+                .map(|(&(_, line), t)| (line, t))
+                .collect();
+            rows.sort_by_key(|r| r.0);
+            json!({
+                "unit": unit,
+                "ticksPerSecond": ticks_per_second,
+                "total": total,
+                "file": name,
+                "lines": rows.into_iter().map(|(line, t)| {
+                    let mut r = weights(t);
+                    r["line"] = json!(line);
+                    r
+                }).collect::<Vec<_>>(),
+            })
+        }
+    }
+}
+
 /// Clock ticks of `ns` nanoseconds from the trace's start.
 fn ticks(trace: &Trace, ns: i64) -> i64 {
     let tps = i128::from(trace.clock.ticks_per_second.max(1));
