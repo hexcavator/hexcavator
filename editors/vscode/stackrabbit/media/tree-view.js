@@ -61,11 +61,11 @@
 
   function showSummary(s, opened) {
     const secs = (s.durationNs / 1e9).toFixed(2);
-    const how = opened.how === "index" ? "from its index" : "imported";
+    const how = opened.how === "index" ? "opened from its index" : "imported";
     summaryEl.textContent =
       `${secs} s · ${s.processors} processors · ${s.processes} processes · ` +
       `${s.samples.toLocaleString("en-US")} samples · ${s.switches.toLocaleString("en-US")} switches · ` +
-      `opened ${how} in ${opened.seconds.toFixed(2)} s`;
+      `${how} in ${opened.seconds.toFixed(2)} s`;
   }
 
   function spec() {

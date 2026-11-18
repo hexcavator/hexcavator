@@ -100,3 +100,5 @@ jobs:
           exe=$PWD/../../../target/release/stackrabbit
           if [ -f "$exe.exe" ]; then exe=$exe.exe; fi
           for t in test/*.test.js; do node "$t" "$exe" || exit 1; done
+      - if: runner.os == 'Windows'
+        run: python editors/vscode/stackrabbit/test/harness.py target/release/stackrabbit.exe
