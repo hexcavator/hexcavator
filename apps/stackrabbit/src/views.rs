@@ -578,7 +578,23 @@ pub fn span(trace: &Trace) -> Option<(i64, i64)> {
     (first <= last).then_some((first, last))
 }
 
-/// CPU usage over time, by process, from `source`: sampled (each sample
+/// What a graph's series are.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct GraphSeries {
+    /// By thread, not by process.
+    pub by_thread: bool,
+    /// Only this process's (an index in the trace's processes).
+    pub process: Option<usize>,
+}
+
+/// A graph series's key: a process or a thread.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+enum SeriesKey {
+    Process(ProcessIx),
+    Thread(ThreadIx),
+}
+
+/// CPU usage over time, by process (or by thread: `series`), from `source`: sampled (each sample
 /// a sampling interval of CPU) or precise (`Source::Running`: each
 /// switch-in's running time, split across the buckets it overlaps). Each
 /// series's values are the share of all the processors the process used,
@@ -595,6 +611,7 @@ pub fn cpu_graph(
     time: Option<(i64, i64)>,
     top: usize,
     highlight: Option<&Highlight<'_>>,
+    series_by: GraphSeries,
 ) -> Value {
     let buckets = buckets.clamp(1, 10_000);
     let (first, last) = span(trace).unwrap_or((trace.clock.origin, trace.clock.origin));
@@ -618,6 +635,22 @@ pub fn cpu_graph(
         buckets.min(fit)
     };
     let is_idle = |p: ProcessIx| p.is_some() && trace.processes[p.index()].pid == 0;
+    // Each event's series (none: left out).
+    let key_of = |thread: ThreadIx| {
+        let process = trace.thread_process(thread);
+        if is_idle(process)
+            || series_by
+                .process
+                .is_some_and(|only| !(process.is_some() && process.index() == only))
+        {
+            return None;
+        }
+        Some(if series_by.by_thread {
+            SeriesKey::Thread(thread)
+        } else {
+            SeriesKey::Process(process)
+        })
+    };
     let bucket_of = |t: i64| {
         usize::try_from(i128::from(t - start) * buckets as i128 / i128::from(width))
             .unwrap_or(0)
@@ -625,7 +658,7 @@ pub fn cpu_graph(
     };
     // Each process's weight per bucket: samples, or clock ticks running;
     // and the highlighted function's (idle or not).
-    let mut by_process: FxHashMap<ProcessIx, Vec<u64>> = FxHashMap::default();
+    let mut by_process: FxHashMap<SeriesKey, Vec<u64>> = FxHashMap::default();
     let mut lit = vec![0u64; buckets];
     if precise {
         let p = Precise::new(trace);
@@ -647,14 +680,14 @@ pub fn cpu_graph(
                 sw.time[i].max(start),
                 sw.time[i].saturating_add(run).min(end),
             );
-            let process = trace.thread_process(sw.new_thread[i]);
-            if a >= z || is_idle(process) {
+            let Some(key) = key_of(sw.new_thread[i]) else {
+                continue;
+            };
+            if a >= z {
                 continue;
             }
             let lit_too = marked.as_ref().is_some_and(|m| m[i]);
-            let v = by_process
-                .entry(process)
-                .or_insert_with(|| vec![0; buckets]);
+            let v = by_process.entry(key).or_insert_with(|| vec![0; buckets]);
             let mut b = bucket_of(a);
             let mut t = a;
             while t < z {
@@ -683,20 +716,17 @@ pub fn cpu_graph(
             })
         });
         for i in from..to {
-            let process = trace.thread_process(s.thread[i]);
-            if is_idle(process) {
+            let Some(key) = key_of(s.thread[i]) else {
                 continue;
-            }
+            };
             let b = bucket_of(s.time[i]);
-            by_process
-                .entry(process)
-                .or_insert_with(|| vec![0; buckets])[b] += u64::from(s.weight[i]);
+            by_process.entry(key).or_insert_with(|| vec![0; buckets])[b] += u64::from(s.weight[i]);
             if marked.as_ref().is_some_and(|m| m[i - from]) {
                 lit[b] += u64::from(s.weight[i]);
             }
         }
     }
-    let mut totals: Vec<(ProcessIx, u64)> = by_process
+    let mut totals: Vec<(SeriesKey, u64)> = by_process
         .iter()
         .map(|(&p, v)| (p, v.iter().sum()))
         .collect();
@@ -736,11 +766,25 @@ pub fn cpu_graph(
     for (i, (p, _)) in totals.iter().enumerate() {
         let v = &by_process[p];
         if i < top {
-            let label = if p.is_some() {
-                let pr = &trace.processes[p.index()];
-                format!("{} ({})", pr.name, pr.pid)
-            } else {
-                "Unknown process".to_string()
+            let process_label = |p: ProcessIx| {
+                if p.is_some() {
+                    let pr = &trace.processes[p.index()];
+                    format!("{} ({})", pr.name, pr.pid)
+                } else {
+                    "Unknown process".to_string()
+                }
+            };
+            let label = match *p {
+                SeriesKey::Process(p) => process_label(p),
+                SeriesKey::Thread(t) if t.is_some() => {
+                    let th = &trace.threads[t.index()];
+                    let name = th
+                        .name
+                        .as_deref()
+                        .map_or_else(String::new, |n| format!(" {n}"));
+                    format!("{} / {}{name}", process_label(th.process), th.tid)
+                }
+                SeriesKey::Thread(_) => "Unknown thread".to_string(),
             };
             series.push(series_of(label, v));
         } else {
@@ -754,6 +798,7 @@ pub fn cpu_graph(
     }
     let mut out = json!({
         "source": if precise { "running" } else { "samples" },
+        "by": if series_by.by_thread { "thread" } else { "process" },
         "startNs": trace.clock.nanos(start),
         "endNs": trace.clock.nanos(end),
         "buckets": buckets,

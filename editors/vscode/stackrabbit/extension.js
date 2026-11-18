@@ -231,6 +231,11 @@ function html(webview, media) {
     <option value="address">By address</option>
   </select></label>
   <label><input type="checkbox" id="invert"> Callers (inverted)</label>
+  <label>Graph <select id="graph-by">
+    <option value="process">By process</option>
+    <option value="thread">By thread</option>
+    <option value="picked">Threads of the picked process</option>
+  </select></label>
   <button id="hot" title="Expand the hot path under the selected row (*)">Hot path</button>
   <button id="highlight" title="Highlight the selected row's function in the graph; again to stop (H)">Highlight</button>
   <button id="copy" title="Copy as Markdown: the selected row and the rows open under it, or the tab's tables (Ctrl+C)">Copy</button>

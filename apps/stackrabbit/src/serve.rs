@@ -59,9 +59,10 @@
 //!   (or all), with their lifetimes, start addresses (named), CPU samples,
 //!   switches in and running time (precise, in ms) in `time`, heaviest
 //!   first.
-//! - `graph` `{trace, source?, buckets?, time?, top?, highlight?}` →
-//!   `{source, startNs, endNs, buckets, series, highlight?}`: CPU usage
-//!   over time, by process, sampled (`samples`) or precise (`running`, or
+//! - `graph` `{trace, source?, buckets?, time?, top?, highlight?, by?,
+//!   process?}` → `{source, by, startNs, endNs, buckets, series,
+//!   highlight?}`: CPU usage over time, by process (or `by` "thread"; only
+//!   one `process`'s, by its index), sampled (`samples`) or precise (`running`, or
 //!   `waits`: both from context switches), each series's values the share
 //!   of all the processors it used in each bucket. `highlight`, a row's
 //!   `fn` (a function's or module's ID), adds a series of the CPU with it
@@ -627,6 +628,22 @@ impl State {
                         v.as_str().ok_or("highlight: expected a function's ID")?,
                     )?),
                 };
+                let series = crate::views::GraphSeries {
+                    by_thread: match params.get("by").and_then(Value::as_str) {
+                        None | Some("process") => false,
+                        Some("thread") => true,
+                        Some(other) => return Err(format!("by: not process or thread: {other}")),
+                    },
+                    process: match params.get("process") {
+                        None | Some(Value::Null) => None,
+                        Some(p) => Some(
+                            p.as_u64()
+                                .and_then(|p| usize::try_from(p).ok())
+                                .filter(|&p| p < trace.processes.len())
+                                .ok_or("process: expected a process's index")?,
+                        ),
+                    },
+                };
                 Ok(crate::views::cpu_graph(
                     trace,
                     spec.source,
@@ -634,6 +651,7 @@ impl State {
                     spec.time,
                     top,
                     highlight.as_ref(),
+                    series,
                 ))
             }
             "lines" => {

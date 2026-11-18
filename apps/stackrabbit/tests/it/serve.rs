@@ -702,3 +702,57 @@ fn the_summary_says_what_the_recording_lost() {
     assert_eq!(result(&a, 1)["opened"]["how"], "index");
     assert_eq!(result(&a, 1)["summary"]["eventsLost"], 1234);
 }
+
+#[test]
+fn the_cpu_graph_by_thread_and_for_one_process() {
+    let dir = scratch("serve-graph-threads");
+    let (path, s) = write_trace(&dir, "t.etl", &small());
+    let a = session(&[
+        json!({"method": "open", "params": {"path": path, "useIndex": false}}),
+        json!({"method": "graph", "params": {"trace": 1, "by": "thread", "top": 1000}}),
+        json!({"method": "processes", "params": {"trace": 1}}),
+        json!({"method": "graph", "params": {"trace": 1, "by": "nonsense"}}),
+        json!({"method": "graph", "params": {"trace": 1, "process": 99999}}),
+    ]);
+    let g = result(&a, 2);
+    assert_eq!(g["by"], "thread");
+    let series = g["series"].as_array().unwrap();
+    // Each thread's samples (labels "process (pid) / tid name").
+    for t in &s.truth.threads {
+        let samples: u64 = series
+            .iter()
+            .filter(|x| {
+                let label = x["label"].as_str().unwrap();
+                label.contains(&format!("({}) / {}", t.pid, t.tid))
+            })
+            .map(|x| x["samples"].as_u64().unwrap())
+            .sum();
+        assert_eq!(samples, t.samples, "thread {}", t.tid);
+    }
+    assert!(error(&a, 4).contains("by"));
+    assert!(error(&a, 5).contains("process"));
+
+    // One process's threads: only its, adding up to it.
+    let processes = result(&a, 3)["rows"].as_array().unwrap().clone();
+    let busy = processes
+        .iter()
+        .find(|p| p["pid"] != 0 && p["samples"].as_u64().unwrap() > 0)
+        .unwrap();
+    let a = session(&[
+        json!({"method": "open", "params": {"path": path, "useIndex": false}}),
+        json!({"method": "graph", "params": {"trace": 1, "by": "thread", "process": busy["index"], "top": 1000}}),
+        json!({"method": "graph", "params": {"trace": 1, "process": busy["index"]}}),
+    ]);
+    let mine = result(&a, 2)["series"].as_array().unwrap().clone();
+    let prefix = format!("{} ({}) / ", busy["name"].as_str().unwrap(), busy["pid"]);
+    assert!(
+        mine.iter()
+            .all(|x| x["label"].as_str().unwrap().starts_with(&prefix)),
+        "{mine:?}"
+    );
+    let sum: u64 = mine.iter().map(|x| x["samples"].as_u64().unwrap()).sum();
+    assert_eq!(sum, busy["samples"].as_u64().unwrap());
+    let whole = result(&a, 3)["series"].as_array().unwrap().clone();
+    assert_eq!(whole.len(), 1, "by process, for one: one series");
+    assert_eq!(whole[0]["samples"], busy["samples"]);
+}

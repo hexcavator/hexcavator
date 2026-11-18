@@ -236,6 +236,9 @@
       processesTable.picked = row.pick;
       processesTable.draw();
       loadThreads();
+      if ($("graph-by").value === "picked") {
+        loadGraph();
+      }
     }
   );
   const threadsTable = new SortedTable(
@@ -498,6 +501,7 @@
         tab,
         selection,
         lit,
+        graphBy: $("graph-by").value,
       },
     });
   }
@@ -519,6 +523,9 @@
       graph.selection = selection;
       showSelection();
     }
+    if (["process", "thread"].includes(s.graphBy)) {
+      $("graph-by").value = s.graphBy;
+    }
     if (s.lit && typeof s.lit.fn === "string") {
       lit = { fn: s.lit.fn, label: String(s.lit.label || s.lit.fn) };
     }
@@ -534,6 +541,15 @@
       const params = { source, buckets: graph.plotWidth(), top: 8 };
       if (lit) {
         params.highlight = lit.fn;
+      }
+      // By process, by thread, or the threads of the process picked in
+      // the processes table (by process, until one is).
+      const by = $("graph-by").value;
+      if (by === "thread") {
+        params.by = "thread";
+      } else if (by === "picked" && processesTable.picked !== null) {
+        params.by = "thread";
+        params.process = processesTable.picked;
       }
       graph.set(await request("graph", params), lit && lit.label);
     } catch (e) {
@@ -756,6 +772,10 @@
   }
   // The graph shows what the tree weighs: sampled or precise CPU.
   controls.source.addEventListener("change", loadGraph);
+  $("graph-by").addEventListener("change", () => {
+    saveState();
+    loadGraph();
+  });
   controls.source.addEventListener("change", loadFunctions);
   controls.frames.addEventListener("change", loadFunctions);
   $("hot").addEventListener("click", () => {

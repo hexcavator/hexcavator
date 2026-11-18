@@ -455,6 +455,23 @@ def main():
     posted = json.loads(html.unescape(re.search(r'<pre id="posted"[^>]*>(.*?)</pre>', dom, re.S).group(1)))
     states = [m["state"] for m in posted if m.get("type") == "state"]
     assert states and states[-1]["source"] == "waits" and states[-1]["tab"] == "stacks", states
+    # The graph by thread; then the picked process's threads.
+    pick = "var g = document.getElementById('graph-by'); g.value = 'thread'; g.dispatchEvent(new Event('change'));"
+    dom = render(data, pick)
+    posted = json.loads(html.unescape(re.search(r'<pre id="posted"[^>]*>(.*?)</pre>', dom, re.S).group(1)))
+    graphs = [m["params"] for m in posted if m.get("method") == "graph"]
+    assert graphs[-1].get("by") == "thread" and "process" not in graphs[-1], graphs[-1]
+    heaviest = data["processes"]["rows"][0]
+    picked = ("document.getElementById('tab-processes').click();"
+              "var g = document.getElementById('graph-by'); g.value = 'picked'; g.dispatchEvent(new Event('change'));"
+              "setTimeout(function () { document.querySelector('#processes tbody tr').click(); }, 50);")
+    dom = render(data, picked)
+    posted = json.loads(html.unescape(re.search(r'<pre id="posted"[^>]*>(.*?)</pre>', dom, re.S).group(1)))
+    graphs = [m["params"] for m in posted if m.get("method") == "graph"]
+    assert "by" not in graphs[-2], "nothing picked yet: by process"
+    assert graphs[-1].get("by") == "thread" and graphs[-1].get("process") == heaviest["index"], graphs[-1]
+    states = [m["state"] for m in posted if m.get("type") == "state"]
+    assert states[-1]["graphBy"] == "picked", states[-1]
     print("harness: ok")
 
 

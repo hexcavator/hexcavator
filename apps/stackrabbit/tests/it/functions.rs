@@ -147,7 +147,7 @@ fn hot_functions_and_modules_are_the_truths() {
 
 #[test]
 fn a_highlighted_function_is_its_inclusive_cpu_over_time() {
-    use stackrabbit::views::{Highlight, Source, cpu_graph};
+    use stackrabbit::views::{GraphSeries, Highlight, Source, cpu_graph};
     let dir = scratch("functions-highlight");
     let (path, s) = write_trace(&dir, "t.etl", &small());
     let truth = &s.truth;
@@ -175,7 +175,15 @@ fn a_highlighted_function_is_its_inclusive_cpu_over_time() {
     for row in f["functions"].as_array().unwrap() {
         let id = row["fn"].as_str().unwrap();
         let h = Highlight::new(trace, &resolver, &symbols, id).unwrap();
-        let g = cpu_graph(trace, Source::Samples, 50, None, 8, Some(&h));
+        let g = cpu_graph(
+            trace,
+            Source::Samples,
+            50,
+            None,
+            8,
+            Some(&h),
+            GraphSeries::default(),
+        );
         let lit = &g["highlight"];
         assert_eq!(lit["label"], id);
         assert_eq!(
@@ -202,7 +210,15 @@ fn a_highlighted_function_is_its_inclusive_cpu_over_time() {
             continue;
         }
         let h = Highlight::new(trace, &resolver, &symbols, row["fn"].as_str().unwrap()).unwrap();
-        let g = cpu_graph(trace, Source::Running, 300, None, 8, Some(&h));
+        let g = cpu_graph(
+            trace,
+            Source::Running,
+            300,
+            None,
+            8,
+            Some(&h),
+            GraphSeries::default(),
+        );
         assert_eq!(
             g["highlight"]["ns"].as_u64().unwrap(),
             row["inclusive"].as_u64().unwrap() * 100,
@@ -216,7 +232,15 @@ fn a_highlighted_function_is_its_inclusive_cpu_over_time() {
     // A module: at least any of its functions; every sample's module, at
     // most. And bad IDs are errors.
     let ntdll = Highlight::new(trace, &resolver, &symbols, "ntdll.dll|m").unwrap();
-    let g = cpu_graph(trace, Source::Samples, 50, None, 8, Some(&ntdll));
+    let g = cpu_graph(
+        trace,
+        Source::Samples,
+        50,
+        None,
+        8,
+        Some(&ntdll),
+        GraphSeries::default(),
+    );
     let lit = g["highlight"]["samples"].as_u64().unwrap();
     assert!(lit > 0 && lit <= truth.samples - truth.idle_samples);
     for bad in ["", "ntdll.dll", "ntdll.dll|zz", "ntdll.dll|ix"] {
@@ -227,7 +251,15 @@ fn a_highlighted_function_is_its_inclusive_cpu_over_time() {
     }
     // A module the trace doesn't have: nothing lit.
     let none = Highlight::new(trace, &resolver, &symbols, "nothere.dll|10").unwrap();
-    let g = cpu_graph(trace, Source::Samples, 50, None, 8, Some(&none));
+    let g = cpu_graph(
+        trace,
+        Source::Samples,
+        50,
+        None,
+        8,
+        Some(&none),
+        GraphSeries::default(),
+    );
     assert_eq!(g["highlight"]["samples"], 0);
 }
 
