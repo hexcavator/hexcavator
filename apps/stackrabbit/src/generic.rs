@@ -249,8 +249,8 @@ fn scan(
         .unwrap_or_else(std::sync::PoisonError::into_inner)
 }
 
-/// One event decoded: by its recorded description, else the kernel's
-/// schema, else its payload as bytes.
+/// One event decoded: by its own schema (TraceLogging), else its recorded
+/// description, else the kernel's schema, else its payload as bytes.
 fn decode(e: &Event<'_>, infos: &EventInfos) -> Row {
     let ptr = pointer_size(e);
     let show = |props: &[Property<'_>]| -> Vec<(String, String)> {
@@ -259,19 +259,23 @@ fn decode(e: &Event<'_>, infos: &EventInfos) -> Row {
             .map(|p| (p.name.clone(), values::format(p, ptr)))
             .collect()
     };
-    let (fields, missing, extra) = if let Some(info) = infos.get(e) {
-        let d = info.decode_partial(e);
-        (show(&d.properties), d.missing, d.rest.len())
-    } else if let Some(Ok(p)) = Properties::of(e) {
-        (show(&p.properties), 0, p.rest.len())
-    } else {
-        let payload = Property {
-            name: "Payload".to_string(),
-            field: hexcavator_etw::schema::Field::Bytes(e.user_data.len()),
-            data: e.user_data,
+    let (fields, missing, extra) =
+        if let Some(Ok(schema)) = hexcavator_etw::tracelogging::Schema::of(e) {
+            let d = schema.decode(e);
+            (show(&d.properties), d.missing, d.rest.len())
+        } else if let Some(info) = infos.get(e) {
+            let d = info.decode_partial(e);
+            (show(&d.properties), d.missing, d.rest.len())
+        } else if let Some(Ok(p)) = Properties::of(e) {
+            (show(&p.properties), 0, p.rest.len())
+        } else {
+            let payload = Property {
+                name: "Payload".to_string(),
+                field: hexcavator_etw::schema::Field::Bytes(e.user_data.len()),
+                data: e.user_data,
+            };
+            (show(&[payload]), 0, 0)
         };
-        (show(&[payload]), 0, 0)
-    };
     Row {
         timestamp: e.timestamp,
         processor: e.context.processor,

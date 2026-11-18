@@ -615,6 +615,8 @@ fn metadata_table(traces: &[PathBuf]) -> ExitCode {
             }
             // Then every event they describe.
             let (mut exact, mut left, mut errors, mut undescribed) = (0u64, 0u64, 0u64, 0u64);
+            // TraceLogging events, by their own schemas.
+            let (mut tl_exact, mut tl_inexact, mut tl_unreadable) = (0u64, 0u64, 0u64);
             let mut why: std::collections::BTreeMap<String, u64> =
                 std::collections::BTreeMap::new();
             let mut left_kinds: std::collections::BTreeSet<(String, u16, u8, u8)> =
@@ -627,6 +629,20 @@ fn metadata_table(traces: &[PathBuf]) -> ExitCode {
             for buffer in etl.buffers() {
                 let Ok(buffer) = buffer else { continue };
                 let _ = hexcavator_etl::merge::for_each_event(&buffer, max, &mut scratch, |e| {
+                    if let Some(schema) = hexcavator_etw::tracelogging::Schema::of(e) {
+                        match schema {
+                            Ok(schema) => {
+                                let d = schema.decode(e);
+                                if d.missing == 0 && d.rest.is_empty() {
+                                    tl_exact += 1;
+                                } else {
+                                    tl_inexact += 1;
+                                }
+                            }
+                            Err(_) => tl_unreadable += 1,
+                        }
+                        return;
+                    }
                     let Some(info) = infos.get(e) else {
                         undescribed += 1;
                         return;
@@ -680,6 +696,11 @@ fn metadata_table(traces: &[PathBuf]) -> ExitCode {
             );
             if !why.is_empty() {
                 println!("    errors: {why:?}");
+            }
+            if tl_exact + tl_inexact + tl_unreadable > 0 {
+                println!(
+                    "  TraceLogging events: {tl_exact} exact, {tl_inexact} not, {tl_unreadable} with unreadable schemas"
+                );
             }
             if std::env::var_os("SR_META_DETAIL").is_some() {
                 for (g, id, v, op) in &left_kinds {

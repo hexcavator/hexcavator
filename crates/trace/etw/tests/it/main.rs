@@ -5,4 +5,5 @@ mod decode;
 mod encode;
 mod event_info;
 mod manifest;
+mod tracelogging;
 mod values;

@@ -23,6 +23,7 @@ pub mod kernel;
 pub mod manifest;
 pub mod schema;
 pub mod stacks;
+pub mod tracelogging;
 pub mod values;
 
 pub use kernel::{KernelEvent, decode};
