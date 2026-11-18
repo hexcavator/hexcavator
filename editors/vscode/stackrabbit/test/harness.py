@@ -108,9 +108,10 @@ def answers(engine, path, spec, depth=4, limit=4000):
     threads = {str(p["index"]): engine.request("threads", {"trace": trace, "process": p["index"]}) for p in processes["rows"]}
     functions = engine.request("functions", {"trace": trace, "source": "samples", "frames": "function"})
     lit = engine.request("graph", {"trace": trace, "buckets": 1000, "top": 8, "highlight": functions["functions"][1]["fn"]})
+    symbols = engine.request("symbols", {"trace": trace, "wait": True})
     # (The view's view IDs: its first tree is view 1 of its own.)
     tree = dict(tree, view=1)
-    return {"opened": opened, "tree": tree, "children": children, "hot": hot, "graph": graph, "processes": processes, "threads": threads, "functions": functions, "lit": lit}
+    return {"opened": opened, "tree": tree, "children": children, "hot": hot, "graph": graph, "processes": processes, "threads": threads, "functions": functions, "lit": lit, "symbols": symbols}
 
 
 STUB = """
@@ -126,6 +127,7 @@ window.acquireVsCodeApi = function () {
     else if (m.method === "graph") r.result = m.params.highlight ? A.lit : A.graph;
     else if (m.method === "processes") r.result = A.processes;
     else if (m.method === "functions") r.result = A.functions;
+    else if (m.method === "symbols") r.result = A.symbols;
     else if (m.method === "threads" && A.threads[m.params.process]) r.result = A.threads[m.params.process];
     else r.error = m.method + ": no answer for " + JSON.stringify(m.params);
     setTimeout(function () { window.postMessage(r, "*"); }, 0);
@@ -410,6 +412,16 @@ def main():
     graphs = [m for m in posted if m.get("method") == "graph"]
     assert "highlight" not in graphs[-1]["params"], "clicked again: no highlight"
     assert 'class="key lit"' not in legend(dom), "no highlight's key"
+    # The symbols tab: every PDB the stacks need, most frames first, and
+    # what became of each (the synthetic machine's: not found).
+    sy = data["symbols"]
+    assert sy["ready"] and sy["rows"], sy
+    dom = render(data, "document.getElementById('tab-symbols').click();", shot=shot("symbols"))
+    table = dom[dom.index('id="symbols-table"'):dom.index('id="no-debug-title"')]
+    pdbs = [html.unescape(x) for x in re.findall(r'<tr data-i="\d+"><td class="">([^<]*)</td>', table)]
+    assert pdbs == [r["pdb"] for r in sy["rows"]], pdbs
+    assert f"{len(sy['rows'])} PDBs: 0 with names" in dom, "the symbols' title"
+    assert "not found" in table
     print("harness: ok")
 
 

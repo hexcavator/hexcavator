@@ -136,6 +136,15 @@ impl PdbSymbolizer {
         self.generation.fetch_add(1, Ordering::Release);
     }
 
+    /// Whether the PDB with `guid` and `age` was found (`Some(true)`:
+    /// loaded or seeded), looked for and not found (`Some(false)`), or not
+    /// looked for yet (`None`).
+    pub fn status(&self, guid: &[u8; 16], age: u32) -> Option<bool> {
+        self.tables()
+            .get(&(*guid, age))
+            .and_then(|slot| slot.get().map(Option::is_some))
+    }
+
     /// How many PDBs are loaded and found.
     pub fn loaded_count(&self) -> usize {
         self.tables()

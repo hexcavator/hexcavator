@@ -38,6 +38,7 @@ body {
   cursor: pointer;
 }
 .symbols {
+  cursor: pointer;
   color: var(--vscode-descriptionForeground);
 }
 .status.error {

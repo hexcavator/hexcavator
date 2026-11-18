@@ -26,6 +26,15 @@
 //!   index (a `.hxsyms`) each time more are found, and read back when it
 //!   reopens (`savedSymbols`: how many PDBs' names were), so that its
 //!   trees name its functions from the start, without its PDBs.
+//! - `symbols` `{trace, wait?}` → `{ready, done, cache, rows, noDebug}`:
+//!   the PDBs the
+//!   trace's stacks need, most wanted first, each `{pdb, path, identity,
+//!   frames, status, download}`: `status` "saved" (names from the trace's
+//!   saved symbols), "loaded", "not found" or "not looked for yet", and
+//!   `download` what the download did; and the modules with no PDB
+//!   identity, `{module, frames}`. (`ready` false until the trace's
+//!   frames are counted, in the background; `done` once its symbols are
+//!   loaded and downloaded. `wait`: answers when `done`.)
 //! - `close` `{trace}` → `{}`.
 //! - `summary` `{trace}` → the trace's summary.
 //! - `processes` `{trace, time?}` → `{rows}`: the processes, with their
@@ -73,6 +82,7 @@ use crate::protocol::{Frame, read_frame, write_frame};
 use crate::store::{self, Loaded, Opened};
 use crate::symbols::{self, Symbols};
 use crate::views::{TreeSpec, TreeView, Unit, summary};
+use hexcavator_symbolize::server::Fetched;
 
 const USAGE: &str = "\
 usage: stackrabbit serve
@@ -242,6 +252,21 @@ struct State {
     tags: Option<StackTags>,
     views: HashMap<u64, TreeView>,
     next_view: u64,
+    /// The symbols' report: what the stacks need (once the background
+    /// thread has found it), the PDBs whose names were saved, what became
+    /// of downloads, and where they go.
+    report: SymbolsReport,
+}
+
+/// What `symbols` reports from.
+struct SymbolsReport {
+    frames: Arc<std::sync::OnceLock<symbols::Frames>>,
+    saved: FxHashSet<symbols::DebugKey>,
+    fetched: Arc<Mutex<rustc_hash::FxHashMap<symbols::DebugKey, Fetched>>>,
+    download: bool,
+    cache: std::path::PathBuf,
+    /// Set when the background thread is done (loading and downloading).
+    done: Arc<(Mutex<bool>, std::sync::Condvar)>,
 }
 
 /// A trace's thread: opens it, answers `open_id`, then answers the
@@ -323,6 +348,14 @@ fn worker(
         loaded: Arc::new(loaded),
         views: HashMap::new(),
         next_view: 1,
+        report: SymbolsReport {
+            frames: Arc::default(),
+            saved: saved.iter().map(|(k, _)| *k).collect(),
+            fetched: Arc::default(),
+            download: symbols.download,
+            cache: symbols.servers.cache.clone(),
+            done: Arc::default(),
+        },
     };
     send(
         out,
@@ -373,8 +406,20 @@ fn symbols_task(
     let symbolizer = Arc::clone(&state.symbols);
     let out = Arc::clone(out);
     let servers = symbols.download.then(|| symbols.servers.clone());
+    let shared_frames = Arc::clone(&state.report.frames);
+    let fetched = Arc::clone(&state.report.fetched);
+    let done = Arc::clone(&state.report.done);
     std::thread::spawn(move || {
-        let frames = symbols::frames(&loaded.trace);
+        // (Done, however it ends.)
+        struct Done(Arc<(Mutex<bool>, std::sync::Condvar)>);
+        impl Drop for Done {
+            fn drop(&mut self) {
+                *self.0.0.lock().unwrap_or_else(PoisonError::into_inner) = true;
+                self.0.1.notify_all();
+            }
+        }
+        let _done = Done(done);
+        let frames = shared_frames.get_or_init(|| symbols::frames(&loaded.trace));
         let ids = &frames.wanted;
         let saved = Mutex::new(saved);
         let save = || {
@@ -390,7 +435,7 @@ fn symbols_task(
                 return;
             }
             // (A trace whose index is read-only keeps what it has.)
-            if symbols::save(path, loaded.source, &frames, &found).is_ok() {
+            if symbols::save(path, loaded.source, frames, &found).is_ok() {
                 *saved = found.iter().map(|(k, _)| *k).collect();
             }
         };
@@ -436,6 +481,7 @@ fn symbols_task(
                         note(d, false);
                     }
                 });
+                *fetched.lock().unwrap_or_else(PoisonError::into_inner) = d.fetched.clone();
                 symbolizer.forget_missing();
                 symbols::preload(&symbolizer, ids);
                 note(&d, true);
@@ -447,6 +493,60 @@ fn symbols_task(
 }
 
 impl State {
+    /// The `symbols` report.
+    fn symbols_report(&self) -> Value {
+        let Some(frames) = self.report.frames.get() else {
+            return json!({"ready": false, "done": false});
+        };
+        let done = *self
+            .report
+            .done
+            .0
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner);
+        let fetched = self
+            .report
+            .fetched
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner);
+        let rows: Vec<Value> = frames
+            .wanted
+            .iter()
+            .map(|id| {
+                let key = (id.guid, id.age);
+                let status = match self.symbols.status(&id.guid, id.age) {
+                    Some(true) if self.report.saved.contains(&key) => "saved",
+                    Some(true) => "loaded",
+                    Some(false) => "not found",
+                    None => "not looked for yet",
+                };
+                let download = match fetched.get(&key) {
+                    Some(Fetched::Cached(_)) => "in the cache",
+                    Some(Fetched::Downloaded(_)) => "downloaded",
+                    Some(Fetched::Missing) => "on no server",
+                    Some(Fetched::BadName) => "a name that can't be fetched",
+                    None if self.report.download => "",
+                    None => "downloads off",
+                };
+                json!({
+                    "pdb": id.name.rsplit(['\\', '/']).next().unwrap_or(&id.name),
+                    "path": id.name,
+                    "identity": hexcavator_symbolize::symbol_store_key(&id.guid, id.age),
+                    "frames": frames.frames.get(&key).copied().unwrap_or(0),
+                    "status": status,
+                    "download": download,
+                })
+            })
+            .collect();
+        json!({
+            "ready": true,
+            "done": done,
+            "cache": self.report.cache.display().to_string(),
+            "rows": rows,
+            "noDebug": frames.no_debug.iter().map(|(m, n)| json!({"module": m, "frames": n})).collect::<Vec<_>>(),
+        })
+    }
+
     fn handle(&mut self, method: &str, params: &Value) -> Result<Value, String> {
         let trace = &self.loaded.trace;
         match method {
@@ -503,6 +603,17 @@ impl State {
                     top,
                     highlight.as_ref(),
                 ))
+            }
+            "symbols" => {
+                // (`wait`: once the background thread is done.)
+                if params.get("wait").and_then(Value::as_bool) == Some(true) {
+                    let (lock, ready) = &*self.report.done;
+                    let mut done = lock.lock().unwrap_or_else(PoisonError::into_inner);
+                    while !*done {
+                        done = ready.wait(done).unwrap_or_else(PoisonError::into_inner);
+                    }
+                }
+                Ok(self.symbols_report())
             }
             "functions" => {
                 let spec = TreeSpec::from_json(params)?;

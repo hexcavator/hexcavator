@@ -227,6 +227,7 @@ fn saved_symbols_are_only_for_their_trace_and_undamaged() {
     let frames = symbols::Frames {
         wanted: Vec::new(),
         addresses: [(key, vec![main])].into_iter().collect(),
+        ..symbols::Frames::default()
     };
     let source = index::Source {
         size: 1234,
@@ -355,4 +356,75 @@ fn a_pdb_missing_at_first_is_found_when_it_comes() {
     assert_eq!(named(&s), None);
     s.set_waiting(true);
     assert_eq!(named(&s), Some(main));
+}
+
+#[test]
+fn the_symbols_report_says_what_became_of_each_pdb() {
+    let dir = scratch("saved-symbols-report");
+    let (path, _, cache) = trace_with_a_real_pdb(&dir);
+    let pdb = std::fs::read(lines_pdb()).unwrap();
+    let parsed = hexcavator_pdb::Pdb::parse(&pdb).unwrap();
+    let lines = hexcavator_symbolize::symbol_store_key(&parsed.info().guid(), 1);
+    let report = |requests: &[Value]| {
+        let (a, _) = session(requests);
+        result(&a, requests.len() as u64).clone()
+    };
+    let row_of = |r: &Value, identity: &str| {
+        r["rows"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|row| row["identity"] == identity)
+            .cloned()
+            .unwrap()
+    };
+    let wait = json!({"method": "symbols", "params": {"trace": 1, "wait": true}});
+
+    // Opened with its PDB in the cache: loaded; the rest (the synthetic
+    // machine's) not found; nothing downloaded.
+    let open = json!({"method": "open", "params": {
+        "path": path, "useIndex": true, "symbolCache": cache, "downloadSymbols": false,
+    }});
+    let r = report(&[open.clone(), wait.clone()]);
+    assert_eq!(r["ready"], true);
+    assert_eq!(r["done"], true);
+    let rows = r["rows"].as_array().unwrap();
+    assert!(rows.len() >= 4, "{} PDBs", rows.len());
+    let row = row_of(&r, &lines);
+    assert_eq!(row["status"], "loaded");
+    assert!(row["frames"].as_u64().unwrap() > 0);
+    assert_eq!(
+        row["pdb"].as_str().unwrap(),
+        row["path"].as_str().unwrap().rsplit('\\').next().unwrap()
+    );
+    for other in rows.iter().filter(|x| x["identity"] != lines.as_str()) {
+        assert_eq!(other["status"], "not found", "{other}");
+        assert_eq!(other["download"], "downloads off");
+    }
+    // Most wanted first.
+    let frames: Vec<u64> = rows.iter().map(|x| x["frames"].as_u64().unwrap()).collect();
+    assert!(frames.windows(2).all(|w| w[0] >= w[1]), "{frames:?}");
+    // Every synthetic image has a PDB identity.
+    assert_eq!(r["noDebug"], json!([]));
+
+    // Reopened without it: its names from the saved symbols.
+    std::fs::remove_dir_all(&cache).unwrap();
+    std::fs::create_dir_all(&cache).unwrap();
+    let r = report(&[open, wait.clone()]);
+    assert_eq!(row_of(&r, &lines)["status"], "saved");
+
+    // Downloading from a server that refuses connections: on no server.
+    let r = report(&[
+        json!({"method": "open", "params": {
+            "path": path, "useIndex": false, "symbolCache": cache,
+            "downloadSymbols": true, "symbolServers": ["http://127.0.0.1:9"],
+        }}),
+        wait,
+    ]);
+    let rows = r["rows"].as_array().unwrap();
+    assert!(
+        rows.iter()
+            .all(|x| x["download"] == "on no server" && x["status"] == "not found"),
+        "{rows:?}"
+    );
 }

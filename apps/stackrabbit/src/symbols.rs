@@ -97,6 +97,11 @@ pub struct Frames {
     /// frame's address and the byte before it (where a return address is
     /// looked up).
     pub addresses: FxHashMap<DebugKey, Vec<u32>>,
+    /// Each PDB's frames: how many distinct addresses (by its key).
+    pub frames: FxHashMap<DebugKey, usize>,
+    /// The modules frames are in that have no PDB identity (so no
+    /// symbols): each one's file name and frames, most first.
+    pub no_debug: Vec<(String, usize)>,
 }
 
 /// Events a worker walks the stacks of at a time.
@@ -146,10 +151,16 @@ pub fn frames(trace: &Trace) -> Frames {
                 node = trace.stacks.parent(node);
             }
         }
-        // By PDB: the same DLL is loaded in many processes.
+        // By PDB: the same DLL is loaded in many processes. (Modules
+        // without a PDB: by name, their offsets.)
         let mut by_pdb: FxHashMap<DebugKey, (PdbId, Vec<u32>)> = FxHashMap::default();
+        let mut no_debug: FxHashMap<String, Vec<u64>> = FxHashMap::default();
         for (image, offsets) in hits {
             let Some(id) = &trace.images[image.index()].debug_id else {
+                no_debug
+                    .entry(trace.images[image.index()].file_name().to_string())
+                    .or_default()
+                    .extend(offsets);
                 continue;
             };
             let entry = by_pdb.entry((id.guid, id.age)).or_insert_with(|| {
@@ -168,12 +179,16 @@ pub fn frames(trace: &Trace) -> Frames {
                 }
             }
         }
-        by_pdb
+        (by_pdb, no_debug)
     });
     // The chunks' addresses together, then each PDB's sorted (on every
     // core: some have many).
     let mut by_pdb: FxHashMap<DebugKey, (PdbId, Vec<u32>)> = FxHashMap::default();
-    for chunk in found {
+    let mut no_debug: FxHashMap<String, Vec<u64>> = FxHashMap::default();
+    for (chunk, none) in found {
+        for (name, offsets) in none {
+            no_debug.entry(name).or_default().extend(offsets);
+        }
         for (k, (id, rvas)) in chunk {
             let e = by_pdb.entry(k).or_insert_with(|| (id, Vec::new()));
             // (The first name a PDB was recorded with, by the chunks' order.)
@@ -196,10 +211,21 @@ pub fn frames(trace: &Trace) -> Frames {
     });
     let mut wanted: Vec<(PdbId, usize)> = Vec::with_capacity(pdbs.len());
     let mut addresses = FxHashMap::default();
+    let mut frames = FxHashMap::default();
     for ((k, (id, _)), (a, n)) in pdbs.into_iter().zip(sorted) {
         wanted.push((id, n));
         addresses.insert(k, a);
+        frames.insert(k, n);
     }
+    let mut no_debug: Vec<(String, usize)> = no_debug
+        .into_iter()
+        .map(|(name, mut offsets)| {
+            offsets.sort_unstable();
+            offsets.dedup();
+            (name, offsets.len())
+        })
+        .collect();
+    no_debug.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
     wanted.sort_by(|a, b| {
         b.1.cmp(&a.1)
             .then_with(|| a.0.name.cmp(&b.0.name))
@@ -208,6 +234,8 @@ pub fn frames(trace: &Trace) -> Frames {
     Frames {
         wanted: wanted.into_iter().map(|(id, _)| id).collect(),
         addresses,
+        frames,
+        no_debug,
     }
 }
 
@@ -346,6 +374,8 @@ pub struct Downloaded {
     pub downloaded: usize,
     /// On no server.
     pub missing: usize,
+    /// What became of each, by its key.
+    pub fetched: FxHashMap<DebugKey, Fetched>,
 }
 
 /// Downloads `ids` (see [`SymbolServers::fetch_all`]); `progress` hears of
@@ -359,10 +389,11 @@ pub fn download(
         wanted: ids.len(),
         ..Downloaded::default()
     });
-    servers.fetch_all(ids, CONCURRENCY, |_, _, fetched| {
+    servers.fetch_all(ids, CONCURRENCY, |_, id, fetched| {
         let mut c = counts
             .lock()
             .unwrap_or_else(std::sync::PoisonError::into_inner);
+        c.fetched.insert((id.guid, id.age), fetched.clone());
         match fetched {
             Fetched::Cached(_) => c.cached += 1,
             Fetched::Downloaded(_) => c.downloaded += 1,

@@ -89,6 +89,8 @@
   /** Shows how the symbols' download goes; when it is done, makes the tree
    * again, with the new names. */
   function symbolsNote(p) {
+    // (The Symbols tab, if it shows, follows.)
+    loadSymbols();
     if (p.loaded !== undefined) {
       // PDBs loaded: the tree again, with their names.
       if (p.loaded > 0 && model) {
@@ -329,8 +331,56 @@
     }
   }
 
+  // The symbols report: each PDB the stacks need, and what became of it.
+  const symbolsTable = new SortedTable(
+    $("symbols-table"),
+    [
+      { key: "pdb", title: "PDB" },
+      { key: "status", title: "Status" },
+      { key: "frames", title: "Frames", num: true, text: number(0) },
+      { key: "download", title: "Download" },
+      { key: "identity", title: "Identity", cls: "cmd" },
+    ],
+    { key: "frames", down: true }
+  );
+  const noDebugTable = new SortedTable(
+    $("no-debug"),
+    [
+      { key: "module", title: "Module" },
+      { key: "frames", title: "Frames", num: true, text: number(0) },
+    ],
+    { key: "frames", down: true }
+  );
+
+  async function loadSymbols() {
+    if ($("symbols-pane").classList.contains("hidden")) {
+      return;
+    }
+    try {
+      const r = await request("symbols", {});
+      if (!r.ready) {
+        $("symbols-title").textContent = "Counting the frames the stacks need…";
+        return;
+      }
+      const count = (s) => r.rows.filter((x) => x.status === s).length;
+      $("symbols-title").textContent =
+        `${r.rows.length} PDBs: ${count("saved") + count("loaded")} with names ` +
+        `(${count("saved")} saved with the trace), ${count("not found")} not found` +
+        (r.done ? "" : ", still looking") +
+        `. Cache: ${r.cache}`;
+      symbolsTable.set(r.rows);
+      $("no-debug-title").textContent = r.noDebug.length
+        ? `${r.noDebug.length} modules with no PDB identity (no symbols can be found for them)`
+        : "";
+      noDebugTable.set(r.noDebug);
+    } catch (e) {
+      statusEl.textContent = e.message;
+      statusEl.classList.add("error");
+    }
+  }
+
   function showTab(name) {
-    for (const t of ["stacks", "processes", "functions"]) {
+    for (const t of ["stacks", "processes", "functions", "symbols"]) {
       $(`tab-${t}`).classList.toggle("active", name === t);
       $(`${t}-pane`).classList.toggle("hidden", name !== t);
     }
@@ -340,7 +390,12 @@
     if (name === "functions" && functionsStale) {
       loadFunctions();
     }
+    if (name === "symbols") {
+      loadSymbols();
+    }
   }
+  $("tab-symbols").addEventListener("click", () => showTab("symbols"));
+  symbolsEl.addEventListener("click", () => showTab("symbols"));
   /**
    * The shown tab as Markdown, to the clipboard (by way of the extension):
    * the stack tree's selected row and the rows open under it (or every
@@ -360,6 +415,9 @@
     } else if (!$("functions-pane").classList.contains("hidden")) {
       text = functionsTable.markdown() + "\n" + modulesTable.markdown();
       what = "the functions and modules";
+    } else if (!$("symbols-pane").classList.contains("hidden")) {
+      text = symbolsTable.markdown();
+      what = "the symbols";
     } else {
       text = processesTable.markdown();
       what = "the processes";

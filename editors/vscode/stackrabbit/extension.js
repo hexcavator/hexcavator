@@ -9,7 +9,7 @@ const { spawn } = require("child_process");
 const { Session } = require("./lib/protocol");
 
 /** The requests a view may make of the engine about its trace. */
-const VIEW_METHODS = new Set(["summary", "graph", "processes", "threads", "functions", "tree.create", "tree.children", "tree.hotPath", "tree.close"]);
+const VIEW_METHODS = new Set(["summary", "graph", "processes", "threads", "functions", "symbols", "tree.create", "tree.children", "tree.hotPath", "tree.close"]);
 
 let channel;
 
@@ -217,13 +217,15 @@ function html(webview, media) {
 </div>
 <div class="graph"><canvas id="graph"></canvas><div id="legend" class="legend"></div></div>
 <div id="selection" class="selection">All of the trace. Drag across the graph to select a time range; double-click it to clear.</div>
-<div class="tabs"><button id="tab-stacks" class="tab active">Stacks</button><button id="tab-functions" class="tab">Functions</button><button id="tab-processes" class="tab">Processes</button></div>
+<div class="tabs"><button id="tab-stacks" class="tab active">Stacks</button><button id="tab-functions" class="tab">Functions</button><button id="tab-processes" class="tab">Processes</button><button id="tab-symbols" class="tab">Symbols</button></div>
 <div id="stacks-pane" class="pane">
 <div class="header"><span class="name">Stack</span><span class="num">Weight</span><span class="num">%</span><span class="num">Self</span></div>
 <div id="viewport" class="viewport" tabindex="0"><div id="spacer"></div><div id="rows"></div></div>
 </div>
 <div id="functions-pane" class="pane hidden"><div id="functions-title" class="threads-title"></div><table id="functions" class="processes"></table>
 <div class="threads-title">Modules</div><table id="modules" class="processes"></table></div>
+<div id="symbols-pane" class="pane hidden"><div id="symbols-title" class="threads-title"></div><table id="symbols-table" class="processes"></table>
+<div id="no-debug-title" class="threads-title"></div><table id="no-debug" class="processes"></table></div>
 <div id="processes-pane" class="pane hidden"><table id="processes" class="processes"></table>
 <div id="threads-title" class="threads-title">Click a process for its threads.</div><table id="threads" class="processes"></table></div>
 <script nonce="${nonce}" src="${src("tree-model.js")}"></script>
