@@ -145,6 +145,7 @@ window.acquireVsCodeApi = function () {
     else if (m.method === "fileio" && A.fileio) r.result = A.fileio;
     else if (m.method === "dpc" && A.dpc) r.result = A.dpc;
     else if (m.method === "registry" && A.registry) r.result = A.registry;
+    else if (m.method === "hardfaults" && A.hardfaults) r.result = A.hardfaults;
     else if (m.method === "regions") r.error = "regions: file: expected a regions file";
     else if (m.method === "events.list" && A.sampleKind && m.params.opcode === A.sampleKind.opcode && m.params.guid === A.sampleKind.guid) r.result = A.sampleList;
     else if (m.method === "events.list") r.result = A.eventList;
@@ -813,6 +814,28 @@ def main():
     assert labels == ["app.exe (100)", "svc.exe (200)"], labels
     rest = html.unescape(dom[dom.index('id="registry-ops"'):])
     assert "\\REGISTRY\\MACHINE\\SOFTWARE\\App" in rest and "Version" in rest and "0xc0000034" in rest
+    # The hard faults tab: totals by the grouping chosen, and the longest;
+    # changing the grouping asks again (with the time selected, if any).
+    faulted = json.loads(json.dumps(data))
+    faulted["hardfaults"] = {
+        "count": 3, "bytes": 12288, "durationNs": 1500000, "groupsTotal": 2,
+        "groups": [{"label": "C:\\a.dll", "count": 2, "bytes": 8192, "durationNs": 1000000},
+                   {"label": "C:\\b.exe", "count": 1, "bytes": 4096, "durationNs": 500000}],
+        "faults": [{"startNs": 1000000, "durationNs": 700000, "size": 4096, "offset": 8192, "address": "0x7ff000001000",
+                    "process": "app.exe (100)", "tid": 7, "file": "C:\\a.dll"}],
+    }
+    change = ("document.getElementById('tab-hardfaults').click();"
+              "setTimeout(function () { var b = document.getElementById('hardfaults-by'); b.value = 'file'; b.dispatchEvent(new Event('change')); }, 100);")
+    dom = render(faulted, change, shot=shot("hardfaults"))
+    assert "3 hard faults, 12 KB read, 1.5 ms." in dom, "the hard faults title"
+    posted = json.loads(html.unescape(re.search(r'<pre id="posted"[^>]*>(.*?)</pre>', dom, re.S).group(1)))
+    asked = [m["params"]["by"] for m in posted if m.get("method") == "hardfaults"]
+    assert asked == ["process", "file"], asked
+    table = dom[dom.index('id="hardfaults-groups"'):dom.index('id="hardfaults-faults"')]
+    labels = [html.unescape(x) for x in re.findall(r'<tr data-i="\d+"><td class="cmd">([^<]*)</td>', table)]
+    assert labels == ["C:\\a.dll", "C:\\b.exe"], labels
+    rest = html.unescape(dom[dom.index('id="hardfaults-faults"'):])
+    assert "0x2000" in rest and "700" in rest, "the offset and duration"
     print("harness: ok")
 
 

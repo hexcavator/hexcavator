@@ -55,6 +55,13 @@
 //!   most time first) and the `limit` (1000) longest, each `{op, startNs,
 //!   durationNs, status, size, process, tid, file}`. (Read from the trace
 //!   file the first time, then kept.)
+//! - `hardfaults` `{trace, by?, time?, limit?, groupLimit?}` → `{count,
+//!   bytes, durationNs, groupsTotal, groups, faults}`: the hard faults
+//!   started in `time`, totals by `by` (process, file or thread: count,
+//!   bytes, total duration, the most time first; the first `groupLimit`
+//!   (10,000) of `groupsTotal`) and the `limit` (1000) longest, each
+//!   `{startNs, durationNs, size, offset, address, process, tid, file}`.
+//!   (Read from the trace file the first time, then kept.)
 //! - `registry` `{trace, by?, time?, limit?, groupLimit?}` → `{count,
 //!   failed, durationNs, groupsTotal, groups, ops}`: the registry
 //!   operations started in `time`, totals by `by` (process, key or
@@ -292,6 +299,30 @@ pub fn serve(mut input: impl Read, out: &Output) -> io::Result<()> {
     Ok(())
 }
 
+/// `params[name]`: a count (`default` if there is none).
+fn count(params: &Value, name: &str, default: usize) -> Result<usize, String> {
+    match params.get(name) {
+        None | Some(Value::Null) => Ok(default),
+        Some(v) => v
+            .as_u64()
+            .and_then(|v| usize::try_from(v).ok())
+            .ok_or_else(|| format!("{name}: expected a count")),
+    }
+}
+
+/// A time range in nanoseconds from the trace's start, in its clock's
+/// ticks.
+fn ticks(trace: &hexcavator_trace::Trace, time: Option<(i64, i64)>) -> Option<(i64, i64)> {
+    time.map(|(s, e)| {
+        let tps = i128::from(trace.clock.ticks_per_second.max(1));
+        let t = |ns: i64| {
+            i64::try_from(i128::from(trace.clock.origin) + i128::from(ns) * tps / 1_000_000_000)
+                .unwrap_or(i64::MAX)
+        };
+        (t(s), t(e))
+    })
+}
+
 /// Writes a response. A response that can't be written means the editor
 /// is gone; the session ends when its input does.
 ///
@@ -330,6 +361,8 @@ struct State {
     disk: Option<Arc<crate::disk::DiskTable>>,
     /// The trace's file operations, once read.
     files: Option<Arc<crate::fileio::FileTable>>,
+    /// The trace's hard faults, once read.
+    faults: Option<Arc<crate::hardfault::FaultTable>>,
     /// The trace's registry operations, once read.
     registry: Option<Arc<crate::registry::RegistryTable>>,
     /// The trace's DPCs and ISRs, once read.
@@ -449,6 +482,7 @@ fn worker(
         files: None,
         dpcs: None,
         registry: None,
+        faults: None,
         report: SymbolsReport {
             frames: Arc::default(),
             saved: saved.iter().map(|(k, _)| *k).collect(),
@@ -686,16 +720,7 @@ impl State {
                     version: u8::try_from(small("version", 0xff)?).unwrap_or(0),
                     opcode: u8::try_from(small("opcode", 0xff)?).unwrap_or(0),
                 };
-                let time = TreeSpec::from_json(params)?.time.map(|(s, e)| {
-                    let tps = i128::from(trace.clock.ticks_per_second.max(1));
-                    let t = |ns: i64| {
-                        i64::try_from(
-                            i128::from(trace.clock.origin) + i128::from(ns) * tps / 1_000_000_000,
-                        )
-                        .unwrap_or(i64::MAX)
-                    };
-                    (t(s), t(e))
-                });
+                let time = ticks(trace, TreeSpec::from_json(params)?.time);
                 let offset = usize::try_from(small("offset", u64::MAX)?).unwrap_or(usize::MAX);
                 let limit = match params.get("limit") {
                     None | Some(Value::Null) => 1000,
@@ -783,13 +808,7 @@ impl State {
             }
             "lines" => {
                 let spec = TreeSpec::from_json(params)?;
-                let limit = match params.get("limit") {
-                    None | Some(Value::Null) => 200,
-                    Some(v) => v
-                        .as_u64()
-                        .and_then(|v| usize::try_from(v).ok())
-                        .ok_or("limit: expected a count")?,
-                };
+                let limit = count(params, "limit", 200)?;
                 let file = match params.get("file") {
                     None | Some(Value::Null) => None,
                     Some(v) => Some(v.as_str().ok_or("file: expected a path")?),
@@ -830,13 +849,7 @@ impl State {
                         return Err(format!("by: process, file, disk or type, not {other}"));
                     }
                 };
-                let limit = match params.get("limit") {
-                    None | Some(Value::Null) => 1000,
-                    Some(v) => v
-                        .as_u64()
-                        .and_then(|v| usize::try_from(v).ok())
-                        .ok_or("limit: expected a count")?,
-                };
+                let limit = count(params, "limit", 1000)?;
                 let table = match &self.disk {
                     Some(t) => Arc::clone(t),
                     None => {
@@ -845,16 +858,7 @@ impl State {
                         t
                     }
                 };
-                let time = spec.time.map(|(s, e)| {
-                    let tps = i128::from(trace.clock.ticks_per_second.max(1));
-                    let t = |ns: i64| {
-                        i64::try_from(
-                            i128::from(trace.clock.origin) + i128::from(ns) * tps / 1_000_000_000,
-                        )
-                        .unwrap_or(i64::MAX)
-                    };
-                    (t(s), t(e))
-                });
+                let time = ticks(trace, spec.time);
                 Ok(crate::disk::summary(trace, &table, group, time, limit))
             }
             "dpc" => {
@@ -870,13 +874,7 @@ impl State {
                         ));
                     }
                 };
-                let limit = match params.get("limit") {
-                    None | Some(Value::Null) => 1000,
-                    Some(v) => v
-                        .as_u64()
-                        .and_then(|v| usize::try_from(v).ok())
-                        .ok_or("limit: expected a count")?,
-                };
+                let limit = count(params, "limit", 1000)?;
                 let table = match &self.dpcs {
                     Some(t) => Arc::clone(t),
                     None => {
@@ -885,16 +883,7 @@ impl State {
                         t
                     }
                 };
-                let time = spec.time.map(|(s, e)| {
-                    let tps = i128::from(trace.clock.ticks_per_second.max(1));
-                    let t = |ns: i64| {
-                        i64::try_from(
-                            i128::from(trace.clock.origin) + i128::from(ns) * tps / 1_000_000_000,
-                        )
-                        .unwrap_or(i64::MAX)
-                    };
-                    (t(s), t(e))
-                });
+                let time = ticks(trace, spec.time);
                 Ok(crate::dpc::summary(
                     trace,
                     &table,
@@ -903,6 +892,35 @@ impl State {
                     group,
                     time,
                     limit,
+                ))
+            }
+            "hardfaults" => {
+                let spec = TreeSpec::from_json(params)?;
+                let group = match params.get("by").and_then(Value::as_str) {
+                    None | Some("process") => crate::hardfault::GroupBy::Process,
+                    Some("file") => crate::hardfault::GroupBy::File,
+                    Some("thread") => crate::hardfault::GroupBy::Thread,
+                    Some(other) => {
+                        return Err(format!("by: process, file or thread, not {other}"));
+                    }
+                };
+                let limit = count(params, "limit", 1000)?;
+                let group_limit = count(params, "groupLimit", 10_000)?;
+                let table = match &self.faults {
+                    Some(t) => Arc::clone(t),
+                    None => {
+                        let t = Arc::new(crate::hardfault::table(trace, &self.loaded.path)?);
+                        self.faults = Some(Arc::clone(&t));
+                        t
+                    }
+                };
+                Ok(crate::hardfault::summary(
+                    trace,
+                    &table,
+                    group,
+                    ticks(trace, spec.time),
+                    limit,
+                    group_limit,
                 ))
             }
             "registry" => {
@@ -915,13 +933,7 @@ impl State {
                         return Err(format!("by: process, key or operation, not {other}"));
                     }
                 };
-                let limit = match params.get("limit") {
-                    None | Some(Value::Null) => 1000,
-                    Some(v) => v
-                        .as_u64()
-                        .and_then(|v| usize::try_from(v).ok())
-                        .ok_or("limit: expected a count")?,
-                };
+                let limit = count(params, "limit", 1000)?;
                 let table = match &self.registry {
                     Some(t) => Arc::clone(t),
                     None => {
@@ -930,23 +942,8 @@ impl State {
                         t
                     }
                 };
-                let time = spec.time.map(|(s, e)| {
-                    let tps = i128::from(trace.clock.ticks_per_second.max(1));
-                    let t = |ns: i64| {
-                        i64::try_from(
-                            i128::from(trace.clock.origin) + i128::from(ns) * tps / 1_000_000_000,
-                        )
-                        .unwrap_or(i64::MAX)
-                    };
-                    (t(s), t(e))
-                });
-                let group_limit = match params.get("groupLimit") {
-                    None | Some(Value::Null) => 10_000,
-                    Some(v) => v
-                        .as_u64()
-                        .and_then(|v| usize::try_from(v).ok())
-                        .ok_or("groupLimit: expected a count")?,
-                };
+                let time = ticks(trace, spec.time);
+                let group_limit = count(params, "groupLimit", 10_000)?;
                 Ok(crate::registry::summary(
                     trace,
                     &table,
@@ -966,13 +963,7 @@ impl State {
                         return Err(format!("by: process, file or operation, not {other}"));
                     }
                 };
-                let limit = match params.get("limit") {
-                    None | Some(Value::Null) => 1000,
-                    Some(v) => v
-                        .as_u64()
-                        .and_then(|v| usize::try_from(v).ok())
-                        .ok_or("limit: expected a count")?,
-                };
+                let limit = count(params, "limit", 1000)?;
                 let table = match &self.files {
                     Some(t) => Arc::clone(t),
                     None => {
@@ -981,16 +972,7 @@ impl State {
                         t
                     }
                 };
-                let time = spec.time.map(|(s, e)| {
-                    let tps = i128::from(trace.clock.ticks_per_second.max(1));
-                    let t = |ns: i64| {
-                        i64::try_from(
-                            i128::from(trace.clock.origin) + i128::from(ns) * tps / 1_000_000_000,
-                        )
-                        .unwrap_or(i64::MAX)
-                    };
-                    (t(s), t(e))
-                });
+                let time = ticks(trace, spec.time);
                 Ok(crate::fileio::summary(trace, &table, group, time, limit))
             }
             "regions" => {
@@ -1014,13 +996,7 @@ impl State {
             }
             "functions" => {
                 let spec = TreeSpec::from_json(params)?;
-                let limit = match params.get("limit") {
-                    None | Some(Value::Null) => 1000,
-                    Some(v) => v
-                        .as_u64()
-                        .and_then(|v| usize::try_from(v).ok())
-                        .ok_or("limit: expected a count")?,
-                };
+                let limit = count(params, "limit", 1000)?;
                 Ok(crate::views::functions(
                     trace,
                     &self.resolver,

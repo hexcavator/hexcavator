@@ -1927,3 +1927,193 @@ fn answers_too_large_to_send_are_errors() {
     assert!(error(&a, 2).contains("too large"), "{}", error(&a, 2));
     assert_eq!(result(&a, 3)["count"], 30_000);
 }
+
+/// A kernel event: `(provider, opcode, version, timestamp, payload)`.
+type KernelRecord = (hexcavator_etl::Guid, u8, u16, i64, Vec<u8>);
+
+/// A trace (a counter at 10 MHz: 100 ns a tick) of process 100 (app.exe)
+/// and its thread 200 (run down at the start), then `events`.
+fn app_trace(dir: &std::path::Path, events: Vec<KernelRecord>) -> std::path::PathBuf {
+    use hexcavator_etl::classic;
+    use hexcavator_etl::write::{self, Kernel, Writer, WriterOptions};
+    use hexcavator_etw::guids;
+    let mut w = Writer::new(WriterOptions {
+        processors: 1,
+        perf_freq: 10_000_000,
+        ..WriterOptions::default()
+    });
+    let mut process = 0xaaaau64.to_le_bytes().to_vec();
+    for v in [100u32, 4, 1, 0] {
+        process.extend_from_slice(&v.to_le_bytes());
+    }
+    process.extend_from_slice(&[0; 16]);
+    process.extend_from_slice(b"app.exe\0");
+    process.extend_from_slice(&utf16z("app.exe"));
+    process.extend_from_slice(&utf16z(""));
+    process.extend_from_slice(&utf16z(""));
+    let mut thread = Vec::new();
+    for v in [100u32, 200] {
+        thread.extend_from_slice(&v.to_le_bytes());
+    }
+    for v in [0u64, 0, 0, 0, 0, 0x1234, 0] {
+        thread.extend_from_slice(&v.to_le_bytes());
+    }
+    thread.extend_from_slice(&[0, 0, 0, 0, 8, 5, 2, 0]);
+    let all = [
+        (guids::PROCESS, 3, 4, 1, process),
+        (guids::THREAD, 3, 3, 2, thread),
+    ]
+    .into_iter()
+    .chain(events);
+    for (provider, op, version, ts, payload) in all {
+        let hook = classic::guid_group(&provider).unwrap() << 8 | u16::from(op);
+        let k = Kernel {
+            hook,
+            version,
+            thread_id: u32::MAX,
+            process_id: u32::MAX,
+            timestamp: ts,
+            ..Kernel::default()
+        };
+        w.record(0, &write::system(&k, true, &payload));
+    }
+    let path = dir.join("t.etl");
+    std::fs::write(&path, w.finish()).unwrap();
+    path
+}
+
+/// `s` as a NUL-terminated UTF-16 string.
+fn utf16z(s: &str) -> Vec<u8> {
+    s.encode_utf16()
+        .chain([0])
+        .flat_map(u16::to_le_bytes)
+        .collect()
+}
+
+#[test]
+fn hard_faults_by_process_file_and_thread() {
+    use hexcavator_etw::guids;
+    let dir = scratch("serve-hardfaults");
+    // FileIo names: object 1 by a name event, 2 by a create's path, 3 only
+    // by the rundown at the end; 9 never.
+    let name = |op: u8, ts: i64, object: u64, path: &str| {
+        let mut p = object.to_le_bytes().to_vec();
+        p.extend_from_slice(&utf16z(path));
+        (guids::FILE_IO, op, 2, ts, p)
+    };
+    let create = |ts: i64, object: u64, path: &str| {
+        let mut p = 0xa1u64.to_le_bytes().to_vec();
+        p.extend_from_slice(&object.to_le_bytes());
+        for v in [200u32, 0, 0, 0] {
+            p.extend_from_slice(&v.to_le_bytes());
+        }
+        p.extend_from_slice(&utf16z(path));
+        (guids::FILE_IO, 64, 3, ts, p)
+    };
+    // HardFault v2: start, offset, address, file object, thread, bytes.
+    let fault = |start: u64, end: i64, object: u64, tid: u32, size: u32| {
+        let mut p = Vec::new();
+        for v in [start, 0x1000, 0x7ff0_0000_1000, object] {
+            p.extend_from_slice(&v.to_le_bytes());
+        }
+        p.extend_from_slice(&tid.to_le_bytes());
+        p.extend_from_slice(&size.to_le_bytes());
+        (guids::PAGE_FAULT, 32, 2, end, p)
+    };
+    let path = app_trace(
+        &dir,
+        vec![
+            name(0, 10, 1, r"C:\a.dll"),
+            create(20, 2, r"C:\b.exe"),
+            // 20 us, 10 us, 100 us (a thread we don't know), 1 us.
+            fault(100, 300, 1, 200, 4096),
+            fault(400, 500, 2, 200, 8192),
+            fault(600, 1_600, 3, 999, 16_384),
+            fault(700, 710, 9, 200, 4096),
+            name(36, 2_000, 3, r"C:\c.dat"),
+        ],
+    );
+    let req = |by: &str, extra: Value| {
+        let mut p = json!({"trace": 1, "by": by});
+        for (k, v) in extra.as_object().unwrap() {
+            p[k] = v.clone();
+        }
+        json!({"method": "hardfaults", "params": p})
+    };
+    let a = session(&[
+        json!({"method": "open", "params": {"path": path, "useIndex": true}}),
+        req("process", json!({})),
+        req("file", json!({})),
+        req("thread", json!({"limit": 2})),
+        req("file", json!({"groupLimit": 1})),
+        req("process", json!({"time": [0, 50_000]})),
+        req("nonsense", json!({})),
+    ]);
+    let by = |id: u64| -> std::collections::BTreeMap<String, (u64, u64, u64)> {
+        result(&a, id)["groups"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|g| {
+                let n = |k: &str| g[k].as_u64().unwrap();
+                (
+                    g["label"].as_str().unwrap().to_string(),
+                    (n("count"), n("bytes"), n("durationNs")),
+                )
+            })
+            .collect()
+    };
+    let r = result(&a, 2);
+    assert_eq!(
+        (
+            r["count"].as_u64(),
+            r["bytes"].as_u64(),
+            r["durationNs"].as_u64()
+        ),
+        (Some(4), Some(32_768), Some(131_000))
+    );
+    let procs = by(2);
+    assert_eq!(procs["app.exe (100)"], (3, 16_384, 31_000));
+    assert_eq!(procs["Unknown process"], (1, 16_384, 100_000));
+    let files = by(3);
+    assert_eq!(files[r"C:\a.dll"], (1, 4096, 20_000), "by a name event");
+    assert_eq!(files[r"C:\b.exe"], (1, 8192, 10_000), "by a create's path");
+    assert_eq!(files[r"C:\c.dat"].0, 1, "by the rundown after");
+    assert_eq!(files["Unknown file"].0, 1);
+    let threads = by(4);
+    assert_eq!(threads["200 in app.exe (100)"].0, 3);
+    assert_eq!(threads["Unknown thread"].0, 1);
+    // The longest, a limit of them.
+    let longest = result(&a, 4)["faults"].as_array().unwrap().clone();
+    assert_eq!(longest.len(), 2);
+    assert_eq!(
+        (
+            &longest[0]["durationNs"],
+            &longest[0]["file"],
+            &longest[0]["tid"],
+            &longest[0]["size"]
+        ),
+        (
+            &json!(100_000),
+            &json!(r"C:\c.dat"),
+            &Value::Null,
+            &json!(16_384)
+        )
+    );
+    assert_eq!(
+        (
+            &longest[1]["startNs"],
+            &longest[1]["offset"],
+            &longest[1]["address"]
+        ),
+        (&json!(10_000), &json!(0x1000), &json!("0x7ff000001000"))
+    );
+    // The most time first, and only as many groups as asked for.
+    let r = result(&a, 5);
+    assert_eq!(r["groupsTotal"], 4);
+    assert_eq!(r["groups"].as_array().unwrap().len(), 1);
+    assert_eq!(r["groups"][0]["label"], r"C:\c.dat");
+    // A time range: those started by 50 us.
+    assert_eq!(result(&a, 6)["count"], 2);
+    assert!(error(&a, 7).contains("by"), "{}", error(&a, 7));
+}

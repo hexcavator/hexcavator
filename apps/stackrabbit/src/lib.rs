@@ -16,6 +16,7 @@ pub mod disk;
 pub mod dpc;
 pub mod fileio;
 pub mod generic;
+pub mod hardfault;
 pub mod protocol;
 pub mod reading;
 pub mod regions;

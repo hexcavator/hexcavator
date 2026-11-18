@@ -46,10 +46,9 @@
     createTree();
     loadProcesses();
     loadFunctions();
-    loadDisk();
-    loadFileIo();
-    loadDpc();
-    loadRegistry();
+    for (const t of Object.values(summaryTabs)) {
+      t.load();
+    }
     if (listedKind) {
       loadEventList(listedKind);
     }
@@ -576,23 +575,70 @@
     }
   }
 
-  // Disk usage: totals grouped as chosen, and the heaviest I/Os, in the
-  // time selected. Loaded while the tab shows; otherwise when it next does.
+  // Summary tabs (disk, file I/O, DPC/ISR, registry, hard faults): a
+  // request's totals grouped as its tab's `<name>-by` chooses (the first
+  // 10,000, the most time first), and its longest or heaviest items, in
+  // the time selected. Loaded while the tab shows; otherwise when it next
+  // does. `spec`: {name, method, reading (the title while loading),
+  // groups and itemColumns (SortedTable columns), groupSort and itemSort,
+  // items (the answer's list, and its table's ID after the name), title(d,
+  // when) (the title, `when` saying of the time selected), also?(d)}.
+  const summaryTabs = {};
+  function summaryTab(spec) {
+    const groups = new SortedTable($(`${spec.name}-groups`), spec.groups, spec.groupSort);
+    const items = new SortedTable($(`${spec.name}-${spec.items}`), spec.itemColumns, spec.itemSort);
+    const t = { stale: true };
+    t.load = async () => {
+      if ($(`${spec.name}-pane`).classList.contains("hidden")) {
+        t.stale = true;
+        return;
+      }
+      t.stale = false;
+      const title = $(`${spec.name}-title`);
+      title.textContent = spec.reading;
+      try {
+        const params = { by: $(`${spec.name}-by`).value, limit: 1000, groupLimit: 10000 };
+        if (selection) {
+          params.time = selection;
+        }
+        const d = await request(spec.method, params);
+        const n = (v) => v.toLocaleString("en-US");
+        const shown =
+          d.groupsTotal > d.groups.length
+            ? ` (the ${n(d.groups.length)} groups that took longest of ${n(d.groupsTotal)})`
+            : "";
+        title.textContent = `${spec.title(d, selection ? " in the time selected" : "")}${shown}.`;
+        groups.set(d.groups);
+        items.set(d[spec.items]);
+        if (spec.also) {
+          spec.also(d);
+        }
+      } catch (e) {
+        title.textContent = e.message;
+      }
+    };
+    $(`${spec.name}-by`).addEventListener("change", t.load);
+    summaryTabs[spec.name] = t;
+  }
   const kb = (v) => (v / 1024).toLocaleString("en-US", { maximumFractionDigits: 1 });
-  const diskGroups = new SortedTable(
-    $("disk-groups"),
-    [
+  const us = (ns) => (ns / 1e3).toLocaleString("en-US", { maximumFractionDigits: 1 });
+  const count = (v) => v.toLocaleString("en-US");
+
+  // Disk usage, by I/O and disk service time.
+  summaryTab({
+    name: "disk",
+    method: "disk",
+    reading: "Reading the trace's disk I/O…",
+    groups: [
       { key: "label", title: "Group" },
       { key: "count", title: "I/Os", num: true, text: number(0) },
       { key: "bytes", title: "KB", num: true, text: kb },
       { key: "ioNs", title: "I/O time (ms)", num: true, text: ms },
       { key: "serviceNs", title: "Service time (ms)", num: true, text: ms },
     ],
-    { key: "serviceNs", down: true }
-  );
-  const diskIos = new SortedTable(
-    $("disk-ios"),
-    [
+    groupSort: { key: "serviceNs", down: true },
+    items: "ios",
+    itemColumns: [
       { key: "kind", title: "Type" },
       { key: "process", title: "Process" },
       { key: "tid", title: "TID", num: true },
@@ -603,47 +649,24 @@
       { key: "ioNs", title: "I/O time (ms)", num: true, text: ms },
       { key: "serviceNs", title: "Service time (ms)", num: true, text: ms },
     ],
-    { key: "serviceNs", down: true }
-  );
-  let diskStale = true;
-  async function loadDisk() {
-    if ($("disk-pane").classList.contains("hidden")) {
-      diskStale = true;
-      return;
-    }
-    diskStale = false;
-    $("disk-title").textContent = "Reading the trace's disk I/O…";
-    try {
-      const params = { by: $("disk-by").value, limit: 1000 };
-      if (selection) {
-        params.time = selection;
-      }
-      const d = await request("disk", params);
-      $("disk-title").textContent =
-        `${d.count.toLocaleString("en-US")} disk I/Os, ${kb(d.bytes)} KB${selection ? " in the time selected" : ""}.`;
-      diskGroups.set(d.groups);
-      diskIos.set(d.ios);
-    } catch (e) {
-      $("disk-title").textContent = e.message;
-    }
-  }
-  $("disk-by").addEventListener("change", loadDisk);
+    itemSort: { key: "serviceNs", down: true },
+    title: (d, when) => `${count(d.count)} disk I/Os, ${kb(d.bytes)} KB${when}`,
+  });
 
-  // File I/O: totals grouped as chosen, and the longest operations, in the
-  // time selected. Loaded while the tab shows; otherwise when it next does.
-  const fileGroups = new SortedTable(
-    $("fileio-groups"),
-    [
+  // File I/O, by duration (from each request to its end).
+  summaryTab({
+    name: "fileio",
+    method: "fileio",
+    reading: "Reading the trace's file I/O…",
+    groups: [
       { key: "label", title: "Group" },
       { key: "count", title: "Operations", num: true, text: number(0) },
       { key: "bytes", title: "KB", num: true, text: kb },
       { key: "durationNs", title: "Duration (ms)", num: true, text: ms },
     ],
-    { key: "durationNs", down: true }
-  );
-  const fileOps = new SortedTable(
-    $("fileio-ops"),
-    [
+    groupSort: { key: "durationNs", down: true },
+    items: "ops",
+    itemColumns: [
       { key: "op", title: "Operation" },
       { key: "process", title: "Process" },
       { key: "tid", title: "TID", num: true },
@@ -653,48 +676,13 @@
       { key: "durationNs", title: "Duration (ms)", num: true, text: ms },
       { key: "status", title: "Status" },
     ],
-    { key: "durationNs", down: true }
-  );
-  let fileStale = true;
-  async function loadFileIo() {
-    if ($("fileio-pane").classList.contains("hidden")) {
-      fileStale = true;
-      return;
-    }
-    fileStale = false;
-    $("fileio-title").textContent = "Reading the trace's file I/O…";
-    try {
-      const params = { by: $("fileio-by").value, limit: 1000 };
-      if (selection) {
-        params.time = selection;
-      }
-      const d = await request("fileio", params);
-      $("fileio-title").textContent =
-        `${d.count.toLocaleString("en-US")} file operations, ${kb(d.bytes)} KB read or written` +
-        `${selection ? " in the time selected" : ""}` +
-        `${d.unended ? ` (${d.unended.toLocaleString("en-US")} not ended in the trace)` : ""}.`;
-      fileGroups.set(d.groups);
-      fileOps.set(d.ops);
-    } catch (e) {
-      $("fileio-title").textContent = e.message;
-    }
-  }
-  $("fileio-by").addEventListener("change", loadFileIo);
+    itemSort: { key: "durationNs", down: true },
+    title: (d, when) =>
+      `${count(d.count)} file operations, ${kb(d.bytes)} KB read or written${when}` +
+      `${d.unended ? ` (${count(d.unended)} not ended in the trace)` : ""}`,
+  });
 
-  // DPCs and ISRs: totals grouped as chosen, how long they took, and the
-  // longest, in the time selected. Loaded while the tab shows; otherwise
-  // when it next does.
-  const us = (ns) => (ns / 1e3).toLocaleString("en-US", { maximumFractionDigits: 1 });
-  const dpcGroups = new SortedTable(
-    $("dpc-groups"),
-    [
-      { key: "label", title: "Group", cls: "cmd" },
-      { key: "count", title: "Count", num: true, text: number(0) },
-      { key: "durationNs", title: "Duration (ms)", num: true, text: ms },
-      { key: "maxNs", title: "Longest (µs)", num: true, text: us },
-    ],
-    { key: "durationNs", down: true }
-  );
+  // DPCs and ISRs, with how long they took.
   const BUCKET_TITLES = ["< 1 µs", "1–10 µs", "10–100 µs", "0.1–1 ms", "1–10 ms", "≥ 10 ms"];
   const dpcHistogram = new SortedTable(
     $("dpc-histogram"),
@@ -703,9 +691,19 @@
     ),
     { key: "type", down: false }
   );
-  const dpcRuns = new SortedTable(
-    $("dpc-runs"),
-    [
+  summaryTab({
+    name: "dpc",
+    method: "dpc",
+    reading: "Reading the trace's DPCs and ISRs…",
+    groups: [
+      { key: "label", title: "Group", cls: "cmd" },
+      { key: "count", title: "Count", num: true, text: number(0) },
+      { key: "durationNs", title: "Duration (ms)", num: true, text: ms },
+      { key: "maxNs", title: "Longest (µs)", num: true, text: us },
+    ],
+    groupSort: { key: "durationNs", down: true },
+    items: "runs",
+    itemColumns: [
       { key: "type", title: "Type" },
       { key: "function", title: "Function", cls: "cmd" },
       { key: "processor", title: "CPU", num: true },
@@ -713,90 +711,67 @@
       { key: "startNs", title: "Started", num: true, text: at("") },
       { key: "durationNs", title: "Duration (µs)", num: true, text: us },
     ],
-    { key: "durationNs", down: true }
-  );
-  let dpcStale = true;
-  async function loadDpc() {
-    if ($("dpc-pane").classList.contains("hidden")) {
-      dpcStale = true;
-      return;
-    }
-    dpcStale = false;
-    $("dpc-title").textContent = "Reading the trace's DPCs and ISRs…";
-    try {
-      const params = { by: $("dpc-by").value, limit: 1000 };
-      if (selection) {
-        params.time = selection;
-      }
-      const d = await request("dpc", params);
-      $("dpc-title").textContent =
-        `${d.count.toLocaleString("en-US")} DPCs and ISRs, ${ms(d.durationNs)} ms` +
-        `${selection ? " in the time selected" : ""}.`;
-      dpcGroups.set(d.groups);
+    itemSort: { key: "durationNs", down: true },
+    title: (d, when) => `${count(d.count)} DPCs and ISRs, ${ms(d.durationNs)} ms${when}`,
+    also: (d) =>
       dpcHistogram.set(
         d.histogram.map((h) => Object.fromEntries([["type", h.type]].concat(h.counts.map((n, i) => [`b${i}`, n]))))
-      );
-      dpcRuns.set(d.runs);
-    } catch (e) {
-      $("dpc-title").textContent = e.message;
-    }
-  }
-  $("dpc-by").addEventListener("change", loadDpc);
+      ),
+  });
 
-  // Registry: totals grouped as chosen, and the longest operations, in the
-  // time selected. Loaded while the tab shows; otherwise when it next does.
-  const registryGroups = new SortedTable(
-    $("registry-groups"),
-    [
+  // Registry operations, by duration.
+  summaryTab({
+    name: "registry",
+    method: "registry",
+    reading: "Reading the trace's registry operations…",
+    groups: [
       { key: "label", title: "Group", cls: "cmd" },
       { key: "count", title: "Operations", num: true, text: number(0) },
       { key: "failed", title: "Failed", num: true, text: number(0) },
       { key: "durationNs", title: "Duration (ms)", num: true, text: ms },
     ],
-    { key: "durationNs", down: true }
-  );
-  const registryOps = new SortedTable(
-    $("registry-ops"),
-    [
+    groupSort: { key: "durationNs", down: true },
+    items: "ops",
+    itemColumns: [
       { key: "op", title: "Operation" },
       { key: "process", title: "Process" },
       { key: "tid", title: "TID", num: true },
       { key: "key", title: "Key", cls: "cmd" },
       { key: "value", title: "Value", cls: "cmd" },
       { key: "startNs", title: "Started", num: true, text: at("") },
-      { key: "durationNs", title: "Duration (\u00b5s)", num: true, text: us },
+      { key: "durationNs", title: "Duration (µs)", num: true, text: us },
       { key: "status", title: "Status" },
     ],
-    { key: "durationNs", down: true }
-  );
-  let registryStale = true;
-  async function loadRegistry() {
-    if ($("registry-pane").classList.contains("hidden")) {
-      registryStale = true;
-      return;
-    }
-    registryStale = false;
-    $("registry-title").textContent = "Reading the trace's registry operations\u2026";
-    try {
-      const params = { by: $("registry-by").value, limit: 1000, groupLimit: 10000 };
-      if (selection) {
-        params.time = selection;
-      }
-      const d = await request("registry", params);
-      const shown =
-        d.groupsTotal > d.groups.length
-          ? ` (the ${d.groups.length.toLocaleString("en-US")} groups that took longest of ${d.groupsTotal.toLocaleString("en-US")})`
-          : "";
-      $("registry-title").textContent =
-        `${d.count.toLocaleString("en-US")} registry operations, ${d.failed.toLocaleString("en-US")} failed, ` +
-        `${ms(d.durationNs)} ms${selection ? " in the time selected" : ""}${shown}.`;
-      registryGroups.set(d.groups);
-      registryOps.set(d.ops);
-    } catch (e) {
-      $("registry-title").textContent = e.message;
-    }
-  }
-  $("registry-by").addEventListener("change", loadRegistry);
+    itemSort: { key: "durationNs", down: true },
+    title: (d, when) =>
+      `${count(d.count)} registry operations, ${count(d.failed)} failed, ${ms(d.durationNs)} ms${when}`,
+  });
+
+  // Hard faults, by duration (from each fault to its read's completion).
+  summaryTab({
+    name: "hardfaults",
+    method: "hardfaults",
+    reading: "Reading the trace's hard faults…",
+    groups: [
+      { key: "label", title: "Group", cls: "cmd" },
+      { key: "count", title: "Faults", num: true, text: number(0) },
+      { key: "bytes", title: "KB", num: true, text: kb },
+      { key: "durationNs", title: "Duration (ms)", num: true, text: ms },
+    ],
+    groupSort: { key: "durationNs", down: true },
+    items: "faults",
+    itemColumns: [
+      { key: "process", title: "Process" },
+      { key: "tid", title: "TID", num: true },
+      { key: "file", title: "File", cls: "cmd" },
+      { key: "offset", title: "Offset", num: true, text: (v) => `0x${v.toString(16)}` },
+      { key: "size", title: "KB", num: true, text: kb },
+      { key: "startNs", title: "Started", num: true, text: at("") },
+      { key: "durationNs", title: "Duration (µs)", num: true, text: us },
+    ],
+    itemSort: { key: "durationNs", down: true },
+    title: (d, when) => `${count(d.count)} hard faults, ${kb(d.bytes)} KB read, ${ms(d.durationNs)} ms${when}`,
+  });
 
   function showTab(name) {
     tab = name;
@@ -807,7 +782,7 @@
     if (name === "regions") {
       loadRegions();
     }
-    for (const t of ["stacks", "processes", "functions", "symbols", "events", "regions", "disk", "fileio", "dpc", "registry"]) {
+    for (const t of ["stacks", "processes", "functions", "symbols", "events", "regions", "disk", "fileio", "dpc", "registry", "hardfaults"]) {
       $(`tab-${t}`).classList.toggle("active", name === t);
       $(`${t}-pane`).classList.toggle("hidden", name !== t);
     }
@@ -821,17 +796,8 @@
       loadSymbols();
     }
     // (After the pane shows: it loads only if it does.)
-    if (name === "disk" && diskStale) {
-      loadDisk();
-    }
-    if (name === "fileio" && fileStale) {
-      loadFileIo();
-    }
-    if (name === "dpc" && dpcStale) {
-      loadDpc();
-    }
-    if (name === "registry" && registryStale) {
-      loadRegistry();
+    if (summaryTabs[name] && summaryTabs[name].stale) {
+      summaryTabs[name].load();
     }
   }
   $("tab-symbols").addEventListener("click", () => showTab("symbols"));
@@ -841,6 +807,7 @@
   $("tab-fileio").addEventListener("click", () => showTab("fileio"));
   $("tab-dpc").addEventListener("click", () => showTab("dpc"));
   $("tab-registry").addEventListener("click", () => showTab("registry"));
+  $("tab-hardfaults").addEventListener("click", () => showTab("hardfaults"));
   symbolsEl.addEventListener("click", () => showTab("symbols"));
   /**
    * The shown tab as Markdown, to the clipboard (by way of the extension):
@@ -958,7 +925,7 @@
     if (s.lit && typeof s.lit.fn === "string") {
       lit = { fn: s.lit.fn, label: String(s.lit.label || s.lit.fn) };
     }
-    if (["stacks", "processes", "functions", "symbols", "events", "regions", "disk", "fileio", "dpc", "registry"].includes(s.tab)) {
+    if (["stacks", "processes", "functions", "symbols", "events", "regions", "disk", "fileio", "dpc", "registry", "hardfaults"].includes(s.tab)) {
       showTab(s.tab);
     }
   }
