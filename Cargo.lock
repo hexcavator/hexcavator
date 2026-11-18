@@ -1065,6 +1065,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "stackrabbit"
+version = "0.0.6"
+dependencies = [
+ "hexcavator-core",
+ "hexcavator-etl",
+ "hexcavator-mmap",
+ "hexcavator-symbolize",
+ "hexcavator-trace",
+ "hexcavator-trace-analysis",
+ "hexcavator-trace-synth",
+ "rustc-hash",
+ "serde_json",
+]
+
+[[package]]
 name = "subtle"
 version = "2.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"

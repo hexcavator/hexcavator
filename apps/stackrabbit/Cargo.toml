@@ -1,0 +1,33 @@
+[package]
+name = "stackrabbit"
+description = "Stackrabbit: a fast performance trace viewer's engine; opens ETW traces and answers an editor's queries"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[lib]
+path = "src/lib.rs"
+# (No unit tests: the integration tests drive the library and the binary.)
+test = false
+
+[[bin]]
+name = "stackrabbit"
+path = "src/main.rs"
+test = false
+
+[dependencies]
+hexcavator-core.workspace = true
+hexcavator-mmap.workspace = true
+hexcavator-etl.workspace = true
+hexcavator-trace.workspace = true
+hexcavator-trace-analysis.workspace = true
+hexcavator-trace-synth.workspace = true
+hexcavator-symbolize.workspace = true
+rustc-hash.workspace = true
+serde_json.workspace = true
+
+[lints]
+workspace = true

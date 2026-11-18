@@ -1,0 +1,307 @@
+//! `stackrabbit serve`: the session an editor drives.
+//!
+//! Requests and responses are [`crate::protocol`] frames on standard input
+//! and output. Each open trace has a thread of its own, which owns the
+//! trace and its views and answers the requests about them in order;
+//! requests about different traces run at once, and opening a trace never
+//! holds up the others.
+//!
+//! Methods (parameters, then result):
+//!
+//! - `hello` → `{version}`.
+//! - `open` `{path, useIndex?}` → `{trace, summary, opened}`: `trace` names
+//!   it in the requests below.
+//! - `close` `{trace}` → `{}`.
+//! - `summary` `{trace}` → the trace's summary.
+//! - `tree.create` `{trace, source?, groupBy?, frames?, invert?, time?}` →
+//!   `{view, unit, root}`: a stack tree and its root row.
+//! - `tree.children` `{trace, view, node}` → `{rows}`: a node's children,
+//!   heaviest first.
+//! - `tree.hotPath` `{trace, view, node, fraction?}` → `{rows}`: the
+//!   heaviest path down from a node.
+//! - `tree.close` `{trace, view}` → `{}`.
+//! - `shutdown` → `{}`, then the engine exits.
+
+use std::collections::HashMap;
+use std::io::{self, Read, Write};
+use std::path::PathBuf;
+use std::process::ExitCode;
+use std::sync::mpsc::{Receiver, Sender, channel};
+use std::sync::{Arc, Mutex, PoisonError};
+use std::thread::JoinHandle;
+
+use hexcavator_symbolize::SymbolPath;
+use hexcavator_trace_analysis::{NodeId, PdbSymbolizer, Resolver};
+use serde_json::{Value, json};
+
+use crate::protocol::{Frame, read_frame, write_frame};
+use crate::store::{self, Loaded, Opened};
+use crate::views::{TreeSpec, TreeView, Unit, summary};
+
+const USAGE: &str = "\
+usage: stackrabbit serve
+
+Answers an editor's requests: frames on standard input, answers on standard output (see the
+protocol module). The Stackrabbit extension starts this.";
+
+/// Where responses go: shared by the threads that answer.
+pub type Output = Arc<Mutex<dyn Write + Send>>;
+
+/// Runs `stackrabbit serve`.
+pub fn run(args: &[String]) -> ExitCode {
+    if !args.is_empty() {
+        eprintln!("{USAGE}");
+        return ExitCode::from(2);
+    }
+    let out: Output = Arc::new(Mutex::new(io::stdout()));
+    match serve(io::stdin().lock(), &out) {
+        Ok(()) => ExitCode::SUCCESS,
+        Err(e) => {
+            eprintln!("stackrabbit serve: {e}");
+            ExitCode::FAILURE
+        }
+    }
+}
+
+/// A request for a trace's thread.
+struct Request {
+    id: Value,
+    method: String,
+    params: Value,
+}
+
+/// Answers the requests read from `input` on `out`, until `shutdown` or
+/// the end of the input; then waits for the traces' threads to finish.
+pub fn serve(mut input: impl Read, out: &Output) -> io::Result<()> {
+    let mut traces: HashMap<u64, Sender<Request>> = HashMap::new();
+    let mut threads: Vec<JoinHandle<()>> = Vec::new();
+    let mut next_trace = 1u64;
+    while let Some(frame) = read_frame(&mut input)? {
+        let id = frame.header.get("id").cloned().unwrap_or(Value::Null);
+        let Some(method) = frame.header.get("method").and_then(Value::as_str) else {
+            send(out, &json!({"id": id, "error": "a request needs a method"}));
+            continue;
+        };
+        let params = frame.header.get("params").cloned().unwrap_or(json!({}));
+        match method {
+            "hello" => send(
+                out,
+                &json!({"id": id, "result": {"version": env!("CARGO_PKG_VERSION")}}),
+            ),
+            "shutdown" => {
+                send(out, &json!({"id": id, "result": {}}));
+                break;
+            }
+            "open" => {
+                let Some(path) = params.get("path").and_then(Value::as_str) else {
+                    send(out, &json!({"id": id, "error": "open: expected a path"}));
+                    continue;
+                };
+                let options = store::Options {
+                    use_index: params
+                        .get("useIndex")
+                        .and_then(Value::as_bool)
+                        .unwrap_or(true),
+                    ..store::Options::default()
+                };
+                let trace = next_trace;
+                next_trace += 1;
+                let (tx, rx) = channel();
+                traces.insert(trace, tx);
+                let path = PathBuf::from(path);
+                let out = Arc::clone(out);
+                threads.push(std::thread::spawn(move || {
+                    worker(trace, &path, &options, &id, &rx, &out);
+                }));
+            }
+            "close" => {
+                let trace = params.get("trace").and_then(Value::as_u64);
+                match trace.and_then(|t| traces.remove(&t)) {
+                    // (Dropping the sender ends the trace's thread.)
+                    Some(_) => send(out, &json!({"id": id, "result": {}})),
+                    None => send(out, &json!({"id": id, "error": "close: no such trace"})),
+                }
+            }
+            _ => {
+                let trace = params.get("trace").and_then(Value::as_u64);
+                let Some(tx) = trace.and_then(|t| traces.get(&t)) else {
+                    send(
+                        out,
+                        &json!({"id": id, "error": format!("{method}: no such trace")}),
+                    );
+                    continue;
+                };
+                let request = Request {
+                    id: id.clone(),
+                    method: method.to_string(),
+                    params,
+                };
+                if tx.send(request).is_err() {
+                    send(
+                        out,
+                        &json!({"id": id, "error": format!("{method}: the trace is closed")}),
+                    );
+                }
+            }
+        }
+    }
+    traces.clear();
+    for t in threads {
+        let _ = t.join();
+    }
+    Ok(())
+}
+
+/// Writes a response. A response that can't be written means the editor
+/// is gone; the session ends when its input does.
+fn send(out: &Output, header: &Value) {
+    let mut w = out.lock().unwrap_or_else(PoisonError::into_inner);
+    let _ = write_frame(&mut *w, &Frame::new(header.clone()));
+}
+
+/// An open trace's state, owned by its thread.
+struct State {
+    loaded: Loaded,
+    resolver: Resolver,
+    symbols: PdbSymbolizer,
+    views: HashMap<u64, TreeView>,
+    next_view: u64,
+}
+
+/// A trace's thread: opens it, answers `open_id`, then answers the
+/// requests about it until the session closes it.
+fn worker(
+    trace: u64,
+    path: &std::path::Path,
+    options: &store::Options,
+    open_id: &Value,
+    rx: &Receiver<Request>,
+    out: &Output,
+) {
+    let loaded = match store::open(path, options) {
+        Ok(l) => l,
+        Err(e) => {
+            send(out, &json!({"id": open_id, "error": e}));
+            // Requests already sent for it get errors too.
+            for r in rx {
+                send(out, &json!({"id": r.id, "error": "the trace didn't open"}));
+            }
+            return;
+        }
+    };
+    let opened = match &loaded.opened {
+        Opened::Indexed { index, read } => json!({
+            "how": "index",
+            "index": index.display().to_string(),
+            "seconds": read.as_secs_f64(),
+        }),
+        Opened::Imported {
+            stats,
+            import,
+            index,
+        } => json!({
+            "how": "import",
+            "seconds": import.as_secs_f64(),
+            "events": stats.events,
+            "readErrors": stats.read_errors,
+            "decodeErrors": stats.decode_errors,
+            "stacksUnmatched": stats.stacks_unmatched,
+            "index": match index {
+                Ok((p, _)) => Value::String(p.display().to_string()),
+                Err(_) => Value::Null,
+            },
+        }),
+    };
+    let mut state = State {
+        resolver: Resolver::new(&loaded.trace),
+        symbols: PdbSymbolizer::new(SymbolPath::from_env()),
+        loaded,
+        views: HashMap::new(),
+        next_view: 1,
+    };
+    send(
+        out,
+        &json!({"id": open_id, "result": {
+            "trace": trace,
+            "summary": summary(&state.loaded.trace),
+            "opened": opened,
+        }}),
+    );
+    for r in rx {
+        let response = match state.handle(&r.method, &r.params) {
+            Ok(result) => json!({"id": r.id, "result": result}),
+            Err(e) => json!({"id": r.id, "error": format!("{}: {e}", r.method)}),
+        };
+        send(out, &response);
+    }
+}
+
+impl State {
+    fn handle(&mut self, method: &str, params: &Value) -> Result<Value, String> {
+        let trace = &self.loaded.trace;
+        match method {
+            "summary" => Ok(summary(trace)),
+            "tree.create" => {
+                let spec = TreeSpec::from_json(params)?;
+                let view = TreeView::build(trace, &self.resolver, &self.symbols, spec);
+                let root = view.row(trace, &self.symbols, NodeId::ROOT);
+                let id = self.next_view;
+                self.next_view += 1;
+                let unit = match view.unit {
+                    Unit::Samples => "samples",
+                    Unit::Ticks => "ticks",
+                };
+                self.views.insert(id, view);
+                Ok(json!({
+                    "view": id,
+                    "unit": unit,
+                    "ticksPerSecond": trace.clock.ticks_per_second,
+                    "sampleIntervalNs": trace.sample_interval_ns(),
+                    "root": root.to_json(),
+                }))
+            }
+            "tree.children" | "tree.hotPath" => {
+                let (view, node) = self.view_node(params)?;
+                let view = self.views.get_mut(&view).expect("checked");
+                let rows = if method == "tree.children" {
+                    view.children(trace, &self.symbols, node)
+                } else {
+                    let fraction = params
+                        .get("fraction")
+                        .and_then(Value::as_f64)
+                        .unwrap_or(0.1);
+                    view.hot_path(trace, &self.symbols, node, fraction)
+                };
+                Ok(json!({"rows": rows.iter().map(crate::views::Row::to_json).collect::<Vec<_>>()}))
+            }
+            "tree.close" => {
+                let view = params
+                    .get("view")
+                    .and_then(Value::as_u64)
+                    .ok_or("expected a view")?;
+                self.views.remove(&view).ok_or("no such view")?;
+                Ok(json!({}))
+            }
+            _ => Err("unknown method".to_string()),
+        }
+    }
+
+    /// A request's view and node, checked.
+    fn view_node(&self, params: &Value) -> Result<(u64, NodeId), String> {
+        let view = params
+            .get("view")
+            .and_then(Value::as_u64)
+            .ok_or("expected a view")?;
+        let node = params
+            .get("node")
+            .and_then(Value::as_u64)
+            .and_then(|n| u32::try_from(n).ok())
+            .ok_or("expected a node")?;
+        let v = self.views.get(&view).ok_or("no such view")?;
+        let node = NodeId(node);
+        if !v.has_node(node) {
+            return Err("no such node".to_string());
+        }
+        Ok((view, node))
+    }
+}
