@@ -378,3 +378,53 @@ fn time_by_source_line_is_every_samples_lines() {
     assert!(total > 0);
     assert_eq!(lines(&totals, unit, total, 1, None, 1)["unit"], "ticks");
 }
+
+#[test]
+fn a_functions_callers_and_callees_weigh_what_it_does() {
+    use hexcavator_trace_analysis::NodeId;
+    use stackrabbit::views::TreeView;
+    let dir = scratch("functions-focus");
+    let (path, s) = write_trace(&dir, "t.etl", &small());
+    let loaded = store::open(
+        &path,
+        &store::Options {
+            use_index: false,
+            cache_dir: None,
+        },
+    )
+    .unwrap();
+    let trace = &loaded.trace;
+    let resolver = Resolver::new(trace);
+    let symbols = TruthSymbols(&s.truth);
+    let f = functions(trace, &resolver, &symbols, &TreeSpec::default(), usize::MAX);
+    let mut checked = 0;
+    for row in f["functions"].as_array().unwrap() {
+        let id = row["fn"].as_str().unwrap();
+        for invert in [true, false] {
+            let spec = TreeSpec::from_json(&json!({"focus": id, "invert": invert})).unwrap();
+            let mut view = TreeView::build(trace, &resolver, &symbols, None, spec);
+            let root = view.row(trace, &symbols, NodeId::ROOT);
+            assert_eq!(
+                root.inclusive,
+                row["inclusive"].as_u64().unwrap(),
+                "{id} invert {invert}"
+            );
+            // One child: the function (its keys in every process as one).
+            let top = view.children(trace, &symbols, NodeId::ROOT);
+            assert_eq!(top.len(), 1, "{id}");
+            assert_eq!(top[0].label, row["label"].as_str().unwrap());
+            assert_eq!(top[0].inclusive, root.inclusive);
+            if !invert {
+                // Its callees: its self weight is its own.
+                assert_eq!(top[0].exclusive, row["exclusive"].as_u64().unwrap(), "{id}");
+            }
+        }
+        checked += 1;
+    }
+    assert!(checked > 20);
+    // A function not in the trace: an empty tree.
+    let spec = TreeSpec::from_json(&json!({"focus": "nothere.dll|10"})).unwrap();
+    let view = TreeView::build(trace, &resolver, &symbols, None, spec);
+    assert_eq!(view.row(trace, &symbols, NodeId::ROOT).inclusive, 0);
+    assert!(TreeSpec::from_json(&json!({"focus": 5})).is_err());
+}

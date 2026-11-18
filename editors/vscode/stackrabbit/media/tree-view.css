@@ -37,6 +37,39 @@ body {
   padding: 2px 10px;
   cursor: pointer;
 }
+.focus-bar {
+  padding: 4px 10px;
+  border-bottom: 1px solid var(--vscode-panel-border);
+}
+.focus-bar.hidden {
+  display: none;
+}
+#functions-pane {
+  position: relative;
+}
+.card {
+  position: absolute;
+  z-index: 10;
+  pointer-events: none;
+  max-width: 70%;
+  padding: 6px 10px;
+  background: var(--vscode-editorHoverWidget-background, #252526);
+  color: var(--vscode-editorHoverWidget-foreground, inherit);
+  border: 1px solid var(--vscode-editorHoverWidget-border, #454545);
+  font-size: 12px;
+}
+.card.hidden {
+  display: none;
+}
+.card .title {
+  color: var(--vscode-descriptionForeground);
+  margin-bottom: 2px;
+}
+.card .step {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .lost {
   color: var(--vscode-editorWarning-foreground, #cca700);
   padding: 0 10px;

@@ -247,10 +247,11 @@ function html(webview, media) {
 <div id="selection" class="selection">All of the trace. Drag across the graph to select a time range; double-click it to clear.</div>
 <div class="tabs"><button id="tab-stacks" class="tab active">Stacks</button><button id="tab-functions" class="tab">Functions</button><button id="tab-processes" class="tab">Processes</button><button id="tab-symbols" class="tab">Symbols</button></div>
 <div id="stacks-pane" class="pane">
+<div id="focus-bar" class="focus-bar hidden"><span id="focus-text"></span> <button id="focus-clear" title="The whole tree again">Show all</button></div>
 <div class="header"><span class="name">Stack</span><span class="num">Weight</span><span class="num">%</span><span class="num">Self</span></div>
 <div id="viewport" class="viewport" tabindex="0"><div id="spacer"></div><div id="rows"></div></div>
 </div>
-<div id="functions-pane" class="pane hidden"><div id="functions-title" class="threads-title"></div><table id="functions" class="processes"></table>
+<div id="functions-pane" class="pane hidden"><div id="card" class="card hidden"></div><div id="functions-title" class="threads-title"></div><table id="functions" class="processes"></table>
 <div class="threads-title">Modules</div><table id="modules" class="processes"></table></div>
 <div id="symbols-pane" class="pane hidden"><div id="symbols-title" class="threads-title"></div><table id="symbols-table" class="processes"></table>
 <div id="no-debug-title" class="threads-title"></div><table id="no-debug" class="processes"></table></div>

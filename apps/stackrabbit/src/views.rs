@@ -70,6 +70,9 @@ pub struct TreeSpec {
     pub invert: bool,
     /// Only events in `[start, end)` nanoseconds from the trace's start.
     pub time: Option<(i64, i64)>,
+    /// Only this function's (a row's `fn`) callees, or callers if
+    /// `invert`, from it (the grouping columns don't apply).
+    pub focus: Option<String>,
 }
 
 impl Default for TreeSpec {
@@ -80,6 +83,7 @@ impl Default for TreeSpec {
             frames: FrameMode::Function,
             invert: false,
             time: None,
+            focus: None,
         }
     }
 }
@@ -120,6 +124,15 @@ impl TreeSpec {
                 .ok_or("time: expected [start, end]")?;
             let n = |v: &Value| v.as_i64().ok_or("time: expected nanoseconds");
             spec.time = Some((n(&pair[0])?, n(&pair[1])?));
+        }
+        if let Some(f) = params.get("focus")
+            && !f.is_null()
+        {
+            spec.focus = Some(
+                f.as_str()
+                    .ok_or("focus: expected a function's ID")?
+                    .to_string(),
+            );
         }
         Ok(spec)
     }
@@ -493,10 +506,27 @@ impl TreeView {
         spec: TreeSpec,
     ) -> Self {
         let (instances, keys, unit, tag_names) = weighed(trace, resolver, symbols, tags, &spec);
-        let instances = if spec.invert {
-            instances.inverted()
-        } else {
-            instances
+        let instances = match &spec.focus {
+            // A function's callers (inverted) or callees: its keys (one a
+            // process) as one, at the root.
+            Some(id) => {
+                let focus: Vec<bool> = (0..keys.len())
+                    .map(|k| {
+                        let key = keys.get(KeyId(u32::try_from(k).expect("a key")));
+                        function_id(trace, key, spec.frames).as_deref() == Some(id.as_str())
+                    })
+                    .collect();
+                match focus.iter().position(|&f| f) {
+                    Some(first) => instances.focused(
+                        |k| focus.get(k.0 as usize).copied().unwrap_or(false),
+                        KeyId(u32::try_from(first).expect("a key")),
+                        spec.invert,
+                    ),
+                    None => Instances::new(0),
+                }
+            }
+            None if spec.invert => instances.inverted(),
+            None => instances,
         };
         Self {
             spec,

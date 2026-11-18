@@ -310,6 +310,7 @@ fn measure(path: &Path, symbols: bool) -> Result<Measured, String> {
             frames,
             invert: false,
             time: None,
+            focus: None,
         },
     );
     let top = by_process.children(&trace, symbolizer, NodeId::ROOT);
@@ -408,6 +409,7 @@ fn save_names(
             frames: FrameMode::Function,
             invert: false,
             time: None,
+            focus: None,
         },
     );
     view.children(trace, &seeded, NodeId::ROOT);

@@ -109,9 +109,14 @@ def answers(engine, path, spec, depth=4, limit=4000):
     functions = engine.request("functions", {"trace": trace, "source": "samples", "frames": "function"})
     lit = engine.request("graph", {"trace": trace, "buckets": 1000, "top": 8, "highlight": functions["functions"][1]["fn"]})
     symbols = engine.request("symbols", {"trace": trace, "wait": True})
+    # A function's callers, and their hot path (for the hover card).
+    heavy = functions["functions"][0]
+    focus_tree = engine.request("tree.create", {"trace": trace, "focus": heavy["fn"], "invert": True, "groupBy": []})
+    focus_hot = engine.request("tree.hotPath", {"trace": trace, "view": focus_tree["view"], "node": focus_tree["root"]["id"], "fraction": 0})
+    focus_tree = dict(focus_tree, view=99)
     # (The view's view IDs: its first tree is view 1 of its own.)
     tree = dict(tree, view=1)
-    return {"opened": opened, "tree": tree, "children": children, "hot": hot, "graph": graph, "processes": processes, "threads": threads, "functions": functions, "lit": lit, "symbols": symbols}
+    return {"opened": opened, "tree": tree, "children": children, "hot": hot, "graph": graph, "processes": processes, "threads": threads, "functions": functions, "lit": lit, "symbols": symbols, "focusTree": focus_tree, "focusHot": focus_hot}
 
 
 STUB = """
@@ -120,7 +125,9 @@ window.acquireVsCodeApi = function () {
   var A = ANSWERS;
   function answer(m) {
     var r = { type: "response", id: m.id };
-    if (m.method === "tree.create") r.result = A.tree;
+    if (m.method === "tree.create" && m.params.focus && A.focusTree) r.result = A.focusTree;
+    else if (m.method === "tree.create") r.result = A.tree;
+    else if (m.method === "tree.hotPath" && A.focusTree && m.params.view === A.focusTree.view) r.result = A.focusHot;
     else if (m.method === "tree.children" && A.children[m.params.node]) r.result = A.children[m.params.node];
     else if (m.method === "tree.hotPath" && A.hot[m.params.node]) r.result = A.hot[m.params.node];
     else if (m.method === "tree.close") r.result = {};
@@ -175,7 +182,7 @@ def read_body():
     return m.group(1)
 
 
-def render(data, then="", shot=None):
+def render(data, then="", shot=None, wait=500):
     """The page's DOM after `then` runs (and a screenshot, if asked).
 
     The page is served from a local server, and posts its DOM back to it
@@ -185,7 +192,7 @@ def render(data, then="", shot=None):
 
     got = {}
     done = threading.Event()
-    text = page(data, then + " setTimeout(function () { fetch('/dom', {method: 'POST', body: document.documentElement.outerHTML}); }, 500);")
+    text = page(data, then + " setTimeout(function () { fetch('/dom', {method: 'POST', body: document.documentElement.outerHTML}); }, " + str(wait) + ");")
 
     class Handler(http.server.BaseHTTPRequestHandler):
         def do_GET(self):
@@ -485,6 +492,24 @@ def main():
     dom = render(data, move + " c.dispatchEvent(new MouseEvent('mouseleave'));")
     tip = re.search(r'<div id="graph-tip" class="([^"]*)"', dom)
     assert "hidden" in tip.group(1), "gone when the mouse leaves"
+    # Double-clicking a function: the stacks, of its callers.
+    heavy = f["functions"][0]
+    dbl = ("document.getElementById('tab-functions').click();"
+           "setTimeout(function () { document.querySelector('#functions tbody tr').dispatchEvent(new MouseEvent('dblclick', {bubbles: true})); }, 50);")
+    dom = render(data, dbl, shot=shot("callers"))
+    posted = json.loads(html.unescape(re.search(r'<pre id="posted"[^>]*>(.*?)</pre>', dom, re.S).group(1)))
+    trees = [m["params"] for m in posted if m.get("method") == "tree.create"]
+    assert trees[-1].get("focus") == heavy["fn"] and trees[-1]["invert"] is True, trees[-1]
+    assert 'id="stacks-pane" class="pane"' in dom, "the stacks shown"
+    assert 'id="focus-bar" class="focus-bar"' in dom and f"Callers of {html.escape(heavy['label'])}" in dom, "the focus bar"
+    # Hovering a function: its hottest call path, in a card.
+    hover = ("document.getElementById('tab-functions').click();"
+             "setTimeout(function () { document.querySelector('#functions tbody td').dispatchEvent(new MouseEvent('mouseover', {bubbles: true})); }, 50);")
+    dom = render(data, hover, shot=shot("card"), wait=1000)
+    card = re.search(r'<div id="card" class="([^"]*)"[^>]*>(.*?)<div id="functions-title"', dom, re.S)
+    assert card and "hidden" not in card.group(1), "the card shows"
+    path = [html.unescape(x) for x in re.findall(r'<div class="step">(?:← )?([^<]*) <b>', card.group(2))]
+    assert path == [r["label"] for r in data["focusHot"]["rows"]], (path, data["focusHot"]["rows"])
     print("harness: ok")
 
 

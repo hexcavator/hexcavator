@@ -24,6 +24,8 @@
 
   let model = null;
   let selection = null; // [startNs, endNs], or null for all of it
+  // A function the stack tree is of (its callers, or callees): {fn, label}.
+  let focus = null;
   const selectionEl = $("selection");
   /** Says what is selected (a time range, or all of the trace). */
   function showSelection() {
@@ -138,6 +140,9 @@
     };
     if (selection) {
       s.time = selection;
+    }
+    if (focus) {
+      s.focus = focus.fn;
     }
     return s;
   }
@@ -502,6 +507,7 @@
         selection,
         lit,
         graphBy: $("graph-by").value,
+        focus,
       },
     });
   }
@@ -523,6 +529,10 @@
       graph.selection = selection;
       showSelection();
     }
+    if (s.focus && typeof s.focus.fn === "string") {
+      focus = { fn: s.focus.fn, label: String(s.focus.label || s.focus.fn) };
+      showFocus();
+    }
     if (["process", "thread"].includes(s.graphBy)) {
       $("graph-by").value = s.graphBy;
     }
@@ -531,6 +541,85 @@
     }
     if (["stacks", "processes", "functions", "symbols"].includes(s.tab)) {
       showTab(s.tab);
+    }
+  }
+
+  /** Says what the stack tree is of, if a function's callers or callees. */
+  function showFocus() {
+    $("focus-bar").classList.toggle("hidden", !focus);
+    if (focus) {
+      $("focus-text").textContent = `${controls.invert.checked ? "Callers" : "Callees"} of ${focus.label}`;
+    }
+  }
+
+  /** The stack tree of `row`'s function's callers (or none: null). */
+  function focusOn(row) {
+    focus = row && row.fn ? { fn: row.fn, label: row.label } : null;
+    if (focus) {
+      controls.invert.checked = true;
+      showTab("stacks");
+    }
+    showFocus();
+    saveState();
+    createTree();
+  }
+  $("focus-clear").addEventListener("click", () => focusOn(null));
+  controls.invert.addEventListener("change", showFocus);
+  // Double-clicking a function: its callers.
+  $("functions").addEventListener("dblclick", (e) => {
+    const tr = e.target.closest("tbody tr");
+    if (tr) {
+      focusOn(functionsTable.sorted[Number(tr.dataset.i)]);
+    }
+  });
+
+  // Hovering a function: a card with its hottest call path (the hot path
+  // of its callers' tree), after a moment.
+  const card = $("card");
+  let cardFor = null;
+  let cardTimer = null;
+  $("functions").addEventListener("mouseover", (e) => {
+    const tr = e.target.closest("tbody tr");
+    const row = tr && functionsTable.sorted[Number(tr.dataset.i)];
+    if (!row || row === cardFor) {
+      return;
+    }
+    cardFor = row;
+    clearTimeout(cardTimer);
+    card.classList.add("hidden");
+    cardTimer = setTimeout(() => showCard(row, tr), 400);
+  });
+  $("functions").addEventListener("mouseleave", () => {
+    cardFor = null;
+    clearTimeout(cardTimer);
+    card.classList.add("hidden");
+  });
+
+  async function showCard(row, tr) {
+    if (!row.fn) {
+      return;
+    }
+    try {
+      const s = { ...spec(), groupBy: [], focus: row.fn, invert: true };
+      const t = await request("tree.create", s);
+      const hot = await request("tree.hotPath", { view: t.view, node: t.root.id, fraction: 0 });
+      request("tree.close", { view: t.view }).catch(() => {});
+      if (cardFor !== row) {
+        return;
+      }
+      const total = t.root.inclusive || 1;
+      const steps = hot.rows.map(
+        (r, i) =>
+          `<div class="step">${i === 0 ? "" : "\u2190 "}${escape(r.label)} <b>${((100 * r.inclusive) / total).toFixed(1)}%</b></div>`
+      );
+      card.innerHTML = `<div class="title">Hottest call path to it (its callers, outward):</div>` + steps.join("");
+      card.classList.remove("hidden");
+      const pane = $("functions-pane");
+      const top = tr.offsetTop + tr.offsetHeight + 4 - pane.scrollTop;
+      card.style.top = `${top + pane.scrollTop}px`;
+      card.style.left = "40px";
+    } catch (e) {
+      // (A card is a nicety: no card.)
     }
   }
 

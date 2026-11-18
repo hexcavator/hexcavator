@@ -254,6 +254,44 @@ impl Instances {
         out
     }
 
+    /// A function's callers or callees, where the function is any key
+    /// `is_focus` holds for (one function can be a key in each process),
+    /// those keys all made `canonical`: for each instance whose frames
+    /// include it, `canonical` then its callers outward from its innermost
+    /// appearance (`callers`), or its callees inward from its outermost
+    /// (merging recursion either way). Grouping columns are dropped.
+    pub fn focused(
+        &self,
+        is_focus: impl Fn(KeyId) -> bool,
+        canonical: KeyId,
+        callers: bool,
+    ) -> Self {
+        let mut out = Self::new(0);
+        let mut buf = Vec::new();
+        for i in 0..self.len() {
+            let frames = &self.keys(i)[self.groups..];
+            let at = if callers {
+                frames.iter().rposition(|&k| is_focus(k))
+            } else {
+                frames.iter().position(|&k| is_focus(k))
+            };
+            let Some(at) = at else { continue };
+            buf.clear();
+            if callers {
+                buf.extend(frames[..=at].iter().rev());
+            } else {
+                buf.extend(&frames[at..]);
+            }
+            for k in &mut buf {
+                if is_focus(*k) {
+                    *k = canonical;
+                }
+            }
+            out.push_counted(&buf, self.weight(i), self.count(i));
+        }
+        out
+    }
+
     /// Only the instances for which `keep(keys)` holds.
     pub fn filtered(&self, mut keep: impl FnMut(&[KeyId]) -> bool) -> Self {
         let mut out = Self::new(self.groups);
