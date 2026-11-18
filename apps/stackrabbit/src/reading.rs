@@ -11,7 +11,7 @@ use hexcavator_etl::event::Event;
 use hexcavator_etl::{Buffer, Etl, Guid, merge::for_each_event};
 use hexcavator_etw::schema::Property;
 use hexcavator_mmap::Mmap;
-use hexcavator_trace::{ThreadIx, Trace};
+use hexcavator_trace::{ProcessIx, ThreadIx, Trace};
 use rustc_hash::FxHashMap;
 
 /// Buffers a worker reads at a time.
@@ -135,4 +135,21 @@ impl<'a> Threads<'a> {
         let i = alive.or_else(|| list.last().copied()).unwrap_or(usize::MAX);
         ThreadIx(u32::try_from(i).unwrap_or(u32::MAX))
     }
+}
+
+/// The process `pid` at `time`: the one alive then, else the last with
+/// that ID (none, if no process had it).
+pub fn process_at(trace: &Trace, pid: u32, time: i64) -> ProcessIx {
+    let mut last = ProcessIx::NONE;
+    for (i, p) in trace.processes.iter().enumerate() {
+        if p.pid != pid {
+            continue;
+        }
+        let ix = ProcessIx(u32::try_from(i).unwrap_or(u32::MAX));
+        if p.start.is_none_or(|s| s <= time) && p.end.is_none_or(|e| e >= time) {
+            return ix;
+        }
+        last = ix;
+    }
+    last
 }

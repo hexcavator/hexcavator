@@ -407,7 +407,7 @@ fn stacks_of(
     let mut out: Vec<Option<Vec<String>>> = vec![None; rows.len()];
     let mut framer_cache: FxHashMap<(ProcessIx, u64), String> = FxHashMap::default();
     for (row, _, pid, frames) in pieces {
-        let process = process_at(trace, pid, rows[row].timestamp);
+        let process = crate::reading::process_at(trace, pid, rows[row].timestamp);
         let stack = out[row].get_or_insert_with(Vec::new);
         for (j, f) in frames.into_iter().enumerate() {
             // (Return addresses, all but the innermost: looked up a byte
@@ -425,23 +425,6 @@ fn stacks_of(
         }
     }
     out
-}
-
-/// The process with ID `pid` at `time`: the one alive then, else the
-/// last with that ID.
-fn process_at(trace: &Trace, pid: u32, time: i64) -> ProcessIx {
-    let mut last = ProcessIx::NONE;
-    for (i, p) in trace.processes.iter().enumerate() {
-        if p.pid != pid {
-            continue;
-        }
-        let ix = ProcessIx(u32::try_from(i).unwrap_or(u32::MAX));
-        if p.start.is_none_or(|s| s <= time) && p.end.is_none_or(|e| e >= time) {
-            return ix;
-        }
-        last = ix;
-    }
-    last
 }
 
 /// A frame's text: its function (and offset in it), else its module and

@@ -49,6 +49,7 @@
     loadDisk();
     loadFileIo();
     loadDpc();
+    loadRegistry();
     if (listedKind) {
       loadEventList(listedKind);
     }
@@ -742,6 +743,61 @@
   }
   $("dpc-by").addEventListener("change", loadDpc);
 
+  // Registry: totals grouped as chosen, and the longest operations, in the
+  // time selected. Loaded while the tab shows; otherwise when it next does.
+  const registryGroups = new SortedTable(
+    $("registry-groups"),
+    [
+      { key: "label", title: "Group", cls: "cmd" },
+      { key: "count", title: "Operations", num: true, text: number(0) },
+      { key: "failed", title: "Failed", num: true, text: number(0) },
+      { key: "durationNs", title: "Duration (ms)", num: true, text: ms },
+    ],
+    { key: "durationNs", down: true }
+  );
+  const registryOps = new SortedTable(
+    $("registry-ops"),
+    [
+      { key: "op", title: "Operation" },
+      { key: "process", title: "Process" },
+      { key: "tid", title: "TID", num: true },
+      { key: "key", title: "Key", cls: "cmd" },
+      { key: "value", title: "Value", cls: "cmd" },
+      { key: "startNs", title: "Started", num: true, text: at("") },
+      { key: "durationNs", title: "Duration (\u00b5s)", num: true, text: us },
+      { key: "status", title: "Status" },
+    ],
+    { key: "durationNs", down: true }
+  );
+  let registryStale = true;
+  async function loadRegistry() {
+    if ($("registry-pane").classList.contains("hidden")) {
+      registryStale = true;
+      return;
+    }
+    registryStale = false;
+    $("registry-title").textContent = "Reading the trace's registry operations\u2026";
+    try {
+      const params = { by: $("registry-by").value, limit: 1000, groupLimit: 10000 };
+      if (selection) {
+        params.time = selection;
+      }
+      const d = await request("registry", params);
+      const shown =
+        d.groupsTotal > d.groups.length
+          ? ` (the ${d.groups.length.toLocaleString("en-US")} groups that took longest of ${d.groupsTotal.toLocaleString("en-US")})`
+          : "";
+      $("registry-title").textContent =
+        `${d.count.toLocaleString("en-US")} registry operations, ${d.failed.toLocaleString("en-US")} failed, ` +
+        `${ms(d.durationNs)} ms${selection ? " in the time selected" : ""}${shown}.`;
+      registryGroups.set(d.groups);
+      registryOps.set(d.ops);
+    } catch (e) {
+      $("registry-title").textContent = e.message;
+    }
+  }
+  $("registry-by").addEventListener("change", loadRegistry);
+
   function showTab(name) {
     tab = name;
     saveState();
@@ -751,7 +807,7 @@
     if (name === "regions") {
       loadRegions();
     }
-    for (const t of ["stacks", "processes", "functions", "symbols", "events", "regions", "disk", "fileio", "dpc"]) {
+    for (const t of ["stacks", "processes", "functions", "symbols", "events", "regions", "disk", "fileio", "dpc", "registry"]) {
       $(`tab-${t}`).classList.toggle("active", name === t);
       $(`${t}-pane`).classList.toggle("hidden", name !== t);
     }
@@ -774,6 +830,9 @@
     if (name === "dpc" && dpcStale) {
       loadDpc();
     }
+    if (name === "registry" && registryStale) {
+      loadRegistry();
+    }
   }
   $("tab-symbols").addEventListener("click", () => showTab("symbols"));
   $("tab-events").addEventListener("click", () => showTab("events"));
@@ -781,6 +840,7 @@
   $("tab-disk").addEventListener("click", () => showTab("disk"));
   $("tab-fileio").addEventListener("click", () => showTab("fileio"));
   $("tab-dpc").addEventListener("click", () => showTab("dpc"));
+  $("tab-registry").addEventListener("click", () => showTab("registry"));
   symbolsEl.addEventListener("click", () => showTab("symbols"));
   /**
    * The shown tab as Markdown, to the clipboard (by way of the extension):
@@ -898,7 +958,7 @@
     if (s.lit && typeof s.lit.fn === "string") {
       lit = { fn: s.lit.fn, label: String(s.lit.label || s.lit.fn) };
     }
-    if (["stacks", "processes", "functions", "symbols", "events", "regions", "disk", "fileio", "dpc"].includes(s.tab)) {
+    if (["stacks", "processes", "functions", "symbols", "events", "regions", "disk", "fileio", "dpc", "registry"].includes(s.tab)) {
       showTab(s.tab);
     }
   }

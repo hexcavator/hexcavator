@@ -1696,3 +1696,234 @@ fn dpcs_and_isrs_by_module_function_processor_and_type() {
     assert_eq!(result(&a, 6)["count"], 2);
     assert!(error(&a, 7).contains("by"), "{}", error(&a, 7));
 }
+
+/// A trace of registry events: `(opcode, end, start, status, KCB, name,
+/// thread, process)` each, after process 100 (app.exe) and its thread 200.
+type RegEvent<'a> = (u8, i64, u64, u32, u64, &'a str, u32, u32);
+
+fn registry_trace(dir: &std::path::Path, events: &[RegEvent<'_>]) -> std::path::PathBuf {
+    use hexcavator_etl::classic;
+    use hexcavator_etl::write::{self, Kernel, Writer, WriterOptions};
+    use hexcavator_etw::guids;
+    // A counter at 10 MHz: 100 ns a tick.
+    let mut w = Writer::new(WriterOptions {
+        processors: 1,
+        perf_freq: 10_000_000,
+        ..WriterOptions::default()
+    });
+    let mut kernel =
+        |provider, op: u8, version: u16, ts: i64, tid: u32, pid: u32, payload: Vec<u8>| {
+            let hook = classic::guid_group(&provider).unwrap() << 8 | u16::from(op);
+            let k = Kernel {
+                hook,
+                version,
+                thread_id: tid,
+                process_id: pid,
+                timestamp: ts,
+                ..Kernel::default()
+            };
+            w.record(0, &write::system(&k, true, &payload));
+        };
+    let utf16z = |p: &mut Vec<u8>, s: &str| {
+        for u in s.encode_utf16().chain([0]) {
+            p.extend_from_slice(&u.to_le_bytes());
+        }
+    };
+    kernel(guids::PROCESS, 3, 4, 1, u32::MAX, u32::MAX, {
+        let mut p = 0xaaaau64.to_le_bytes().to_vec();
+        for v in [100u32, 4, 1, 0] {
+            p.extend_from_slice(&v.to_le_bytes());
+        }
+        p.extend_from_slice(&[0; 16]);
+        p.extend_from_slice(b"app.exe\0");
+        utf16z(&mut p, "app.exe");
+        utf16z(&mut p, "");
+        utf16z(&mut p, "");
+        p
+    });
+    kernel(guids::THREAD, 3, 3, 2, u32::MAX, u32::MAX, {
+        let mut p = Vec::new();
+        for v in [100u32, 200] {
+            p.extend_from_slice(&v.to_le_bytes());
+        }
+        for v in [0u64, 0, 0, 0, 0, 0x1234, 0] {
+            p.extend_from_slice(&v.to_le_bytes());
+        }
+        p.extend_from_slice(&[0, 0, 0, 0, 8, 5, 2, 0]);
+        p
+    });
+    for &(op, end, start, status, kcb, name, tid, pid) in events {
+        let mut p = start.to_le_bytes().to_vec();
+        p.extend_from_slice(&status.to_le_bytes());
+        p.extend_from_slice(&0u32.to_le_bytes());
+        p.extend_from_slice(&kcb.to_le_bytes());
+        utf16z(&mut p, name);
+        kernel(guids::REGISTRY, op, 2, end, tid, pid, p);
+    }
+    let path = dir.join("t.etl");
+    std::fs::write(&path, w.finish()).unwrap();
+    path
+}
+
+#[test]
+fn registry_by_process_key_and_operation() {
+    let dir = scratch("serve-registry");
+    let (k1, k2) = (0xffff_a000_0000_1000u64, 0xffff_a000_0000_2000u64);
+    let none = u32::MAX;
+    let path = registry_trace(
+        &dir,
+        &[
+            // KCB 1 is SOFTWARE, then (deleted and made again) \REGISTRY\A.
+            (22, 5, 0, 0, k1, r"\REGISTRY\MACHINE\SOFTWARE", none, none),
+            // An open by a whole path (no KCB), of 1 us.
+            (11, 20, 10, 0, 0, r"\REGISTRY\USER\S-1", 200, 100),
+            // An open under KCB 1, of 2 us, that fails.
+            (11, 50, 30, 0xc000_0034, k1, r"Vendor\App", 200, 100),
+            // A value's query: the key is KCB 1's, the name the value's.
+            (16, 70, 60, 0, k1, "Version", 200, 100),
+            // A close of KCB 2, named only by the rundown at the end.
+            (27, 81, 80, 0, k2, "", 200, 100),
+            (23, 100, 0, 0, k1, r"\REGISTRY\MACHINE\SOFTWARE", none, none),
+            (22, 110, 0, 0, k1, r"\REGISTRY\A", none, none),
+            (13, 130, 120, 0, k1, "", 200, 100),
+            // A thread we don't know, of a process we do (by the header).
+            (13, 150, 140, 0, k2, "", 999, 100),
+            // A KCB never named, by a process we don't know.
+            (13, 165, 160, 0, 0xdead, "", 777, 777),
+            (25, 200, 0, 0, k2, r"\REGISTRY\MACHINE\SYSTEM", none, none),
+        ],
+    );
+    let req = |by: &str, extra: Value| {
+        let mut p = json!({"trace": 1, "by": by});
+        for (k, v) in extra.as_object().unwrap() {
+            p[k] = v.clone();
+        }
+        json!({"method": "registry", "params": p})
+    };
+    let a = session(&[
+        json!({"method": "open", "params": {"path": path, "useIndex": true}}),
+        req("operation", json!({})),
+        req("key", json!({})),
+        req("process", json!({"limit": 1})),
+        req("key", json!({"groupLimit": 2})),
+        req("operation", json!({"time": [0, 3_500]})),
+        req("nonsense", json!({})),
+    ]);
+    let by = |id: u64| -> std::collections::BTreeMap<String, (u64, u64, u64)> {
+        result(&a, id)["groups"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|g| {
+                let n = |k: &str| g[k].as_u64().unwrap();
+                (
+                    g["label"].as_str().unwrap().to_string(),
+                    (n("count"), n("failed"), n("durationNs")),
+                )
+            })
+            .collect()
+    };
+    let r = result(&a, 2);
+    assert_eq!(
+        (r["count"].as_u64(), r["failed"].as_u64()),
+        (Some(7), Some(1))
+    );
+    assert_eq!(
+        r["durationNs"],
+        1_000 + 2_000 + 1_000 + 100 + 1_000 + 1_000 + 500
+    );
+    let ops = by(2);
+    assert_eq!(ops["Open"], (2, 1, 3_000));
+    assert_eq!(ops["QueryValue"], (1, 0, 1_000));
+    assert_eq!(ops["Close"], (1, 0, 100));
+    assert_eq!(ops["Query"], (3, 0, 2_500));
+    let keys = by(3);
+    assert_eq!(
+        keys.keys().map(String::as_str).collect::<Vec<_>>(),
+        [
+            "Unknown key",
+            r"\REGISTRY\A",
+            r"\REGISTRY\MACHINE\SOFTWARE",
+            r"\REGISTRY\MACHINE\SOFTWARE\Vendor\App",
+            r"\REGISTRY\MACHINE\SYSTEM",
+            r"\REGISTRY\USER\S-1",
+        ]
+    );
+    assert_eq!(
+        keys[r"\REGISTRY\MACHINE\SYSTEM"].0, 2,
+        "named by the rundown after"
+    );
+    assert_eq!(keys[r"\REGISTRY\MACHINE\SOFTWARE"].0, 1, "the value's key");
+    assert_eq!(result(&a, 3)["groupsTotal"], 6);
+    let procs = by(4);
+    assert_eq!(procs["app.exe (100)"].0, 6);
+    assert_eq!(procs["Unknown process"].0, 1);
+    let longest = result(&a, 4)["ops"].as_array().unwrap().clone();
+    assert_eq!(longest.len(), 1);
+    assert_eq!(
+        (
+            &longest[0]["op"],
+            &longest[0]["durationNs"],
+            &longest[0]["status"],
+            &longest[0]["tid"]
+        ),
+        (
+            &json!("Open"),
+            &json!(2_000),
+            &json!("0xc0000034"),
+            &json!(200)
+        )
+    );
+    assert_eq!(longest[0]["key"], r"\REGISTRY\MACHINE\SOFTWARE\Vendor\App");
+    let value = result(&a, 2)["ops"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|o| o["op"] == "QueryValue")
+        .unwrap()
+        .clone();
+    assert_eq!(
+        (value["key"].as_str(), value["value"].as_str()),
+        (Some(r"\REGISTRY\MACHINE\SOFTWARE"), Some("Version"))
+    );
+    // The most time first, and only as many groups as asked for.
+    let r = result(&a, 5);
+    assert_eq!(
+        (
+            r["groups"].as_array().unwrap().len(),
+            r["groupsTotal"].as_u64()
+        ),
+        (2, Some(6))
+    );
+    assert_eq!(
+        r["groups"][0]["label"],
+        r"\REGISTRY\MACHINE\SOFTWARE\Vendor\App"
+    );
+    // A time range: those started by 3.5 us (the two opens).
+    assert_eq!(result(&a, 6)["count"], 2);
+    assert!(error(&a, 7).contains("by"), "{}", error(&a, 7));
+}
+
+#[test]
+fn answers_too_large_to_send_are_errors() {
+    let dir = scratch("serve-too-large");
+    // 30,000 keys of 600 characters: grouped by key, about 20 MB of
+    // answer, more than a frame's header may hold.
+    let names: Vec<String> = (0..30_000)
+        .map(|i| format!(r"\REGISTRY\{i:0>590}"))
+        .collect();
+    let events: Vec<RegEvent<'_>> = names
+        .iter()
+        .zip(10i64..)
+        .map(|(n, t)| (11, t, t.unsigned_abs(), 0, 0, n.as_str(), 200, 100))
+        .collect();
+    let path = registry_trace(&dir, &events);
+    let a = session(&[
+        json!({"method": "open", "params": {"path": path, "useIndex": true}}),
+        json!({"method": "registry", "params": {"trace": 1, "by": "key", "groupLimit": 100_000, "limit": 1}}),
+        // (And the session goes on.)
+        json!({"method": "registry", "params": {"trace": 1, "by": "operation"}}),
+    ]);
+    assert!(error(&a, 2).contains("too large"), "{}", error(&a, 2));
+    assert_eq!(result(&a, 3)["count"], 30_000);
+}

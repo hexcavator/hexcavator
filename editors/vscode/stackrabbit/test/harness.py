@@ -144,6 +144,7 @@ window.acquireVsCodeApi = function () {
     else if (m.method === "disk" && A.disk) r.result = A.disk;
     else if (m.method === "fileio" && A.fileio) r.result = A.fileio;
     else if (m.method === "dpc" && A.dpc) r.result = A.dpc;
+    else if (m.method === "registry" && A.registry) r.result = A.registry;
     else if (m.method === "regions") r.error = "regions: file: expected a regions file";
     else if (m.method === "events.list" && A.sampleKind && m.params.opcode === A.sampleKind.opcode && m.params.guid === A.sampleKind.guid) r.result = A.sampleList;
     else if (m.method === "events.list") r.result = A.eventList;
@@ -790,6 +791,28 @@ def main():
     cells = [re.findall(r'<td[^>]*>([^<]*)</td>', r) for r in hist_rows]
     assert cells == [["DPC", "0", "0", "0", "1", "1", "0"], ["ISR", "0", "1", "0", "0", "0", "0"]], cells
     assert "drv.sys!Work" in html.unescape(dom[dom.index('id="dpc-runs"'):])
+    # The registry tab: totals by the grouping chosen (and how many of all
+    # the groups), and the longest; changing the grouping asks again.
+    regd = json.loads(json.dumps(data))
+    regd["registry"] = {
+        "count": 5, "failed": 2, "durationNs": 2500000, "groupsTotal": 3,
+        "groups": [{"label": "app.exe (100)", "count": 3, "failed": 2, "durationNs": 2000000},
+                   {"label": "svc.exe (200)", "count": 2, "failed": 0, "durationNs": 500000}],
+        "ops": [{"op": "QueryValue", "process": "app.exe (100)", "tid": 7, "key": "\\REGISTRY\\MACHINE\\SOFTWARE\\App", "value": "Version",
+                 "startNs": 1000000, "durationNs": 1500000, "status": "0xc0000034"}],
+    }
+    change = ("document.getElementById('tab-registry').click();"
+              "setTimeout(function () { var b = document.getElementById('registry-by'); b.value = 'key'; b.dispatchEvent(new Event('change')); }, 100);")
+    dom = render(regd, change, shot=shot("registry"))
+    assert "5 registry operations, 2 failed, 2.5 ms (the 2 groups that took longest of 3)." in dom, "the registry title"
+    posted = json.loads(html.unescape(re.search(r'<pre id="posted"[^>]*>(.*?)</pre>', dom, re.S).group(1)))
+    asked = [m["params"]["by"] for m in posted if m.get("method") == "registry"]
+    assert asked == ["process", "key"], asked
+    table = dom[dom.index('id="registry-groups"'):dom.index('id="registry-ops"')]
+    labels = [html.unescape(x) for x in re.findall(r'<tr data-i="\d+"><td class="cmd">([^<]*)</td>', table)]
+    assert labels == ["app.exe (100)", "svc.exe (200)"], labels
+    rest = html.unescape(dom[dom.index('id="registry-ops"'):])
+    assert "\\REGISTRY\\MACHINE\\SOFTWARE\\App" in rest and "Version" in rest and "0xc0000034" in rest
     print("harness: ok")
 
 

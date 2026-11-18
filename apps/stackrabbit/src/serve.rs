@@ -55,6 +55,13 @@
 //!   most time first) and the `limit` (1000) longest, each `{op, startNs,
 //!   durationNs, status, size, process, tid, file}`. (Read from the trace
 //!   file the first time, then kept.)
+//! - `registry` `{trace, by?, time?, limit?, groupLimit?}` → `{count,
+//!   failed, durationNs, groupsTotal, groups, ops}`: the registry
+//!   operations started in `time`, totals by `by` (process, key or
+//!   operation: count, how many failed, total duration, the most time
+//!   first; the first `groupLimit` (10,000) of `groupsTotal`) and the
+//!   `limit` (1000) longest, each `{op, startNs, durationNs, status, process, tid, key,
+//!   value}`. (Read from the trace file the first time, then kept.)
 //! - `regions` `{trace, file}` → `{regions, instances, truncated}`: the
 //!   regions of interest a WPA regions file defines, and their instances
 //!   in the trace: each region `{name, displayName, parent, unsupported,
@@ -287,9 +294,24 @@ pub fn serve(mut input: impl Read, out: &Output) -> io::Result<()> {
 
 /// Writes a response. A response that can't be written means the editor
 /// is gone; the session ends when its input does.
+///
+/// An answer too large for a frame is an error answer instead (else its
+/// request would never be answered). (Nothing is written of a frame too
+/// large.)
 fn send(out: &Output, header: &Value) {
     let mut w = out.lock().unwrap_or_else(PoisonError::into_inner);
-    let _ = write_frame(&mut *w, &Frame::new(header.clone()));
+    if let Err(e) = write_frame(&mut *w, &Frame::new(header.clone()))
+        && e.kind() == std::io::ErrorKind::InvalidData
+        && let Some(id) = header.get("id")
+    {
+        let _ = write_frame(
+            &mut *w,
+            &Frame::new(json!({
+                "id": id,
+                "error": format!("the answer is too large to send ({e}): ask for less"),
+            })),
+        );
+    }
 }
 
 /// An open trace's state, owned by its thread.
@@ -308,6 +330,8 @@ struct State {
     disk: Option<Arc<crate::disk::DiskTable>>,
     /// The trace's file operations, once read.
     files: Option<Arc<crate::fileio::FileTable>>,
+    /// The trace's registry operations, once read.
+    registry: Option<Arc<crate::registry::RegistryTable>>,
     /// The trace's DPCs and ISRs, once read.
     dpcs: Option<Arc<crate::dpc::DpcTable>>,
     /// The last line totals worked out: for which (source, time), with
@@ -424,6 +448,7 @@ fn worker(
         disk: None,
         files: None,
         dpcs: None,
+        registry: None,
         report: SymbolsReport {
             frames: Arc::default(),
             saved: saved.iter().map(|(k, _)| *k).collect(),
@@ -878,6 +903,57 @@ impl State {
                     group,
                     time,
                     limit,
+                ))
+            }
+            "registry" => {
+                let spec = TreeSpec::from_json(params)?;
+                let group = match params.get("by").and_then(Value::as_str) {
+                    None | Some("process") => crate::registry::GroupBy::Process,
+                    Some("key") => crate::registry::GroupBy::Key,
+                    Some("operation") => crate::registry::GroupBy::Operation,
+                    Some(other) => {
+                        return Err(format!("by: process, key or operation, not {other}"));
+                    }
+                };
+                let limit = match params.get("limit") {
+                    None | Some(Value::Null) => 1000,
+                    Some(v) => v
+                        .as_u64()
+                        .and_then(|v| usize::try_from(v).ok())
+                        .ok_or("limit: expected a count")?,
+                };
+                let table = match &self.registry {
+                    Some(t) => Arc::clone(t),
+                    None => {
+                        let t = Arc::new(crate::registry::table(trace, &self.loaded.path)?);
+                        self.registry = Some(Arc::clone(&t));
+                        t
+                    }
+                };
+                let time = spec.time.map(|(s, e)| {
+                    let tps = i128::from(trace.clock.ticks_per_second.max(1));
+                    let t = |ns: i64| {
+                        i64::try_from(
+                            i128::from(trace.clock.origin) + i128::from(ns) * tps / 1_000_000_000,
+                        )
+                        .unwrap_or(i64::MAX)
+                    };
+                    (t(s), t(e))
+                });
+                let group_limit = match params.get("groupLimit") {
+                    None | Some(Value::Null) => 10_000,
+                    Some(v) => v
+                        .as_u64()
+                        .and_then(|v| usize::try_from(v).ok())
+                        .ok_or("groupLimit: expected a count")?,
+                };
+                Ok(crate::registry::summary(
+                    trace,
+                    &table,
+                    group,
+                    time,
+                    limit,
+                    group_limit,
                 ))
             }
             "fileio" => {

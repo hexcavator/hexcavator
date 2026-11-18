@@ -19,6 +19,7 @@ pub mod generic;
 pub mod protocol;
 pub mod reading;
 pub mod regions;
+pub mod registry;
 pub mod serve;
 pub mod store;
 pub mod symbols;
