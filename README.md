@@ -222,6 +222,7 @@ hexc size -disassemble main app.wasm      # one function's code (PE with its PDB
 hexc size -d compileunits -debug-file app.debug app  # DWARF in a separate file (a dSYM next to a Mach-O image is found)
 hexc size -d compileunits,symbols app.elf  # ELF compile units from DWARF; symbols demangled (fullsymbols, rawsymbols)
 hexc size -d symbols -source-filter '^std::' app  # only labels a regular expression matches
+hexc size -stripped -d symbols app.elf     # as if stripped: DWARF and .symtab name things but aren't counted
 hexc size -c project.bloaty app             # bloaty config files: custom sources rewriting labels
 hexc size -list-sources                    # sections, segments, groups, symbols, compileunits, ...
 hexc size -findings app.exe                # what wastes space (duplicate data, template bloat), with advice

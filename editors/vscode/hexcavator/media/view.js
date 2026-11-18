@@ -174,6 +174,19 @@
       el(
         "div",
         { class: "actions" },
+        // (As if stripped: the debug information and symbol tables still
+        // name things, but their bytes don't count. This page's alone.)
+        vscode && m.strippable
+          ? el(
+              "label",
+              {
+                class: "toggle stripped",
+                title: "Size the file as if it were stripped: its debug information and symbol tables (.debug_*, .symtab; the debug map; name) still name what is left, but their own bytes aren't counted. The file isn't changed. (This page only.)",
+              },
+              el("input", { type: "checkbox", checked: m.stripped ? true : undefined, onchange: (e) => post({ command: "stripped", on: e.target.checked }) }),
+              " Stripped"
+            )
+          : null,
         vscode ? el("button", { class: "icon", title: "Compare with another build…", onclick: () => post({ command: "compare" }) }, "⇄ Compare") : null,
         vscode ? el("button", { class: "icon", title: "Run hexc again", onclick: () => post({ command: "refresh" }) }, "⟳") : null,
         vscode ? el("button", { class: "icon", title: "Export the report", onclick: () => post({ command: "export" }) }, "⤓") : null

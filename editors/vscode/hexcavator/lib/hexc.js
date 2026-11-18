@@ -32,6 +32,18 @@ function quote(arg) {
   return '"' + s.replace(/(\\*)"/g, '$1$1\\"').replace(/(\\+)$/, "$1$1") + '"';
 }
 
+/** The formats a strip takes something from (`hexc size -stripped`). */
+const STRIPPABLE = ["elf", "macho", "wasm"];
+
+/**
+ * hexc's `args`, a size report's as if the file were stripped if
+ * `stripped` (a page's Stripped box): its debug information and symbol
+ * tables still name what is left, but their own bytes don't count.
+ */
+function withStripped(args, stripped) {
+  return stripped && args[0] === "size" && !args.includes("-stripped") ? ["size", "-stripped", ...args.slice(1)] : args;
+}
+
 /** The command line that runs hexc `exe` with `args`. */
 function commandLine(exe, args) {
   return [exe, ...args].map(quote).join(" ");
@@ -626,6 +638,8 @@ module.exports = {
   kindOf,
   quote,
   commandLine,
+  STRIPPABLE,
+  withStripped,
   nameIs,
   isPath,
   describeRow,

@@ -329,8 +329,8 @@ function showStatus(report) {
     }
     return (n < 0 ? "-" : report.diff && n > 0 ? "+" : "") + v.toFixed(u && v < 100 ? 1 : 0) + " " + units[u];
   };
-  status.text = `$(graph) ${f(t.file)} file · ${f(t.vm)} memory`;
-  status.tooltip = report.diff ? "Size change (Hexcavator)" : "Size (Hexcavator)";
+  status.text = `$(graph) ${f(t.file)} file · ${f(t.vm)} memory${report.stripped ? " (stripped)" : ""}`;
+  status.tooltip = (report.diff ? "Size change (Hexcavator)" : "Size (Hexcavator)") + (report.stripped ? ", as if stripped" : "");
   status.show();
 }
 
@@ -340,13 +340,14 @@ const panels = new Map();
 /** Wires a webview (a panel's or a custom editor's) to a report. */
 /** The table of a binary's labels for `sources` (hexc size -table): every
  * one but the source files' unless they're asked for, which are apart; with
- * `base`, a diff's (each row's change, and its base's sizes). */
-function tableArgs(file, sources, base) {
+ * `base`, a diff's (each row's change, and its base's sizes); as if
+ * stripped if `stripped`. */
+function tableArgs(file, sources, base, stripped) {
   const args = (sources || []).includes("sourcefiles") ? ["size", "-table", "-d", sources.join(","), file] : ["size", "-table", file];
   if (base) {
     args.push("--", base);
   }
-  return args;
+  return lib.withStripped(args, stripped);
 }
 
 function attach(context, webview, onDispose, file, base, at, kind) {
@@ -356,7 +357,8 @@ function attach(context, webview, onDispose, file, base, at, kind) {
   const first = kind === "sources" ? ["sourcefiles", "symbols"] : ["symbols"];
   const view = Object.assign({ sources: first, min: "", all: true }, context.globalState.get(viewKey) || {});
   view.all = true;
-  const state = { file, base, report: null, at, view, caps: null, names: false };
+  // (As if stripped: this page's own choice, its Stripped box; unchecked at first.)
+  const state = { file, base, report: null, at, view, caps: null, names: false, stripped: false };
   // What hexc says the file supports (its tools, its format), for the
   // page's menus and grouping chips.
   const capsOf = async () => {
@@ -391,11 +393,12 @@ function attach(context, webview, onDispose, file, base, at, kind) {
       const out = await paneRun(
         webview,
         state.base ? `Comparing ${name} with ${path.basename(state.base)}…` : `Reading ${name}…`,
-        tableArgs(state.file, state.view.sources, state.base)
+        tableArgs(state.file, state.view.sources, state.base, state.stripped)
       );
       state.table = JSON.parse(out);
       const t = state.table;
-      state.report = { diff: !!t.diff, total: { name: "TOTAL", file: t.file, vm: t.vm, old_file: t.old_file, old_vm: t.old_vm } };
+      const stripped = state.stripped;
+      state.report = { diff: !!t.diff, stripped, total: { name: "TOTAL", file: t.file, vm: t.vm, old_file: t.old_file, old_vm: t.old_vm } };
       const caps = await capsOf();
       webview.postMessage({
         kind: "report",
@@ -409,6 +412,9 @@ function attach(context, webview, onDispose, file, base, at, kind) {
         min: state.view.min || "",
         tools: caps && Array.isArray(caps.tools) ? caps.tools : undefined,
         format: caps && caps.format,
+        // (The Stripped box: for formats a strip takes something from.)
+        stripped,
+        strippable: !!caps && lib.STRIPPABLE.includes(caps.format),
       });
       showStatus(state.report);
       names();
@@ -469,7 +475,12 @@ function attach(context, webview, onDispose, file, base, at, kind) {
         break;
       }
       case "export":
-        await exportReport(state.file, state.base, state.view);
+        await exportReport(state.file, state.base, state.view, state.stripped);
+        break;
+      case "stripped":
+        // (This page only: it reads its file again.)
+        state.stripped = !!m.on;
+        await load(true);
         break;
       case "copy":
         await vscode.env.clipboard.writeText(m.text || "");
@@ -523,7 +534,7 @@ function openReport(context, file, base, at, kind) {
   view.load(false);
 }
 
-async function exportReport(file, base, view) {
+async function exportReport(file, base, view, stripped) {
   const choice = await vscode.window.showQuickPick(
     [
       { label: "CSV", description: "hexc size -csv", flag: "-csv", ext: "csv" },
@@ -543,7 +554,7 @@ async function exportReport(file, base, view) {
     return;
   }
   try {
-    const out = await withProgress(`hexc: exporting ${path.basename(file)}`, (cancel) => runHexc(sizeArgs(file, base, choice.flag, view), cancel));
+    const out = await withProgress(`hexc: exporting ${path.basename(file)}`, (cancel) => runHexc(lib.withStripped(sizeArgs(file, base, choice.flag, view), stripped), cancel));
     await vscode.workspace.fs.writeFile(target, Buffer.from(out, "utf8"));
     vscode.window.showInformationMessage(`Exported to ${target.fsPath}`);
   } catch (e) {
@@ -994,7 +1005,9 @@ class SizeEditor {
     panel.webview.html = pageHtml(panel.webview, this.context, `Size: ${path.basename(document.uri.fsPath)}`);
     const view = attach(this.context, panel.webview, null, document.uri.fsPath, null);
     panel.onDidChangeViewState((e) => showStatus(e.webviewPanel.active ? view.state.report : null));
-    panel.onDidDispose(() => showStatus(null));
+    panel.onDidDispose(() => {
+      showStatus(null);
+    });
     view.load(false);
   }
 }

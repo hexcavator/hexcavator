@@ -47,6 +47,7 @@ pub mod rsrc;
 pub mod sourcemap;
 pub mod sources;
 pub mod startup;
+pub mod strip;
 pub mod symbols;
 pub mod table;
 #[cfg(test)]
