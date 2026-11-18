@@ -927,6 +927,46 @@ def main():
     start = dom.index('id="memory-series"')
     series = dom[start:dom.index("</table>", start)]
     assert series.index("0.500 s") < series.index("1.000 s"), "in time order"
+    # A WPA profile (as the extension sends it, mapped): its graphs to pick
+    # from (those not shown disabled); picking one shows its table on its
+    # tab, grouped as its preset says, and what wasn't applied.
+    provider = data["events"]["rows"][[k["event"] for k in data["events"]["rows"]].index("SampleProf")]["provider"]
+    profile = {"type": "profile", "name": "Test.wpaProfile", "result": {"graphs": 4, "shown": 3, "views": [
+        {"title": "Disk", "graphs": [
+            {"table": "Disk Usage", "preset": "By Type", "tab": "disk", "params": {"by": "type"}, "applied": ["grouped by type"], "skipped": ["grouping further by Process"]},
+            {"table": "Images", "preset": "Images", "tab": None, "params": {}, "applied": [], "skipped": ["Images: Stackrabbit has no such table yet"]}]},
+        {"title": "CPU", "graphs": [
+            {"table": "CPU Usage (Precise)", "preset": "By Process, Thread, Tag", "tab": "stacks", "params": {"source": "running", "groupBy": ["process", "thread", "tag"]}, "applied": [], "skipped": []},
+            {"table": "Generic Events", "preset": "One provider", "tab": "events", "params": {"provider": provider}, "applied": [], "skipped": []}]}]}}
+    base = "window.postMessage(" + json.dumps(profile) + ", '*');"
+    pick = lambda i: base + f"setTimeout(function () {{ var s = document.getElementById('profile-graph'); s.value = '{i}'; s.dispatchEvent(new Event('change')); }}, 100);"
+    dom = render(data, pick(0), shot=shot("profile"))
+    bar = dom[dom.index('id="profile-bar"'):dom.index('id="disk-pane"')]
+    assert "hidden" not in bar[:bar.index(">")], "the bar shows"
+    assert "3 of 4 graphs shown: pick one" in bar
+    assert re.search(r'<option value="1" disabled[^>]*>Images: Images \(not shown\)</option>', html.unescape(bar)), bar[:600]
+    assert "Not applied: grouping further by Process." in html.unescape(bar)
+    posted = json.loads(html.unescape(re.search(r'<pre id="posted"[^>]*>(.*?)</pre>', dom, re.S).group(1)))
+    assert [m["params"]["by"] for m in posted if m.get("method") == "disk"][-1:] == ["type"]
+    assert re.search(r'<button id="tab-disk" class="tab active"', dom), "the disk tab shows"
+    # The precise CPU graph: the tree by its grouping (a new choice), from
+    # running time.
+    dom = render(data, pick(2))
+    posted = json.loads(html.unescape(re.search(r'<pre id="posted"[^>]*>(.*?)</pre>', dom, re.S).group(1)))
+    trees = [m["params"] for m in posted if m.get("method") == "tree.create"]
+    assert trees[-1]["source"] == "running" and trees[-1]["groupBy"] == ["process", "thread", "tag"], trees[-1]
+    assert '<option value="process,thread,tag">Process, thread, stack tag</option>' in dom
+    assert "Applied in full." in dom
+    # The events graph: its provider's most numerous kind, listed.
+    dom = render(data, pick(3), wait=800)
+    posted = json.loads(html.unescape(re.search(r'<pre id="posted"[^>]*>(.*?)</pre>', dom, re.S).group(1)))
+    listed = [m["params"] for m in posted if m.get("method") == "events.list"]
+    mine = sorted((k for k in data["events"]["rows"] if k["provider"] == provider), key=lambda k: -k["count"])[0]
+    assert listed and listed[-1]["guid"] == mine["guid"] and listed[-1]["opcode"] == mine["opcode"], listed
+    # Asking for a profile goes to the extension.
+    dom = render(data, "document.getElementById('profile-open').click();")
+    posted = json.loads(html.unescape(re.search(r'<pre id="posted"[^>]*>(.*?)</pre>', dom, re.S).group(1)))
+    assert {"type": "pickProfile"} in posted, posted[-3:]
     print("harness: ok")
 
 

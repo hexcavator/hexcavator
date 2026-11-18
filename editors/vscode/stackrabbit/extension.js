@@ -169,6 +169,25 @@ class TraceEditorProvider {
       } else if (m.type === "state") {
         // (Kept with the trace's path: it reopens where it was left.)
         this.context.globalState.update(stateKey, m.state);
+      } else if (m.type === "pickProfile") {
+        // A WPA profile, from WPA's catalog by default; its views mapped.
+        const catalog = "C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\Catalog";
+        const picked = await vscode.window.showOpenDialog({
+          canSelectMany: false,
+          openLabel: "Apply",
+          filters: { "WPA profiles": ["wpaProfile", "wpaprofile"] },
+          defaultUri: require("fs").existsSync(catalog) ? vscode.Uri.file(catalog) : undefined,
+        });
+        if (!picked || !picked.length) {
+          return;
+        }
+        const name = require("path").basename(picked[0].fsPath);
+        try {
+          const result = await session().request("profile", { path: picked[0].fsPath });
+          panel.webview.postMessage({ type: "profile", name, result });
+        } catch (e) {
+          panel.webview.postMessage({ type: "profile", name, error: e.message });
+        }
       } else if (m.type === "copy") {
         await vscode.env.clipboard.writeText(m.text);
         vscode.window.setStatusBarMessage(`Stackrabbit: copied ${m.what} as ${m.format || "Markdown"}`, 4000);
@@ -240,7 +259,7 @@ function html(webview, media) {
   </select></label>
   <button id="hot" title="Expand the hot path under the selected row (*)">Hot path</button>
   <button id="highlight" title="Highlight the selected row's function in the graph; again to stop (H)">Highlight</button>
-  <button id="copy" title="Copy as Markdown: the selected row and the rows open under it, or the tab's tables (Ctrl+C)">Copy</button><button id="copy-csv" title="Copy as CSV, values unformatted: the selected row and the rows open under it, or the tab's tables (Ctrl+Shift+C)">Copy CSV</button>
+  <button id="copy" title="Copy as Markdown: the selected row and the rows open under it, or the tab's tables (Ctrl+C)">Copy</button><button id="profile-open" title="Apply a WPA profile's views: each graph's table, grouped as its preset says (what can't be applied is listed)">Profile…</button><button id="copy-csv" title="Copy as CSV, values unformatted: the selected row and the rows open under it, or the tab's tables (Ctrl+Shift+C)">Copy CSV</button>
   <span id="symbols" class="symbols"></span>
   <span id="status" class="status"></span>
 </div>
@@ -257,6 +276,7 @@ function html(webview, media) {
 <div class="threads-title">Modules</div><table id="modules" class="processes"></table></div>
 <div id="symbols-pane" class="pane hidden"><div id="symbols-title" class="threads-title"></div><table id="symbols-table" class="processes"></table>
 <div id="no-debug-title" class="threads-title"></div><table id="no-debug" class="processes"></table></div>
+<div id="profile-bar" class="threads-title hidden"><span id="profile-name"></span> <select id="profile-graph"></select> <span id="profile-note"></span></div>
 <div id="disk-pane" class="pane hidden"><div class="threads-title"><span id="disk-title"></span> <label>Group by <select id="disk-by">
     <option value="process">Process</option><option value="file">File</option><option value="disk">Disk</option><option value="type">Type</option>
   </select></label></div><table id="disk-groups" class="processes"></table>

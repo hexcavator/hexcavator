@@ -2604,3 +2604,31 @@ fn csv_quotes_what_needs_it() {
     assert_eq!(to_csv(&[json!(1), json!("x")]), "value\r\n1\r\nx\r\n");
     assert_eq!(to_csv(&[]), "value\r\n");
 }
+
+#[test]
+fn profiles_are_mapped_without_a_trace() {
+    let dir = scratch("serve-profile");
+    let file = dir.join("p.wpaProfile");
+    std::fs::write(
+        &file,
+        r#"<WpaProfileContainer><Content><Views><View Title="Disk"><Graphs><Graph Guid="12C5387C-58CA-45D4-A5C6-450475C30E06"><Preset Name="By Disk" KeyColumnCount="1"><Columns><Column Name="Disk"/></Columns></Preset></Graph></Graphs></View></Views></Content></WpaProfileContainer>"#,
+    )
+    .unwrap();
+    let a = session(&[
+        json!({"method": "profile", "params": {"path": file}}),
+        json!({"method": "profile", "params": {"path": dir.join("missing.wpaProfile")}}),
+        json!({"method": "profile", "params": {}}),
+    ]);
+    let r = result(&a, 1);
+    assert_eq!(
+        (r["graphs"].as_u64(), r["shown"].as_u64()),
+        (Some(1), Some(1))
+    );
+    let g = &r["views"][0]["graphs"][0];
+    assert_eq!(
+        (&g["tab"], &g["params"]),
+        (&json!("disk"), &json!({"by": "disk"}))
+    );
+    assert!(error(&a, 2).contains("missing.wpaProfile"));
+    assert!(error(&a, 3).contains("path"));
+}

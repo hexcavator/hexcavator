@@ -94,6 +94,8 @@
     } else if (m.type === "failed") {
       statusEl.textContent = m.error;
       statusEl.classList.add("error");
+    } else if (m.type === "profile") {
+      showProfile(m);
     }
   });
 
@@ -973,6 +975,90 @@
     }
     vscode.postMessage({ type: "copy", text, what, format: csv ? "CSV" : "Markdown" });
   }
+  // WPA profiles: each graph of the profile's views, to pick; picking one
+  // shows its table on its tab, as its preset groups it, and says what of
+  // the preset couldn't be applied.
+  let profileGraphs = [];
+  function showProfile(m) {
+    $("profile-bar").classList.remove("hidden");
+    $("profile-name").textContent = `${m.name}:`;
+    const select = $("profile-graph");
+    select.textContent = "";
+    if (m.error) {
+      $("profile-note").textContent = m.error;
+      profileGraphs = [];
+      return;
+    }
+    profileGraphs = [];
+    const head = document.createElement("option");
+    head.value = "";
+    head.textContent = `${m.result.shown} of ${m.result.graphs} graphs shown: pick one`;
+    select.appendChild(head);
+    for (const v of m.result.views) {
+      const group = document.createElement("optgroup");
+      group.label = v.title || "(untitled)";
+      for (const g of v.graphs) {
+        const o = document.createElement("option");
+        o.value = String(profileGraphs.length);
+        o.textContent = `${g.table}: ${g.preset}` + (g.tab ? "" : " (not shown)");
+        o.disabled = !g.tab;
+        o.title = g.skipped.join("; ");
+        profileGraphs.push(g);
+        group.appendChild(o);
+      }
+      select.appendChild(group);
+    }
+    $("profile-note").textContent = "";
+  }
+  const GROUP_NAMES = { process: "process", thread: "thread", cpu: "processor", tag: "stack tag" };
+  async function applyGraph(g) {
+    const p = g.params || {};
+    if (g.tab === "stacks" || g.tab === "functions") {
+      if (p.source) {
+        controls.source.value = p.source;
+      }
+      if (p.groupBy) {
+        const value = p.groupBy.join(",");
+        if (![...controls.group.options].some((o) => o.value === value)) {
+          const o = document.createElement("option");
+          o.value = value;
+          const label = p.groupBy.map((x) => GROUP_NAMES[x] || x).join(", ");
+          o.textContent = label.charAt(0).toUpperCase() + label.slice(1);
+          controls.group.appendChild(o);
+        }
+        controls.group.value = value;
+      }
+      controls.source.dispatchEvent(new Event("change"));
+      controls.group.dispatchEvent(new Event("change"));
+      showTab(g.tab);
+    } else if (summaryTabs[g.tab]) {
+      if (p.by) {
+        $(`${g.tab}-by`).value = p.by;
+      }
+      showTab(g.tab);
+      summaryTabs[g.tab].load();
+    } else if (g.tab === "events") {
+      showTab("events");
+      await loadEvents();
+      // (One provider's events: its most numerous kind's, listed.)
+      const kind = p.provider ? eventsTable.rows.filter((r) => r.provider === p.provider).sort((a, b) => b.count - a.count)[0] : null;
+      if (kind) {
+        eventsTable.picked = kind.pick;
+        eventsTable.draw();
+        loadEventList(kind);
+      }
+    } else if (g.tab) {
+      showTab(g.tab);
+    }
+    $("profile-note").textContent = g.skipped.length ? `Not applied: ${g.skipped.join("; ")}.` : "Applied in full.";
+  }
+  $("profile-graph").addEventListener("change", () => {
+    const g = profileGraphs[Number($("profile-graph").value)];
+    if ($("profile-graph").value !== "" && g) {
+      applyGraph(g);
+    }
+  });
+  $("profile-open").addEventListener("click", () => vscode.postMessage({ type: "pickProfile" }));
   $("copy").addEventListener("click", () => copy(false));
   $("copy-csv").addEventListener("click", () => copy(true));
   $("highlight").addEventListener("click", () => {

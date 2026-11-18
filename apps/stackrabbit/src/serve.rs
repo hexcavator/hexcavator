@@ -9,6 +9,10 @@
 //! Methods (parameters, then result):
 //!
 //! - `hello` → `{version}`.
+//! - `profile` `{path}` → `{views, graphs, shown}`: a WPA profile
+//!   (`.wpaProfile`), each graph of each view mapped to the tab that shows
+//!   it: `{title, graphs: [{table, preset, tab, params, applied,
+//!   skipped}]}` (see the profile module). Needs no trace.
 //! - `open` `{path, useIndex?, symbolCache?, symbolServers?,
 //!   downloadSymbols?, stackTags?}` → `{trace, summary, opened, stackTags,
 //!   stackTagsError, savedSymbols}`: `stackTags` is a file of WPA's stack tags, for
@@ -232,6 +236,13 @@ pub fn serve(mut input: impl Read, out: &Output) -> io::Result<()> {
         };
         let params = frame.header.get("params").cloned().unwrap_or(json!({}));
         match method {
+            "profile" => match params.get("path").and_then(Value::as_str) {
+                Some(path) => match crate::profile::read(path) {
+                    Ok(r) => send(out, &json!({"id": id, "result": r})),
+                    Err(e) => send(out, &json!({"id": id, "error": e})),
+                },
+                None => send(out, &json!({"id": id, "error": "profile: expected a path"})),
+            },
             "hello" => send(
                 out,
                 &json!({"id": id, "result": {"version": env!("CARGO_PKG_VERSION")}}),
