@@ -615,6 +615,10 @@ fn metadata_table(traces: &[PathBuf]) -> ExitCode {
             }
             // Then every event they describe.
             let (mut exact, mut left, mut errors, mut undescribed) = (0u64, 0u64, 0u64, 0u64);
+            // Undescribed events by provider: by a kernel schema of their
+            // version, of an older version, or none.
+            let mut by_provider: std::collections::BTreeMap<String, [u64; 3]> =
+                std::collections::BTreeMap::new();
             // TraceLogging events, by their own schemas.
             let (mut tl_exact, mut tl_inexact, mut tl_unreadable) = (0u64, 0u64, 0u64);
             let mut why: std::collections::BTreeMap<String, u64> =
@@ -645,6 +649,20 @@ fn metadata_table(traces: &[PathBuf]) -> ExitCode {
                     }
                     let Some(info) = infos.get(e) else {
                         undescribed += 1;
+                        // The kernel's schemas, then nothing.
+                        let how = match hexcavator_etw::schema::lookup(
+                            &e.provider,
+                            e.descriptor.opcode,
+                            e.descriptor.version,
+                        ) {
+                            Some((_, true)) => 0,
+                            Some((_, false)) => 1,
+                            None => 2,
+                        };
+                        let c = by_provider
+                            .entry(e.provider.to_string())
+                            .or_insert([0u64; 3]);
+                        c[how] += 1;
                         return;
                     };
                     match info.decode(e) {
@@ -696,6 +714,20 @@ fn metadata_table(traces: &[PathBuf]) -> ExitCode {
             );
             if !why.is_empty() {
                 println!("    errors: {why:?}");
+            }
+            let kernel_exact: u64 = by_provider.values().map(|c| c[0]).sum();
+            let kernel_older: u64 = by_provider.values().map(|c| c[1]).sum();
+            let none: u64 = by_provider.values().map(|c| c[2]).sum();
+            println!(
+                "  undescribed: {kernel_exact} by a kernel schema of their version, {kernel_older} of an older one, {none} by nothing"
+            );
+            let mut worst: Vec<(&String, &[u64; 3])> = by_provider
+                .iter()
+                .filter(|(_, c)| c[1] + c[2] > 0)
+                .collect();
+            worst.sort_by(|a, b| (b.1[1] + b.1[2]).cmp(&(a.1[1] + a.1[2])));
+            for (g, c) in worst.iter().take(12) {
+                println!("    {g}: {} older-version, {} nothing", c[1], c[2]);
             }
             if tl_exact + tl_inexact + tl_unreadable > 0 {
                 println!(
