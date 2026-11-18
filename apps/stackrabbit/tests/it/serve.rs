@@ -1928,8 +1928,9 @@ fn answers_too_large_to_send_are_errors() {
     assert_eq!(result(&a, 3)["count"], 30_000);
 }
 
-/// A kernel event: `(provider, opcode, version, timestamp, payload)`.
-type KernelRecord = (hexcavator_etl::Guid, u8, u16, i64, Vec<u8>);
+/// A kernel event: `(provider, opcode, version, timestamp, payload,
+/// thread)`.
+type KernelRecord = (hexcavator_etl::Guid, u8, u16, i64, Vec<u8>, u32);
 
 /// A trace (a counter at 10 MHz: 100 ns a tick) of process 100 (app.exe)
 /// and its thread 200 (run down at the start), then `events`.
@@ -1960,17 +1961,17 @@ fn app_trace(dir: &std::path::Path, events: Vec<KernelRecord>) -> std::path::Pat
     }
     thread.extend_from_slice(&[0, 0, 0, 0, 8, 5, 2, 0]);
     let all = [
-        (guids::PROCESS, 3, 4, 1, process),
-        (guids::THREAD, 3, 3, 2, thread),
+        (guids::PROCESS, 3, 4, 1, process, u32::MAX),
+        (guids::THREAD, 3, 3, 2, thread, u32::MAX),
     ]
     .into_iter()
     .chain(events);
-    for (provider, op, version, ts, payload) in all {
+    for (provider, op, version, ts, payload, tid) in all {
         let hook = classic::guid_group(&provider).unwrap() << 8 | u16::from(op);
         let k = Kernel {
             hook,
             version,
-            thread_id: u32::MAX,
+            thread_id: tid,
             process_id: u32::MAX,
             timestamp: ts,
             ..Kernel::default()
@@ -1999,7 +2000,7 @@ fn hard_faults_by_process_file_and_thread() {
     let name = |op: u8, ts: i64, object: u64, path: &str| {
         let mut p = object.to_le_bytes().to_vec();
         p.extend_from_slice(&utf16z(path));
-        (guids::FILE_IO, op, 2, ts, p)
+        (guids::FILE_IO, op, 2, ts, p, u32::MAX)
     };
     let create = |ts: i64, object: u64, path: &str| {
         let mut p = 0xa1u64.to_le_bytes().to_vec();
@@ -2008,7 +2009,7 @@ fn hard_faults_by_process_file_and_thread() {
             p.extend_from_slice(&v.to_le_bytes());
         }
         p.extend_from_slice(&utf16z(path));
-        (guids::FILE_IO, 64, 3, ts, p)
+        (guids::FILE_IO, 64, 3, ts, p, u32::MAX)
     };
     // HardFault v2: start, offset, address, file object, thread, bytes.
     let fault = |start: u64, end: i64, object: u64, tid: u32, size: u32| {
@@ -2018,7 +2019,7 @@ fn hard_faults_by_process_file_and_thread() {
         }
         p.extend_from_slice(&tid.to_le_bytes());
         p.extend_from_slice(&size.to_le_bytes());
-        (guids::PAGE_FAULT, 32, 2, end, p)
+        (guids::PAGE_FAULT, 32, 2, end, p, u32::MAX)
     };
     let path = app_trace(
         &dir,
@@ -2116,4 +2117,132 @@ fn hard_faults_by_process_file_and_thread() {
     // A time range: those started by 50 us.
     assert_eq!(result(&a, 6)["count"], 2);
     assert!(error(&a, 7).contains("by"), "{}", error(&a, 7));
+}
+
+#[test]
+fn virtual_memory_commit_lifetimes() {
+    use hexcavator_etw::guids;
+    let dir = scratch("serve-vmem");
+    const COMMIT: u32 = 0x1000;
+    const RESERVE: u32 = 0x2000;
+    const DECOMMIT: u32 = 0x4000;
+    const RELEASE: u32 = 0x8000;
+    // VirtualAlloc (98) and VirtualFree (99) v2: base, size, process,
+    // flags; by thread 200.
+    let event = |op: u8, ts: i64, base: u64, size: u64, pid: u32, flags: u32| {
+        let mut p = base.to_le_bytes().to_vec();
+        p.extend_from_slice(&size.to_le_bytes());
+        p.extend_from_slice(&pid.to_le_bytes());
+        p.extend_from_slice(&flags.to_le_bytes());
+        (guids::PAGE_FAULT, op, 2, ts, p, 200)
+    };
+    let path = app_trace(
+        &dir,
+        vec![
+            // Reserve and commit 64 KB at 0x10000.
+            event(98, 10, 0x10000, 0x10000, 100, RESERVE | COMMIT),
+            // Commit 64 KB at 0x18000: only its last 32 KB are new.
+            event(98, 20, 0x18000, 0x10000, 100, COMMIT),
+            // Decommit 16 KB from the middle of the first.
+            event(99, 30, 0x14000, 0x4000, 100, DECOMMIT),
+            // Release the reservation (of no size: all of it): what's
+            // left of the first, not the second's new part.
+            event(99, 40, 0x10000, 0, 100, RELEASE),
+            // A commit in a process we don't know.
+            event(98, 50, 0x50000, 0x1000, 300, COMMIT),
+            // A reservation alone, and a decommit of what isn't committed.
+            event(98, 60, 0x90000, 0x1000, 100, RESERVE),
+            event(99, 70, 0xa0000, 0x1000, 100, DECOMMIT),
+        ],
+    );
+    let req = |by: &str, extra: Value| {
+        let mut p = json!({"trace": 1, "by": by});
+        for (k, v) in extra.as_object().unwrap() {
+            p[k] = v.clone();
+        }
+        json!({"method": "vmem", "params": p})
+    };
+    let a = session(&[
+        json!({"method": "open", "params": {"path": path, "useIndex": true}}),
+        req("process", json!({})),
+        req("thread", json!({"limit": 2})),
+        req("process", json!({"time": [0, 3_500]})),
+        req("process", json!({"groupLimit": 1})),
+        req("nonsense", json!({})),
+    ]);
+    let totals = |id: u64| {
+        let r = result(&a, id);
+        let n = |k: &str| r[k].as_u64().unwrap();
+        [
+            n("commits"),
+            n("committed"),
+            n("decommits"),
+            n("decommitted"),
+            n("outstanding"),
+        ]
+    };
+    let by = |id: u64| -> std::collections::BTreeMap<String, [u64; 5]> {
+        result(&a, id)["groups"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|g| {
+                let n = |k: &str| g[k].as_u64().unwrap();
+                (
+                    g["label"].as_str().unwrap().to_string(),
+                    [
+                        n("commits"),
+                        n("committed"),
+                        n("decommits"),
+                        n("decommitted"),
+                        n("outstanding"),
+                    ],
+                )
+            })
+            .collect()
+    };
+    // The lifetimes: 16 KB (decommitted at 30), 16 KB and 32 KB (released
+    // at 40), 32 KB and 4 KB (still committed).
+    assert_eq!(totals(2), [5, 0x19000, 3, 0x10000, 0x9000]);
+    let procs = by(2);
+    assert_eq!(procs["app.exe (100)"], [4, 0x18000, 3, 0x10000, 0x8000]);
+    assert_eq!(procs["Unknown process"], [1, 0x1000, 0, 0, 0x1000]);
+    assert_eq!(by(3)["200 in app.exe (100)"][0], 5);
+    // The largest, a limit of them (the earlier of two the same size
+    // first).
+    let largest = result(&a, 3)["lifetimes"].as_array().unwrap().clone();
+    assert_eq!(largest.len(), 2);
+    assert_eq!(
+        (
+            &largest[0]["base"],
+            &largest[0]["size"],
+            &largest[0]["commitNs"],
+            &largest[0]["decommitNs"],
+            &largest[0]["decommitTid"]
+        ),
+        (
+            &json!("0x18000"),
+            &json!(0x8000),
+            &json!(1_000),
+            &json!(4_000),
+            &json!(200)
+        )
+    );
+    assert_eq!(
+        (
+            &largest[1]["base"],
+            &largest[1]["decommitNs"],
+            &largest[1]["tid"]
+        ),
+        (&json!("0x20000"), &Value::Null, &json!(200))
+    );
+    // To 3.5 us: all of app.exe's commits and the first decommit; at its
+    // end, all but that still committed.
+    assert_eq!(totals(4), [4, 0x18000, 1, 0x4000, 0x14000]);
+    // The most still committed first, and only as many groups as asked.
+    let r = result(&a, 5);
+    assert_eq!(r["groupsTotal"], 2);
+    assert_eq!(r["groups"].as_array().unwrap().len(), 1);
+    assert_eq!(r["groups"][0]["label"], "app.exe (100)");
+    assert!(error(&a, 6).contains("by"), "{}", error(&a, 6));
 }

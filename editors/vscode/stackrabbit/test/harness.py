@@ -146,6 +146,7 @@ window.acquireVsCodeApi = function () {
     else if (m.method === "dpc" && A.dpc) r.result = A.dpc;
     else if (m.method === "registry" && A.registry) r.result = A.registry;
     else if (m.method === "hardfaults" && A.hardfaults) r.result = A.hardfaults;
+    else if (m.method === "vmem" && A.vmem) r.result = A.vmem;
     else if (m.method === "regions") r.error = "regions: file: expected a regions file";
     else if (m.method === "events.list" && A.sampleKind && m.params.opcode === A.sampleKind.opcode && m.params.guid === A.sampleKind.guid) r.result = A.sampleList;
     else if (m.method === "events.list") r.result = A.eventList;
@@ -836,6 +837,28 @@ def main():
     assert labels == ["C:\\a.dll", "C:\\b.exe"], labels
     rest = html.unescape(dom[dom.index('id="hardfaults-faults"'):])
     assert "0x2000" in rest and "700" in rest, "the offset and duration"
+    # The virtual memory tab: commits by the grouping chosen, and the
+    # largest lifetimes (one still committed).
+    vm = json.loads(json.dumps(data))
+    vm["vmem"] = {
+        "commits": 3, "committed": 3145728, "decommits": 1, "decommitted": 1048576, "outstanding": 2097152,
+        "groupsTotal": 2,
+        "groups": [{"label": "app.exe (100)", "commits": 2, "committed": 2097152, "decommits": 1, "decommitted": 1048576, "outstanding": 1048576},
+                   {"label": "svc.exe (200)", "commits": 1, "committed": 1048576, "decommits": 0, "decommitted": 0, "outstanding": 1048576}],
+        "lifetimes": [{"process": "app.exe (100)", "tid": 7, "base": "0x10000", "size": 1048576, "commitNs": 1000000, "decommitNs": None, "decommitTid": None}],
+    }
+    change = ("document.getElementById('tab-vmem').click();"
+              "setTimeout(function () { var b = document.getElementById('vmem-by'); b.value = 'thread'; b.dispatchEvent(new Event('change')); }, 100);")
+    dom = render(vm, change, shot=shot("vmem"))
+    assert "3 commits (3 MB) and 1 decommits (1 MB); 2 MB of it still committed at the end." in dom, "the vmem title"
+    posted = json.loads(html.unescape(re.search(r'<pre id="posted"[^>]*>(.*?)</pre>', dom, re.S).group(1)))
+    asked = [m["params"]["by"] for m in posted if m.get("method") == "vmem"]
+    assert asked == ["process", "thread"], asked
+    table = dom[dom.index('id="vmem-groups"'):dom.index('id="vmem-lifetimes"')]
+    labels = [html.unescape(x) for x in re.findall(r'<tr data-i="\d+"><td class="cmd">([^<]*)</td>', table)]
+    assert labels == ["app.exe (100)", "svc.exe (200)"], labels
+    rest = html.unescape(dom[dom.index('id="vmem-lifetimes"'):])
+    assert "0x10000" in rest and "still committed" in rest
     print("harness: ok")
 
 

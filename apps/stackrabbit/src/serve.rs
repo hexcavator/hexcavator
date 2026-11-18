@@ -62,6 +62,16 @@
 //!   (10,000) of `groupsTotal`) and the `limit` (1000) longest, each
 //!   `{startNs, durationNs, size, offset, address, process, tid, file}`.
 //!   (Read from the trace file the first time, then kept.)
+//! - `vmem` `{trace, by?, time?, limit?, groupLimit?}` → `{commits,
+//!   committed, decommits, decommitted, outstanding, groupsTotal, groups,
+//!   lifetimes}`: virtual memory commit lifetimes; by `by` (process or
+//!   thread), how many and how many bytes were committed and decommitted
+//!   in `time` (all of the trace if none), and how many bytes of what was
+//!   committed in it are still committed at its end (`outstanding`; the
+//!   most first, the first `groupLimit` (10,000) of `groupsTotal`); and
+//!   the `limit` (1000) largest lifetimes committed in it, each
+//!   `{process, tid, base, size, commitNs, decommitNs, decommitTid}`.
+//!   (Read from the trace file the first time, then kept.)
 //! - `registry` `{trace, by?, time?, limit?, groupLimit?}` → `{count,
 //!   failed, durationNs, groupsTotal, groups, ops}`: the registry
 //!   operations started in `time`, totals by `by` (process, key or
@@ -361,6 +371,8 @@ struct State {
     disk: Option<Arc<crate::disk::DiskTable>>,
     /// The trace's file operations, once read.
     files: Option<Arc<crate::fileio::FileTable>>,
+    /// The trace's commit lifetimes, once read.
+    vmem: Option<Arc<crate::vmem::VmemTable>>,
     /// The trace's hard faults, once read.
     faults: Option<Arc<crate::hardfault::FaultTable>>,
     /// The trace's registry operations, once read.
@@ -483,6 +495,7 @@ fn worker(
         dpcs: None,
         registry: None,
         faults: None,
+        vmem: None,
         report: SymbolsReport {
             frames: Arc::default(),
             saved: saved.iter().map(|(k, _)| *k).collect(),
@@ -915,6 +928,32 @@ impl State {
                     }
                 };
                 Ok(crate::hardfault::summary(
+                    trace,
+                    &table,
+                    group,
+                    ticks(trace, spec.time),
+                    limit,
+                    group_limit,
+                ))
+            }
+            "vmem" => {
+                let spec = TreeSpec::from_json(params)?;
+                let group = match params.get("by").and_then(Value::as_str) {
+                    None | Some("process") => crate::vmem::GroupBy::Process,
+                    Some("thread") => crate::vmem::GroupBy::Thread,
+                    Some(other) => return Err(format!("by: process or thread, not {other}")),
+                };
+                let limit = count(params, "limit", 1000)?;
+                let group_limit = count(params, "groupLimit", 10_000)?;
+                let table = match &self.vmem {
+                    Some(t) => Arc::clone(t),
+                    None => {
+                        let t = Arc::new(crate::vmem::table(trace, &self.loaded.path)?);
+                        self.vmem = Some(Arc::clone(&t));
+                        t
+                    }
+                };
+                Ok(crate::vmem::summary(
                     trace,
                     &table,
                     group,

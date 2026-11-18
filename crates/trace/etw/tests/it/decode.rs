@@ -749,3 +749,36 @@ fn file_reads_and_writes_may_be_padded() {
         assert_eq!(properties_of(guids::FILE_IO, op, 3, more).2, [0, 0]);
     }
 }
+
+#[test]
+fn page_faults_and_virtual_allocations() {
+    let fault = P::default().u64(0x7ff0_0000_1000).u64(0x7ff0_0000_2000).0;
+    let kinds = [
+        (10, "TransitionFault"),
+        (11, "DemandZeroFault"),
+        (12, "CopyOnWrite"),
+        (13, "GuardPageFault"),
+        (14, "HardPageFault"),
+        (15, "AccessViolation"),
+    ];
+    for (op, want) in kinds {
+        let (name, props, rest) = properties_of(guids::PAGE_FAULT, op, 2, fault.clone());
+        assert_eq!((name.as_str(), rest.len()), (want, 0));
+        assert_eq!(props[0].0, "VirtualAddress");
+        assert_eq!(
+            props[1],
+            (
+                "ProgramCounter".to_string(),
+                0x7ff0_0000_2000u64.to_le_bytes().to_vec()
+            )
+        );
+    }
+    let alloc = P::default().u64(0x10000).u64(0x2000).u32(100).u32(0x3000).0;
+    for (op, want) in [(98, "VirtualAlloc"), (99, "VirtualFree")] {
+        let (name, props, rest) = properties_of(guids::PAGE_FAULT, op, 2, alloc.clone());
+        assert_eq!((name.as_str(), rest.len()), (want, 0));
+        let names: Vec<&str> = props.iter().map(|(n, _)| n.as_str()).collect();
+        assert_eq!(names, ["BaseAddress", "RegionSize", "ProcessId", "Flags"]);
+        assert_eq!(props[3].1, 0x3000u32.to_le_bytes());
+    }
+}

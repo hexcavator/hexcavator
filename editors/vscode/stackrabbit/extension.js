@@ -10,7 +10,7 @@ const { Session } = require("./lib/protocol");
 const { LineHeat } = require("./lib/line-heat");
 
 /** The requests a view may make of the engine about its trace. */
-const VIEW_METHODS = new Set(["summary", "graph", "processes", "threads", "functions", "symbols", "events", "events.list", "regions", "disk", "fileio", "dpc", "registry", "hardfaults", "tree.create", "tree.children", "tree.hotPath", "tree.close"]);
+const VIEW_METHODS = new Set(["summary", "graph", "processes", "threads", "functions", "symbols", "events", "events.list", "regions", "disk", "fileio", "dpc", "registry", "hardfaults", "vmem", "tree.create", "tree.children", "tree.hotPath", "tree.close"]);
 
 let channel;
 
@@ -247,7 +247,7 @@ function html(webview, media) {
 <div class="graph"><canvas id="graph"></canvas><div id="graph-tip" class="graph-tip hidden"></div><div id="legend" class="legend"></div></div>
 <div id="lost" class="lost"></div>
 <div id="selection" class="selection">All of the trace. Drag across the graph to select a time range; double-click it to clear.</div>
-<div class="tabs"><button id="tab-stacks" class="tab active">Stacks</button><button id="tab-functions" class="tab">Functions</button><button id="tab-processes" class="tab">Processes</button><button id="tab-symbols" class="tab">Symbols</button><button id="tab-events" class="tab">Events</button><button id="tab-regions" class="tab">Regions</button><button id="tab-disk" class="tab">Disk</button><button id="tab-fileio" class="tab">File I/O</button><button id="tab-dpc" class="tab">DPC/ISR</button><button id="tab-registry" class="tab">Registry</button><button id="tab-hardfaults" class="tab">Hard Faults</button></div>
+<div class="tabs"><button id="tab-stacks" class="tab active">Stacks</button><button id="tab-functions" class="tab">Functions</button><button id="tab-processes" class="tab">Processes</button><button id="tab-symbols" class="tab">Symbols</button><button id="tab-events" class="tab">Events</button><button id="tab-regions" class="tab">Regions</button><button id="tab-disk" class="tab">Disk</button><button id="tab-fileio" class="tab">File I/O</button><button id="tab-dpc" class="tab">DPC/ISR</button><button id="tab-registry" class="tab">Registry</button><button id="tab-hardfaults" class="tab">Hard Faults</button><button id="tab-vmem" class="tab">Virtual Memory</button></div>
 <div id="stacks-pane" class="pane">
 <div id="focus-bar" class="focus-bar hidden"><span id="focus-text"></span> <button id="focus-clear" title="The whole tree again">Show all</button></div>
 <div class="header"><span class="name">Stack</span><span class="num">Weight</span><span class="num">%</span><span class="num">Self</span></div>
@@ -278,6 +278,10 @@ function html(webview, media) {
     <option value="process">Process</option><option value="file">File</option><option value="thread">Thread</option>
   </select></label></div><table id="hardfaults-groups" class="processes"></table>
 <div class="threads-title">The longest hard faults</div><table id="hardfaults-faults" class="processes"></table></div>
+<div id="vmem-pane" class="pane hidden"><div class="threads-title"><span id="vmem-title"></span> <label>Group by <select id="vmem-by">
+    <option value="process">Process</option><option value="thread">Thread</option>
+  </select></label></div><table id="vmem-groups" class="processes"></table>
+<div class="threads-title">The largest commits</div><table id="vmem-lifetimes" class="processes"></table></div>
 <div id="regions-pane" class="pane hidden"><div id="regions-title" class="threads-title"></div><table id="regions" class="processes"></table>
 <div id="region-instances-title" class="threads-title"></div><table id="region-instances" class="processes"></table></div>
 <div id="events-pane" class="pane hidden"><div id="events-title" class="threads-title"></div><table id="events" class="processes"></table>

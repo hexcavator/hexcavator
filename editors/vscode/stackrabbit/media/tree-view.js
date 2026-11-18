@@ -747,6 +747,37 @@
       `${count(d.count)} registry operations, ${count(d.failed)} failed, ${ms(d.durationNs)} ms${when}`,
   });
 
+  // Virtual memory: what was committed and decommitted in the time
+  // selected, and what of it is still committed at its end.
+  const mb = (v) => (v / 1048576).toLocaleString("en-US", { maximumFractionDigits: 1 });
+  summaryTab({
+    name: "vmem",
+    method: "vmem",
+    reading: "Reading the trace's virtual memory\u2026",
+    groups: [
+      { key: "label", title: "Group", cls: "cmd" },
+      { key: "commits", title: "Commits", num: true, text: number(0) },
+      { key: "committed", title: "Committed (MB)", num: true, text: mb },
+      { key: "decommits", title: "Decommits", num: true, text: number(0) },
+      { key: "decommitted", title: "Decommitted (MB)", num: true, text: mb },
+      { key: "outstanding", title: "Still committed (MB)", num: true, text: mb },
+    ],
+    groupSort: { key: "outstanding", down: true },
+    items: "lifetimes",
+    itemColumns: [
+      { key: "process", title: "Process" },
+      { key: "tid", title: "TID", num: true },
+      { key: "base", title: "Address", cls: "cmd" },
+      { key: "size", title: "KB", num: true, text: kb },
+      { key: "commitNs", title: "Committed", num: true, text: at("") },
+      { key: "decommitNs", title: "Decommitted", num: true, text: at("still committed") },
+    ],
+    itemSort: { key: "size", down: true },
+    title: (d, when) =>
+      `${count(d.commits)} commits (${mb(d.committed)} MB) and ${count(d.decommits)} decommits ` +
+      `(${mb(d.decommitted)} MB)${when}; ${mb(d.outstanding)} MB of it still committed at the end`,
+  });
+
   // Hard faults, by duration (from each fault to its read's completion).
   summaryTab({
     name: "hardfaults",
@@ -782,7 +813,7 @@
     if (name === "regions") {
       loadRegions();
     }
-    for (const t of ["stacks", "processes", "functions", "symbols", "events", "regions", "disk", "fileio", "dpc", "registry", "hardfaults"]) {
+    for (const t of ["stacks", "processes", "functions", "symbols", "events", "regions", "disk", "fileio", "dpc", "registry", "hardfaults", "vmem"]) {
       $(`tab-${t}`).classList.toggle("active", name === t);
       $(`${t}-pane`).classList.toggle("hidden", name !== t);
     }
@@ -808,6 +839,7 @@
   $("tab-dpc").addEventListener("click", () => showTab("dpc"));
   $("tab-registry").addEventListener("click", () => showTab("registry"));
   $("tab-hardfaults").addEventListener("click", () => showTab("hardfaults"));
+  $("tab-vmem").addEventListener("click", () => showTab("vmem"));
   symbolsEl.addEventListener("click", () => showTab("symbols"));
   /**
    * The shown tab as Markdown, to the clipboard (by way of the extension):
@@ -925,7 +957,7 @@
     if (s.lit && typeof s.lit.fn === "string") {
       lit = { fn: s.lit.fn, label: String(s.lit.label || s.lit.fn) };
     }
-    if (["stacks", "processes", "functions", "symbols", "events", "regions", "disk", "fileio", "dpc", "registry", "hardfaults"].includes(s.tab)) {
+    if (["stacks", "processes", "functions", "symbols", "events", "regions", "disk", "fileio", "dpc", "registry", "hardfaults", "vmem"].includes(s.tab)) {
       showTab(s.tab);
     }
   }

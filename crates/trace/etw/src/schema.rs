@@ -487,6 +487,18 @@ const REGISTRY_COUNTERS: &[(&str, Field)] = &[
     ("Counter11", U64),
 ];
 
+/// `PageFault_TypeGroup1`: a fault's address, and the instruction's.
+const PAGE_FAULT: &[(&str, Field)] = &[("VirtualAddress", Ptr), ("ProgramCounter", Ptr)];
+
+/// `PageFault_VirtualAlloc`: a range of a process's address space
+/// allocated or freed, and how (`MEM_*`).
+const VIRTUAL_ALLOC: &[(&str, Field)] = &[
+    ("BaseAddress", Ptr),
+    ("RegionSize", Ptr),
+    ("ProcessId", U32),
+    ("Flags", U32),
+];
+
 const HARD_FAULT: &[(&str, Field)] = &[
     ("InitialTime", U64),
     ("ReadOffset", U64),
@@ -901,7 +913,55 @@ pub static SCHEMAS: &[Schema] = &[
         "RenamePath",
         FILE_INFO_PATH,
     ),
-    // PageFault.
+    // PageFault. (The faults of opcodes 10 to 15 aren't in the corpus.)
+    s(
+        guids::PAGE_FAULT,
+        10,
+        2,
+        "PageFault",
+        "TransitionFault",
+        PAGE_FAULT,
+    ),
+    s(
+        guids::PAGE_FAULT,
+        11,
+        2,
+        "PageFault",
+        "DemandZeroFault",
+        PAGE_FAULT,
+    ),
+    s(
+        guids::PAGE_FAULT,
+        12,
+        2,
+        "PageFault",
+        "CopyOnWrite",
+        PAGE_FAULT,
+    ),
+    s(
+        guids::PAGE_FAULT,
+        13,
+        2,
+        "PageFault",
+        "GuardPageFault",
+        PAGE_FAULT,
+    ),
+    s(
+        guids::PAGE_FAULT,
+        14,
+        2,
+        "PageFault",
+        "HardPageFault",
+        PAGE_FAULT,
+    ),
+    s(
+        guids::PAGE_FAULT,
+        15,
+        2,
+        "PageFault",
+        "AccessViolation",
+        PAGE_FAULT,
+    ),
     s(
         guids::PAGE_FAULT,
         32,
@@ -909,6 +969,22 @@ pub static SCHEMAS: &[Schema] = &[
         "PageFault",
         "HardFault",
         HARD_FAULT,
+    ),
+    s(
+        guids::PAGE_FAULT,
+        98,
+        2,
+        "PageFault",
+        "VirtualAlloc",
+        VIRTUAL_ALLOC,
+    ),
+    s(
+        guids::PAGE_FAULT,
+        99,
+        2,
+        "PageFault",
+        "VirtualFree",
+        VIRTUAL_ALLOC,
     ),
     // SystemConfig.
     s(

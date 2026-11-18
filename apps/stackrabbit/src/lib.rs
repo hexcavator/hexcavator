@@ -27,6 +27,7 @@ pub mod symbols;
 pub mod synth;
 pub mod tree;
 pub mod views;
+pub mod vmem;
 
 const USAGE: &str = "\
 usage: stackrabbit <command> [options]
