@@ -143,36 +143,19 @@ pub fn table(trace: &Trace, path: &Path) -> Result<RegistryTable, String> {
 /// processes.
 fn assemble(trace: &Trace, all: Vec<Read>) -> RegistryTable {
     // Each KCB's names over time.
-    let mut kcbs: FxHashMap<u64, Vec<(i64, String)>> = FxHashMap::default();
+    let mut kcbs = crate::reading::Names::default();
     let mut ops = Vec::new();
     for r in all {
         match r {
-            Read::Kcb { time, kcb, name } => kcbs.entry(kcb).or_default().push((time, name)),
+            Read::Kcb { time, kcb, name } => kcbs.add(kcb, time, name),
             op @ Read::Op { .. } => ops.push(op),
         }
     }
-    for v in kcbs.values_mut() {
-        v.sort();
-    }
-    // A KCB's name at a time: the last before, else the first after (a
-    // key opened before the trace began, named by the rundown at its end).
-    let kcb_at = |kcb: u64, time: i64| -> Option<&String> {
-        let v = kcbs.get(&kcb)?;
-        let i = v.partition_point(|(t, _)| *t <= time);
-        Some(if i > 0 { &v[i - 1].1 } else { &v.first()?.1 })
-    };
+    // (A KCB's name at a time: the last before, else the first after: a
+    // key opened before the trace began, named by the rundown at its end.)
+    kcbs.finish();
     let threads = crate::reading::Threads::new(trace);
-    let mut names: Vec<String> = Vec::new();
-    let mut ids: FxHashMap<String, u32> = FxHashMap::default();
-    let mut intern = |s: String| -> u32 {
-        if let Some(&i) = ids.get(&s) {
-            return i;
-        }
-        let i = u32::try_from(names.len()).unwrap_or(u32::MAX);
-        names.push(s.clone());
-        ids.insert(s, i);
-        i
-    };
+    let mut names = crate::reading::Interner::default();
     let mut out: Vec<RegOp> = ops
         .into_iter()
         .filter_map(|r| {
@@ -189,12 +172,12 @@ fn assemble(trace: &Trace, all: Vec<Read>) -> RegistryTable {
             else {
                 return None;
             };
-            let base = if kcb == 0 { None } else { kcb_at(kcb, end) };
+            let base = if kcb == 0 { None } else { kcbs.at(kcb, end) };
             let (key, value) = if VALUE_OPERATIONS.contains(&op) {
-                (base.cloned(), Some(name))
+                (base.map(str::to_string), Some(name))
             } else {
                 let key = match (base, name.is_empty()) {
-                    (Some(b), true) => Some(b.clone()),
+                    (Some(b), true) => Some(b.to_string()),
                     (Some(b), false) => Some(format!("{b}\\{name}")),
                     // (No KCB: the name is the whole path.)
                     (None, false) if kcb == 0 => Some(name),
@@ -218,13 +201,16 @@ fn assemble(trace: &Trace, all: Vec<Read>) -> RegistryTable {
                 status,
                 thread,
                 process,
-                key: key.map(&mut intern),
-                value: value.map(&mut intern),
+                key: key.map(|k| names.intern(&k)),
+                value: value.map(|v| names.intern(&v)),
             })
         })
         .collect();
     out.sort_by_key(|o| (o.start, o.end));
-    RegistryTable { ops: out, names }
+    RegistryTable {
+        ops: out,
+        names: names.strings,
+    }
 }
 
 /// What registry operations are grouped by.

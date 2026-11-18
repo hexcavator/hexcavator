@@ -150,7 +150,7 @@ pub fn table(trace: &Trace, path: &Path) -> Result<DiskTable, String> {
 /// The I/Os, in completion order, with their files, threads and times.
 fn assemble(trace: &Trace, all: Vec<Read>, perf_freq: u64) -> DiskTable {
     // Each file object's names over time.
-    let mut names: FxHashMap<u64, Vec<(i64, String)>> = FxHashMap::default();
+    let mut names = crate::reading::Names::default();
     let mut ios = Vec::new();
     for r in all {
         match r {
@@ -160,17 +160,14 @@ fn assemble(trace: &Trace, all: Vec<Read>, perf_freq: u64) -> DiskTable {
                 name,
             } => {
                 if !name.is_empty() {
-                    names.entry(file_object).or_default().push((time, name));
+                    names.add(file_object, time, name);
                 }
             }
             io @ Read::Io { .. } => ios.push(io),
         }
     }
-    for v in names.values_mut() {
-        v.sort();
-    }
-    let mut files: Vec<String> = Vec::new();
-    let mut file_ids: FxHashMap<String, u32> = FxHashMap::default();
+    names.finish();
+    let mut files = crate::reading::Interner::default();
     let threads = crate::reading::Threads::new(trace);
     let mut out: Vec<DiskIo> = ios
         .into_iter()
@@ -192,15 +189,7 @@ fn assemble(trace: &Trace, all: Vec<Read>, perf_freq: u64) -> DiskTable {
                 .unwrap_or(u64::MAX);
             // The file: its object's latest name by then, else its first
             // after (rundowns come at the end).
-            let file = names.get(&file_object).and_then(|v| {
-                let i = v.partition_point(|(t, _)| *t <= complete);
-                let (_, name) = if i > 0 { &v[i - 1] } else { v.first()? };
-                let next = u32::try_from(files.len()).unwrap_or(u32::MAX);
-                Some(*file_ids.entry(name.clone()).or_insert_with(|| {
-                    files.push(name.clone());
-                    next
-                }))
-            });
+            let file = names.at(file_object, complete).map(|n| files.intern(n));
             let thread = threads.at(thread_id, complete);
             Some(DiskIo {
                 kind,
@@ -230,7 +219,10 @@ fn assemble(trace: &Trace, all: Vec<Read>, perf_freq: u64) -> DiskTable {
         io.service_ns = u64::try_from(done_ns - from.min(done_ns)).unwrap_or(0);
         last_done.insert(io.disk, done_ns);
     }
-    DiskTable { ios: out, files }
+    DiskTable {
+        ios: out,
+        files: files.strings,
+    }
 }
 
 /// What disk I/Os are grouped by.

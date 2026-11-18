@@ -153,3 +153,63 @@ pub fn process_at(trace: &Trace, pid: u32, time: i64) -> ProcessIx {
     }
     last
 }
+
+/// Names of things over time, by key (file objects, key control blocks):
+/// what events named each, and when.
+#[derive(Debug, Default)]
+pub struct Names {
+    by_key: FxHashMap<u64, Vec<(i64, String)>>,
+}
+
+impl Names {
+    /// `key` is named `name` from `time`.
+    pub fn add(&mut self, key: u64, time: i64, name: String) {
+        self.by_key.entry(key).or_default().push((time, name));
+    }
+
+    /// Done adding: puts each key's names in time order.
+    pub fn finish(&mut self) {
+        for v in self.by_key.values_mut() {
+            v.sort();
+        }
+    }
+
+    /// `key`'s name at `time`: its latest by then, else its first after
+    /// (a thing named only by a rundown at the end of the trace).
+    pub fn at(&self, key: u64, time: i64) -> Option<&str> {
+        let v = self.by_key.get(&key)?;
+        let i = v.partition_point(|(t, _)| *t <= time);
+        Some(if i > 0 { &v[i - 1].1 } else { &v.first()?.1 })
+    }
+
+    /// How many keys have names.
+    pub fn len(&self) -> usize {
+        self.by_key.len()
+    }
+
+    /// Whether no key has a name.
+    pub fn is_empty(&self) -> bool {
+        self.by_key.is_empty()
+    }
+}
+
+/// Strings kept once each, by index.
+#[derive(Debug, Default)]
+pub struct Interner {
+    /// The strings, by index.
+    pub strings: Vec<String>,
+    ids: FxHashMap<String, u32>,
+}
+
+impl Interner {
+    /// `s`'s index (added, if new).
+    pub fn intern(&mut self, s: &str) -> u32 {
+        if let Some(&i) = self.ids.get(s) {
+            return i;
+        }
+        let i = u32::try_from(self.strings.len()).unwrap_or(u32::MAX);
+        self.strings.push(s.to_string());
+        self.ids.insert(s.to_string(), i);
+        i
+    }
+}

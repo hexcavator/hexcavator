@@ -151,34 +151,22 @@ fn assemble(trace: &Trace, mut all: Vec<Read>) -> FileTable {
     all.sort_by_key(time_of);
     // Each file's names over time (name events key files by what file
     // operations call their file key; a create names its file object).
-    let mut names: FxHashMap<u64, Vec<(i64, String)>> = FxHashMap::default();
+    let mut names = crate::reading::Names::default();
     for r in &all {
         match r {
-            Read::Name { time, file, name } => {
-                names.entry(*file).or_default().push((*time, name.clone()));
-            }
+            Read::Name { time, file, name } => names.add(*file, *time, name.clone()),
             Read::Op {
                 time,
                 file_object,
                 path: Some(path),
                 ..
-            } => {
-                names
-                    .entry(*file_object)
-                    .or_default()
-                    .push((*time, path.clone()));
-            }
+            } => names.add(*file_object, *time, path.clone()),
             _ => {}
         }
     }
-    let name_at = |file: u64, time: i64| -> Option<&String> {
-        let v = names.get(&file)?;
-        let i = v.partition_point(|(t, _)| *t <= time);
-        Some(if i > 0 { &v[i - 1].1 } else { &v.first()?.1 })
-    };
+    names.finish();
     let threads = crate::reading::Threads::new(trace);
-    let mut files: Vec<String> = Vec::new();
-    let mut file_ids: FxHashMap<String, u32> = FxHashMap::default();
+    let mut files = crate::reading::Interner::default();
     let mut ops: Vec<FileOp> = Vec::new();
     // IRPs in flight: the operation each started.
     let mut open: FxHashMap<u64, usize> = FxHashMap::default();
@@ -195,16 +183,10 @@ fn assemble(trace: &Trace, mut all: Vec<Read>) -> FileTable {
                 path,
             } => {
                 let name = path
-                    .as_ref()
-                    .or_else(|| name_at(file_key, time))
-                    .or_else(|| name_at(file_object, time));
-                let file = name.map(|n| {
-                    let next = u32::try_from(files.len()).unwrap_or(u32::MAX);
-                    *file_ids.entry(n.clone()).or_insert_with(|| {
-                        files.push(n.clone());
-                        next
-                    })
-                });
+                    .as_deref()
+                    .or_else(|| names.at(file_key, time))
+                    .or_else(|| names.at(file_object, time));
+                let file = name.map(|n| files.intern(n));
                 let thread = threads.at(thread_id, time);
                 let index = OPERATIONS.iter().position(|(o, _)| *o == op).unwrap_or(0);
                 open.insert(irp, ops.len());
@@ -232,7 +214,10 @@ fn assemble(trace: &Trace, mut all: Vec<Read>) -> FileTable {
             Read::Name { .. } => {}
         }
     }
-    FileTable { ops, files }
+    FileTable {
+        ops,
+        files: files.strings,
+    }
 }
 
 /// What file operations are grouped by.
