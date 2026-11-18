@@ -109,6 +109,7 @@ def answers(engine, path, spec, depth=4, limit=4000):
     functions = engine.request("functions", {"trace": trace, "source": "samples", "frames": "function"})
     lit = engine.request("graph", {"trace": trace, "buckets": 1000, "top": 8, "highlight": functions["functions"][1]["fn"]})
     symbols = engine.request("symbols", {"trace": trace, "wait": True})
+    events = engine.request("events", {"trace": trace})
     # A function's callers, and their hot path (for the hover card).
     heavy = functions["functions"][0]
     focus_tree = engine.request("tree.create", {"trace": trace, "focus": heavy["fn"], "invert": True, "groupBy": []})
@@ -116,7 +117,7 @@ def answers(engine, path, spec, depth=4, limit=4000):
     focus_tree = dict(focus_tree, view=99)
     # (The view's view IDs: its first tree is view 1 of its own.)
     tree = dict(tree, view=1)
-    return {"opened": opened, "tree": tree, "children": children, "hot": hot, "graph": graph, "processes": processes, "threads": threads, "functions": functions, "lit": lit, "symbols": symbols, "focusTree": focus_tree, "focusHot": focus_hot}
+    return {"opened": opened, "tree": tree, "children": children, "hot": hot, "graph": graph, "processes": processes, "threads": threads, "functions": functions, "lit": lit, "symbols": symbols, "focusTree": focus_tree, "focusHot": focus_hot, "events": events}
 
 
 STUB = """
@@ -134,6 +135,7 @@ window.acquireVsCodeApi = function () {
     else if (m.method === "graph") r.result = m.params.highlight ? A.lit : A.graph;
     else if (m.method === "processes") r.result = A.processes;
     else if (m.method === "functions") r.result = A.functions;
+    else if (m.method === "events") r.result = A.events;
     else if (m.method === "symbols") r.result = A.symbols;
     else if (m.method === "threads" && A.threads[m.params.process]) r.result = A.threads[m.params.process];
     else r.error = m.method + ": no answer for " + JSON.stringify(m.params);
@@ -223,15 +225,148 @@ def render(data, then="", shot=None, wait=500):
         common = [EDGE, "--headless", "--disable-gpu", "--hide-scrollbars", "--window-size=1200,700", "--no-first-run"]
         profile = lambda name: f"--user-data-dir={os.path.join(d, name)}"
         if shot:
-            subprocess.run(common + [profile("shot"), "--virtual-time-budget=5000", f"--screenshot={shot}", url], capture_output=True, timeout=120)
-        browser = subprocess.Popen(common + [profile("dom"), url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            # (Its helpers too, once it has written the screenshot.)
+            shooter = in_job(
+                subprocess.Popen(
+                    common + [profile("shot"), "--virtual-time-budget=5000", f"--screenshot={shot}", url],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+            )
+            try:
+                shooter.wait(120)
+            except subprocess.TimeoutExpired:
+                pass
+            end_tree(shooter)
+        browser = in_job(subprocess.Popen(common + [profile("dom"), url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL))
         try:
             done.wait(60)
         finally:
-            browser.kill()
-            browser.wait()
+            end_tree(browser)
             server.shutdown()
     return got.get("dom", "")
+
+
+def end_tree(p):
+    """Ends `p` and every process it started. (Edge starts renderer, GPU
+    and utility processes that outlive their parent if only it is killed:
+    a run of the harness used to leave dozens behind, and a night of runs
+    thousands, until the machine ran out of memory.) On Windows, `p` is in
+    a job (see `in_job`) whose processes all end with it."""
+    job = getattr(p, "job", None)
+    if job is not None:
+        kernel32 = _kernel32()
+        kernel32.TerminateJobObject(job, 1)
+        kernel32.CloseHandle(job)
+        p.job = None
+    else:
+        p.kill()
+    try:
+        p.wait(10)
+    except subprocess.TimeoutExpired:
+        p.kill()
+        p.wait()
+
+
+def _kernel32():
+    import ctypes
+    from ctypes import wintypes
+
+    k = ctypes.WinDLL("kernel32", use_last_error=True)
+    k.CreateJobObjectW.restype = wintypes.HANDLE
+    k.OpenProcess.restype = wintypes.HANDLE
+    k.GetCurrentProcess.restype = wintypes.HANDLE
+    k.SetInformationJobObject.argtypes = [wintypes.HANDLE, ctypes.c_int, ctypes.c_void_p, wintypes.DWORD]
+    k.AssignProcessToJobObject.argtypes = [wintypes.HANDLE, wintypes.HANDLE]
+    k.TerminateJobObject.argtypes = [wintypes.HANDLE, wintypes.UINT]
+    k.CloseHandle.argtypes = [wintypes.HANDLE]
+    return k
+
+
+def _kill_on_close_job():
+    """A new Windows job that ends every process in it when its last
+    handle closes; None if it can't be made."""
+    import ctypes
+    from ctypes import wintypes
+
+    class BASIC(ctypes.Structure):
+        _fields_ = [
+            ("PerProcessUserTimeLimit", ctypes.c_int64),
+            ("PerJobUserTimeLimit", ctypes.c_int64),
+            ("LimitFlags", wintypes.DWORD),
+            ("MinimumWorkingSetSize", ctypes.c_size_t),
+            ("MaximumWorkingSetSize", ctypes.c_size_t),
+            ("ActiveProcessLimit", wintypes.DWORD),
+            ("Affinity", ctypes.c_size_t),
+            ("PriorityClass", wintypes.DWORD),
+            ("SchedulingClass", wintypes.DWORD),
+        ]
+
+    class IO(ctypes.Structure):
+        _fields_ = [(n, ctypes.c_uint64) for n in ("r", "w", "o", "rb", "wb", "ob")]
+
+    class EXTENDED(ctypes.Structure):
+        _fields_ = [
+            ("Basic", BASIC),
+            ("Io", IO),
+            ("ProcessMemoryLimit", ctypes.c_size_t),
+            ("JobMemoryLimit", ctypes.c_size_t),
+            ("PeakProcessMemoryUsed", ctypes.c_size_t),
+            ("PeakJobMemoryUsed", ctypes.c_size_t),
+        ]
+
+    kernel32 = _kernel32()
+    job = kernel32.CreateJobObjectW(None, None)
+    if not job:
+        return None
+    info = EXTENDED()
+    info.Basic.LimitFlags = 0x2000  # JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+    # (9: JobObjectExtendedLimitInformation.)
+    if not kernel32.SetInformationJobObject(job, 9, ctypes.byref(info), ctypes.sizeof(info)):
+        kernel32.CloseHandle(job)
+        return None
+    return job
+
+
+# The harness's own job (see `hold_children`): kept open while it runs.
+_JOB = None
+
+
+def hold_children():
+    """Puts the harness in a Windows job that ends every process in it when
+    the harness exits (the job's handle closes), so that nothing it starts
+    outlives it, whatever `end_tree` misses. Elsewhere, nothing."""
+    global _JOB
+    if os.name != "nt" or _JOB is not None:
+        return
+    job = _kill_on_close_job()
+    if job is None:
+        return
+    kernel32 = _kernel32()
+    if kernel32.AssignProcessToJobObject(job, kernel32.GetCurrentProcess()):
+        _JOB = job
+    else:
+        kernel32.CloseHandle(job)
+
+
+def in_job(p):
+    """Puts `p` (just started) in a Windows job of its own, so that
+    `end_tree` ends what it starts too. Elsewhere, nothing."""
+    p.job = None
+    if os.name != "nt":
+        return p
+    job = _kill_on_close_job()
+    if job is None:
+        return p
+    kernel32 = _kernel32()
+    process = kernel32.OpenProcess(0x0001 | 0x0100, False, p.pid)  # (Terminate, set quota.)
+    if process and kernel32.AssignProcessToJobObject(job, process):
+        p.job = job
+    else:
+        kernel32.CloseHandle(job)
+    if process:
+        kernel32.CloseHandle(process)
+    return p
 
 
 def rows(dom):
@@ -245,6 +380,9 @@ def rows(dom):
 
 
 def main():
+    # Everything the harness starts (Edge, and what Edge starts) ends when
+    # it does, however it ends.
+    hold_children()
     exe = os.path.abspath(sys.argv[1])
     shots = sys.argv[2] if len(sys.argv) > 2 else None
     shot = (lambda name: os.path.join(shots, name + ".png")) if shots else (lambda name: None)
@@ -510,6 +648,14 @@ def main():
     assert card and "hidden" not in card.group(1), "the card shows"
     path = [html.unescape(x) for x in re.findall(r'<div class="step">(?:← )?([^<]*) <b>', card.group(2))]
     assert path == [r["label"] for r in data["focusHot"]["rows"]], (path, data["focusHot"]["rows"])
+    # The events tab: every kind, most numerous first, and how many in all.
+    dom = render(data, "document.getElementById('tab-events').click();", shot=shot("events"))
+    kinds = data["events"]["rows"]
+    total = sum(r["count"] for r in kinds)
+    assert f"{total:,} events of {len(kinds):,} kinds" in dom, "the events' title"
+    table = dom[dom.index('id="events"'):dom.index('id="processes-pane"')]
+    counts = [int(x.replace(",", "")) for x in re.findall(r'<tr data-i="\d+">(?:<td[^>]*>[^<]*</td>){5}<td class="num">([^<]*)</td>', table)]
+    assert counts == [r["count"] for r in kinds], counts[:5]
     print("harness: ok")
 
 
