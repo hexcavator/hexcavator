@@ -32,6 +32,7 @@ pub mod exports;
 pub mod findings;
 pub mod fingerprint;
 pub mod index;
+pub mod inlining;
 pub mod lcid;
 pub mod macho;
 pub mod map;

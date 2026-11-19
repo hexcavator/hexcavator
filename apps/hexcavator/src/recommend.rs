@@ -288,6 +288,21 @@ pub(crate) fn recommendations(
     let foldable = (!judged.opt_icf).then_some(&classes[..]);
     let duplicates = findings::duplicate_data(image, debug, syms);
     let mut recs = recommend(x, toolchain, Some(judged), foldable, &duplicates, &compiled);
+    // Functions inlined where calls would cost less.
+    if let Ok(sites) = debug.inline_sites() {
+        let defined: rustc_hash::FxHashSet<&str> = syms
+            .iter()
+            .filter(|s| matches!(s.kind, hexcavator_size::symbols::SymbolKind::Function))
+            .map(|s| findings::strip_parameters(&s.name))
+            .collect();
+        let weighed =
+            hexcavator_size::inlining::weigh(sites, image.arch(), &|n| defined.contains(n));
+        recs.extend(hexcavator_size::recommend::inlining(
+            &weighed,
+            toolchain,
+            image.arch(),
+        ));
+    }
     // Templates' instantiations alike but for constants, sizes, callees.
     let near = hexcavator_size::fingerprint::near_identical(image, model, x, &classes);
     recs.extend(hexcavator_size::recommend::near_identical(&near));

@@ -22,6 +22,8 @@ rem                       exp.cpp's exports (see below), and an importer.
 rem   near                near.cpp: templates' instantiations alike but for
 rem                       sizes (total<T>) or callees (apply<F>), and some
 rem                       that differ (pick<T>).
+rem   inline              inline.cpp: a function inlined where calls would
+rem                       cost less (mix), and one where they wouldn't (get).
 rem (What's recorded is given to clang's cc1 as its driver would, so no
 rem path of this machine's is: the driver would record its own.)
 rem   macho-<link>        funcs.c for arm64 macOS (-O2 recorded), linked by
@@ -107,3 +109,7 @@ cd /d "%WORK%" || exit /b 1
 rem Near-identical functions: near, with DWARF, linked with --gc-sections.
 %CC% %SECTIONS% -fno-asynchronous-unwind-tables -fno-exceptions -c "%~dp0near.cpp" -o near.o || exit /b 1
 %LD% --gc-sections near.o -o "%OUT%\near" || exit /b 1
+
+rem Inlining: inline, with DWARF.
+%CC% %SECTIONS% -fno-asynchronous-unwind-tables -fno-exceptions -c "%~dp0inline.cpp" -o inline.o || exit /b 1
+%LD% --gc-sections inline.o -o "%OUT%/inline" || exit /b 1

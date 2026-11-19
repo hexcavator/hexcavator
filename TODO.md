@@ -5,9 +5,6 @@ leave this list when they ship.
 
 ## Size analysis
 
-- **Inlining.** A function's inlined copies weighed against what calls to
-  one out-of-line copy would cost instead, and `noinline` (or `-Os`)
-  recommended where the copies cost more.
 - **Relocations.** A relocations view (each relocation, by type, by the
   symbol it's in and the one it refers to), and a recommendation for
   pointer-heavy data (vtables, tables of string pointers) that relative

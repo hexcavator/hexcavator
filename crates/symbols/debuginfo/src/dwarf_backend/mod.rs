@@ -1743,6 +1743,7 @@ impl<'data> DwarfInfo<'data> {
     /// Every inline site (see [`crate::DebugInfo::inline_sites`]).
     pub fn inline_sites(&self) -> Result<InlineSites> {
         let mut inlinees: Vec<String> = Vec::new();
+        let mut params: Vec<Option<u32>> = Vec::new();
         let mut by_origin: HashMap<u64, u32> = HashMap::new();
         let mut sites = Vec::new();
         self.walk(|w| {
@@ -1764,6 +1765,7 @@ impl<'data> DwarfInfo<'data> {
                     let (origin, _) = self.origin(w.at);
                     let inlinee = *by_origin.entry(origin.0).or_insert_with(|| {
                         inlinees.push(self.qualified_name(origin));
+                        params.push(self.parameter_count(origin));
                         u32::try_from(inlinees.len() - 1).unwrap_or(u32::MAX)
                     });
                     let depth = w
@@ -1782,7 +1784,29 @@ impl<'data> DwarfInfo<'data> {
             }
             Walk::Into
         });
-        Ok(InlineSites { inlinees, sites })
+        Ok(InlineSites {
+            inlinees,
+            params,
+            sites,
+        })
+    }
+
+    /// How many parameters the function DIE `r` declares (an artificial
+    /// `this` among them); `None` if it doesn't describe the function
+    /// (line tables only, `-gmlt`: a name, and nothing of where it's
+    /// declared, what it returns, or what it takes).
+    fn parameter_count(&self, r: TypeRef) -> Option<u32> {
+        let (u, a, d) = self.die(r)?;
+        let children = u.children(a, &d);
+        if children.is_empty() && d.attr(DW_AT_DECL_FILE).is_none() && d.attr(DW_AT_TYPE).is_none()
+        {
+            return None;
+        }
+        let n = children
+            .iter()
+            .filter(|c| c.tag == DW_TAG_FORMAL_PARAMETER)
+            .count();
+        u32::try_from(n).ok()
     }
 }
 

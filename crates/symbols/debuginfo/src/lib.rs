@@ -80,6 +80,9 @@ pub struct InlineSite {
 pub struct InlineSites {
     /// The inlined functions' qualified names.
     pub inlinees: Vec<String>,
+    /// How many parameters each inlined function takes (`this` among
+    /// them), by index as `inlinees`, where the debug information says.
+    pub params: Vec<Option<u32>>,
     /// The sites.
     pub sites: Vec<InlineSite>,
 }

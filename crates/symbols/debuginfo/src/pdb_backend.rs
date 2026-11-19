@@ -219,18 +219,27 @@ impl<'data> PdbInfo<'data> {
         let mut index: HashMap<u32, u32> = HashMap::new();
         let mut by_name: HashMap<String, u32> = HashMap::new();
         let mut inlinees: Vec<String> = Vec::new();
+        let mut params: Vec<Option<u32>> = Vec::new();
         for s in &mut sites {
             let id = s.inlinee;
             s.inlinee = *index.entry(id).or_insert_with(|| {
-                let name = inlinee_name(ids, &formatter, id)
-                    .unwrap_or_else(|| format!("<inlinee {id:#x}>"));
+                let found = inlinee(ids, &formatter, id);
+                let count = found
+                    .as_ref()
+                    .and_then(|(_, ty)| parameter_count(types, self::index(*ty)));
+                let name = found.map_or_else(|| format!("<inlinee {id:#x}>"), |(n, _)| n);
                 *by_name.entry(name.clone()).or_insert_with(|| {
                     inlinees.push(name);
+                    params.push(count);
                     u32::try_from(inlinees.len() - 1).unwrap_or(u32::MAX)
                 })
             });
         }
-        Ok(crate::InlineSites { inlinees, sites })
+        Ok(crate::InlineSites {
+            inlinees,
+            params,
+            sites,
+        })
     }
 
     /// Every module's annotations, by address.
@@ -1648,6 +1657,31 @@ struct Proc<'a> {
 const INLINEE_PENDING: u32 = 1 << 31;
 
 /// An inlined function's qualified name, from its id record.
+/// How many parameters a procedure type (`LF_PROCEDURE`, or
+/// `LF_MFUNCTION`, with its `this`) takes.
+fn parameter_count(types: &hexcavator_pdb::TypeStream<'_>, ty: TypeIndex) -> Option<u32> {
+    use hexcavator_codeview::types::leaf;
+    let rec = types.record(ty)?;
+    let mut r = Reader::new(rec.data);
+    match rec.kind {
+        leaf::LF_PROCEDURE => {
+            r.u32_le().ok()?; // return type
+            r.u8().ok()?; // calling convention
+            r.u8().ok()?; // attributes
+            Some(u32::from(r.u16_le().ok()?))
+        }
+        leaf::LF_MFUNCTION => {
+            r.u32_le().ok()?; // return type
+            r.u32_le().ok()?; // class
+            let this = r.u32_le().ok()?;
+            r.u8().ok()?;
+            r.u8().ok()?;
+            Some(u32::from(r.u16_le().ok()?) + u32::from(this != 0))
+        }
+        _ => None,
+    }
+}
+
 pub(crate) fn inlinee_name(
     ids: &hexcavator_pdb::TypeStream<'_>,
     formatter: &TypeFormatter<'_>,

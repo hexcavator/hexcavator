@@ -588,6 +588,61 @@ pub fn structural(image: &hexcavator_image::Image<'_>) -> Vec<Recommendation> {
     out
 }
 
+/// The recommendation inlining makes ([`crate::inlining::weigh`]): calling
+/// one copy of each function whose inlined copies cost more than calls
+/// would (by at least [`MIN_SAVING`] in all), with a call's estimated cost.
+pub fn inlining(
+    inlinees: &[crate::inlining::Inlinee],
+    toolchain: Toolchain,
+    arch: hexcavator_core::Arch,
+) -> Option<Recommendation> {
+    let worth: Vec<&crate::inlining::Inlinee> = inlinees
+        .iter()
+        .filter(|i| i.copies > 1 && i.saving() >= MIN_SAVING as i64)
+        .collect();
+    let saving: u64 = worth.iter().map(|i| i.saving().unsigned_abs()).sum();
+    if saving < MIN_SAVING {
+        return None;
+    }
+    let cost = crate::inlining::CallCost::of(arch)?;
+    let mark = match toolchain {
+        Toolchain::Msvc => "__declspec(noinline) (or compile with /O1 or /Ob1)",
+        _ => "__attribute__((noinline)) (or compile with -Os)",
+    };
+    Some(Recommendation {
+        kind: "inlining",
+        advice: format!(
+            "mark {} {mark}: {} inlined copies cost more than calls to one copy would (a call estimated at {} bytes, and {} an argument)",
+            if worth.len() == 1 {
+                "a function".to_string()
+            } else {
+                format!("{} functions", worth.len())
+            },
+            if worth.len() == 1 { "its" } else { "their" },
+            cost.call + cost.around,
+            cost.argument
+        ),
+        saving,
+        examples: worth
+            .iter()
+            .take(EXAMPLES)
+            .map(|i| {
+                (
+                    format!(
+                        "{} ({} copies, {} bytes; {} as calls{})",
+                        i.name,
+                        i.copies,
+                        i.inlined,
+                        i.calls + i.body,
+                        if i.out_of_line { "" } else { " and a copy" }
+                    ),
+                    i.saving().unsigned_abs(),
+                )
+            })
+            .collect(),
+    })
+}
+
 /// The recommendation near-identical functions make
 /// ([`crate::fingerprint::near_identical`]): sharing each family's code,
 /// at most its saving (if at least [`MIN_SAVING`] in all).

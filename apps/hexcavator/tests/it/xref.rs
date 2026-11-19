@@ -1046,3 +1046,58 @@ fn recommend_near_identical() {
         .sum();
     assert_eq!(saving, sum, "{v}");
 }
+
+/// Inlining weighed: testdata/linkopts/inline's mix, inlined into 12
+/// functions, would cost less called (each call estimated by its two
+/// parameters); nothing else is worth it.
+#[test]
+fn recommend_inlining() {
+    let out = Command::new(env!("CARGO_BIN_EXE_hexc"))
+        .args(["recommend", "-json"])
+        .arg(Path::new(env!("CARGO_MANIFEST_DIR")).join("../../testdata/linkopts/inline"))
+        .output()
+        .unwrap();
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let v: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
+    let r = v["recommendations"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|r| r["kind"] == "inlining")
+        .unwrap_or_else(|| panic!("{v}"));
+    assert!(
+        r["advice"]
+            .as_str()
+            .unwrap()
+            .starts_with("mark a function __attribute__((noinline))"),
+        "{r}"
+    );
+    let e = &r["examples"][0];
+    let name = e["name"].as_str().unwrap();
+    assert!(name.starts_with("mix (12 copies, "), "{r}");
+    // As calls: 12 × (5 + 2 × 5 + 8), and a copy of the largest with a
+    // return.
+    let inlined: u64 = name
+        .trim_start_matches("mix (12 copies, ")
+        .split(' ')
+        .next()
+        .unwrap()
+        .parse()
+        .unwrap();
+    let as_calls: u64 = name
+        .split("; ")
+        .nth(1)
+        .unwrap()
+        .split(' ')
+        .next()
+        .unwrap()
+        .parse()
+        .unwrap();
+    assert!(as_calls > 12 * 23, "{r}");
+    assert_eq!(e["size"].as_u64().unwrap(), inlined - as_calls, "{r}");
+    assert_eq!(r["examples"].as_array().unwrap().len(), 1, "{r}");
+}
