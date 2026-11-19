@@ -5,9 +5,6 @@ leave this list when they ship.
 
 ## Size analysis
 
-- **Build paths and strings.** Absolute paths from `__FILE__` and
-  `assert` (`-fmacro-prefix-map`), and string literals duplicated where
-  the linker couldn't merge them.
 - **Exception handling.** What unwind tables and landing pads cost each
   function, and the functions that can't throw but carry cleanups
   (`noexcept`); a list on the Size Reduction page.

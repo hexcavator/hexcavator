@@ -239,9 +239,25 @@ pub(crate) struct Recommended {
 
 /// The recommendations for an image without debug information: what its
 /// structure shows ([`hexcavator_size::recommend::structural`]).
+/// What an image's strings recommend (`hexcavator_size::recommend::strings`),
+/// a string in `symbols` (data, by start) being in named data unless the
+/// symbol is a string literal's (a PDB's `` `string' ``).
+fn string_recommendations(
+    image: &hexcavator_image::Image<'_>,
+    toolchain: Toolchain,
+    symbols: &[(u64, u64, String)],
+) -> Vec<Recommendation> {
+    let named = |at: u64| {
+        hexcavator_size::relocations::containing(symbols, at).is_some_and(|i| {
+            let n = symbols[i].2.as_str();
+            n != "`string'" && !n.starts_with(".L") && n != "(anonymous)"
+        })
+    };
+    hexcavator_size::recommend::strings(image, toolchain, &named)
+}
+
 pub(crate) fn structural_only(image: &hexcavator_image::Image<'_>) -> Recommended {
     let mut recs = hexcavator_size::recommend::structural(image);
-    recs.sort_by_key(|r| std::cmp::Reverse(r.saving));
     let toolchain = if image.macho().is_some() {
         Toolchain::Apple
     } else if image.pe().is_some() {
@@ -249,6 +265,10 @@ pub(crate) fn structural_only(image: &hexcavator_image::Image<'_>) -> Recommende
     } else {
         Toolchain::Gnu
     };
+    let own =
+        crate::relocations::demangled(hexcavator_size::relocations::image_symbols(image), image);
+    recs.extend(string_recommendations(image, toolchain, &own));
+    recs.sort_by_key(|r| std::cmp::Reverse(r.saving));
     Recommended {
         recs,
         toolchain,
@@ -324,6 +344,8 @@ pub(crate) fn recommendations(
     recs.extend(hexcavator_size::recommend::pointer_tables(
         &relocs, &data, toolchain,
     ));
+    // The build's paths, and string literals with copies.
+    recs.extend(string_recommendations(image, toolchain, &data));
     // Templates' instantiations alike but for constants, sizes, callees.
     let near = hexcavator_size::fingerprint::near_identical(image, model, x, &classes);
     recs.extend(hexcavator_size::recommend::near_identical(&near));

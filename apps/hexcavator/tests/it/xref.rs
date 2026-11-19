@@ -1101,3 +1101,69 @@ fn recommend_inlining() {
     assert_eq!(e["size"].as_u64().unwrap(), inlined - as_calls, "{r}");
     assert_eq!(r["examples"].as_array().unwrap().len(), 1, "{r}");
 }
+
+/// What an image's strings recommend: the build's paths (testdata/
+/// linkopts/strings: four __FILE__s under /home/user/project, as #line
+/// sets them), and string literals with copies (msvc-strs-nogf.exe, /GF-:
+/// two, in each of two objects; msvc-strs-gf.exe, /GF: pooled, none), but
+/// not named arrays alike (strings' banner_a and banner_b).
+#[test]
+fn recommend_strings() {
+    let recommend = |name: &str| -> serde_json::Value {
+        let out = Command::new(env!("CARGO_BIN_EXE_hexc"))
+            .args(["recommend", "-json"])
+            .arg(
+                Path::new(env!("CARGO_MANIFEST_DIR"))
+                    .join("../../testdata/linkopts")
+                    .join(name),
+            )
+            .output()
+            .unwrap();
+        assert!(
+            out.status.success(),
+            "{name}: {}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+        serde_json::from_slice(&out.stdout).unwrap()
+    };
+    let rec = |v: &serde_json::Value, kind: &str| {
+        v["recommendations"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|r| r["kind"] == kind)
+            .cloned()
+    };
+    let v = recommend("strings");
+    let paths = rec(&v, "build-paths").unwrap_or_else(|| panic!("{v}"));
+    assert!(
+        paths["advice"]
+            .as_str()
+            .unwrap()
+            .starts_with("compile with -fmacro-prefix-map=/home/user/project=. "),
+        "{paths}"
+    );
+    // ("/home/user/project" less the "." it becomes: 17 bytes a path.)
+    assert_eq!(paths["saving"], 4 * 17, "{paths}");
+    assert_eq!(
+        paths["examples"][0]["name"],
+        "/home/user/project (4 paths)"
+    );
+    assert!(rec(&v, "duplicate-strings").is_none(), "{v}");
+    let v = recommend("msvc-strs-nogf.exe");
+    let dups = rec(&v, "duplicate-strings").unwrap_or_else(|| panic!("{v}"));
+    assert!(
+        dups["advice"]
+            .as_str()
+            .unwrap()
+            .starts_with("compile with /GF"),
+        "{dups}"
+    );
+    assert_eq!(dups["saving"], 47 + 46, "{dups}");
+    assert_eq!(
+        dups["examples"][0]["name"],
+        "\"the same literal in two objects, pooled or not\" (2 copies)"
+    );
+    let v = recommend("msvc-strs-gf.exe");
+    assert!(rec(&v, "duplicate-strings").is_none(), "{v}");
+}

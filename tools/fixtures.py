@@ -40,6 +40,7 @@ STEPS = {
     "xref": (["cmd", "/c", r"R:\tools\xref\build.cmd"], ["msvc"]),
     "types": (["cmd", "/c", r"R:\tools\types\build.cmd"], ["msvc"]),
     "linkerlog": (["cmd", "/c", r"R:\tools\linkerlog\build.cmd"], ["msvc"]),
+    "linkopts-msvc": (["cmd", "/c", r"R:\tools\linkopts\build-msvc.cmd"], ["msvc"]),
     "snapshots": (["cmd", "/c", r"R:\tools\fixtures\snapshots.cmd"], ["msvc"]),
     "types-dwarf": (["cmd", "/c", r"R:\tools\types\build-dwarf.cmd"], ["LLVM_BIN"]),
     "elf": (["cmd", "/c", r"R:\tools\elf\build.cmd"], ["LLVM_BIN"]),

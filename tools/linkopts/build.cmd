@@ -26,6 +26,9 @@ rem   inline              inline.cpp: a function inlined where calls would
 rem                       cost less (mix), and one where they wouldn't (get).
 rem   libptrs.so          ptrs.cpp: a table of string pointers and a vtable,
 rem                       their relocations RELA (not packed).
+rem   strings             paths.c (__FILE__, absolute, by #line), strs-a.c and
+rem                       strs-b.c (a literal in both, merged; arrays alike,
+rem                       not).
 rem (What's recorded is given to clang's cc1 as its driver would, so no
 rem path of this machine's is: the driver would record its own.)
 rem   macho-<link>        funcs.c for arm64 macOS (-O2 recorded), linked by
@@ -119,3 +122,9 @@ rem Inlining: inline, with DWARF.
 rem Pointer tables: libptrs.so, with DWARF.
 %CC% %SECTIONS% -fPIC -fvisibility=hidden -fno-asynchronous-unwind-tables -fno-exceptions -fno-rtti -c "%~dp0ptrs.cpp" -o ptrs.o || exit /b 1
 "%LLVM_BIN%\ld.lld.exe" -shared --build-id=sha1 --hash-style=gnu -soname libptrs.so ptrs.o -o "%OUT%/libptrs.so" || exit /b 1
+
+rem Strings: strings, with DWARF.
+%CC% %SECTIONS% -fno-asynchronous-unwind-tables -c "%~dp0paths.c" -o paths.o || exit /b 1
+%CC% %SECTIONS% -fno-asynchronous-unwind-tables -c "%~dp0strs-a.c" -o strs-a.o || exit /b 1
+%CC% %SECTIONS% -fno-asynchronous-unwind-tables -c "%~dp0strs-b.c" -o strs-b.o || exit /b 1
+%LD% --gc-sections paths.o strs-a.o strs-b.o -o "%OUT%/strings" || exit /b 1

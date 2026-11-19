@@ -724,6 +724,94 @@ pub fn pointer_tables(
     out
 }
 
+/// The recommendations an image's strings make ([`crate::strings`]):
+///
+/// - `build-paths`: the build's source paths, shortened by mapping their
+///   directory away (`-fmacro-prefix-map`; Rust's `--remap-path-prefix`;
+///   MSVC's `/d1trimfile:`).
+/// - `duplicate-strings`: string literals with copies, which pooling them
+///   (`-fmerge-constants`, MSVC's `/GF`) would merge; `named` says whether
+///   an address is in named data (an array, not merged).
+pub fn strings(
+    image: &hexcavator_image::Image<'_>,
+    toolchain: Toolchain,
+    named: &dyn Fn(u64) -> bool,
+) -> Vec<Recommendation> {
+    let mut out = Vec::new();
+    let roots = crate::strings::build_paths(image);
+    let saving: u64 = roots.iter().map(|r| r.saving).sum();
+    if saving >= MIN_SAVING {
+        let top = &roots[0];
+        let paths: usize = roots.iter().map(|r| r.paths.len()).sum();
+        let how = if top.rust {
+            format!(
+                "build with --remap-path-prefix={}=. (in RUSTFLAGS)",
+                top.root
+            )
+        } else if toolchain == Toolchain::Msvc {
+            format!(
+                "compile with /d1trimfile:{}\\ (clang-cl: -fmacro-prefix-map)",
+                top.root
+            )
+        } else {
+            format!(
+                "compile with -fmacro-prefix-map={0}=. (or -ffile-prefix-map={0}=., which maps the debug information's paths too)",
+                top.root
+            )
+        };
+        out.push(Recommendation {
+            kind: "build-paths",
+            advice: format!(
+                "{how}{}: {paths} source files' paths (__FILE__, in asserts and logging{}) hold the directory they were built in",
+                match roots.len() {
+                    1 => String::new(),
+                    2 => ", and so for one other directory".to_string(),
+                    n => format!(", and so for {} other directories", n - 1),
+                },
+                if top.rust { "; panics' locations" } else { "" }
+            ),
+            saving,
+            examples: roots
+                .iter()
+                .take(EXAMPLES)
+                .map(|r| (format!("{} ({} paths)", r.root, r.paths.len()), r.saving))
+                .collect(),
+        });
+    }
+    let dups = crate::strings::duplicate_strings(image, named);
+    let saving: u64 = dups
+        .iter()
+        .map(|d| d.size * (d.copies.len() as u64 - 1))
+        .sum();
+    if saving >= MIN_SAVING {
+        out.push(Recommendation {
+            kind: "duplicate-strings",
+            advice: format!(
+                "{}: {} string literals have copies the linker didn't merge",
+                if toolchain == Toolchain::Msvc {
+                    "compile with /GF (string pooling: /O1 and /O2 do)"
+                } else {
+                    "compile with -fmerge-constants (optimizing does: not -O0, or -fno-merge-constants)"
+                },
+                dups.len()
+            ),
+            saving,
+            examples: dups
+                .iter()
+                .take(EXAMPLES)
+                .map(|d| {
+                    let mut t: String = d.text.chars().take(60).collect();
+                    if t.len() < d.text.len() {
+                        t.push('…');
+                    }
+                    (format!("\"{}\" ({} copies)", t.escape_debug(), d.copies.len()), d.size * (d.copies.len() as u64 - 1))
+                })
+                .collect(),
+        });
+    }
+    out
+}
+
 /// The recommendation near-identical functions make
 /// ([`crate::fingerprint::near_identical`]): sharing each family's code,
 /// at most its saving (if at least [`MIN_SAVING`] in all).
