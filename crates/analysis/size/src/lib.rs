@@ -23,6 +23,7 @@ pub mod budget;
 pub mod custom;
 /// (Moved to the debug information crate, which reads DWARF too.)
 pub use hexcavator_debuginfo::decompress;
+pub mod compiled;
 pub mod disasm;
 pub mod dwarf_units;
 pub mod eh;

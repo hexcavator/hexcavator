@@ -12,6 +12,13 @@ rem                       exceptions: work<N> has an LSDA, which ICF keeps.
 rem   dup, dup-icf        dup.c three times (USE=use_a, use_b, use_c),
 rem                       other.c, and dup-main.c: constants copied (a
 rem                       header's, dup.c's), and variables alike.
+rem   funcs-rec           funcs.c with its options recorded in DW_AT_producer
+rem                       (as -grecord-command-line would), linked plain.
+rem   funcs-rec-nosections-gc-icf
+rem                       funcs.c without -ffunction-sections, its options
+rem                       in .GCC.command.line (as -frecord-command-line).
+rem (What's recorded is given to clang's cc1 as its driver would, so no
+rem path of this machine's is: the driver would record its own.)
 setlocal
 if "%LLVM_BIN%"=="" (echo set LLVM_BIN to the bin directory of an LLVM build or release 1>&2 & exit /b 1)
 set OUT=%~dp0..\..\testdata\linkopts
@@ -33,6 +40,10 @@ set EHLD=%LD% --unresolved-symbols=ignore-all
 %LD% --icf=all funcs.o -o "%OUT%\funcs-icf" || exit /b 1
 %LD% --gc-sections --icf=all funcs.o -o "%OUT%\funcs-gc-icf" || exit /b 1
 %LD% --gc-sections --icf=all funcs-nosections.o -o "%OUT%\funcs-nosections-gc-icf" || exit /b 1
+%CC% %SECTIONS% -fno-asynchronous-unwind-tables -Xclang -dwarf-debug-flags -Xclang "clang -O2 -g -ffunction-sections -fdata-sections -c funcs.c" -c "%~dp0funcs.c" -o funcs-rec.o || exit /b 1
+%CC% -fno-asynchronous-unwind-tables -Xclang -record-command-line -Xclang "clang -O2 -g -c funcs.c" -c "%~dp0funcs.c" -o funcs-rec-nosections.o || exit /b 1
+%LD% funcs-rec.o -o "%OUT%\funcs-rec" || exit /b 1
+%LD% --gc-sections --icf=all funcs-rec-nosections.o -o "%OUT%\funcs-rec-nosections-gc-icf" || exit /b 1
 
 %CC% %SECTIONS% -DN=1 -c "%~dp0eh.cpp" -o eh1.o || exit /b 1
 %CC% %SECTIONS% -DN=2 -c "%~dp0eh.cpp" -o eh2.o || exit /b 1

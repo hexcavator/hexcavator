@@ -101,8 +101,16 @@ pub(crate) struct Recommended {
     /// The link's options, if its debug information records them.
     pub link: Option<Link>,
     /// What the link did: its options, or else as the image shows it
-    /// ([`Link::evidence`]); `None` without debug information.
+    /// ([`Link::evidence`]); `None` without debug information, or when the
+    /// image can't show it (see `unsectioned`).
     pub judged: Option<Link>,
+    /// Whether every object whose options are recorded was compiled without
+    /// -ffunction-sections (on ELF): the link could neither collect nor
+    /// fold functions, whatever its options.
+    pub unsectioned: bool,
+    /// Whether there was debug information (else only what the image's
+    /// structure shows).
+    pub debug: bool,
 }
 
 /// The recommendations for an image without debug information: what its
@@ -122,6 +130,8 @@ pub(crate) fn structural_only(image: &hexcavator_image::Image<'_>) -> Recommende
         toolchain,
         link: None,
         judged: None,
+        unsectioned: false,
+        debug: false,
     }
 }
 
@@ -137,6 +147,10 @@ pub(crate) fn recommendations(
         .linker_info()
         .ok()
         .and_then(|i| i.command_line().map(Link::from_command_line));
+    let compiled = hexcavator_size::compiled::Compiled::of(debug);
+    // (Objects compiled without -ffunction-sections leave nothing to judge
+    // an ELF link's options by.)
+    let unsectioned = link.is_none() && image.elf().is_some() && compiled.no_function_sections();
     let judged = link.unwrap_or_else(|| Link::evidence(image, debug));
     // Identical functions matter only if the link didn't fold them.
     let foldable = (!judged.opt_icf).then(|| {
@@ -149,7 +163,14 @@ pub(crate) fn recommendations(
         .classes
     });
     let duplicates = findings::duplicate_data(image, debug, syms);
-    let mut recs = recommend(x, toolchain, Some(judged), foldable.as_deref(), &duplicates);
+    let mut recs = recommend(
+        x,
+        toolchain,
+        Some(judged),
+        foldable.as_deref(),
+        &duplicates,
+        &compiled,
+    );
     // And what the image's structure says, largest saving first with the
     // rest.
     recs.extend(hexcavator_size::recommend::structural(image));
@@ -158,7 +179,9 @@ pub(crate) fn recommendations(
         recs,
         toolchain,
         link,
-        judged: Some(judged),
+        judged: (!unsectioned).then_some(judged),
+        unsectioned,
+        debug: true,
     }
 }
 
@@ -197,6 +220,10 @@ pub(crate) fn as_text(r: &Recommended) -> String {
                 did(judged.opt_icf)
             );
         }
+        (None, None) if r.unsectioned => out.push_str(
+            "The link's options aren't recorded, and its objects were compiled without -ffunction-sections, so the image can't show whether the link collected unreferenced functions (--gc-sections) or folded identical ones (ICF): neither could have.\n",
+        ),
+        (None, None) if r.debug => {}
         (None, None) => out.push_str(
             "No debug information: only what the image's structure shows (give it with -debug for the rest).\n",
         ),
@@ -241,7 +268,7 @@ pub(crate) fn as_json(r: &Recommended) -> String {
         // (Absent without debug information, which has only what the
         // image's structure shows.)
         "judged": r.judged.map(|l| json!({"optRef": l.opt_ref, "optIcf": l.opt_icf})),
-        "debug": r.judged.is_some(),
+        "debug": r.debug,
         "saving": recs.iter().map(|r| r.saving).sum::<u64>(),
         "recommendations": list,
     }))

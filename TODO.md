@@ -5,12 +5,6 @@ leave this list when they ship.
 
 ## Size analysis
 
-- **Recorded compiler options.** Read the compiler's command line from the
-  debug information (GCC's `DW_AT_producer`, Clang's
-  `-frecord-command-line`): `-ffunction-sections`, `-Os`, LTO, exceptions,
-  visibility. `hexc recommend` can't otherwise tell a build compiled
-  without `-ffunction-sections` (where `--gc-sections` and `--icf` leave no
-  trace) from one linked without them.
 - **Apple ICF advice.** ld64 folds identical functions by default
   (`-no_deduplicate` turns it off); check, and stop recommending
   `ld64.lld --icf=all` for links that already folded them.

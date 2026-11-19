@@ -1213,6 +1213,74 @@ impl<'data> DwarfInfo<'data> {
         Ok(out)
     }
 
+    /// How each compiland was compiled (see [`crate::DebugInfo::compile_options`]):
+    /// its unit's `DW_AT_producer` (a split unit's, over its skeleton's),
+    /// or, where that records no arguments, the command line in the file's
+    /// `.GCC.command.line` that names its source.
+    pub fn compile_options(&self) -> Result<Vec<crate::CompileOptions>> {
+        use crate::options;
+        let mut out: Vec<(crate::CompileOptions, String)> = Vec::new();
+        let attr = |m: &UnitMeta, n: u16| {
+            let (u, a) = self.unit(m)?;
+            let d = u.entry(a, u.dies)?;
+            Self::string(&u, &d, n)
+        };
+        for m in &self.index().units {
+            let Some(c) = m.compiland else { continue };
+            let producer = attr(m, DW_AT_PRODUCER);
+            let name = attr(m, DW_AT_NAME).unwrap_or_default();
+            if m.split {
+                if let Some(o) = usize::try_from(c).ok().and_then(|c| out.get_mut(c)) {
+                    if let Some(p) = producer {
+                        let parsed = options::parse_producer(&p);
+                        if parsed.args.is_some() || o.0.compiler.is_empty() {
+                            o.0 = parsed;
+                        }
+                    }
+                    if !name.is_empty() {
+                        o.1 = name;
+                    }
+                }
+            } else {
+                out.push((
+                    producer
+                        .map(|p| options::parse_producer(&p))
+                        .unwrap_or_default(),
+                    name,
+                ));
+            }
+        }
+        if out.iter().any(|o| o.0.args.is_none()) {
+            let lines = self.recorded_command_lines();
+            for (o, name) in &mut out {
+                if o.args.is_none()
+                    && let Some(l) = options::command_line_for(&lines, name)
+                {
+                    o.args = Some(l.to_vec());
+                }
+            }
+        }
+        Ok(out.into_iter().map(|o| o.0).collect())
+    }
+
+    /// The command lines in the file's `.GCC.command.line` (clang's
+    /// `-frecord-command-line`), each split; none if it's not ELF or has
+    /// none.
+    fn recorded_command_lines(&self) -> Vec<Vec<String>> {
+        let Ok(elf) = hexcavator_elf::ElfFile::parse(self.data) else {
+            return Vec::new();
+        };
+        let Some(s) = elf.section_by_name(b".GCC.command.line") else {
+            return Vec::new();
+        };
+        elf.section_data(&s)
+            .split(|&b| b == 0)
+            .filter(|l| !l.is_empty())
+            .take(1 << 20)
+            .map(|l| crate::options::parse_command_line(&String::from_utf8_lossy(l)))
+            .collect()
+    }
+
     /// The compilands' code (see [`crate::DebugInfo::contributions`]).
     pub fn contributions(&self) -> Result<Vec<Contribution>> {
         let mut out: Vec<Contribution> = Vec::new();

@@ -803,16 +803,28 @@ fn pointer_edge(b: &mut Builder, slot: u64, to: u64) {
 }
 
 /// Nodes without a contribution take their symbol's compiland (DWARF
-/// records compile units' ranges of code only).
-fn units_of_data(x: &mut Xref, symbols: &[Symbol]) {
+/// records compile units' ranges of code only); `comdat` says whether a
+/// compiland's data is in sections the linker could drop alone. (What the
+/// linker must keep grows by the data that isn't.)
+fn units_of_data(x: &mut Xref, symbols: &[Symbol], comdat: impl Fn(u32) -> bool) {
     let units: rustc_hash::FxHashMap<u64, u32> = symbols
         .iter()
         .filter_map(|s| Some((s.addr, s.compiland?)))
         .collect();
+    let mut shared = false;
     for (j, n) in x.graph.nodes().iter().enumerate() {
         if x.contribution[j].is_none() {
-            x.contribution[j] = units.get(&n.start).map(|&c| (c, true));
+            x.contribution[j] = units.get(&n.start).map(|&c| (c, comdat(c)));
+            shared |= matches!(x.contribution[j], Some((_, false)));
         }
+    }
+    if shared {
+        let mut kept: Vec<u32> = x.roots.iter().map(|r| r.0).collect();
+        kept.extend(
+            x.ids()
+                .filter(|&j| matches!(x.contribution[j as usize], Some((_, false)))),
+        );
+        x.kept_reach = x.graph.reach(&kept);
     }
 }
 
@@ -894,7 +906,7 @@ pub fn macho(
         }
     }
     let mut x = finish(b, &infos, roots, debug, arch, Linker::MachO, |_| true)?;
-    units_of_data(&mut x, symbols);
+    units_of_data(&mut x, symbols, |_| true);
     Ok(x)
 }
 
@@ -988,7 +1000,7 @@ pub fn wasm(
         }
     }
     let mut x = finish(b, &infos, roots, debug, arch, Linker::Elf, |_| true)?;
-    units_of_data(&mut x, symbols);
+    units_of_data(&mut x, symbols, |_| true);
     Ok(x)
 }
 
@@ -1124,8 +1136,16 @@ pub fn elf(
             roots.push((n, Root::LoaderData("thread-local data")));
         }
     }
-    let mut x = finish(b, &infos, roots, debug, arch, Linker::Elf, |_| true)?;
-    units_of_data(&mut x, symbols);
+    // A function's code is a section of its own, which the linker can drop
+    // alone, unless its object was compiled without -ffunction-sections
+    // (as recorded): then the object's code is one section, kept whole.
+    let compiled = crate::compiled::Compiled::of(debug);
+    let mut x = finish(b, &infos, roots, debug, arch, Linker::Elf, |c| {
+        compiled.function_sections(c.compiland) != Some(false)
+    })?;
+    units_of_data(&mut x, symbols, |c| {
+        compiled.data_sections(c) != Some(false)
+    });
     Ok(x)
 }
 

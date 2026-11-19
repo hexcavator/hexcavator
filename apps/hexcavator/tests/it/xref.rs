@@ -738,4 +738,39 @@ fn recommend_judges_the_link() {
             "{v}"
         );
     }
+    // Its options recorded (in DW_AT_producer), with -ffunction-sections
+    // and -fdata-sections: the advice needn't say to compile so.
+    let v = recommend("funcs-rec");
+    assert_eq!(kinds(&v), ["gc", "icf"], "{v}");
+    let advice: Vec<&str> = v["recommendations"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|r| r["advice"].as_str().unwrap())
+        .collect();
+    assert!(advice.iter().all(|a| !a.contains("compiling with")), "{v}");
+    // Recorded (in .GCC.command.line) without them: the link can't be
+    // judged, nothing is foldable, and what nothing reaches is kept with
+    // funcs.c's sections, its functions' and its data's.
+    let v = recommend("funcs-rec-nosections-gc-icf");
+    assert!(v["judged"].is_null() && v["debug"] == true, "{v}");
+    assert_eq!(kinds(&v), ["data-sections", "function-sections"], "{v}");
+    for r in v["recommendations"].as_array().unwrap() {
+        let a = r["advice"].as_str().unwrap();
+        assert!(
+            a.starts_with("compile funcs.c with -f")
+                && a.contains("(and link with -Wl,--gc-sections)"),
+            "{v}"
+        );
+    }
+    let out = Command::new(env!("CARGO_BIN_EXE_hexc"))
+        .arg("recommend")
+        .arg(linkopts("funcs-rec-nosections-gc-icf"))
+        .output()
+        .unwrap();
+    let text = String::from_utf8(out.stdout).unwrap();
+    assert!(
+        text.starts_with("The link's options aren't recorded, and its objects were compiled without -ffunction-sections"),
+        "{text}"
+    );
 }

@@ -23,6 +23,14 @@
 //! collected, and identical functions at different addresses weren't
 //! folded.
 //!
+//! Where the debug information records how the objects were compiled
+//! ([`crate::compiled`]), an ELF object compiled without
+//! `-ffunction-sections` (or `-fdata-sections`) has its code (or data) in
+//! one section the linker keeps whole: what nothing reaches in it is
+//! advice to compile it so, not to link differently, and its functions
+//! can't be folded. Advice to link so says to compile so too only when
+//! the options aren't recorded.
+//!
 //! Each must save at least [`MIN_SAVING`] bytes.
 
 use crate::findings::DuplicateData;
@@ -83,9 +91,24 @@ impl Toolchain {
         }
     }
 
-    fn gc(self) -> &'static str {
+    /// The linker's option that drops what nothing reaches.
+    fn gc_option(self) -> &'static str {
+        match self {
+            Toolchain::Msvc => "/OPT:REF",
+            Toolchain::Gnu => "-Wl,--gc-sections",
+            Toolchain::Apple => "-Wl,-dead_strip",
+        }
+    }
+
+    /// Advice to collect what nothing reaches; `sections`: whether the
+    /// objects are known to have been compiled with their functions in
+    /// sections of their own (else the advice says to).
+    fn gc(self, sections: bool) -> &'static str {
         match self {
             Toolchain::Msvc => "link with /OPT:REF: COMDATs nothing reaches are kept",
+            Toolchain::Gnu if sections => {
+                "link with -Wl,--gc-sections: functions and data nothing reaches are kept"
+            }
             Toolchain::Gnu => {
                 "link with -Wl,--gc-sections (compiling with -ffunction-sections -fdata-sections): functions and data nothing reaches are kept"
             }
@@ -95,9 +118,11 @@ impl Toolchain {
         }
     }
 
-    fn icf(self) -> &'static str {
+    /// Advice to fold identical functions (see [`Toolchain::gc`]).
+    fn icf(self, sections: bool) -> &'static str {
         match self {
             Toolchain::Msvc => "link with /OPT:ICF",
+            Toolchain::Gnu if sections => "link with -Wl,--icf=all (lld or gold)",
             Toolchain::Gnu => {
                 "link with -Wl,--icf=all (lld or gold; compiling with -ffunction-sections)"
             }
@@ -278,15 +303,35 @@ pub const MIN_SAVING: u64 = 64;
 
 /// The recommendations for an image: from its graph `x`, the
 /// link's options (if known), the classes of [`crate::fingerprint::Mode::
-/// Foldable`] (if computed), and its duplicated variables. Largest saving
-/// first.
+/// Foldable`] (if computed), its duplicated variables, and how its objects
+/// were compiled (where recorded). Largest saving first.
 pub fn recommend(
     x: &Xref,
     toolchain: Toolchain,
     link: Option<Link>,
     foldable: Option<&[u64]>,
     duplicates: &[DuplicateData],
+    compiled: &crate::compiled::Compiled,
 ) -> Vec<Recommendation> {
+    // Whether all of `nodes` are known to be of objects compiled with
+    // their functions (or data) in sections of their own.
+    let sectioned = |nodes: &[u32]| {
+        nodes.iter().all(|&n| {
+            x.contribution[n as usize].is_some_and(|(c, _)| {
+                if x.graph.nodes()[n as usize].code {
+                    compiled.function_sections(c) == Some(true)
+                } else {
+                    compiled.data_sections(c) == Some(true)
+                }
+            })
+        })
+    };
+    // Sections of their own save nothing unless the link drops them too.
+    let and_gc = if link.is_some_and(|l| l.opt_ref) {
+        String::new()
+    } else {
+        format!(" (and link with {})", toolchain.gc_option())
+    };
     let mut out = Vec::new();
     let unreached: Vec<u32> = x
         .ids()
@@ -323,12 +368,12 @@ pub fn recommend(
             kind: if code { "function-sections" } else { "data-sections" },
             advice: if code {
                 format!(
-                    "compile {name} with {}: its functions nothing reaches are kept with the sections they share with ones that are used",
+                    "compile {name} with {}{and_gc}: its functions nothing reaches are kept with the sections they share with ones that are used",
                     toolchain.function_sections()
                 )
             } else {
                 format!(
-                    "compile {name} with {}: its data nothing reaches is kept with the sections it shares with data that is used",
+                    "compile {name} with {}{and_gc}: its data nothing reaches is kept with the sections it shares with data that is used",
                     toolchain.data_sections()
                 )
             },
@@ -347,7 +392,7 @@ pub fn recommend(
             if saving > 0 {
                 out.push(Recommendation {
                     kind: "gc",
-                    advice: toolchain.gc().into(),
+                    advice: toolchain.gc(sectioned(&nodes)).into(),
                     saving,
                     examples: examples(x, &nodes),
                 });
@@ -374,7 +419,12 @@ pub fn recommend(
                     kind: "icf",
                     advice: format!(
                         "{}: {} groups of identical functions aren't folded",
-                        toolchain.icf(),
+                        toolchain.icf(sectioned(
+                            &groups
+                                .iter()
+                                .flat_map(|g| g.0.iter().copied())
+                                .collect::<Vec<_>>()
+                        )),
                         groups.len()
                     ),
                     saving,
