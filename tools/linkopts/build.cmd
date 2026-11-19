@@ -19,6 +19,9 @@ rem                       funcs.c without -ffunction-sections, its options
 rem                       in .GCC.command.line (as -frecord-command-line).
 rem   libexp.so, libexp-bsymbolic.so, libexp-hidden.so, exp-main
 rem                       exp.cpp's exports (see below), and an importer.
+rem   near                near.cpp: templates' instantiations alike but for
+rem                       sizes (total<T>) or callees (apply<F>), and some
+rem                       that differ (pick<T>).
 rem (What's recorded is given to clang's cc1 as its driver would, so no
 rem path of this machine's is: the driver would record its own.)
 rem   macho-<link>        funcs.c for arm64 macOS (-O2 recorded), linked by
@@ -100,3 +103,7 @@ cd /d "%WORK%" || exit /b 1
 %XLD% -shared -soname libexp.so -Bsymbolic-functions exp.o -o "%OUT%\libexp-bsymbolic.so" || exit /b 1
 %XLD% -shared -soname libexp.so exp-hidden.o -o "%OUT%\libexp-hidden.so" || exit /b 1
 %XLD% -pie -e _start exp-main.o "%OUT%\libexp.so" -o "%OUT%\exp-main" || exit /b 1
+
+rem Near-identical functions: near, with DWARF, linked with --gc-sections.
+%CC% %SECTIONS% -fno-asynchronous-unwind-tables -fno-exceptions -c "%~dp0near.cpp" -o near.o || exit /b 1
+%LD% --gc-sections near.o -o "%OUT%\near" || exit /b 1

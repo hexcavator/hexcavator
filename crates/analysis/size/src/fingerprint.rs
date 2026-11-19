@@ -313,6 +313,126 @@ pub fn build(image: &Image<'_>, model: &Model, x: &Xref, mode: Mode) -> Fingerpr
     }
 }
 
+/// A family of near-identical functions: instantiations of one template
+/// (one name, its template arguments aside) whose code has one shape
+/// ([`hexcavator_fingerprint::shape`]) but isn't identical: they differ
+/// only in constants, the sizes of what they work on, or what they call,
+/// which a shared, non-template core could take as arguments.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct NearFamily {
+    /// The template's name, its arguments elided: `Vector<>::grow()`.
+    pub family: String,
+    /// Its functions, largest first.
+    pub members: Vec<u32>,
+    /// How many of them differ (by [`Mode::Foldable`] class): copies
+    /// identical to another are ICF's to fold.
+    pub versions: usize,
+    /// What one copy of their code would save, at most: each version's
+    /// size, less the largest's (the shared core's; the wrappers left, and
+    /// the arguments passed, cost some of it back).
+    pub saving: u64,
+}
+
+/// The smallest function counted in a [`NearFamily`]: below it, unrelated
+/// code shares shapes, and sharing saves little.
+pub const NEAR_MIN_SIZE: u64 = 32;
+
+/// The families of near-identical functions of an image's graph `x`
+/// (`classes`: [`Mode::Foldable`]'s), largest saving first; shapes are
+/// computed in parallel.
+pub fn near_identical(
+    image: &Image<'_>,
+    model: &Model,
+    x: &Xref,
+    classes: &[u64],
+) -> Vec<NearFamily> {
+    let candidates: Vec<(u32, String)> = x
+        .ids()
+        .filter(|&n| {
+            x.graph.nodes()[n as usize].code
+                && x.kinds[n as usize].is_some()
+                && x.size(n) >= NEAR_MIN_SIZE
+        })
+        .filter_map(|n| Some((n, crate::findings::template_family(&x.names[n as usize])?)))
+        .collect();
+    let bytes = |start: u64, end: u64| -> &[u8] {
+        let Some(sec) = model
+            .sections
+            .iter()
+            .find(|s| start >= s.addr && start < s.addr + s.size.vm.max(s.size.file))
+        else {
+            return &[];
+        };
+        let available = (sec.addr + sec.size.file).saturating_sub(start);
+        image
+            .bytes_at(start, (end - start).min(available))
+            .unwrap_or(&[])
+    };
+    let threads = std::thread::available_parallelism()
+        .map_or(1, std::num::NonZero::get)
+        .min(candidates.len().max(1));
+    let chunk = candidates.len().div_ceil(threads).max(1);
+    let shapes: Vec<Option<u64>> = std::thread::scope(|scope| {
+        let handles: Vec<_> = candidates
+            .chunks(chunk)
+            .map(|part| {
+                let bytes = &bytes;
+                scope.spawn(move || {
+                    part.iter()
+                        .map(|&(n, _)| {
+                            let node = x.graph.nodes()[n as usize];
+                            let code = bytes(node.start, node.end);
+                            // (Code not all in the file: no shape.)
+                            if code.len() as u64 != node.end - node.start {
+                                return None;
+                            }
+                            hexcavator_fingerprint::shape(x.arch, code, node.start)
+                        })
+                        .collect::<Vec<_>>()
+                })
+            })
+            .collect();
+        handles
+            .into_iter()
+            .flat_map(|h| h.join().unwrap_or_default())
+            .collect()
+    });
+    let mut groups: rustc_hash::FxHashMap<(&str, u64), Vec<u32>> = rustc_hash::FxHashMap::default();
+    for ((n, family), shape) in candidates.iter().zip(shapes) {
+        if let Some(shape) = shape {
+            groups.entry((family.as_str(), shape)).or_default().push(*n);
+        }
+    }
+    let mut out: Vec<NearFamily> = groups
+        .into_iter()
+        .filter_map(|((family, _), mut members)| {
+            // Each version's size, once.
+            let mut sizes: rustc_hash::FxHashMap<u64, u64> = rustc_hash::FxHashMap::default();
+            for &n in &members {
+                sizes.entry(classes[n as usize]).or_insert(x.size(n));
+            }
+            if sizes.len() < 2 {
+                return None;
+            }
+            let total: u64 = sizes.values().sum();
+            let largest = sizes.values().copied().max().unwrap_or(0);
+            members.sort_by_key(|&n| (std::cmp::Reverse(x.size(n)), n));
+            Some(NearFamily {
+                family: family.to_string(),
+                members,
+                versions: sizes.len(),
+                saving: total - largest,
+            })
+        })
+        .collect();
+    out.sort_by(|a, b| {
+        b.saving
+            .cmp(&a.saving)
+            .then_with(|| a.family.cmp(&b.family))
+    });
+    out
+}
+
 /// Groups of code nodes with the same class (of [`Mode::Foldable`]: code
 /// the linker could have folded but didn't), largest saving first: each
 /// group's nodes, and the bytes folding it would save (all but one copy).

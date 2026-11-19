@@ -5,9 +5,6 @@ leave this list when they ship.
 
 ## Size analysis
 
-- **Near-identical functions.** Families of functions that differ only in
-  a constant, a type's size, or a callee (template instantiations ICF
-  can't fold), with what a type-erased version would save.
 - **Inlining.** A function's inlined copies weighed against what calls to
   one out-of-line copy would cost instead, and `noinline` (or `-Os`)
   recommended where the copies cost more.

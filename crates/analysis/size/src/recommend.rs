@@ -588,6 +588,30 @@ pub fn structural(image: &hexcavator_image::Image<'_>) -> Vec<Recommendation> {
     out
 }
 
+/// The recommendation near-identical functions make
+/// ([`crate::fingerprint::near_identical`]): sharing each family's code,
+/// at most its saving (if at least [`MIN_SAVING`] in all).
+pub fn near_identical(families: &[crate::fingerprint::NearFamily]) -> Option<Recommendation> {
+    let saving: u64 = families.iter().map(|f| f.saving).sum();
+    if saving < MIN_SAVING {
+        return None;
+    }
+    let versions: usize = families.iter().map(|f| f.versions).sum();
+    Some(Recommendation {
+        kind: "near-identical",
+        advice: format!(
+            "share the code of {} templates' instantiations (up to this much), which differ only in constants, the sizes of what they work on, or what they call: a non-template core each forwards to, given those as arguments ({versions} versions in all)",
+            families.len()
+        ),
+        saving,
+        examples: families
+            .iter()
+            .take(EXAMPLES)
+            .map(|f| (format!("{} ({} versions)", f.family, f.versions), f.saving))
+            .collect(),
+    })
+}
+
 /// The relative relocation type of `machine`.
 fn relative_type(machine: u16) -> Option<u32> {
     use hexcavator_elf::consts::*;

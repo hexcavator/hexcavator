@@ -686,10 +686,12 @@ fn recommend_judges_the_link() {
         // (Nothing unreferenced to collect. Folded across compile units:
         // the DWARF of both at one address; and work<N>, with an LSDA,
         // which lld's ICF never folds.)
-        ("eh-icf", false, true, &[]),
+        // (work<1> and work<2>, which ICF doesn't fold, differ only in a
+        // constant: near-identical.)
+        ("eh-icf", false, true, &["near-identical"]),
         // (Without ICF, only plain<N>: work<N> has an LSDA, and use<N>
         // calls different work<N>.)
-        ("eh", false, false, &["icf"]),
+        ("eh", false, false, &["icf", "near-identical"]),
         // (Only data folded: nothing says the link folded functions,
         // and there are none to fold.)
         ("dup-icf", false, false, &[]),
@@ -710,7 +712,12 @@ fn recommend_judges_the_link() {
         .unwrap()["examples"];
     assert_eq!(icf[0]["name"], "add_a(int, int) (3 copies)", "{v}");
     let v = recommend("eh");
-    let icf = &v["recommendations"][0];
+    let icf = v["recommendations"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|r| r["kind"] == "icf")
+        .unwrap();
     assert_eq!(icf["examples"].as_array().unwrap().len(), 1, "{v}");
     assert!(
         icf["examples"][0]["name"]
@@ -996,4 +1003,46 @@ fn recommend_exports() {
         ["exp_helper(int)", "exp_used(int)"],
         "{v}"
     );
+}
+
+/// Near-identical functions: templates' instantiations alike but for the
+/// sizes of what they work on, or what they call (testdata/linkopts/near:
+/// total<T>, apply<F>), and not those that differ (pick<T>).
+#[test]
+fn recommend_near_identical() {
+    let out = Command::new(env!("CARGO_BIN_EXE_hexc"))
+        .args(["recommend", "-json"])
+        .arg(Path::new(env!("CARGO_MANIFEST_DIR")).join("../../testdata/linkopts/near"))
+        .output()
+        .unwrap();
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let v: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
+    let near = v["recommendations"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|r| r["kind"] == "near-identical")
+        .unwrap_or_else(|| panic!("{v}"));
+    let examples: Vec<&str> = near["examples"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|e| e["name"].as_str().unwrap())
+        .collect();
+    assert!(examples.iter().any(|e| e.starts_with("total<>")), "{v}");
+    assert!(examples.contains(&"apply<> (2 versions)"), "{v}");
+    assert!(!examples.iter().any(|e| e.starts_with("pick<>")), "{v}");
+    // At most all but the largest version of each.
+    let saving = near["saving"].as_u64().unwrap();
+    let sum: u64 = near["examples"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|e| e["size"].as_u64().unwrap())
+        .sum();
+    assert_eq!(saving, sum, "{v}");
 }

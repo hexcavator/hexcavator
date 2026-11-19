@@ -277,25 +277,20 @@ pub(crate) fn recommendations(
     // an ELF link's options by.)
     let unsectioned = link.is_none() && image.elf().is_some() && compiled.no_function_sections();
     let judged = link.unwrap_or_else(|| Link::evidence(image, debug, &compiled));
-    // Identical functions matter only if the link didn't fold them.
-    let foldable = (!judged.opt_icf).then(|| {
-        hexcavator_size::fingerprint::build(
-            image,
-            model,
-            x,
-            hexcavator_size::fingerprint::Mode::Foldable,
-        )
-        .classes
-    });
-    let duplicates = findings::duplicate_data(image, debug, syms);
-    let mut recs = recommend(
+    let classes = hexcavator_size::fingerprint::build(
+        image,
+        model,
         x,
-        toolchain,
-        Some(judged),
-        foldable.as_deref(),
-        &duplicates,
-        &compiled,
-    );
+        hexcavator_size::fingerprint::Mode::Foldable,
+    )
+    .classes;
+    // Identical functions matter only if the link didn't fold them.
+    let foldable = (!judged.opt_icf).then_some(&classes[..]);
+    let duplicates = findings::duplicate_data(image, debug, syms);
+    let mut recs = recommend(x, toolchain, Some(judged), foldable, &duplicates, &compiled);
+    // Templates' instantiations alike but for constants, sizes, callees.
+    let near = hexcavator_size::fingerprint::near_identical(image, model, x, &classes);
+    recs.extend(hexcavator_size::recommend::near_identical(&near));
     // And what the image's structure says, largest saving first with the
     // rest.
     recs.extend(hexcavator_size::recommend::structural(image));
