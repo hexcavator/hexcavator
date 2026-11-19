@@ -67,6 +67,25 @@ impl Compiled {
         known
     }
 
+    /// Whether every compiland whose options are recorded (at least one)
+    /// was compiled at `-O0` or `-O1` (or without `-O`, which is `-O0`):
+    /// clang then links with Apple's ld `-no_deduplicate`, if it links at
+    /// the same level.
+    pub fn unoptimized(&self) -> bool {
+        let mut known = false;
+        for o in &self.options {
+            if o.args.is_none() {
+                continue;
+            }
+            known = true;
+            let level = o.args.iter().flatten().rev().find(|a| a.starts_with("-O"));
+            if !matches!(level.map(String::as_str), None | Some("-O0" | "-O1")) {
+                return false;
+            }
+        }
+        known
+    }
+
     /// The compilands compiled without functions in sections of their own
     /// (their arguments recorded), by index.
     pub fn without_function_sections(&self) -> impl Iterator<Item = u32> + '_ {
@@ -131,5 +150,26 @@ mod tests {
             .no_function_sections()
         );
         assert!(!Compiled::default().no_function_sections());
+    }
+
+    #[test]
+    fn unoptimized() {
+        let c = |v: Vec<Option<&[&str]>>| Compiled {
+            options: v.into_iter().map(opts).collect(),
+        };
+        assert!(
+            c(vec![
+                Some(&["-O0"]),
+                Some(&["-c"]),
+                None,
+                Some(&["-O2", "-O1"])
+            ])
+            .unoptimized()
+        );
+        assert!(!c(vec![Some(&["-O0"]), Some(&["-Os"])]).unoptimized());
+        assert!(!c(vec![Some(&["-Ofast"])]).unoptimized());
+        assert!(!c(vec![Some(&["-O1", "-O3"])]).unoptimized());
+        // Nothing recorded: not known.
+        assert!(!c(vec![None]).unoptimized());
     }
 }

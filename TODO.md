@@ -5,9 +5,6 @@ leave this list when they ship.
 
 ## Size analysis
 
-- **Apple ICF advice.** ld64 folds identical functions by default
-  (`-no_deduplicate` turns it off); check, and stop recommending
-  `ld64.lld --icf=all` for links that already folded them.
 - **MCP `why` and `recommend` beyond PE.** They read only PE images with
   PDBs (`pe_only` in `apps/hexcavator/src/mcp.rs`); the command line reads
   ELF, Mach-O, and WebAssembly too.

@@ -226,6 +226,9 @@ pub const DW_AT_GNU_PUBNAMES: u16 = 0x2134;
 pub const DW_AT_GNU_PUBTYPES: u16 = 0x2135;
 pub const DW_AT_GNU_DISCRIMINATOR: u16 = 0x2136;
 pub const DW_AT_APPLE_OPTIMIZED: u16 = 0x3FE1;
+/// The compiler's command line, where Apple targets record it (rather than in
+/// `DW_AT_producer`).
+pub const DW_AT_APPLE_FLAGS: u16 = 0x3FE2;
 pub const DW_AT_APPLE_OMIT_FRAME_PTR: u16 = 0x3FE7;
 
 // Forms.

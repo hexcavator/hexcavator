@@ -1215,8 +1215,9 @@ impl<'data> DwarfInfo<'data> {
 
     /// How each compiland was compiled (see [`crate::DebugInfo::compile_options`]):
     /// its unit's `DW_AT_producer` (a split unit's, over its skeleton's),
-    /// or, where that records no arguments, the command line in the file's
-    /// `.GCC.command.line` that names its source.
+    /// or its `DW_AT_APPLE_flags` (where Apple targets record the command
+    /// line), or, where neither records arguments, the command line in the
+    /// file's `.GCC.command.line` that names its source.
     pub fn compile_options(&self) -> Result<Vec<crate::CompileOptions>> {
         use crate::options;
         let mut out: Vec<(crate::CompileOptions, String)> = Vec::new();
@@ -1229,6 +1230,9 @@ impl<'data> DwarfInfo<'data> {
             let Some(c) = m.compiland else { continue };
             let producer = attr(m, DW_AT_PRODUCER);
             let name = attr(m, DW_AT_NAME).unwrap_or_default();
+            let apple = attr(m, DW_AT_APPLE_FLAGS)
+                .map(|f| options::parse_command_line(&f))
+                .filter(|a| !a.is_empty());
             if m.split {
                 if let Some(o) = usize::try_from(c).ok().and_then(|c| out.get_mut(c)) {
                     if let Some(p) = producer {
@@ -1242,12 +1246,13 @@ impl<'data> DwarfInfo<'data> {
                     }
                 }
             } else {
-                out.push((
-                    producer
-                        .map(|p| options::parse_producer(&p))
-                        .unwrap_or_default(),
-                    name,
-                ));
+                let mut o = producer
+                    .map(|p| options::parse_producer(&p))
+                    .unwrap_or_default();
+                if o.args.is_none() {
+                    o.args = apple;
+                }
+                out.push((o, name));
             }
         }
         if out.iter().any(|o| o.0.args.is_none()) {

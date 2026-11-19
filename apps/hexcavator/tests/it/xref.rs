@@ -523,8 +523,10 @@ fn elf_images() {
     assert!(out.contains("exported as compute"), "{out}");
 }
 
-/// Mach-O: an executable (its DWARF given) whose entry point and exports
-/// (an executable's external symbols) are its roots.
+/// Mach-O: an executable (its DWARF given) whose entry point is its root,
+/// and not its exports (an executable's external symbols), which
+/// -dead_strip drops unless they're reached (or it's linked with
+/// -export_dynamic). (A dylib's exports are roots.)
 #[test]
 fn macho_images() {
     let macho = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../testdata/macho");
@@ -532,7 +534,11 @@ fn macho_images() {
     let image = macho.join("program-arm64");
     let (ok, out, err) = hexc(&["-pdb", dwarf.to_str().unwrap()], &image);
     assert!(ok, "{err}");
-    assert!(out.contains("0 unreachable"), "{out}");
+    // second_sum, exported but uncalled; and the program's stand-in for
+    // dyld's __tlv_bootstrap, which its thread-local variable's descriptor
+    // names in a way not seen here (a real program imports it).
+    assert!(out.contains("2 unreachable"), "{out}");
+    assert!(out.contains("second_sum(int)"), "{out}");
     let (ok, out, _) = hexc(&["-pdb", dwarf.to_str().unwrap(), "-why", "start"], &image);
     assert!(ok);
     assert!(out.contains("the entry point"), "{out}");
@@ -541,7 +547,7 @@ fn macho_images() {
         &image,
     );
     assert!(ok);
-    assert!(out.contains("exported as _compute"), "{out}");
+    assert!(out.contains("start()  (the entry point)"), "{out}");
 }
 
 /// ELF images get advice in GCC's and Clang's terms, judged from the image
@@ -773,4 +779,91 @@ fn recommend_judges_the_link() {
         text.starts_with("The link's options aren't recorded, and its objects were compiled without -ffunction-sections"),
         "{text}"
     );
+}
+
+/// What a Mach-O link did, judged from the image (testdata/linkopts's
+/// macho-*: ld64.lld's links of one object, and two marked as Apple's
+/// ld's), and the advice in Apple's terms.
+#[test]
+fn recommend_judges_a_macho_link() {
+    let run = |args: &[&str], name: &str| {
+        let out = Command::new(env!("CARGO_BIN_EXE_hexc"))
+            .arg("recommend")
+            .args(args)
+            .arg(
+                Path::new(env!("CARGO_MANIFEST_DIR"))
+                    .join("../../testdata/linkopts")
+                    .join(name),
+            )
+            .output()
+            .unwrap();
+        assert!(
+            out.status.success(),
+            "{name}: {}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+        String::from_utf8(out.stdout).unwrap()
+    };
+    let recommend =
+        |name: &str| -> serde_json::Value { serde_json::from_str(&run(&["-json"], name)).unwrap() };
+    let advice = |v: &serde_json::Value, kind: &str| -> Option<String> {
+        v["recommendations"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|r| r["kind"] == kind)
+            .map(|r| r["advice"].as_str().unwrap().to_string())
+    };
+    // (name, collected, folded, gc recommended, ICF recommended)
+    let cases = [
+        ("macho-plain", false, false, true, true),
+        // (ld64.lld's ICF keeps the folded functions' symbols, at the
+        // kept one's address.)
+        ("macho-icf", false, true, true, false),
+        // (-dead_strip drops even an executable's exports: their DWARF is
+        // in the debug map's object, their symbols aren't in the image.)
+        ("macho-dead", true, false, false, true),
+        ("macho-dead-icf", true, true, false, false),
+        // Apple's ld folds unless given -no_deduplicate, which clang
+        // gives it at -O0 and -O1: -O2 recorded, it's taken to have.
+        ("macho-ld", false, true, true, false),
+        ("macho-ld-O1", false, false, true, true),
+    ];
+    for (name, collected, folded, gc, icf) in cases {
+        let v = recommend(name);
+        assert_eq!(v["toolchain"], "apple", "{name}");
+        assert_eq!(v["judged"]["optRef"], collected, "{name}: {v}");
+        assert_eq!(v["judged"]["optIcf"], folded, "{name}: {v}");
+        assert_eq!(advice(&v, "gc").is_some(), gc, "{name}: {v}");
+        assert_eq!(advice(&v, "icf").is_some(), icf, "{name}: {v}");
+    }
+    let v = recommend("macho-plain");
+    assert!(
+        advice(&v, "gc")
+            .unwrap()
+            .starts_with("link with -Wl,-dead_strip"),
+        "{v}"
+    );
+    assert!(
+        advice(&v, "icf").unwrap().starts_with(
+            "link with -Wl,--icf=all (ld64.lld; Apple's ld folds them unless given -no_deduplicate)"
+        ),
+        "{v}"
+    );
+    let v = recommend("macho-ld-O1");
+    assert!(
+        advice(&v, "icf")
+            .unwrap()
+            .starts_with("link without -no_deduplicate"),
+        "{v}"
+    );
+    let text = run(&[], "macho-ld");
+    assert!(
+        text.lines()
+            .nth(1)
+            .unwrap()
+            .starts_with("(Apple's ld linked it:"),
+        "{text}"
+    );
+    assert!(!run(&[], "macho-plain").contains("Apple's ld linked it"));
 }

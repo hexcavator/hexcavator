@@ -19,6 +19,15 @@ rem                       funcs.c without -ffunction-sections, its options
 rem                       in .GCC.command.line (as -frecord-command-line).
 rem (What's recorded is given to clang's cc1 as its driver would, so no
 rem path of this machine's is: the driver would record its own.)
+rem   macho-<link>        funcs.c for arm64 macOS (-O2 recorded), linked by
+rem                       ld64.lld plain, -icf, -dead, -dead-icf; the debug
+rem                       map names macho-funcs.o beside them.
+rem   macho-ld, macho-ld-O1
+rem                       linked plain (from macho-funcs.o, and from
+rem                       macho-funcs-O1.o, -O1 recorded), then marked as
+rem                       Apple's ld's (as-apple-ld.py), which folds
+rem                       identical functions unless given -no_deduplicate
+rem                       (as clang does when it links at -O0 or -O1).
 setlocal
 if "%LLVM_BIN%"=="" (echo set LLVM_BIN to the bin directory of an LLVM build or release 1>&2 & exit /b 1)
 set OUT=%~dp0..\..\testdata\linkopts
@@ -58,3 +67,19 @@ for %%u in (use_a use_b use_c) do (
 %CC% %SECTIONS% -fno-asynchronous-unwind-tables -c "%~dp0dup-main.c" -o dup-main.o || exit /b 1
 %LD% --gc-sections use_a.o use_b.o use_c.o other.o dup-main.o -o "%OUT%\dup" || exit /b 1
 %LD% --gc-sections --icf=all use_a.o use_b.o use_c.o other.o dup-main.o -o "%OUT%\dup-icf" || exit /b 1
+
+rem Mach-O: linked in testdata\linkopts, so the debug map's objects are
+rem named beside the images.
+cd /d "%OUT%" || exit /b 1
+set MCC="%LLVM_BIN%\clang.exe" --target=arm64-apple-macos13 -g -ffreestanding -fno-stack-protector -fno-ident -ffile-prefix-map=%~dp0= -fdebug-compilation-dir=.
+set MLD="%LLVM_BIN%\ld64.lld.exe" -arch arm64 -platform_version macos 13.0 13.0 -oso_prefix . -e __start
+%MCC% -O2 -Xclang -dwarf-debug-flags -Xclang "clang -O2 -g -c funcs.c" -c "%~dp0funcs.c" -o macho-funcs.o || exit /b 1
+%MCC% -O1 -Xclang -dwarf-debug-flags -Xclang "clang -O1 -g -c funcs.c" -c "%~dp0funcs.c" -o macho-funcs-O1.o || exit /b 1
+%MLD% macho-funcs.o -o macho-plain || exit /b 1
+%MLD% --icf=all macho-funcs.o -o macho-icf || exit /b 1
+%MLD% -dead_strip macho-funcs.o -o macho-dead || exit /b 1
+%MLD% -dead_strip --icf=all macho-funcs.o -o macho-dead-icf || exit /b 1
+%MLD% macho-funcs.o -o macho-ld || exit /b 1
+%MLD% macho-funcs-O1.o -o macho-ld-O1 || exit /b 1
+python "%~dp0as-apple-ld.py" macho-ld || exit /b 1
+python "%~dp0as-apple-ld.py" macho-ld-O1 || exit /b 1

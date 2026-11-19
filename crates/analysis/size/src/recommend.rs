@@ -23,6 +23,13 @@
 //! collected, and identical functions at different addresses weren't
 //! folded.
 //!
+//! On Mach-O, functions of different names at one address in the symbol
+//! table were folded (ld64.lld keeps each one's symbol). Apple's ld
+//! (which `LC_BUILD_VERSION` names) folds identical functions unless given
+//! `-no_deduplicate`, which clang gives it when it links at `-O0` or
+//! `-O1`: such a link is taken to have folded, unless the objects'
+//! recorded options are all at those levels.
+//!
 //! Where the debug information records how the objects were compiled
 //! ([`crate::compiled`]), an ELF object compiled without
 //! `-ffunction-sections` (or `-fdata-sections`) has its code (or data) in
@@ -58,8 +65,13 @@ pub enum Toolchain {
     /// GCC or Clang with GNU ld, gold, or lld, for ELF (or PE with DWARF,
     /// as MinGW builds it): `-ffunction-sections`, `--gc-sections`, ...
     Gnu,
-    /// Clang with Apple's linker (or `ld64.lld`), for Mach-O.
+    /// Clang with `ld64.lld`, for Mach-O (or a linker the image doesn't
+    /// name).
     Apple,
+    /// Clang with Apple's linker (ld64, or its successor), as the image's
+    /// `LC_BUILD_VERSION` names it: it folds identical functions unless
+    /// given `-no_deduplicate`.
+    AppleLd,
 }
 
 impl Toolchain {
@@ -68,8 +80,14 @@ impl Toolchain {
         image: &hexcavator_image::Image<'_>,
         debug: &hexcavator_debuginfo::DebugInfo<'_>,
     ) -> Self {
-        if image.macho().is_some() {
-            Toolchain::Apple
+        if let Some(m) = image.macho() {
+            if m.linker()
+                .is_some_and(|t| t.tool == hexcavator_macho::consts::TOOL_LD)
+            {
+                Toolchain::AppleLd
+            } else {
+                Toolchain::Apple
+            }
         } else if image.pe().is_some() && debug.pdb().is_some() {
             Toolchain::Msvc
         } else {
@@ -80,14 +98,14 @@ impl Toolchain {
     fn function_sections(self) -> &'static str {
         match self {
             Toolchain::Msvc => "/Gy",
-            Toolchain::Gnu | Toolchain::Apple => "-ffunction-sections",
+            Toolchain::Gnu | Toolchain::Apple | Toolchain::AppleLd => "-ffunction-sections",
         }
     }
 
     fn data_sections(self) -> &'static str {
         match self {
             Toolchain::Msvc => "/Gw",
-            Toolchain::Gnu | Toolchain::Apple => "-fdata-sections",
+            Toolchain::Gnu | Toolchain::Apple | Toolchain::AppleLd => "-fdata-sections",
         }
     }
 
@@ -96,7 +114,7 @@ impl Toolchain {
         match self {
             Toolchain::Msvc => "/OPT:REF",
             Toolchain::Gnu => "-Wl,--gc-sections",
-            Toolchain::Apple => "-Wl,-dead_strip",
+            Toolchain::Apple | Toolchain::AppleLd => "-Wl,-dead_strip",
         }
     }
 
@@ -112,7 +130,7 @@ impl Toolchain {
             Toolchain::Gnu => {
                 "link with -Wl,--gc-sections (compiling with -ffunction-sections -fdata-sections): functions and data nothing reaches are kept"
             }
-            Toolchain::Apple => {
+            Toolchain::Apple | Toolchain::AppleLd => {
                 "link with -Wl,-dead_strip: functions and data nothing reaches are kept"
             }
         }
@@ -126,7 +144,12 @@ impl Toolchain {
             Toolchain::Gnu => {
                 "link with -Wl,--icf=all (lld or gold; compiling with -ffunction-sections)"
             }
-            Toolchain::Apple => "link with ld64.lld --icf=all",
+            Toolchain::Apple => {
+                "link with -Wl,--icf=all (ld64.lld; Apple's ld folds them unless given -no_deduplicate)"
+            }
+            Toolchain::AppleLd => {
+                "link without -no_deduplicate (Apple's ld folds identical functions unless given it; clang gives it when it links at -O0 or -O1)"
+            }
         }
     }
 }
@@ -158,22 +181,35 @@ impl Link {
     /// still has its symbol (folded symbols are the kept one's); it
     /// collected unreferenced ones if a function it dropped has no symbol.
     /// (Without a symbol table to tell, dropped functions say neither.)
+    ///
+    /// Mach-O: functions of different names at one address in its symbol
+    /// table were folded (ld64.lld's ICF keeps each one's symbol; a
+    /// Mach-O compiler makes no aliases). And Apple's ld folds them unless
+    /// given `-no_deduplicate`, which clang gives it when it links at
+    /// `-O0` or `-O1`: it's taken to have, unless every object whose
+    /// options are recorded was compiled so (`compiled`).
     pub fn evidence(
         image: &hexcavator_image::Image<'_>,
         debug: &hexcavator_debuginfo::DebugInfo<'_>,
+        compiled: &crate::compiled::Compiled,
     ) -> Link {
         let mut link = Link::judged();
-        let Ok(d) = debug.discarded_functions() else {
-            return link;
-        };
-        link.opt_icf = d.shared;
-        if let Some(defined) = defined_functions(image, debug) {
-            for name in &d.dropped {
-                if defined.contains(name.as_bytes()) {
-                    link.opt_icf = true;
-                } else {
-                    link.opt_ref = true;
+        if let Ok(d) = debug.discarded_functions() {
+            link.opt_icf = d.shared;
+            if let Some(defined) = defined_functions(image, debug) {
+                for name in &d.dropped {
+                    if defined.contains(name.as_bytes()) {
+                        link.opt_icf = true;
+                    } else {
+                        link.opt_ref = true;
+                    }
                 }
+            }
+        }
+        if let Some(m) = image.macho() {
+            link.opt_icf |= macho_folded(m);
+            if Toolchain::of(image, debug) == Toolchain::AppleLd && !compiled.unoptimized() {
+                link.opt_icf = true;
             }
         }
         link
@@ -215,13 +251,55 @@ impl Link {
     }
 }
 
-/// The names of the functions an ELF image's symbol table (or its debug
-/// file's, if it has none) defines, if either has one.
+/// Whether a Mach-O image's symbol table has functions of different names
+/// at one address (ICF folded them).
+fn macho_folded(m: &hexcavator_macho::MachO<'_>) -> bool {
+    let code = macho_code_sections(m);
+    let mut at: rustc_hash::FxHashMap<u64, &[u8]> = rustc_hash::FxHashMap::default();
+    for s in m.symbols() {
+        if !s.is_section_defined() || s.name.is_empty() || !code.contains(&s.n_sect) {
+            continue;
+        }
+        match at.entry(s.n_value) {
+            std::collections::hash_map::Entry::Occupied(e) if *e.get() != s.name => return true,
+            std::collections::hash_map::Entry::Occupied(_) => {}
+            std::collections::hash_map::Entry::Vacant(e) => {
+                e.insert(s.name);
+            }
+        }
+    }
+    false
+}
+
+/// The (1-based) numbers of a Mach-O image's sections of code.
+fn macho_code_sections(m: &hexcavator_macho::MachO<'_>) -> rustc_hash::FxHashSet<u8> {
+    use hexcavator_macho::consts::{S_ATTR_PURE_INSTRUCTIONS, S_ATTR_SOME_INSTRUCTIONS};
+    m.sections()
+        .iter()
+        .filter(|s| s.flags & (S_ATTR_PURE_INSTRUCTIONS | S_ATTR_SOME_INSTRUCTIONS) != 0)
+        .filter_map(|s| u8::try_from(s.index + 1).ok())
+        .collect()
+}
+
+/// The names of the functions an image's symbol table defines (ELF's, or
+/// its debug file's if it has none; Mach-O's, less the `_` prefix C names
+/// take), if it has one.
 fn defined_functions<'a>(
     image: &'a hexcavator_image::Image<'_>,
     debug: &'a hexcavator_debuginfo::DebugInfo<'_>,
 ) -> Option<rustc_hash::FxHashSet<&'a [u8]>> {
     use hexcavator_elf::consts::{SHN_UNDEF, SHT_SYMTAB, STT_FUNC};
+    if let Some(m) = image.macho() {
+        let code = macho_code_sections(m);
+        let names: rustc_hash::FxHashSet<&'a [u8]> = m
+            .symbols()
+            .into_iter()
+            .filter(|s| s.is_section_defined() && code.contains(&s.n_sect))
+            .filter_map(|s| s.name.strip_prefix(b"_"))
+            .filter(|n| !n.is_empty())
+            .collect();
+        return (!names.is_empty()).then_some(names);
+    }
     // (`STT_GNU_IFUNC`: a function chosen at load.)
     const STT_GNU_IFUNC: u8 = 10;
     let of = |elf: &hexcavator_elf::ElfFile<'a>| -> Option<rustc_hash::FxHashSet<&'a [u8]>> {

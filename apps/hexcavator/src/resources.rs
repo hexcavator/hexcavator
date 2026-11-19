@@ -476,30 +476,37 @@ fn macho_items<'d>(m: &hexcavator_macho::MachO<'d>) -> Vec<Item<'d>> {
         }
     }
     let mut pairs = Vec::new();
-    for lc in m.load_commands() {
-        if lc.cmd == hexcavator_macho::consts::LC_BUILD_VERSION && lc.data.len() >= 24 {
-            let w = |i: usize| {
-                u32::from_le_bytes([lc.data[i], lc.data[i + 1], lc.data[i + 2], lc.data[i + 3]])
-            };
-            let v = |x: u32| format!("{}.{}.{}", x >> 16, (x >> 8) & 0xFF, x & 0xFF);
-            let platform = match w(8) {
-                1 => "macOS",
-                2 => "iOS",
-                3 => "tvOS",
-                4 => "watchOS",
-                5 => "bridgeOS",
-                6 => "Mac Catalyst",
-                7 => "iOS Simulator",
-                8 => "tvOS Simulator",
-                9 => "watchOS Simulator",
-                10 => "DriverKit",
-                11 => "visionOS",
-                12 => "visionOS Simulator",
-                _ => "an unknown platform",
-            };
-            pairs.push(("Platform".into(), platform.into()));
-            pairs.push(("Minimum OS".into(), v(w(12))));
-            pairs.push(("SDK".into(), v(w(16))));
+    for b in m.build_versions() {
+        let platform = match b.platform {
+            1 => "macOS",
+            2 => "iOS",
+            3 => "tvOS",
+            4 => "watchOS",
+            5 => "bridgeOS",
+            6 => "Mac Catalyst",
+            7 => "iOS Simulator",
+            8 => "tvOS Simulator",
+            9 => "watchOS Simulator",
+            10 => "DriverKit",
+            11 => "visionOS",
+            12 => "visionOS Simulator",
+            _ => "an unknown platform",
+        };
+        let v = hexcavator_macho::version_string;
+        pairs.push(("Platform".into(), platform.into()));
+        pairs.push(("Minimum OS".into(), v(b.minos)));
+        pairs.push(("SDK".into(), v(b.sdk)));
+        // (The tools that built it: its compiler and linker, by version.)
+        let tools: Vec<String> = b
+            .tools
+            .iter()
+            .map(|t| match t.name() {
+                Some(n) => format!("{n} {}", v(t.version)),
+                None => format!("tool {} {}", t.tool, v(t.version)),
+            })
+            .collect();
+        if !tools.is_empty() {
+            pairs.push(("Built with".into(), tools.join(", ")));
         }
     }
     if let Some(u) = m.uuid() {

@@ -13,6 +13,7 @@
 
 extern crate alloc;
 
+use alloc::string::String;
 use alloc::vec::Vec;
 
 use hexcavator_core::{Endian, Error, ErrorKind, Result};
@@ -419,6 +420,60 @@ impl Nlist<'_> {
     }
 }
 
+/// An `LC_BUILD_VERSION` command.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct BuildVersion {
+    /// `PLATFORM_MACOS` (1), `PLATFORM_IOS` (2), ...
+    pub platform: u32,
+    /// The minimum OS version, as `xxxx.yy.zz` in nibbles (see
+    /// [`version_string`]).
+    pub minos: u32,
+    /// The SDK's version (0: none).
+    pub sdk: u32,
+    /// The tools that built it.
+    pub tools: Vec<BuildTool>,
+}
+
+/// A tool that built an image (`build_tool_version`).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct BuildTool {
+    /// `TOOL_CLANG`, `TOOL_SWIFT`, `TOOL_LD`, `TOOL_LLD`, ...
+    pub tool: u32,
+    /// Its version, encoded as [`BuildVersion::minos`] is.
+    pub version: u32,
+}
+
+impl BuildTool {
+    /// The tool's name: `clang`, `swift`, `ld`, `lld`, ...
+    pub fn name(&self) -> Option<&'static str> {
+        Some(match self.tool {
+            TOOL_CLANG => "clang",
+            TOOL_SWIFT => "swift",
+            TOOL_LD => "ld",
+            TOOL_LLD => "lld",
+            TOOL_METAL => "metal",
+            TOOL_AIRLLD => "airlld",
+            TOOL_AIRNT => "airnt",
+            TOOL_AIRNT_PLUGIN => "airnt-plugin",
+            TOOL_AIRPACK => "airpack",
+            TOOL_GPUARCHIVER => "gpuarchiver",
+            TOOL_METAL_FRAMEWORK => "metal-framework",
+            _ => return None,
+        })
+    }
+}
+
+/// A version as Mach-O encodes it (`xxxx.yy.zz`, a nibble pair each for
+/// the minor and patch): `13.0`, `1053.12`, `19.1.7`.
+pub fn version_string(v: u32) -> String {
+    let (major, minor, patch) = (v >> 16, (v >> 8) & 0xFF, v & 0xFF);
+    if patch == 0 {
+        alloc::format!("{major}.{minor}")
+    } else {
+        alloc::format!("{major}.{minor}.{patch}")
+    }
+}
+
 /// One Mach-O image.
 #[derive(Clone, Copy, Debug)]
 pub struct MachO<'d> {
@@ -738,6 +793,54 @@ impl<'d> MachO<'d> {
     pub fn linkedit_data(&self, lc: &LoadCommand<'_>) -> Option<(u32, u32)> {
         let [off, size] = self.fields(lc)?;
         Some((off, size))
+    }
+
+    /// `LC_BUILD_VERSION`: the platform, the OS versions, and the tools
+    /// that built the image (each command's; an image normally has one).
+    pub fn build_versions(&self) -> Vec<BuildVersion> {
+        let mut out = Vec::new();
+        for lc in self.load_commands() {
+            if lc.cmd != LC_BUILD_VERSION {
+                continue;
+            }
+            let at = lc.offset;
+            let (Some(platform), Some(minos), Some(sdk), Some(ntools)) = (
+                self.u32(at + 8),
+                self.u32(at + 12),
+                self.u32(at + 16),
+                self.u32(at + 20),
+            ) else {
+                continue;
+            };
+            // (The tools are within the command.)
+            let room = u64::from(lc.size).saturating_sub(24) / 8;
+            let tools = (0..u64::from(ntools).min(room))
+                .map_while(|i| {
+                    let t = at + 24 + 8 * i;
+                    Some(BuildTool {
+                        tool: self.u32(t)?,
+                        version: self.u32(t + 4)?,
+                    })
+                })
+                .collect();
+            out.push(BuildVersion {
+                platform,
+                minos,
+                sdk,
+                tools,
+            });
+        }
+        out
+    }
+
+    /// The linker that built the image, as `LC_BUILD_VERSION` names it
+    /// (`TOOL_LD`, Apple's ld64 or its successor, or `TOOL_LLD`), if it
+    /// names one.
+    pub fn linker(&self) -> Option<BuildTool> {
+        self.build_versions()
+            .into_iter()
+            .flat_map(|b| b.tools)
+            .find(|t| matches!(t.tool, TOOL_LD | TOOL_LLD))
     }
 
     /// `LC_UUID`.

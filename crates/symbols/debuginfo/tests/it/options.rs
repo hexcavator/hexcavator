@@ -77,3 +77,15 @@ fn pdb_build_info() {
     let linker = o.iter().find(|(n, _)| n == "* Linker *").unwrap();
     assert_eq!(linker.1.args, None);
 }
+
+#[test]
+fn apple_flags() {
+    // (Apple targets record the command line in DW_AT_APPLE_flags, the
+    // producer empty: tools/linkopts's macho-funcs-O1.o.)
+    let o = options(&testdata("linkopts/macho-funcs-O1.o"));
+    let (name, o) = &o[0];
+    assert_eq!(name, "funcs.c");
+    assert_eq!(o.args.as_deref().unwrap(), ["-O1", "-g", "-c", "funcs.c"]);
+    assert_eq!(o.last_of(&["-O"]), None);
+    assert_eq!(o.last_of(&["-O1", "-O2"]), Some("-O1"));
+}

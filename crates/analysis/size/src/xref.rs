@@ -830,10 +830,11 @@ fn units_of_data(x: &mut Xref, symbols: &[Symbol], comdat: impl Fn(u32) -> bool)
 
 /// The cross-reference graph of a Mach-O image (an executable, dylib, or
 /// bundle), from its symbols, code, and fixups (rebases; binds are
-/// imports'). Roots: the entry point (`LC_MAIN`), the exports (its exports
-/// trie), the initializers and terminators dyld calls
+/// imports'). Roots: the entry point (`LC_MAIN`), a dylib's or bundle's
+/// exports (its exports trie), the initializers and terminators dyld calls
 /// (`S_MOD_INIT_FUNC_POINTERS`, `S_MOD_TERM_FUNC_POINTERS`,
-/// `S_INIT_FUNC_OFFSETS`), and thread-local data. Contributions are
+/// `S_INIT_FUNC_OFFSETS`), and thread-local data (an executable's exports
+/// aren't: `-dead_strip` drops them). Contributions are
 /// compile units', taken as atoms `-dead_strip` could drop alone.
 pub fn macho(
     image: &hexcavator_image::Image<'_>,
@@ -853,12 +854,18 @@ pub fn macho(
     if let Some(n) = m.entry().and_then(|e| b.node_at(e)) {
         roots.push((n, Root::EntryPoint));
     }
-    for e in m.exports() {
-        if let Some(n) = e.address.and_then(|a| b.node_at(a)) {
-            roots.push((
-                n,
-                Root::Export(String::from_utf8_lossy(&e.name).into_owned()),
-            ));
+    // An executable exports its global symbols, but they aren't roots:
+    // -dead_strip drops what nothing reaches of them (unless linked with
+    // -export_dynamic, which the image doesn't record). A dylib's or a
+    // bundle's are.
+    if m.header().filetype != MH_EXECUTE {
+        for e in m.exports() {
+            if let Some(n) = e.address.and_then(|a| b.node_at(a)) {
+                roots.push((
+                    n,
+                    Root::Export(String::from_utf8_lossy(&e.name).into_owned()),
+                ));
+            }
         }
     }
     let base = m

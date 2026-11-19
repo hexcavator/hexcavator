@@ -151,7 +151,7 @@ pub(crate) fn recommendations(
     // (Objects compiled without -ffunction-sections leave nothing to judge
     // an ELF link's options by.)
     let unsectioned = link.is_none() && image.elf().is_some() && compiled.no_function_sections();
-    let judged = link.unwrap_or_else(|| Link::evidence(image, debug));
+    let judged = link.unwrap_or_else(|| Link::evidence(image, debug, &compiled));
     // Identical functions matter only if the link didn't fold them.
     let foldable = (!judged.opt_icf).then(|| {
         hexcavator_size::fingerprint::build(
@@ -189,7 +189,7 @@ fn toolchain_name(t: Toolchain) -> &'static str {
     match t {
         Toolchain::Msvc => "msvc",
         Toolchain::Gnu => "gnu",
-        Toolchain::Apple => "apple",
+        Toolchain::Apple | Toolchain::AppleLd => "apple",
     }
 }
 
@@ -215,10 +215,15 @@ pub(crate) fn as_text(r: &Recommended) -> String {
                 match r.toolchain {
                     Toolchain::Msvc => "/OPT:REF",
                     Toolchain::Gnu => "--gc-sections",
-                    Toolchain::Apple => "-dead_strip",
+                    Toolchain::Apple | Toolchain::AppleLd => "-dead_strip",
                 },
                 did(judged.opt_icf)
             );
+            if r.toolchain == Toolchain::AppleLd {
+                out.push_str(
+                    "(Apple's ld linked it: it folds identical functions unless given -no_deduplicate, which clang gives it when it links at -O0 or -O1.)\n",
+                );
+            }
         }
         (None, None) if r.unsectioned => out.push_str(
             "The link's options aren't recorded, and its objects were compiled without -ffunction-sections, so the image can't show whether the link collected unreferenced functions (--gc-sections) or folded identical ones (ICF): neither could have.\n",
