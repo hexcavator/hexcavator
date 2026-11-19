@@ -5,9 +5,6 @@ leave this list when they ship.
 
 ## Size analysis
 
-- **MCP `why` and `recommend` beyond PE.** They read only PE images with
-  PDBs (`pe_only` in `apps/hexcavator/src/mcp.rs`); the command line reads
-  ELF, Mach-O, and WebAssembly too.
 - **Exported symbols.** What `-fvisibility=hidden` or a version script
   would save in an ELF shared library or a Mach-O dylib: the dynamic
   symbols, their names, hash entries, and PLT/GOT slots of those nothing

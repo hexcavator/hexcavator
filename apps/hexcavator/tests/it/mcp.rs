@@ -424,6 +424,65 @@ fn why_and_recommend_tools() {
     assert!(e.to_string().contains("nothing named 'nope'"), "{e}");
 }
 
+/// The why and recommend tools beyond PE: ELF and Mach-O images with
+/// their DWARF (as `hexc xref` and `hexc recommend` read them), and one
+/// without debug information (what its structure shows).
+#[test]
+fn why_and_recommend_tools_beyond_pe() {
+    let p = |rel: &str| Value::from(testdata(rel).to_string_lossy().into_owned());
+    let r = session(&[
+        (
+            "why",
+            object([
+                ("path", p("linkopts/funcs-plain")),
+                ("name", Value::from("unused1")),
+            ]),
+        ),
+        ("recommend", object([("path", p("linkopts/funcs-plain"))])),
+        (
+            "why",
+            object([
+                ("path", p("linkopts/macho-plain")),
+                ("name", Value::from("add_a")),
+            ]),
+        ),
+        ("recommend", object([("path", p("linkopts/macho-ld-O1"))])),
+        ("recommend", object([("path", p("elf/relr-rela.so"))])),
+        (
+            "why",
+            object([("path", p("elf/relr-rela.so")), ("name", Value::from("x"))]),
+        ),
+    ]);
+    let v = result(&r[0]);
+    assert_eq!(v["reached"], false, "{v}");
+    let v = result(&r[1]);
+    assert_eq!(v["toolchain"], "gnu");
+    let kinds: Vec<&str> = v["recommendations"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|r| r["kind"].as_str().unwrap())
+        .collect();
+    assert!(kinds.contains(&"gc") && kinds.contains(&"icf"), "{v}");
+    let v = result(&r[2]);
+    assert_eq!(v["reached"], true, "{v}");
+    assert_eq!(v["root"]["reason"], "the entry point", "{v}");
+    let v = result(&r[3]);
+    assert_eq!(v["toolchain"], "apple");
+    assert!(
+        v.to_string().contains("link without -no_deduplicate"),
+        "{v}"
+    );
+    // No debug information: the image's structure only (RELR), and `why`
+    // can't say.
+    let v = result(&r[4]);
+    assert_eq!(v["debug"], false);
+    assert_eq!(v["recommendations"][0]["kind"], "relr", "{v}");
+    let e = r[5].get("result").unwrap();
+    assert_eq!(e["isError"], true, "{e}");
+    assert!(e.to_string().contains("debug"), "{e}");
+}
+
 /// symbolize: frames at addresses (structured as `hexc symbolize -json`
 /// gives them), and a log's text annotated; an image missing is an error.
 #[test]

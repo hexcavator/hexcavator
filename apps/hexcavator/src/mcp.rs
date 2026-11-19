@@ -58,6 +58,11 @@ struct Loaded {
     /// A module's source map, found beside it.
     source_map: Option<hexcavator_size::sourcemap::SourceMap>,
     pdb: Option<(PathBuf, Mmap)>,
+    /// The debug information given (`pdb`), if any.
+    debug_arg: Option<PathBuf>,
+    /// The image and its debug information in any format (see
+    /// [`Loaded::opened`]), opened when first needed.
+    opened: std::cell::OnceCell<Result<hexcavator_program::Opened, hexcavator_program::Error>>,
     /// The size model and symbols, built when first needed.
     model: std::cell::OnceCell<Result<Model, String>>,
     symbols: std::cell::OnceCell<Result<Vec<Symbol>, String>>,
@@ -69,6 +74,7 @@ struct Loaded {
 
 impl Loaded {
     fn open(path: &Path, pdb: Option<&Path>) -> Result<Self, String> {
+        let pdb_arg = pdb;
         let show = |p: &Path| p.display().to_string();
         let map = Mmap::open(path).map_err(|e| format!("{}: {e}", show(path)))?;
         let elf = hexcavator_size::elf::is_elf_input(&map);
@@ -100,6 +106,8 @@ impl Loaded {
             wasm,
             source_map,
             pdb,
+            debug_arg: pdb_arg.map(Path::to_path_buf),
+            opened: Default::default(),
             model: Default::default(),
             symbols: Default::default(),
             xref: Default::default(),
@@ -141,6 +149,36 @@ impl Loaded {
                 }
             })
             .as_deref()
+            .map_err(Clone::clone)
+    }
+
+    /// Whether it's a PE image with its PDB (read by this session's own
+    /// model); other images are read as [`hexcavator_program`] reads them.
+    fn pe_with_pdb(&self) -> bool {
+        !self.object && self.pdb.is_some()
+    }
+
+    /// The image and its debug information, of any format (as `hexc`'s
+    /// commands open them), opened once.
+    fn opened(&self) -> Result<&hexcavator_program::Opened, &hexcavator_program::Error> {
+        self.opened
+            .get_or_init(|| hexcavator_program::Opened::open(&self.path, self.debug_arg.as_deref()))
+            .as_ref()
+    }
+
+    /// The cross-reference graph of an image other than a PE image with
+    /// its PDB, from its program, built once.
+    fn program_xref(
+        &self,
+        program: &hexcavator_program::Program<'_>,
+    ) -> Result<&hexcavator_size::xref::Xref, String> {
+        self.xref
+            .get_or_init(|| {
+                let model = program.model().map_err(|e| e.to_string())?;
+                let syms = program.symbols().map_err(|e| e.to_string())?;
+                hexcavator_size::xref::build(&program.image, &program.debug, model, syms)
+            })
+            .as_ref()
             .map_err(Clone::clone)
     }
 
@@ -442,33 +480,58 @@ impl Server {
         ))
     }
 
-    fn pe_only(loaded: &Loaded, what: &str) -> Result<(), String> {
-        if loaded.object || loaded.pdb.is_none() || loaded.elf || loaded.macho || loaded.wasm {
-            return Err(format!("{what} reads PE images with their PDBs"));
-        }
-        Ok(())
-    }
-
     fn why(&mut self, args: &Value) -> ToolResult {
         let name = arg_str(args, "name")
             .ok_or("`name` is required")?
             .to_string();
         let loaded = self.loaded_from(args)?;
-        Self::pe_only(&loaded, "why")?;
-        let x = loaded.xref()?;
+        if loaded.pe_with_pdb() {
+            let x = loaded.xref()?;
+            let n = crate::xref::lookup(x, &name)?;
+            return Ok((crate::xref::why_text(x, n), crate::xref::why_json(x, n)));
+        }
+        // (ELF, Mach-O, WebAssembly, or PE with DWARF: with its debug
+        // information, as `hexc xref` reads it.)
+        let opened = loaded.opened().map_err(|e| format!("why: {e}"))?;
+        let program = opened.program().map_err(|e| format!("why: {e}"))?;
+        let x = loaded.program_xref(&program)?;
         let n = crate::xref::lookup(x, &name)?;
         Ok((crate::xref::why_text(x, n), crate::xref::why_json(x, n)))
     }
 
     fn recommend(&mut self, args: &Value) -> ToolResult {
         let loaded = self.loaded_from(args)?;
-        Self::pe_only(&loaded, "recommend")?;
-        let x = loaded.xref()?;
-        let model = loaded.model()?;
-        let syms = loaded.symbols()?;
-        let image = Image::parse(&loaded.map).map_err(|e| e.to_string())?;
-        let debug = loaded.debug()?;
-        let r = crate::recommend::recommendations(&image, &debug, model, x, syms);
+        let r = if loaded.pe_with_pdb() {
+            let x = loaded.xref()?;
+            let model = loaded.model()?;
+            let syms = loaded.symbols()?;
+            let image = Image::parse(&loaded.map).map_err(|e| e.to_string())?;
+            let debug = loaded.debug()?;
+            crate::recommend::recommendations(&image, &debug, model, x, syms)
+        } else {
+            match loaded.opened() {
+                Ok(opened) => {
+                    let program = opened.program().map_err(|e| format!("recommend: {e}"))?;
+                    let x = loaded.program_xref(&program)?;
+                    let model = program.model().map_err(|e| e.to_string())?;
+                    let syms = program.symbols().map_err(|e| e.to_string())?;
+                    crate::recommend::recommendations(
+                        &program.image,
+                        &program.debug,
+                        model,
+                        x,
+                        syms,
+                    )
+                }
+                // Without debug information: what the image's structure
+                // shows, as `hexc recommend` gives it.
+                Err(hexcavator_program::Error::NoDebug { .. }) if loaded.debug_arg.is_none() => {
+                    let image = Image::parse(&loaded.map).map_err(|e| e.to_string())?;
+                    crate::recommend::structural_only(&image)
+                }
+                Err(e) => return Err(format!("recommend: {e}")),
+            }
+        };
         let structured =
             serde_json::from_str(&crate::recommend::as_json(&r)).map_err(|e| e.to_string())?;
         Ok((crate::recommend::as_text(&r), structured))
@@ -743,7 +806,7 @@ impl Server {
     }
 }
 
-const INSTRUCTIONS: &str = "hexc reports what the bytes of a Windows executable (PE, with its PDB), COFF object, or library are. Start with size_report on the file (sources: sections; then symbols, compileunits, libraries, or groups, or several for a breakdown). Use symbols to find the largest or a named symbol, findings for what wastes space and how to fix it, and lookup to ask what is at an address. Give `base` to size_report to diff two builds. Sizes are in bytes; `file` is bytes on disk, `vm` bytes in memory. For crash reports and stack traces of any executable (PE, ELF, Mach-O, WebAssembly), symbolize gives each address's function, source line, and inlined functions, or annotates a log's text.";
+const INSTRUCTIONS: &str = "hexc reports what the bytes of a Windows executable (PE, with its PDB), COFF object, or library are. Start with size_report on the file (sources: sections; then symbols, compileunits, libraries, or groups, or several for a breakdown). Use symbols to find the largest or a named symbol, findings for what wastes space and how to fix it, and lookup to ask what is at an address. Give `base` to size_report to diff two builds. Sizes are in bytes; `file` is bytes on disk, `vm` bytes in memory. For crash reports and stack traces of any executable (PE, ELF, Mach-O, WebAssembly), symbolize gives each address's function, source line, and inlined functions, or annotates a log's text. why (why a function is in an executable) and recommend (build changes that would make it smaller) read ELF, Mach-O, and WebAssembly executables and libraries too, with their DWARF.";
 
 fn error(id: Value, code: i64, message: &str) -> Value {
     object([
@@ -1115,7 +1178,7 @@ fn tools() -> Value {
             ),
             tool(
                 "why",
-                "Why a function or datum is in a PE image: the chain of references from a root (the entry point, an export, a loader directory, a static initializer) to it (calls, branches, addresses its code uses, pointers in data such as vtable slots, exception data). If nothing reaches it, why the linker kept it anyway (its section isn't a COMDAT, or a kept one refers to it) and what refers to it.",
+                "Why a function or datum is in an executable or library (PE with its PDB; ELF, Mach-O, WebAssembly, or PE with DWARF): the chain of references from a root (the entry point, an export, a loader directory, a static initializer) to it (calls, branches, addresses its code uses, pointers in data such as vtable slots, exception data). If nothing reaches it, why the linker kept it anyway (its section isn't a COMDAT or its own, or a kept one refers to it) and what refers to it.",
                 schema(
                     vec![
                         ("path", path.clone()),
@@ -1133,7 +1196,7 @@ fn tools() -> Value {
             ),
             tool(
                 "recommend",
-                "Build changes that would make a PE image smaller, each with the bytes it would save, measured from the image and its PDB: compile an object with /Gy or /Gw, link with /OPT:REF or /OPT:ICF (when the link didn't), define a duplicated variable once.",
+                "Build changes that would make an executable or library smaller (PE, ELF, Mach-O, WebAssembly), each with the bytes it would save, measured from the image and its debug information, in its toolchain's terms (MSVC's, GCC's and Clang's, or Apple's): compile an object with /Gy or /Gw (-ffunction-sections, -fdata-sections), link with /OPT:REF or /OPT:ICF (--gc-sections or -dead_strip, --icf) when the link didn't (its options from the PDB, or judged from what it left), define a duplicated constant once; and what the image's structure shows (RELR relocations, .hash, WebAssembly custom sections), which is all there is without debug information.",
                 schema(
                     vec![("path", path.clone()), ("pdb", pdb.clone())],
                     &["path"],
