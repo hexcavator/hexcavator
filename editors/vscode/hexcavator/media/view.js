@@ -1364,6 +1364,27 @@
         `${i.class}: ${[...i.pure_with_one_override.map((n) => n + " (pure, one override)"), ...i.never_overridden.map((n) => n + " (never overridden)")].join("; ")}`,
       ])
     );
+    // Exception handling (hexc recommend's): what it costs each function,
+    // and the cleanups nothing a function calls can throw through.
+    const eh = all && all.exceptions;
+    if (eh) {
+      const needless = (eh.functions || []).filter((x) => x.needless);
+      section(
+        "Exception handling",
+        `What each function's exception handling costs: its unwind information (${formatSize(eh.unwind)} in all), and its cleanups' and handlers' data (${formatSize(eh.handlers)}).${
+          needless.length ? ` ${needless.length} carry cleanups though nothing they call can throw: noexcept on what they call would remove them.` : ""
+        }`,
+        `${formatSize(eh.unwind + eh.handlers)} in all`,
+        ["Size", "Unwind", "Handlers", "Function"],
+        (eh.functions || []).map((x) => [
+          size(x.unwind + x.handlers),
+          size(x.unwind),
+          size(x.handlers),
+          x.needless ? { text: `${x.name} (cleanups nothing can throw through)`, sort: x.name } : x.name,
+        ]),
+        3
+      );
+    }
     const t = f.template_families;
     section(
       "Template families",

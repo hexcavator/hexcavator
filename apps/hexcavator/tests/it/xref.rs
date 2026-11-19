@@ -1145,10 +1145,7 @@ fn recommend_strings() {
     );
     // ("/home/user/project" less the "." it becomes: 17 bytes a path.)
     assert_eq!(paths["saving"], 4 * 17, "{paths}");
-    assert_eq!(
-        paths["examples"][0]["name"],
-        "/home/user/project (4 paths)"
-    );
+    assert_eq!(paths["examples"][0]["name"], "/home/user/project (4 paths)");
     assert!(rec(&v, "duplicate-strings").is_none(), "{v}");
     let v = recommend("msvc-strs-nogf.exe");
     let dups = rec(&v, "duplicate-strings").unwrap_or_else(|| panic!("{v}"));
@@ -1166,4 +1163,70 @@ fn recommend_strings() {
     );
     let v = recommend("msvc-strs-gf.exe");
     assert!(rec(&v, "duplicate-strings").is_none(), "{v}");
+}
+
+/// What exception handling costs each function, and the cleanups nothing a
+/// function calls can throw through (testdata/linkopts/noexc: needless()
+/// calls only helper(), which can't throw; needed() calls thrower(),
+/// which throws); none in a C++ image built without them (eh's work<N>
+/// call what isn't resolved: it may throw).
+#[test]
+fn recommend_exceptions() {
+    let recommend = |name: &str| -> serde_json::Value {
+        let out = Command::new(env!("CARGO_BIN_EXE_hexc"))
+            .args(["recommend", "-json"])
+            .arg(
+                Path::new(env!("CARGO_MANIFEST_DIR"))
+                    .join("../../testdata/linkopts")
+                    .join(name),
+            )
+            .output()
+            .unwrap();
+        assert!(
+            out.status.success(),
+            "{name}: {}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+        serde_json::from_slice(&out.stdout).unwrap()
+    };
+    let v = recommend("noexc");
+    let e = &v["exceptions"];
+    let f = |name: &str| {
+        e["functions"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|f| f["name"] == name)
+            .cloned()
+            .unwrap_or_else(|| panic!("{name}: {e}"))
+    };
+    // Each with an FDE; the two with cleanups with an LSDA each.
+    for name in [
+        "needless(int)",
+        "needed(int)",
+        "thrower(int)",
+        "helper(int)",
+    ] {
+        assert!(f(name)["unwind"].as_u64().unwrap() > 0, "{name}: {e}");
+    }
+    assert!(f("needless(int)")["handlers"].as_u64().unwrap() > 0, "{e}");
+    assert_eq!(f("needless(int)")["needless"], true, "{e}");
+    assert_eq!(f("needed(int)")["needless"], false, "{e}");
+    assert_eq!(f("helper(int)")["handlers"], 0, "{e}");
+    let total: u64 = e["functions"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|f| f["handlers"].as_u64().unwrap())
+        .sum();
+    assert_eq!(e["handlers"].as_u64().unwrap(), total, "{e}");
+    let v = recommend("eh");
+    assert!(
+        v["exceptions"]["functions"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|f| f["needless"] == false),
+        "{v}"
+    );
 }

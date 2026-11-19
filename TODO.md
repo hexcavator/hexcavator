@@ -5,9 +5,6 @@ leave this list when they ship.
 
 ## Size analysis
 
-- **Exception handling.** What unwind tables and landing pads cost each
-  function, and the functions that can't throw but carry cleanups
-  (`noexcept`); a list on the Size Reduction page.
 - **Rust.** Sizes by crate, and what panic messages and formatting
   machinery cost (`panic=abort`, `-Zfmt-debug`).
 - **GNU ld and lld link maps.** Read their `-Map` output, as MSVC's

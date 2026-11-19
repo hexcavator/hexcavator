@@ -235,7 +235,22 @@ pub(crate) struct Recommended {
     /// How many importers of the image were read (`-importers`), if any
     /// were given.
     pub importers: Option<usize>,
+    /// What exception handling costs, by function (with debug
+    /// information): their unwind information and handlers' data in all,
+    /// and the most costly, each (name, unwind, handlers, whether its
+    /// cleanups are needless).
+    pub exceptions: Option<ExceptionSummary>,
 }
+
+/// What exception handling costs an image (see `Recommended::exceptions`).
+pub(crate) struct ExceptionSummary {
+    pub unwind: u64,
+    pub handlers: u64,
+    pub functions: Vec<(String, u64, u64, bool)>,
+}
+
+/// The most functions an exception summary lists.
+const EH_FUNCTIONS: usize = 500;
 
 /// The recommendations for an image without debug information: what its
 /// structure shows ([`hexcavator_size::recommend::structural`]).
@@ -277,6 +292,7 @@ pub(crate) fn structural_only(image: &hexcavator_image::Image<'_>) -> Recommende
         unsectioned: false,
         debug: false,
         importers: None,
+        exceptions: None,
     }
 }
 
@@ -346,6 +362,29 @@ pub(crate) fn recommendations(
     ));
     // The build's paths, and string literals with copies.
     recs.extend(string_recommendations(image, toolchain, &data));
+    // Exception handling: cleanups nothing can throw through.
+    let eh = hexcavator_size::exceptions::exceptions(image, x, syms);
+    recs.extend(hexcavator_size::recommend::noexcept(x, &eh, toolchain));
+    let needless: rustc_hash::FxHashSet<usize> = eh.needless.iter().copied().collect();
+    let (unwind, handlers) = eh.totals();
+    let exceptions = (unwind + handlers > 0).then(|| ExceptionSummary {
+        unwind,
+        handlers,
+        functions: eh
+            .functions
+            .iter()
+            .enumerate()
+            .take(EH_FUNCTIONS)
+            .map(|(i, f)| {
+                (
+                    x.names[f.node as usize].clone(),
+                    f.unwind,
+                    f.handlers,
+                    needless.contains(&i),
+                )
+            })
+            .collect(),
+    });
     // Templates' instantiations alike but for constants, sizes, callees.
     let near = hexcavator_size::fingerprint::near_identical(image, model, x, &classes);
     recs.extend(hexcavator_size::recommend::near_identical(&near));
@@ -361,6 +400,7 @@ pub(crate) fn recommendations(
         unsectioned,
         debug: true,
         importers: None,
+        exceptions,
     }
 }
 
@@ -455,6 +495,14 @@ pub(crate) fn as_json(r: &Recommended) -> String {
         "debug": r.debug,
         // (How many of the importers given load it.)
         "importers": r.importers,
+        // What exception handling costs, by function.
+        "exceptions": r.exceptions.as_ref().map(|e| json!({
+            "unwind": e.unwind,
+            "handlers": e.handlers,
+            "functions": e.functions.iter().map(|(name, unwind, handlers, needless)| json!({
+                "name": name, "unwind": unwind, "handlers": handlers, "needless": needless,
+            })).collect::<Vec<_>>(),
+        })),
         "saving": recs.iter().map(|r| r.saving).sum::<u64>(),
         "recommendations": list,
     }))

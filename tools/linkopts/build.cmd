@@ -29,6 +29,10 @@ rem                       their relocations RELA (not packed).
 rem   strings             paths.c (__FILE__, absolute, by #line), strs-a.c and
 rem                       strs-b.c (a literal in both, merged; arrays alike,
 rem                       not).
+rem   noexc               noexc.cpp: a function whose cleanup nothing it calls
+rem                       can throw through (needless), and one whose callee
+rem                       throws (needed); noexc-main.c stands in for the
+rem                       C++ runtime's exception functions.
 rem (What's recorded is given to clang's cc1 as its driver would, so no
 rem path of this machine's is: the driver would record its own.)
 rem   macho-<link>        funcs.c for arm64 macOS (-O2 recorded), linked by
@@ -128,3 +132,9 @@ rem Strings: strings, with DWARF.
 %CC% %SECTIONS% -fno-asynchronous-unwind-tables -c "%~dp0strs-a.c" -o strs-a.o || exit /b 1
 %CC% %SECTIONS% -fno-asynchronous-unwind-tables -c "%~dp0strs-b.c" -o strs-b.o || exit /b 1
 %LD% --gc-sections paths.o strs-a.o strs-b.o -o "%OUT%/strings" || exit /b 1
+
+rem Exceptions: noexc, with DWARF.
+%CC% %SECTIONS% -fexceptions -c "%~dp0noexc.cpp" -o noexc.o || exit /b 1
+%CC% %SECTIONS% -fexceptions -c "%~dp0noexc-helpers.cpp" -o noexc-helpers.o || exit /b 1
+%CC% %SECTIONS% -c "%~dp0noexc-main.c" -o noexc-main.o || exit /b 1
+%LD% --gc-sections noexc.o noexc-helpers.o noexc-main.o -o "%OUT%/noexc" || exit /b 1

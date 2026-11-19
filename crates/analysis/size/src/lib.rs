@@ -28,6 +28,7 @@ pub mod disasm;
 pub mod dwarf_units;
 pub mod eh;
 pub mod elf;
+pub mod exceptions;
 pub mod exports;
 pub mod findings;
 pub mod fingerprint;

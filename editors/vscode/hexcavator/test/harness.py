@@ -302,6 +302,11 @@ def main():
     assert "define 3 variables once" not in drawn, "duplicates left to Duplicate data"
     assert "save 976 KiB" not in drawn and "Size Reduction Opportunities" in drawn
     assert "<h2>Build changes</h2>" in rdom and rdom.index("Build changes") < rdom.index("Duplicate data"), "build changes first"
+    # Exception handling: by function, from hexc recommend's report.
+    if recs.get("exceptions"):
+        assert "<h2>Exception handling</h2>" in rdom, "exception handling"
+        top = recs["exceptions"]["functions"][0]["name"]
+        assert html.escape(top) in rdom, f"exception handling's {top}"
     for r in recs["recommendations"]:
         assert html.escape(r["advice"]) in rdom, r["advice"]
     assert f"save " in rdom, "the saving"

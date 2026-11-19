@@ -812,6 +812,48 @@ pub fn strings(
     out
 }
 
+/// The recommendation exception handling makes
+/// ([`crate::exceptions::Exceptions::needless`]): functions with cleanups
+/// (handlers' data, and the landing pads it describes) though nothing they
+/// call can throw, whose callees `noexcept` would let the compiler know.
+/// The saving counts the data, not the landing pads' code: at least it.
+pub fn noexcept(
+    x: &Xref,
+    eh: &crate::exceptions::Exceptions,
+    toolchain: Toolchain,
+) -> Option<Recommendation> {
+    let needless: Vec<&crate::exceptions::FunctionEh> =
+        eh.needless.iter().map(|&i| &eh.functions[i]).collect();
+    let saving: u64 = needless.iter().map(|f| f.handlers).sum();
+    if saving < MIN_SAVING {
+        return None;
+    }
+    let mut examples: Vec<(String, u64)> = needless
+        .iter()
+        .map(|f| (x.names[f.node as usize].clone(), f.handlers))
+        .collect();
+    examples.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
+    examples.truncate(EXAMPLES);
+    Some(Recommendation {
+        kind: "noexcept",
+        advice: format!(
+            "mark what {} call noexcept ({}): they carry exception cleanups (landing pads, and their tables), though nothing they call can throw",
+            if needless.len() == 1 {
+                "a function".to_string()
+            } else {
+                format!("{} functions", needless.len())
+            },
+            if toolchain == Toolchain::Msvc {
+                "or, where nothing throws, compile with /EHs-c-"
+            } else {
+                "or, where nothing throws, compile with -fno-exceptions"
+            }
+        ),
+        saving,
+        examples,
+    })
+}
+
 /// The recommendation near-identical functions make
 /// ([`crate::fingerprint::near_identical`]): sharing each family's code,
 /// at most its saving (if at least [`MIN_SAVING`] in all).
