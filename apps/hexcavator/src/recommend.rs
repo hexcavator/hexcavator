@@ -26,6 +26,10 @@ its toolchain (MSVC's, GCC's and Clang's, or Apple's):
   record of its command line; elsewhere, the image is the evidence);
 - define a variable once, when copies of it are in several objects.
 
+Without debug information (none given, and none found), only what the
+image's own structure shows: relative relocations as RELR and a .hash
+beside .gnu.hash (ELF), or custom sections (WebAssembly).
+
 options:
   -pdb <path>   its debug information: a PDB, or a file with its DWARF
                 (or -debug; default: its own, or the one it names)
@@ -66,7 +70,20 @@ fn usage(message: &str) -> ExitCode {
 
 fn report(path: &Path, pdb: Option<&Path>, json: bool) -> Result<String, String> {
     let show = |p: &Path| p.display().to_string();
-    let opened = hexcavator_program::Opened::open(path, pdb)?;
+    let opened = match hexcavator_program::Opened::open(path, pdb) {
+        Ok(o) => o,
+        // No debug information to be found: what the image's structure
+        // shows, which needs none.
+        Err(hexcavator_program::Error::NoDebug { .. }) if pdb.is_none() => {
+            let map =
+                hexcavator_mmap::Mmap::open(path).map_err(|e| format!("{}: {e}", show(path)))?;
+            let image =
+                hexcavator_image::Image::parse(&map).map_err(|e| format!("{}: {e}", show(path)))?;
+            let r = structural_only(&image);
+            return Ok(if json { as_json(&r) } else { as_text(&r) });
+        }
+        Err(e) => return Err(e.to_string()),
+    };
     let program = opened.program()?;
     let (image, debug) = (&program.image, &program.debug);
     let model = program.model()?;
@@ -83,6 +100,29 @@ pub(crate) struct Recommended {
     pub toolchain: Toolchain,
     /// The link's options, if its debug information records them.
     pub link: Option<Link>,
+    /// What the link did: its options, or else as the image shows it
+    /// ([`Link::evidence`]); `None` without debug information.
+    pub judged: Option<Link>,
+}
+
+/// The recommendations for an image without debug information: what its
+/// structure shows ([`hexcavator_size::recommend::structural`]).
+pub(crate) fn structural_only(image: &hexcavator_image::Image<'_>) -> Recommended {
+    let mut recs = hexcavator_size::recommend::structural(image);
+    recs.sort_by_key(|r| std::cmp::Reverse(r.saving));
+    let toolchain = if image.macho().is_some() {
+        Toolchain::Apple
+    } else if image.pe().is_some() {
+        Toolchain::Msvc
+    } else {
+        Toolchain::Gnu
+    };
+    Recommended {
+        recs,
+        toolchain,
+        link: None,
+        judged: None,
+    }
 }
 
 pub(crate) fn recommendations(
@@ -97,7 +137,7 @@ pub(crate) fn recommendations(
         .linker_info()
         .ok()
         .and_then(|i| i.command_line().map(Link::from_command_line));
-    let judged = link.unwrap_or_else(Link::judged);
+    let judged = link.unwrap_or_else(|| Link::evidence(image, debug));
     // Identical functions matter only if the link didn't fold them.
     let foldable = (!judged.opt_icf).then(|| {
         hexcavator_size::fingerprint::build(
@@ -108,7 +148,7 @@ pub(crate) fn recommendations(
         )
         .classes
     });
-    let duplicates = findings::duplicate_data(image, syms);
+    let duplicates = findings::duplicate_data(image, debug, syms);
     let mut recs = recommend(x, toolchain, Some(judged), foldable.as_deref(), &duplicates);
     // And what the image's structure says, largest saving first with the
     // rest.
@@ -118,6 +158,7 @@ pub(crate) fn recommendations(
         recs,
         toolchain,
         link,
+        judged: Some(judged),
     }
 }
 
@@ -132,8 +173,8 @@ fn toolchain_name(t: Toolchain) -> &'static str {
 pub(crate) fn as_text(r: &Recommended) -> String {
     let recs = &r.recs;
     let mut out = String::new();
-    match r.link {
-        Some(l) => {
+    match (r.link, r.judged) {
+        (Some(l), _) => {
             let on = |b: bool| if b { "on" } else { "off" };
             let _ = writeln!(
                 out,
@@ -142,8 +183,22 @@ pub(crate) fn as_text(r: &Recommended) -> String {
                 on(l.opt_icf)
             );
         }
-        None => out.push_str(
-            "The link's options aren't recorded: what it dropped and folded is judged from the image.\n",
+        (None, Some(judged)) => {
+            let did = |b: bool| if b { "did" } else { "didn't" };
+            let _ = writeln!(
+                out,
+                "The link's options aren't recorded: as the image shows it, the link {} collect unreferenced functions ({}) and {} fold identical ones (ICF).",
+                did(judged.opt_ref),
+                match r.toolchain {
+                    Toolchain::Msvc => "/OPT:REF",
+                    Toolchain::Gnu => "--gc-sections",
+                    Toolchain::Apple => "-dead_strip",
+                },
+                did(judged.opt_icf)
+            );
+        }
+        (None, None) => out.push_str(
+            "No debug information: only what the image's structure shows (give it with -debug for the rest).\n",
         ),
     }
     if recs.is_empty() {
@@ -182,6 +237,11 @@ pub(crate) fn as_json(r: &Recommended) -> String {
     let mut s = serde_json::to_string_pretty(&json!({
         "toolchain": toolchain_name(r.toolchain),
         "link": link.map(|l| json!({"optRef": l.opt_ref, "optIcf": l.opt_icf})),
+        // (What the link did: its options, or as the image shows it.)
+        // (Absent without debug information, which has only what the
+        // image's structure shows.)
+        "judged": r.judged.map(|l| json!({"optRef": l.opt_ref, "optIcf": l.opt_icf})),
+        "debug": r.judged.is_some(),
         "saving": recs.iter().map(|r| r.saving).sum::<u64>(),
         "recommendations": list,
     }))

@@ -14,10 +14,14 @@
 //! - Define a duplicated variable once: a file-scope variable (or a
 //!   `const` in a header) with the same bytes in several objects.
 //!
-//! Only a PDB records the link's options. Elsewhere ([`Link::judged`]) the
-//! image is the evidence: functions nothing reaches that the linker could
-//! have dropped alone weren't collected, and identical functions at
-//! different addresses weren't folded.
+//! Only a PDB records the link's options. Elsewhere ([`Link::evidence`])
+//! what the link left says what it did: functions of different objects at
+//! one address were folded (ICF), and functions the debug information
+//! describes but the image doesn't have were collected (`--gc-sections`).
+//! A link with no such evidence is taken to have done neither: functions
+//! nothing reaches that the linker could have dropped alone weren't
+//! collected, and identical functions at different addresses weren't
+//! folded.
 //!
 //! Each must save at least [`MIN_SAVING`] bytes.
 
@@ -94,7 +98,9 @@ impl Toolchain {
     fn icf(self) -> &'static str {
         match self {
             Toolchain::Msvc => "link with /OPT:ICF",
-            Toolchain::Gnu => "link with -Wl,--icf=all (lld or gold)",
+            Toolchain::Gnu => {
+                "link with -Wl,--icf=all (lld or gold; compiling with -ffunction-sections)"
+            }
             Toolchain::Apple => "link with ld64.lld --icf=all",
         }
     }
@@ -118,6 +124,34 @@ impl Link {
             opt_ref: false,
             opt_icf: false,
         }
+    }
+
+    /// A link whose options aren't recorded, judged from what it left
+    /// (`image`, and `debug`'s [`hexcavator_debuginfo::DiscardedFunctions`]):
+    /// it folded identical functions if functions of different names from
+    /// different compilands are at one address, or a function it dropped
+    /// still has its symbol (folded symbols are the kept one's); it
+    /// collected unreferenced ones if a function it dropped has no symbol.
+    /// (Without a symbol table to tell, dropped functions say neither.)
+    pub fn evidence(
+        image: &hexcavator_image::Image<'_>,
+        debug: &hexcavator_debuginfo::DebugInfo<'_>,
+    ) -> Link {
+        let mut link = Link::judged();
+        let Ok(d) = debug.discarded_functions() else {
+            return link;
+        };
+        link.opt_icf = d.shared;
+        if let Some(defined) = defined_functions(image, debug) {
+            for name in &d.dropped {
+                if defined.contains(name.as_bytes()) {
+                    link.opt_icf = true;
+                } else {
+                    link.opt_ref = true;
+                }
+            }
+        }
+        link
     }
 
     /// The options `command` (the linker's arguments) gives, with the
@@ -154,6 +188,35 @@ impl Link {
             opt_icf: opt_icf.unwrap_or(!debug),
         }
     }
+}
+
+/// The names of the functions an ELF image's symbol table (or its debug
+/// file's, if it has none) defines, if either has one.
+fn defined_functions<'a>(
+    image: &'a hexcavator_image::Image<'_>,
+    debug: &'a hexcavator_debuginfo::DebugInfo<'_>,
+) -> Option<rustc_hash::FxHashSet<&'a [u8]>> {
+    use hexcavator_elf::consts::{SHN_UNDEF, SHT_SYMTAB, STT_FUNC};
+    // (`STT_GNU_IFUNC`: a function chosen at load.)
+    const STT_GNU_IFUNC: u8 = 10;
+    let of = |elf: &hexcavator_elf::ElfFile<'a>| -> Option<rustc_hash::FxHashSet<&'a [u8]>> {
+        let table = elf.sections().find(|s| s.kind == SHT_SYMTAB)?;
+        Some(
+            elf.symbols(&table)
+                .into_iter()
+                .filter(|s| {
+                    matches!(s.kind, STT_FUNC | STT_GNU_IFUNC)
+                        && s.shndx != u32::from(SHN_UNDEF)
+                        && !s.name.is_empty()
+                })
+                .map(|s| s.name)
+                .collect(),
+        )
+    };
+    of(image.elf()?).or_else(|| {
+        let data = debug.dwarf()?.file_data();
+        of(&hexcavator_elf::ElfFile::parse(data).ok()?)
+    })
 }
 
 /// Splits a command line into arguments: by spaces, but not inside quotes.

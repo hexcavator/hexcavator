@@ -36,8 +36,13 @@ pub enum Mode {
     /// They do the same thing (for matching across builds): code and
     /// read-only data by contents, variables by name.
     Same,
-    /// The linker could fold them into one (`/OPT:ICF`): COMDAT code and
-    /// read-only COMDAT data by contents; everything else is only itself.
+    /// The linker could fold them into one (`/OPT:ICF`, `--icf=all`):
+    /// COMDAT code and read-only COMDAT data by contents; everything else
+    /// is only itself. On ELF, as lld's `--icf=all` folds: never a
+    /// function with an LSDA (its exception table, which the linker
+    /// doesn't compare), one in `.init` or `.fini` or a section named as a
+    /// C identifier (which `__start_`/`__stop_` symbols enumerate), nor
+    /// two in different output sections.
     Foldable,
 }
 
@@ -111,6 +116,55 @@ fn imports(image: &Image<'_>) -> rustc_hash::FxHashMap<u64, String> {
     out
 }
 
+/// The functions an ELF image's `.eh_frame` gives an LSDA (a language's
+/// exception table: catch clauses, cleanups), by address.
+fn lsda_functions(image: &Image<'_>) -> rustc_hash::FxHashSet<u64> {
+    use hexcavator_dwarf::cfi::{Cfi, CfiKind, Entry};
+    let mut out = rustc_hash::FxHashSet::default();
+    if image.elf().is_none() {
+        return out;
+    }
+    for s in image
+        .sections()
+        .into_iter()
+        .filter(|s| s.name == b".eh_frame" && s.file_size > 0)
+    {
+        let Some(data) = image.bytes_at(s.addr, s.file_size.min(s.vm_size)) else {
+            continue;
+        };
+        let cfi = Cfi {
+            data,
+            kind: CfiKind::EhFrame,
+            endian: image.endian(),
+            address: s.addr,
+            address_size: image.arch().pointer_size().unwrap_or(8),
+            text_base: None,
+            data_base: None,
+        };
+        for e in cfi.entries() {
+            if let Entry::Fde(f) = e
+                && f.lsda.is_some()
+            {
+                out.insert(f.pc_begin);
+            }
+        }
+    }
+    out
+}
+
+/// Whether ELF's linkers fold nothing in an output section named `name`:
+/// `.init` and `.fini` (instructions run in order), and a name that is a C
+/// identifier (its sections enumerated by `__start_` and `__stop_`).
+fn elf_unfoldable(name: &str) -> bool {
+    name == ".init"
+        || name == ".fini"
+        || name
+            .chars()
+            .next()
+            .is_some_and(|c| c.is_ascii_alphabetic() || c == '_')
+            && name.chars().all(|c| c.is_ascii_alphanumeric() || c == '_')
+}
+
 /// The fingerprints of `x`'s nodes (of `image`, of any format), as `mode`
 /// says.
 pub fn build(image: &Image<'_>, model: &Model, x: &Xref, mode: Mode) -> Fingerprints {
@@ -147,6 +201,19 @@ pub fn build(image: &Image<'_>, model: &Model, x: &Xref, mode: Mode) -> Fingerpr
         &pointers[i..j]
     };
     let slots = imports(image);
+    // (ELF, as lld folds: see [`Mode::Foldable`].)
+    let elf = image.elf().is_some() && mode == Mode::Foldable;
+    let lsda = if elf {
+        lsda_functions(image)
+    } else {
+        Default::default()
+    };
+    let section_of = |at: u64| {
+        model
+            .sections
+            .iter()
+            .position(|s| at >= s.addr && at < s.addr + s.size.vm.max(s.size.file))
+    };
     let identities: Vec<String> = x
         .ids()
         .map(|n| match slots.get(&graph.nodes()[n as usize].start) {
@@ -173,18 +240,37 @@ pub fn build(image: &Image<'_>, model: &Model, x: &Xref, mode: Mode) -> Fingerpr
             // that uses the other). So it is known by its name; read-only
             // data, which a linker may fold, by its contents.
             // (Data with no symbol has no name to be known by.)
+            // (Within one image, two variables of one name, a file-scope
+            // `static` in each of several objects, are two: code that uses
+            // one doesn't do what code that uses the other does.)
             if !node.code && writable(node.start) && x.kinds[n as usize].is_some() {
-                return named(&format!(
-                    "{}\0{}",
-                    x.names[n as usize],
-                    node.end - node.start
-                ));
+                return match mode {
+                    Mode::Same => named(&format!(
+                        "{}\0{}",
+                        x.names[n as usize],
+                        node.end - node.start
+                    )),
+                    Mode::Foldable => named(&format!("{}\0{:#x}", x.names[n as usize], node.start)),
+                };
             }
             // What the linker can't fold is only itself.
-            if mode == Mode::Foldable && !matches!(x.contribution[n as usize], Some((_, true))) {
+            let section = section_of(node.start);
+            if mode == Mode::Foldable
+                && (!matches!(x.contribution[n as usize], Some((_, true)))
+                    || elf
+                        && (node.code && lsda.contains(&node.start)
+                            || section.is_none_or(|i| elf_unfoldable(&model.sections[i].name))))
+            {
                 return named(&format!("{}\0{:#x}", x.names[n as usize], node.start));
             }
             let here = in_range(node.start, node.end);
+            // (Nor across output sections.)
+            let apart = |mut item: Item| {
+                if elf && let Some(i) = section {
+                    item.local ^= (i as u64 + 1).wrapping_mul(0x9e37_79b9_7f4a_7c15);
+                }
+                item
+            };
             if node.code {
                 let absolute: Vec<(u64, u64)> = if x.arch == Arch::X86 {
                     here.iter().map(|&(s, _, t)| (s, t)).collect()
@@ -192,14 +278,14 @@ pub fn build(image: &Image<'_>, model: &Model, x: &Xref, mode: Mode) -> Fingerpr
                     Vec::new()
                 };
                 let image_base = (x.arch == Arch::X64).then_some(0);
-                code(
+                apart(code(
                     x.arch,
                     bytes(node.start, node.end),
                     node.start,
                     image_base,
                     &absolute,
                     &resolve,
-                )
+                ))
             } else {
                 let ptrs: Vec<(u64, u32, Option<u32>)> = here
                     .iter()
@@ -215,7 +301,7 @@ pub fn build(image: &Image<'_>, model: &Model, x: &Xref, mode: Mode) -> Fingerpr
                         .filter(|r| r.1 == hexcavator_xref::Edge::Attached)
                         .map(|r| r.0),
                 );
-                item
+                apart(item)
             }
         })
         .collect();

@@ -27,6 +27,19 @@ test("which hexc runs", () => {
   assert.strictEqual(h.hexcPath("C:/tools/hexc.exe", (p) => p === bundled), "C:/tools/hexc.exe");
 });
 
+test("what a link did, in its toolchain's terms", () => {
+  assert.strictEqual(h.linkSummary({ toolchain: "msvc", link: { optRef: true, optIcf: false }, judged: { optRef: true, optIcf: false } }), "/OPT:REF on, /OPT:ICF off");
+  assert.strictEqual(
+    h.linkSummary({ toolchain: "gnu", link: null, judged: { optRef: true, optIcf: true } }),
+    "--gc-sections on, --icf on (as the image shows it)"
+  );
+  assert.strictEqual(h.linkSummary({ toolchain: "apple", judged: { optRef: false, optIcf: false } }), "-dead_strip off, ICF off (as the image shows it)");
+  // (An older hexc's report: neither.)
+  assert.strictEqual(h.linkSummary({ toolchain: "gnu", link: null }), "");
+  // (Without debug information: neither, judged null.)
+  assert.strictEqual(h.linkSummary({ toolchain: "gnu", link: null, judged: null, debug: false }), "");
+});
+
 test("kinds of files", () => {
   assert.strictEqual(h.kindOf("C:\\a\\b.DLL"), "pe");
   assert.strictEqual(h.kindOf("/x/y.lib"), "coff");

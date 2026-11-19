@@ -548,6 +548,61 @@ fn macho_images() {
 /// (nothing records the link's options): `second.c`'s functions and data
 /// nothing reaches were kept, so nothing collected them.
 #[test]
+fn recommend_without_debug_information() {
+    // Nothing to find for it: what the image's structure shows.
+    let out = Command::new(env!("CARGO_BIN_EXE_hexc"))
+        .arg("recommend")
+        .arg(elf("relr-rela.so"))
+        .output()
+        .unwrap();
+    let text = String::from_utf8(out.stdout).unwrap();
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let lines: Vec<&str> = text.lines().collect();
+    assert_eq!(
+        lines[0],
+        "No debug information: only what the image's structure shows (give it with -debug for the rest).",
+        "{text}"
+    );
+    assert_eq!(
+        lines[1], "1 recommendation, saving 192 bytes in all:",
+        "{text}"
+    );
+    assert!(lines[3].contains("pack-relative-relocs"), "{text}");
+    let out = Command::new(env!("CARGO_BIN_EXE_hexc"))
+        .args(["recommend", "-json"])
+        .arg(elf("relr-rela.so"))
+        .output()
+        .unwrap();
+    let v: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
+    assert_eq!(v["debug"], false);
+    assert!(v["judged"].is_null() && v["link"].is_null(), "{v}");
+    assert_eq!(v["recommendations"][0]["kind"], "relr", "{v}");
+    // Already packed: nothing.
+    let out = Command::new(env!("CARGO_BIN_EXE_hexc"))
+        .arg("recommend")
+        .arg(elf("relr.so"))
+        .output()
+        .unwrap();
+    assert!(out.status.success());
+    assert!(
+        String::from_utf8(out.stdout)
+            .unwrap()
+            .contains("No recommendations")
+    );
+    // Debug information given, but not found: still an error.
+    let out = Command::new(env!("CARGO_BIN_EXE_hexc"))
+        .args(["recommend", "-debug", "no-such-file"])
+        .arg(elf("relr-rela.so"))
+        .output()
+        .unwrap();
+    assert!(!out.status.success());
+}
+
+#[test]
 fn recommend_elf() {
     let out = Command::new(env!("CARGO_BIN_EXE_hexc"))
         .arg("recommend")
@@ -563,7 +618,7 @@ fn recommend_elf() {
     let lines: Vec<&str> = text.lines().collect();
     assert_eq!(
         lines[0],
-        "The link's options aren't recorded: what it dropped and folded is judged from the image.",
+        "The link's options aren't recorded: as the image shows it, the link didn't collect unreferenced functions (--gc-sections) and didn't fold identical ones (ICF).",
         "{text}"
     );
     assert_eq!(
@@ -581,4 +636,106 @@ fn recommend_elf() {
     assert_eq!(v["toolchain"], "gnu");
     assert!(v["link"].is_null());
     assert_eq!(v["saving"], 209);
+}
+
+/// What a link without recorded options did, judged from what it left
+/// (tools/linkopts: one program linked with and without --gc-sections and
+/// --icf=all), and the recommendations that follow: none for what it did.
+#[test]
+fn recommend_judges_the_link() {
+    let linkopts = |name: &str| {
+        Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../testdata/linkopts")
+            .join(name)
+    };
+    let recommend = |name: &str| -> serde_json::Value {
+        let out = Command::new(env!("CARGO_BIN_EXE_hexc"))
+            .args(["recommend", "-json"])
+            .arg(linkopts(name))
+            .output()
+            .unwrap();
+        assert!(
+            out.status.success(),
+            "{name}: {}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+        serde_json::from_slice(&out.stdout).unwrap()
+    };
+    let kinds = |v: &serde_json::Value| -> Vec<String> {
+        let mut k: Vec<String> = v["recommendations"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|r| r["kind"].as_str().unwrap().to_string())
+            .collect();
+        k.sort();
+        k
+    };
+    // (name, collected, folded, what's recommended)
+    let cases: [(&str, bool, bool, &[&str]); 7] = [
+        ("funcs-plain", false, false, &["gc", "icf"]),
+        ("funcs-gc", true, false, &["icf"]),
+        ("funcs-icf", false, true, &["gc"]),
+        ("funcs-gc-icf", true, true, &[]),
+        // (Nothing unreferenced to collect. Folded across compile units:
+        // the DWARF of both at one address; and work<N>, with an LSDA,
+        // which lld's ICF never folds.)
+        ("eh-icf", false, true, &[]),
+        // (Without ICF, only plain<N>: work<N> has an LSDA, and use<N>
+        // calls different work<N>.)
+        ("eh", false, false, &["icf"]),
+        // (Only data folded: nothing says the link folded functions,
+        // and there are none to fold.)
+        ("dup-icf", false, false, &[]),
+    ];
+    for (name, collected, folded, want) in cases {
+        let v = recommend(name);
+        assert!(v["link"].is_null(), "{name}");
+        assert_eq!(v["judged"]["optRef"], collected, "{name}: {v}");
+        assert_eq!(v["judged"]["optIcf"], folded, "{name}: {v}");
+        assert_eq!(kinds(&v), want, "{name}: {v}");
+    }
+    let v = recommend("funcs-plain");
+    let icf = &v["recommendations"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|r| r["kind"] == "icf")
+        .unwrap()["examples"];
+    assert_eq!(icf[0]["name"], "add_a(int, int) (3 copies)", "{v}");
+    let v = recommend("eh");
+    let icf = &v["recommendations"][0];
+    assert_eq!(icf["examples"].as_array().unwrap().len(), 1, "{v}");
+    assert!(
+        icf["examples"][0]["name"]
+            .as_str()
+            .unwrap()
+            .starts_with("plain<"),
+        "{v}"
+    );
+    // Duplicated variables: constants copied from one definition (the
+    // header's lut, dup.c's tag, three times each), not variables, nor
+    // other.c's tag, alike but defined apart.
+    let v = recommend("dup");
+    assert_eq!(kinds(&v), ["duplicates"], "{v}");
+    let examples: Vec<&str> = v["recommendations"][0]["examples"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|e| e["name"].as_str().unwrap())
+        .collect();
+    assert_eq!(examples, ["lut (3 copies)", "tag (3 copies)"], "{v}");
+    // (Compiled without -ffunction-sections, the link's --gc-sections and
+    // --icf=all have nothing to drop or fold, and leave no evidence: the
+    // advice says to compile so.)
+    let v = recommend("funcs-nosections-gc-icf");
+    for r in v["recommendations"].as_array().unwrap() {
+        assert!(
+            r["advice"]
+                .as_str()
+                .unwrap()
+                .contains("compiling with -ffunction-sections"),
+            "{v}"
+        );
+    }
 }
