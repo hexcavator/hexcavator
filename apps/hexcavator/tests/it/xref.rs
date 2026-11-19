@@ -867,3 +867,133 @@ fn recommend_judges_a_macho_link() {
     );
     assert!(!run(&[], "macho-plain").contains("Apple's ld linked it"));
 }
+
+/// What an ELF shared object's exports cost, and what hiding them would
+/// save (testdata/linkopts's libexp*.so, without debug information, and
+/// exp-main, which imports exp_used).
+#[test]
+fn recommend_exports() {
+    let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../testdata/linkopts");
+    let recommend = |args: &[&str], name: &str| -> serde_json::Value {
+        let out = Command::new(env!("CARGO_BIN_EXE_hexc"))
+            .arg("recommend")
+            .arg("-json")
+            .args(args)
+            .arg(dir.join(name))
+            .output()
+            .unwrap();
+        assert!(
+            out.status.success(),
+            "{name}: {}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+        serde_json::from_slice(&out.stdout).unwrap()
+    };
+    let rec = |v: &serde_json::Value, kind: &str| -> Option<serde_json::Value> {
+        v["recommendations"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|r| r["kind"] == kind)
+            .cloned()
+    };
+    let names = |r: &serde_json::Value| -> Vec<String> {
+        let mut v: Vec<String> = r["examples"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|e| e["name"].as_str().unwrap().to_string())
+            .collect();
+        v.sort();
+        v
+    };
+    // Template instantiations (Box<T>::get, ::twice), exported, and called
+    // through the PLT; and its calls to its own exports.
+    let v = recommend(&[], "libexp.so");
+    assert_eq!(v["debug"], false);
+    assert!(v["importers"].is_null());
+    let vague = rec(&v, "vague-linkage").unwrap();
+    assert!(
+        vague["advice"]
+            .as_str()
+            .unwrap()
+            .contains("it exports 8 template instantiations and inline functions"),
+        "{v}"
+    );
+    assert!(
+        names(&vague).iter().all(|n| n.starts_with("Box<")),
+        "{vague}"
+    );
+    let calls = rec(&v, "bsymbolic").unwrap();
+    assert_eq!(
+        names(&calls),
+        ["exp_helper(int)", "exp_internal_a(int)", "exp_used(int)"],
+        "{calls}"
+    );
+    // (Without importers, which exports are its API isn't known.)
+    assert!(rec(&v, "visibility").is_none(), "{v}");
+    // Its importer imports exp_used: the rest of its own exports aren't.
+    for importers in [&["-importers", "exp-main"][..], &["-importers", "."]] {
+        let args: Vec<String> = importers
+            .iter()
+            .map(|a| {
+                if *a == "-importers" {
+                    a.to_string()
+                } else {
+                    dir.join(a).to_string_lossy().into_owned()
+                }
+            })
+            .collect();
+        let args: Vec<&str> = args.iter().map(String::as_str).collect();
+        let v = recommend(&args, "libexp.so");
+        // (Of the directory's files, only exp-main loads it.)
+        assert_eq!(v["importers"], 1, "{v}");
+        let hide = rec(&v, "visibility").unwrap();
+        assert_eq!(
+            names(&hide),
+            [
+                "exp_helper(int)",
+                "exp_internal_a(int)",
+                "exp_internal_b(int)",
+                "exp_unused(int)"
+            ],
+            "{hide}"
+        );
+        assert!(
+            hide["advice"]
+                .as_str()
+                .unwrap()
+                .ends_with("4 exported symbols aren't imported by the importer given"),
+            "{hide}"
+        );
+    }
+    // An importer that doesn't load it: none of its exports are imported.
+    let funcs = dir.join("funcs-plain").to_string_lossy().into_owned();
+    let v = recommend(&["-importers", &funcs], "libexp.so");
+    assert_eq!(v["importers"], 0, "{v}");
+    assert!(
+        rec(&v, "visibility").unwrap()["advice"]
+            .as_str()
+            .unwrap()
+            .contains("5 exported symbols aren't imported by any importer"),
+        "{v}"
+    );
+    // -Bsymbolic-functions: no calls through the PLT; its template
+    // instantiations cost only their entries.
+    let v = recommend(&[], "libexp-bsymbolic.so");
+    assert!(rec(&v, "bsymbolic").is_none(), "{v}");
+    assert!(
+        rec(&v, "vague-linkage").unwrap()["saving"].as_u64()
+            < rec(&recommend(&[], "libexp.so"), "vague-linkage").unwrap()["saving"].as_u64(),
+        "{v}"
+    );
+    // -fvisibility=hidden: only its API is exported, two of which call
+    // each other through the PLT.
+    let v = recommend(&[], "libexp-hidden.so");
+    assert!(rec(&v, "vague-linkage").is_none(), "{v}");
+    assert_eq!(
+        names(&rec(&v, "bsymbolic").unwrap()),
+        ["exp_helper(int)", "exp_used(int)"],
+        "{v}"
+    );
+}

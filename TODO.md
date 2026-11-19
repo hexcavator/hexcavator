@@ -5,10 +5,6 @@ leave this list when they ship.
 
 ## Size analysis
 
-- **Exported symbols.** What `-fvisibility=hidden` or a version script
-  would save in an ELF shared library or a Mach-O dylib: the dynamic
-  symbols, their names, hash entries, and PLT/GOT slots of those nothing
-  imports (`hexc deps` knows who imports what).
 - **Near-identical functions.** Families of functions that differ only in
   a constant, a type's size, or a callee (template instantiations ICF
   can't fold), with what a type-erased version would save.

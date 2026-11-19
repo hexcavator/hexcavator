@@ -501,7 +501,16 @@ impl Server {
 
     fn recommend(&mut self, args: &Value) -> ToolResult {
         let loaded = self.loaded_from(args)?;
-        let r = if loaded.pe_with_pdb() {
+        let importers: Vec<PathBuf> = match args.get("importers") {
+            None | Some(Value::Null) => Vec::new(),
+            Some(Value::Array(a)) => a
+                .iter()
+                .filter_map(|v| v.as_str().map(PathBuf::from))
+                .collect(),
+            Some(Value::String(s)) => vec![PathBuf::from(s)],
+            Some(_) => return Err("`importers` must be an array of paths".into()),
+        };
+        let mut r = if loaded.pe_with_pdb() {
             let x = loaded.xref()?;
             let model = loaded.model()?;
             let syms = loaded.symbols()?;
@@ -532,6 +541,8 @@ impl Server {
                 Err(e) => return Err(format!("recommend: {e}")),
             }
         };
+        let image = Image::parse(&loaded.map).map_err(|e| e.to_string())?;
+        crate::recommend::with_exports(&mut r, &image, &loaded.path, &importers);
         let structured =
             serde_json::from_str(&crate::recommend::as_json(&r)).map_err(|e| e.to_string())?;
         Ok((crate::recommend::as_text(&r), structured))
@@ -1196,9 +1207,25 @@ fn tools() -> Value {
             ),
             tool(
                 "recommend",
-                "Build changes that would make an executable or library smaller (PE, ELF, Mach-O, WebAssembly), each with the bytes it would save, measured from the image and its debug information, in its toolchain's terms (MSVC's, GCC's and Clang's, or Apple's): compile an object with /Gy or /Gw (-ffunction-sections, -fdata-sections), link with /OPT:REF or /OPT:ICF (--gc-sections or -dead_strip, --icf) when the link didn't (its options from the PDB, or judged from what it left), define a duplicated constant once; and what the image's structure shows (RELR relocations, .hash, WebAssembly custom sections), which is all there is without debug information.",
+                "Build changes that would make an executable or library smaller (PE, ELF, Mach-O, WebAssembly), each with the bytes it would save, measured from the image and its debug information, in its toolchain's terms (MSVC's, GCC's and Clang's, or Apple's): compile an object with /Gy or /Gw (-ffunction-sections, -fdata-sections), link with /OPT:REF or /OPT:ICF (--gc-sections or -dead_strip, --icf) when the link didn't (its options from the PDB, or judged from what it left), define a duplicated constant once; hide exports (template instantiations and inline functions, -fvisibility=hidden; a library's calls to its own exports through the PLT, -Bsymbolic-functions; and, given its importers, what none imports, -fvisibility=hidden); and what the image's structure shows (RELR relocations, .hash, WebAssembly custom sections), which, with its exports, is all there is without debug information.",
                 schema(
-                    vec![("path", path.clone()), ("pdb", pdb.clone())],
+                    vec![
+                        ("path", path.clone()),
+                        ("pdb", pdb.clone()),
+                        (
+                            "importers",
+                            object([
+                                ("type", Value::from("array")),
+                                ("items", object([("type", Value::from("string"))])),
+                                (
+                                    "description",
+                                    Value::from(
+                                        "Executables and libraries that load it, or directories of them (searched, with their subdirectories, for those that do): what they import of its exports is kept, the rest is recommended hidden.",
+                                    ),
+                                ),
+                            ]),
+                        ),
+                    ],
                     &["path"],
                 ),
             ),

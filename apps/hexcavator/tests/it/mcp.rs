@@ -527,3 +527,40 @@ fn symbolize_session() {
         "{failed}"
     );
 }
+
+/// recommend's `importers`: what they import of a library's exports is
+/// kept, the rest recommended hidden.
+#[test]
+fn recommend_with_importers() {
+    let p = |rel: &str| Value::from(testdata(rel).to_string_lossy().into_owned());
+    let r = session(&[
+        (
+            "recommend",
+            object([
+                ("path", p("linkopts/libexp.so")),
+                ("importers", Value::from(vec![p("linkopts/exp-main")])),
+            ]),
+        ),
+        ("recommend", object([("path", p("linkopts/libexp.so"))])),
+    ]);
+    let v = result(&r[0]);
+    assert_eq!(v["importers"], 1, "{v}");
+    assert!(
+        v["recommendations"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|r| r["kind"] == "visibility"),
+        "{v}"
+    );
+    let v = result(&r[1]);
+    assert!(v["importers"].is_null(), "{v}");
+    assert!(
+        !v["recommendations"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|r| r["kind"] == "visibility"),
+        "{v}"
+    );
+}

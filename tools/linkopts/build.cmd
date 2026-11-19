@@ -17,6 +17,8 @@ rem                       (as -grecord-command-line would), linked plain.
 rem   funcs-rec-nosections-gc-icf
 rem                       funcs.c without -ffunction-sections, its options
 rem                       in .GCC.command.line (as -frecord-command-line).
+rem   libexp.so, libexp-bsymbolic.so, libexp-hidden.so, exp-main
+rem                       exp.cpp's exports (see below), and an importer.
 rem (What's recorded is given to clang's cc1 as its driver would, so no
 rem path of this machine's is: the driver would record its own.)
 rem   macho-<link>        funcs.c for arm64 macOS (-O2 recorded), linked by
@@ -83,3 +85,18 @@ set MLD="%LLVM_BIN%\ld64.lld.exe" -arch arm64 -platform_version macos 13.0 13.0 
 %MLD% macho-funcs-O1.o -o macho-ld-O1 || exit /b 1
 python "%~dp0as-apple-ld.py" macho-ld || exit /b 1
 python "%~dp0as-apple-ld.py" macho-ld-O1 || exit /b 1
+
+rem Exports: libexp.so (exp.cpp: exported functions calling each other,
+rem and template instantiations and inline functions exported with them),
+rem plain, -Bsymbolic-functions, and -fvisibility=hidden (its API marked);
+rem and exp-main, a PIE importing exp_used only. No debug information.
+set XCC="%LLVM_BIN%\clang.exe" --target=x86_64-linux-gnu -O1 -fPIC -ffreestanding -fno-stack-protector -fno-exceptions -fno-rtti -fno-ident -fno-asynchronous-unwind-tables -fno-inline-functions -I"%~dp0."
+set XLD="%LLVM_BIN%\ld.lld.exe" --hash-style=gnu --build-id=sha1
+cd /d "%WORK%" || exit /b 1
+%XCC% -c "%~dp0exp.cpp" -o exp.o || exit /b 1
+%XCC% -fvisibility=hidden -c "%~dp0exp.cpp" -o exp-hidden.o || exit /b 1
+%XCC% -c "%~dp0exp-main.cpp" -o exp-main.o || exit /b 1
+%XLD% -shared -soname libexp.so exp.o -o "%OUT%\libexp.so" || exit /b 1
+%XLD% -shared -soname libexp.so -Bsymbolic-functions exp.o -o "%OUT%\libexp-bsymbolic.so" || exit /b 1
+%XLD% -shared -soname libexp.so exp-hidden.o -o "%OUT%\libexp-hidden.so" || exit /b 1
+%XLD% -pie -e _start exp-main.o "%OUT%\libexp.so" -o "%OUT%\exp-main" || exit /b 1
