@@ -1318,9 +1318,13 @@
       );
     };
     if (recs) {
+      // (The link's options as recorded, a PDB's, or else as the image
+      // shows them; in its toolchain's terms.)
       const linked = [];
-      if (recs.link) {
-        linked.push(`/OPT:REF ${recs.link.optRef ? "on" : "off"}`, `/OPT:ICF ${recs.link.optIcf ? "on" : "off"}`);
+      const l = recs.link || recs.judged;
+      if (l) {
+        const [ref, icf] = recs.toolchain === "msvc" ? ["/OPT:REF", "/OPT:ICF"] : recs.toolchain === "apple" ? ["-dead_strip", "ICF"] : ["--gc-sections", "--icf"];
+        linked.push(`${ref} ${l.optRef ? "on" : "off"}`, `${icf} ${l.optIcf ? "on" : "off"}${recs.link ? "" : " (as the image shows it)"}`);
       }
       section(
         "Build changes",

@@ -32,6 +32,22 @@ function quote(arg) {
   return '"' + s.replace(/(\\*)"/g, '$1$1\\"').replace(/(\\+)$/, "$1$1") + '"';
 }
 
+/**
+ * What a link did, from `hexc recommend -json`'s report `r`, in its
+ * toolchain's terms: its recorded options (a PDB's), or else what the
+ * image shows (`judged`): "/OPT:REF on, /OPT:ICF off", "--gc-sections on,
+ * --icf off (as the image shows it)". Empty if neither is there.
+ */
+function linkSummary(r) {
+  const l = (r && (r.link || r.judged)) || null;
+  if (!l) {
+    return "";
+  }
+  const [ref, icf] = r.toolchain === "msvc" ? ["/OPT:REF", "/OPT:ICF"] : r.toolchain === "apple" ? ["-dead_strip", "ICF"] : ["--gc-sections", "--icf"];
+  const s = `${ref} ${l.optRef ? "on" : "off"}, ${icf} ${l.optIcf ? "on" : "off"}`;
+  return r.link ? s : `${s} (as the image shows it)`;
+}
+
 /** The formats a strip takes something from (`hexc size -stripped`). */
 const STRIPPABLE = ["elf", "macho", "wasm"];
 
@@ -640,6 +656,7 @@ module.exports = {
   commandLine,
   STRIPPABLE,
   withStripped,
+  linkSummary,
   nameIs,
   isPath,
   describeRow,

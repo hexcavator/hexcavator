@@ -42,7 +42,7 @@ fn duplicate_data_matches_sizebench() {
             .iter()
             .map(|c| c.compiland)
             .collect();
-        let mut ours: Vec<String> = findings::duplicate_data(&image, &syms)
+        let mut ours: Vec<String> = findings::duplicate_data(&image, &debug, &syms)
             .into_iter()
             .filter_map(|mut d| {
                 d.copies.retain(|c| contributing.contains(&c.1));

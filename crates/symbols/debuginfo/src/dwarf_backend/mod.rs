@@ -1481,6 +1481,142 @@ impl<'data> DwarfInfo<'data> {
         Ok(out)
     }
 
+    /// The bytes of the file the debug information is in.
+    pub fn file_data(&self) -> &'data [u8] {
+        self.data
+    }
+
+    /// What the linker did to functions, as a linked file's subprograms
+    /// show it (see [`crate::DiscardedFunctions`]); nothing in an object.
+    pub fn discarded_functions(&self) -> Result<crate::DiscardedFunctions> {
+        let mut out = crate::DiscardedFunctions::default();
+        if !self.linked {
+            return Ok(out);
+        }
+        // Kept: each function's qualified name, and (address, compiland,
+        // name) of each; dropped: its qualified and its symbol's name.
+        let mut kept_names = std::collections::HashSet::new();
+        let mut kept = Vec::new();
+        let mut dropped = Vec::new();
+        self.walk(|w| {
+            let d = w.die;
+            if d.tag != DW_TAG_SUBPROGRAM
+                || d.flag(DW_AT_DECLARATION)
+                || d.attr(DW_AT_LOW_PC).is_none() && d.attr(DW_AT_RANGES).is_none()
+            {
+                return Walk::Into;
+            }
+            let name = self.qualified_name(w.at);
+            match self.ranges(w.unit, d).first() {
+                Some(&(at, _)) => {
+                    kept.push((at, w.meta.compiland, name.clone()));
+                    kept_names.insert(name);
+                }
+                None => dropped.push((name, self.linkage_name(w.at))),
+            }
+            Walk::Into
+        });
+        dropped.retain(|(n, _)| !n.is_empty() && !kept_names.contains(n));
+        out.dropped = dropped.into_iter().filter_map(|(_, l)| l).collect();
+        out.dropped.sort_unstable();
+        out.dropped.dedup();
+        kept.sort_unstable();
+        out.shared = kept.chunk_by(|a, b| a.0 == b.0).any(|at| {
+            at.iter()
+                .any(|a| at.iter().any(|b| a.1 != b.1 && a.2 != b.2))
+        });
+        Ok(out)
+    }
+
+    /// The name of a function's symbol: its `DW_AT_linkage_name` (or
+    /// `DW_AT_MIPS_linkage_name`), else its name (C's), through its
+    /// specification or origin.
+    fn linkage_name(&self, r: TypeRef) -> Option<String> {
+        let mut at = r;
+        let mut name = None;
+        for _ in 0..MAX_CHAIN {
+            let (u, _, d) = self.die(at)?;
+            if let Some(l) = Self::string(&u, &d, DW_AT_LINKAGE_NAME)
+                .or_else(|| Self::string(&u, &d, DW_AT_MIPS_LINKAGE_NAME))
+            {
+                return Some(l);
+            }
+            if name.is_none() {
+                name = Self::string(&u, &d, DW_AT_NAME);
+            }
+            match d
+                .attr(DW_AT_SPECIFICATION)
+                .or_else(|| d.attr(DW_AT_ABSTRACT_ORIGIN))
+                .and_then(|a| self.reference(&u, a))
+            {
+                Some(n) if n != at => at = n,
+                _ => break,
+            }
+        }
+        name
+    }
+
+    /// The definitions of the variables at `wanted`'s (address,
+    /// compiland) pairs: where each is declared, and whether it is
+    /// constant.
+    pub fn variable_definitions(
+        &self,
+        wanted: &std::collections::HashSet<(u64, u32)>,
+    ) -> Result<HashMap<(u64, u32), crate::VariableDefinition>> {
+        let mut out = HashMap::new();
+        if wanted.is_empty() {
+            return Ok(out);
+        }
+        self.walk(|w| {
+            let (u, d) = (w.unit, w.die);
+            let Some(compiland) = w.meta.compiland else {
+                return Walk::Into;
+            };
+            if d.tag != DW_TAG_VARIABLE {
+                return Walk::Into;
+            }
+            let Some(loc) = d.attr(DW_AT_LOCATION) else {
+                return Walk::Into;
+            };
+            let Some((addr, false)) = static_address(u, &loc.value) else {
+                return Walk::Into;
+            };
+            let Some(addr) = self.image_addr(u.source, addr) else {
+                return Walk::Into;
+            };
+            if wanted.contains(&(addr, compiland)) {
+                out.insert(
+                    (addr, compiland),
+                    crate::VariableDefinition {
+                        declared: self.type_definition(w.at),
+                        constant: self.constant(self.declared_type(w.at)),
+                    },
+                );
+            }
+            Walk::Into
+        });
+        Ok(out)
+    }
+
+    /// Whether `ty` is `const` (through typedefs and qualifiers; an array
+    /// by its elements).
+    fn constant(&self, ty: TypeRef) -> bool {
+        let mut at = ty;
+        for _ in 0..MAX_CHAIN {
+            let Some((u, _, d)) = self.die(at) else {
+                return false;
+            };
+            match d.tag {
+                DW_TAG_CONST_TYPE => return true,
+                DW_TAG_TYPEDEF | DW_TAG_VOLATILE_TYPE | DW_TAG_ATOMIC_TYPE | DW_TAG_ARRAY_TYPE => {
+                    at = self.type_of(&u, &d);
+                }
+                _ => return false,
+            }
+        }
+        false
+    }
+
     /// Whether the declaration `decl` has external linkage.
     fn external(&self, decl: TypeRef) -> bool {
         self.die(decl)

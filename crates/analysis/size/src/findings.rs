@@ -39,8 +39,19 @@ impl DuplicateData {
     }
 }
 
-/// The duplicated variables of an image, most wasteful first.
-pub fn duplicate_data(image: &Image<'_>, symbols: &[Symbol]) -> Vec<DuplicateData> {
+/// The duplicated variables of an image, most wasteful first: copies of
+/// one file-scope variable, by name, size, and bytes, in several
+/// compilands. Where the debug information records definitions (DWARF),
+/// copies are of one definition (declared at one line of one file: a
+/// header's), and constant: variables that are only alike (a `static int
+/// count` in each of several files) are each its own, and a variable that
+/// isn't `const` is each compiland's own state, which one definition would
+/// share.
+pub fn duplicate_data(
+    image: &Image<'_>,
+    debug: &hexcavator_debuginfo::DebugInfo<'_>,
+    symbols: &[Symbol],
+) -> Vec<DuplicateData> {
     // Candidates by (name, size).
     let mut groups: BTreeMap<(&str, u64, u64), Vec<&Symbol>> = BTreeMap::new();
     for s in symbols {
@@ -56,29 +67,45 @@ pub fn duplicate_data(image: &Image<'_>, symbols: &[Symbol]) -> Vec<DuplicateDat
                 .push(s);
         }
     }
+    groups.retain(|_, members| members.len() > 1);
+    let definitions = if debug.dwarf().is_some() {
+        let wanted: std::collections::HashSet<(u64, u32)> = groups
+            .values()
+            .flatten()
+            .map(|s| (s.addr, s.compiland.expect("filtered")))
+            .collect();
+        Some(debug.variable_definitions(&wanted).unwrap_or_default())
+    } else {
+        None
+    };
     let bytes = |s: &Symbol| image.bytes_at(s.addr, s.size.file);
     let mut out = Vec::new();
     for ((name, file, vm), members) in groups {
-        if members.len() < 2 {
-            continue;
-        }
         // Copies agree byte for byte (some same-named variables, such as
-        // MIDL's `__midl_frag<n>`, differ).
-        let mut clusters: Vec<(Option<&[u8]>, DuplicateData)> = Vec::new();
+        // MIDL's `__midl_frag<n>`, differ), and are of one definition.
+        type Cluster<'a> = (Option<&'a [u8]>, Option<&'a (String, u32)>, DuplicateData);
+        let mut clusters: Vec<Cluster<'_>> = Vec::new();
         for s in members {
             let b = bytes(s);
             let compiland = s.compiland.expect("filtered");
-            match clusters
-                .iter_mut()
-                .find(|(cb, d)| *cb == b && d.copies.iter().all(|c| c.0 != s.addr))
-            {
-                Some((_, d)) => {
+            let declared = match &definitions {
+                Some(defs) => match defs.get(&(s.addr, compiland)) {
+                    Some(d) if d.constant => d.declared.as_ref(),
+                    _ => continue,
+                },
+                None => None,
+            };
+            match clusters.iter_mut().find(|(cb, cd, d)| {
+                *cb == b && *cd == declared && d.copies.iter().all(|c| c.0 != s.addr)
+            }) {
+                Some((_, _, d)) => {
                     if d.copies.iter().all(|c| c.1 != compiland) {
                         d.copies.push((s.addr, compiland));
                     }
                 }
                 None => clusters.push((
                     b,
+                    declared,
                     DuplicateData {
                         name: name.to_string(),
                         size: Size::new(file, vm),
@@ -90,7 +117,7 @@ pub fn duplicate_data(image: &Image<'_>, symbols: &[Symbol]) -> Vec<DuplicateDat
         out.extend(
             clusters
                 .into_iter()
-                .map(|(_, d)| d)
+                .map(|(_, _, d)| d)
                 .filter(|d| d.copies.len() > 1),
         );
     }
@@ -454,7 +481,7 @@ pub fn find(
         Err(_) => Vec::new(),
     };
     Findings {
-        duplicates: duplicate_data(image, symbols),
+        duplicates: duplicate_data(image, debug, symbols),
         families: template_families(Some(image), symbols),
         virtuals,
     }
@@ -858,7 +885,7 @@ pub fn report(
     } else {
         options.limit
     };
-    let dups = duplicate_data(image, symbols);
+    let dups = duplicate_data(image, debug, symbols);
     let families = template_families(Some(image), symbols);
     let word = u64::from(image.arch().pointer_size().unwrap_or(8));
     let virtuals = match debug.classes() {

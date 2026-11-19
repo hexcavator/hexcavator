@@ -335,6 +335,29 @@ pub struct Symbol {
     pub flags: u32,
 }
 
+/// What a linker did to functions, as a linked file's DWARF shows it.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct DiscardedFunctions {
+    /// The symbol names of functions whose code the linker discarded (the
+    /// DWARF's address of it is 0, or the tombstone) and that no function
+    /// kept has the qualified name of (a COMDAT's discarded copies have
+    /// the kept one's): collected (`--gc-sections`), or folded into
+    /// another (ICF; their symbols are then the other's).
+    pub dropped: Vec<String>,
+    /// Whether functions of different names, from different compilands,
+    /// are at one address: folded (ICF).
+    pub shared: bool,
+}
+
+/// A variable's definition, as the debug information records it.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct VariableDefinition {
+    /// Where it is declared: a path and a line.
+    pub declared: Option<(String, u32)>,
+    /// Whether its type is `const` (an array's, its elements').
+    pub constant: bool,
+}
+
 /// The function a variable is declared in: the innermost function whose
 /// code holds the declaration, an inlined function if it is in an inlined
 /// copy of one.
@@ -1016,6 +1039,28 @@ impl<'data> DebugInfo<'data> {
         match self {
             DebugInfo::Pdb(p) => p.symbols(),
             DebugInfo::Dwarf(d) => d.symbols(),
+        }
+    }
+
+    /// What the linker did to functions, where the debug information
+    /// shows it (DWARF's; a PDB's describes only what was kept).
+    pub fn discarded_functions(&self) -> Result<DiscardedFunctions> {
+        match self {
+            DebugInfo::Pdb(_) => Ok(DiscardedFunctions::default()),
+            DebugInfo::Dwarf(d) => d.discarded_functions(),
+        }
+    }
+
+    /// The definitions of the variables at `wanted`'s (address,
+    /// compiland) pairs, where the debug information records them
+    /// (DWARF's; a PDB's records neither).
+    pub fn variable_definitions(
+        &self,
+        wanted: &std::collections::HashSet<(u64, u32)>,
+    ) -> Result<std::collections::HashMap<(u64, u32), VariableDefinition>> {
+        match self {
+            DebugInfo::Pdb(_) => Ok(Default::default()),
+            DebugInfo::Dwarf(d) => d.variable_definitions(wanted),
         }
     }
 

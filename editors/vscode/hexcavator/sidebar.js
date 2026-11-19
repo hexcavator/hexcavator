@@ -310,13 +310,14 @@ class Sidebar {
         return this.once(entry, "recs", ["recommend", "-json", entry.file], JSON.parse).then(
           (r) => {
             const kids = (r.recommendations || []).map((rec) => ({ type: "rec", entry, rec }));
-            const link = r.link || {};
-            kids.push({
-              type: "info",
-              label: "Linked with",
-              description: `/OPT:REF ${link.optRef ? "on" : "off"}, /OPT:ICF ${link.optIcf ? "on" : "off"}`,
-              icon: "link",
-            });
+            const linked = h.linkSummary(r);
+            if (linked) {
+              kids.push({ type: "info", label: "Linked with", description: linked, icon: "link" });
+            }
+            if (r.debug === false) {
+              // (Without debug information, only what its structure shows.)
+              kids.push({ type: "info", label: "No debug information", description: "only what its structure shows", icon: "info" });
+            }
             if (!(r.recommendations || []).length) {
               kids.unshift({ type: "info", label: "Nothing to recommend", description: "", icon: "check" });
             }
