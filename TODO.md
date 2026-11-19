@@ -5,11 +5,16 @@ leave this list when they ship.
 
 ## Size analysis
 
-- **Rust.** Sizes by crate, and what panic messages and formatting
-  machinery cost (`panic=abort`, `-Zfmt-debug`).
 - **GNU ld and lld link maps.** Read their `-Map` output, as MSVC's
   `/MAP` is read now (`crates/formats/linkmap`): sizes by object and
   archive member without debug information.
+
+- **Mach-O exception handling.** Its compact unwind (`__unwind_info`) and
+  LSDAs (`__gcc_except_tab`), for the exception handling costs and
+  needless cleanups ELF and PE have.
+- **Rust's Debug implementations on Windows.** Rust's PDB names say
+  `impl$12::fmt`, not which trait: `-Zfmt-debug`'s saving is measured on
+  ELF and Mach-O only.
 
 ## Waiting
 

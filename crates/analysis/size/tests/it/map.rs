@@ -87,3 +87,44 @@ fn damaged_maps_do_not_panic() {
     let (model, _) = map::model(&image, &hexcavator_linkmap::parse(&shifted)).unwrap();
     assert!(model.groups.iter().all(|g| !g.name.starts_with(".text")));
 }
+
+/// The crate (or C++'s top-level namespace) a symbol's name is in.
+#[test]
+fn crates_of_names() {
+    use hexcavator_size::sources::crate_of;
+    let c = |n: &str| crate_of(n);
+    assert_eq!(c("core::fmt::write"), Some("core".into()));
+    assert_eq!(
+        c("std::rt::lang_start_internal::h0123456789abcdef"),
+        Some("std".into())
+    );
+    // An impl: its type's crate; a generic's or a primitive's: its trait's.
+    assert_eq!(
+        c("<alloc::vec::Vec<T> as core::ops::drop::Drop>::drop"),
+        Some("alloc".into())
+    );
+    assert_eq!(c("<&T as core::fmt::Debug>::fmt"), Some("core".into()));
+    assert_eq!(
+        c("<corpus::Square<u8> as corpus::Shape>::area"),
+        Some("corpus".into())
+    );
+    assert_eq!(c("<[u8]>::len"), Some("[global]".into()));
+    // C++: the top-level namespace, the anonymous one, or none.
+    assert_eq!(
+        c("std::vector<int, std::allocator<int> >::push_back(int const&)"),
+        Some("std".into())
+    );
+    assert_eq!(
+        c("llvm::DenseMap<int, int>::grow(unsigned int)"),
+        Some("llvm".into())
+    );
+    assert_eq!(
+        c("(anonymous namespace)::Helper::run()"),
+        Some("(anonymous namespace)".into())
+    );
+    assert_eq!(c("main"), Some("[global]".into()));
+    assert_eq!(c("take(std::string)"), Some("[global]".into()));
+    // Not a symbol's name.
+    assert_eq!(c("[section .rodata]"), None);
+    assert_eq!(c(""), None);
+}

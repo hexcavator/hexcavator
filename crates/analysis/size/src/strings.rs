@@ -100,6 +100,20 @@ pub fn build_paths(image: &hexcavator_image::Image<'_>) -> Vec<PathRoot> {
     let mut found: FxHashMap<String, u64> = FxHashMap::default();
     for (_, bytes) in read_only(image) {
         for p in source_paths(bytes) {
+            // (Rust's standard library's, which rustc built with its paths
+            // mapped already, to /rustc/<commit> and /cargo/registry: not
+            // the build's own.)
+            if [
+                &b"/rustc/"[..],
+                b"\\rustc\\",
+                b"/cargo/registry/",
+                b"\\cargo\\registry\\",
+            ]
+            .iter()
+            .any(|p0| p.starts_with(p0))
+            {
+                continue;
+            }
             *found
                 .entry(String::from_utf8_lossy(p).into_owned())
                 .or_default() += 1;

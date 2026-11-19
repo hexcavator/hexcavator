@@ -201,7 +201,10 @@ impl Loaded {
         if let Some(m) = self.maps.borrow().get(list) {
             return Ok(Rc::clone(m));
         }
-        let m = Rc::new(self.build_maps(list)?);
+        // (Crates are full symbols, relabeled.)
+        let mut built = self.build_maps(&hexcavator_size::sources::built_as(list))?;
+        hexcavator_size::sources::label_crates(&mut built, list);
+        let m = Rc::new(built);
         self.maps.borrow_mut().insert(list.to_vec(), Rc::clone(&m));
         Ok(m)
     }

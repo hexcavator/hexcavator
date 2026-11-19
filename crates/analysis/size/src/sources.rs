@@ -53,6 +53,10 @@ pub enum Source {
     /// The architecture of each image (of a universal Mach-O file, one
     /// per slice).
     Archs,
+    /// Rust crates: each symbol by the crate its name is in (C++'s by
+    /// their top-level namespace); built as `fullsymbols`, relabeled
+    /// ([`label_crates`]).
+    Crates,
 }
 
 impl Source {
@@ -70,6 +74,7 @@ impl Source {
         Source::Inlines,
         Source::SourceFiles,
         Source::Archs,
+        Source::Crates,
     ];
 
     pub fn name(self) -> &'static str {
@@ -87,6 +92,7 @@ impl Source {
             Source::Archs => "archs",
             Source::Inlines => "inlines",
             Source::SourceFiles => "sourcefiles",
+            Source::Crates => "crates",
         }
     }
 
@@ -109,6 +115,9 @@ impl Source {
             Source::SourceFiles => {
                 "source files: code by the file its line tables name (PDB or DWARF)"
             }
+            Source::Crates => {
+                "Rust crates: symbols by the crate their names are in (C++: top-level namespaces)"
+            }
         }
     }
 
@@ -128,6 +137,7 @@ impl Source {
             "archs" => Source::Archs,
             "inlines" => Source::Inlines,
             "sourcefiles" | "sources" => Source::SourceFiles,
+            "crates" | "namespaces" => Source::Crates,
             _ => return None,
         })
     }
@@ -148,12 +158,119 @@ impl Source {
                 | Source::Symbols
                 | Source::RawSymbols
                 | Source::FullSymbols
+                | Source::Crates
                 | Source::CompileUnits
                 | Source::ArMembers
                 | Source::Libraries
                 | Source::SourceFiles
         )
     }
+}
+
+/// The sources to build for `sources`: `crates` as `fullsymbols` (see
+/// [`label_crates`]).
+pub fn built_as(sources: &[Source]) -> Vec<Source> {
+    sources
+        .iter()
+        .map(|&s| {
+            if s == Source::Crates {
+                Source::FullSymbols
+            } else {
+                s
+            }
+        })
+        .collect()
+}
+
+/// Maps built for [`built_as`]`(sources)`, with each `crates` source's map
+/// (built as `fullsymbols`) relabeled by [`crate_of`] its symbols' names.
+pub fn label_crates(maps: &mut Maps, sources: &[Source]) {
+    for (i, &want) in sources.iter().enumerate() {
+        if want != Source::Crates {
+            continue;
+        }
+        let Some((source, map)) = maps.sources.get_mut(i) else {
+            continue;
+        };
+        *source = Source::Crates;
+        let mut to: std::collections::HashMap<Label, Label> = std::collections::HashMap::new();
+        let labels = &mut maps.labels;
+        let mut relabel = |l: Label| -> Label {
+            if let Some(&t) = to.get(&l) {
+                return t;
+            }
+            let t = match crate_of(labels.name(l)) {
+                Some(c) => labels.intern(&c),
+                None => l,
+            };
+            to.insert(l, t);
+            t
+        };
+        map.vm.relabel(&mut relabel);
+        map.file.relabel(&mut relabel);
+    }
+}
+
+/// The crate a (demangled) symbol's name is in: a Rust path's first
+/// component (`core::fmt::write`: `core`), of an impl's type
+/// (`<alloc::vec::Vec<T> as core::ops::Drop>::drop`: `alloc`) or, its type
+/// a generic or a primitive's, of its trait (`<&T as core::fmt::Debug>::fmt`:
+/// `core`); a C++ name's top-level namespace (`std::vector<int>::size()`:
+/// `std`), or `[global]` for one in none. `None` for what isn't a symbol's
+/// name (a label in brackets: `[section .rodata]`).
+pub fn crate_of(name: &str) -> Option<String> {
+    if name.starts_with('[') || name.is_empty() {
+        return None;
+    }
+    let first = |path: &str| -> Option<String> {
+        let path = path
+            .trim_start_matches(['&', '*', ' ', '(', '['])
+            .trim_start_matches("mut ")
+            .trim_start_matches("const ");
+        let path = path.trim_start_matches(['&', '*', ' ']);
+        let end = path.find("::")?;
+        let head = &path[..end];
+        // (A generic's parameters, a lifetime: not a path's crate.)
+        (!head.is_empty() && !head.contains(['<', ' ', '\'', ','])).then(|| head.to_string())
+    };
+    if let Some(inner) = name.strip_prefix('<') {
+        // `<Type as Trait>::f`, or `<Type>::f`: the type's crate, else the
+        // trait's.
+        let mut depth = 0usize;
+        let mut split = None;
+        let mut close = None;
+        for (i, c) in inner.char_indices() {
+            match c {
+                '<' => depth += 1,
+                '>' if depth == 0 => {
+                    close = Some(i);
+                    break;
+                }
+                '>' => depth -= 1,
+                ' ' if depth == 0 && inner[i..].starts_with(" as ") && split.is_none() => {
+                    split = Some(i);
+                }
+                _ => {}
+            }
+        }
+        let close = close.unwrap_or(inner.len());
+        let ty = &inner[..split.unwrap_or(close)];
+        if let Some(c) = first(ty) {
+            return Some(c);
+        }
+        if let Some(sp) = split
+            && let Some(c) = first(&inner[sp + 4..close])
+        {
+            return Some(c);
+        }
+        return Some("[global]".to_string());
+    }
+    if name.starts_with("(anonymous namespace)::") || name.starts_with("`anonymous namespace'::") {
+        return Some("(anonymous namespace)".to_string());
+    }
+    // (Before the parameters: `f(std::string)` is global.)
+    let head = name.split('(').next().unwrap_or(name);
+    Some(first(head).unwrap_or_else(|| "[global]".to_string()))
 }
 
 /// Labels of the base map for what isn't a section.
@@ -481,7 +598,7 @@ pub fn maps(image: &Image<'_>, inputs: Inputs<'_>, sources: &[Source]) -> Maps {
                 }
                 fill(&mut labels, &mut map, &base);
             }
-            Source::Symbols | Source::RawSymbols | Source::FullSymbols => {
+            Source::Symbols | Source::RawSymbols | Source::FullSymbols | Source::Crates => {
                 pe_header_symbols(pe, &mut labels, &mut map, &base);
                 if let Some(symbols) = inputs.symbols {
                     for s in symbols.iter().filter(|s| !s.folded) {

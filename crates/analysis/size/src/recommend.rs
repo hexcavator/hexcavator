@@ -595,6 +595,7 @@ pub fn inlining(
     inlinees: &[crate::inlining::Inlinee],
     toolchain: Toolchain,
     arch: hexcavator_core::Arch,
+    rust: bool,
 ) -> Option<Recommendation> {
     let worth: Vec<&crate::inlining::Inlinee> = inlinees
         .iter()
@@ -606,6 +607,7 @@ pub fn inlining(
     }
     let cost = crate::inlining::CallCost::of(arch)?;
     let mark = match toolchain {
+        _ if rust => "#[inline(never)] (or build with opt-level = \"s\")",
         Toolchain::Msvc => "__declspec(noinline) (or compile with /O1 or /Ob1)",
         _ => "__attribute__((noinline)) (or compile with -Os)",
     };
@@ -659,7 +661,13 @@ pub fn pointer_tables(
     symbols: &[(u64, u64, String)],
     toolchain: Toolchain,
 ) -> Vec<Recommendation> {
-    let tables = crate::relocations::pointer_tables(relocs, symbols, 4);
+    // (Not the image's own structures, `[PE Directory] Load Config`, nor
+    // the runtime's: `_tls_used`, `__guard_...`.)
+    let tables: Vec<crate::relocations::PointerTable> =
+        crate::relocations::pointer_tables(relocs, symbols, 4)
+            .into_iter()
+            .filter(|t| !t.name.starts_with(['[', '_']) || t.name.starts_with("_Z"))
+            .collect();
     let vtable =
         |n: &str| n.starts_with("vtable for ") || n.ends_with("`vftable'") || n.starts_with("_ZTV");
     let mut out = Vec::new();
@@ -736,6 +744,7 @@ pub fn strings(
     image: &hexcavator_image::Image<'_>,
     toolchain: Toolchain,
     named: &dyn Fn(u64) -> bool,
+    rust: bool,
 ) -> Vec<Recommendation> {
     let mut out = Vec::new();
     let roots = crate::strings::build_paths(image);
@@ -787,13 +796,19 @@ pub fn strings(
         out.push(Recommendation {
             kind: "duplicate-strings",
             advice: format!(
-                "{}: {} string literals have copies the linker didn't merge",
-                if toolchain == Toolchain::Msvc {
+                "{}: {} copies the linker didn't merge",
+                if rust {
+                    "build with LTO (Cargo: lto = true in the profile; their copies are of separate codegen units)"
+                } else if toolchain == Toolchain::Msvc {
                     "compile with /GF (string pooling: /O1 and /O2 do)"
                 } else {
                     "compile with -fmerge-constants (optimizing does: not -O0, or -fno-merge-constants)"
                 },
-                dups.len()
+                if dups.len() == 1 {
+                    "a string literal has".to_string()
+                } else {
+                    format!("{} string literals have", dups.len())
+                }
             ),
             saving,
             examples: dups
@@ -821,7 +836,12 @@ pub fn noexcept(
     x: &Xref,
     eh: &crate::exceptions::Exceptions,
     toolchain: Toolchain,
+    rust: bool,
 ) -> Option<Recommendation> {
+    // (Rust has no noexcept: unwinding's cleanups are panic-abort's.)
+    if rust {
+        return None;
+    }
     let needless: Vec<&crate::exceptions::FunctionEh> =
         eh.needless.iter().map(|&i| &eh.functions[i]).collect();
     let saving: u64 = needless.iter().map(|f| f.handlers).sum();
@@ -854,10 +874,110 @@ pub fn noexcept(
     })
 }
 
+/// Whether `symbols` are a Rust program's: what only Rust's runtime has
+/// among them (`core::panicking`, `rust_begin_unwind`,
+/// `rust_eh_personality`, `__rust_alloc`, `std::rt::lang_start`). (Not
+/// merely `std::`, which is C++'s too.)
+pub fn is_rust(symbols: &[crate::symbols::Symbol]) -> bool {
+    symbols.iter().any(|s| {
+        let n = s.name.as_str();
+        n.starts_with("core::panicking::")
+            || n.starts_with("std::rt::lang_start")
+            || n.starts_with("rust_begin_unwind")
+            || n.starts_with("rust_eh_personality")
+            || n.starts_with("__rust_")
+    })
+}
+
+/// `n` of `what` (`one` if 1): "a function", "3 functions".
+fn count(n: usize, one: &str, many: &str) -> String {
+    if n == 1 {
+        one.to_string()
+    } else {
+        format!("{n} {many}")
+    }
+}
+
+/// The recommendations a Rust program's panics and formatting make (if
+/// `symbols` are of one: some in `core`, `std`, or `alloc`):
+///
+/// - `panic-abort`: `-C panic=abort`, which needs no unwinding: the
+///   functions' cleanups' tables ([`crate::exceptions`]), and the
+///   `panic_unwind` crate (at least: not the landing pads' code).
+/// - `fmt-debug`: `-Zfmt-debug=none` (nightly), which makes `Debug`
+///   output nothing: the `<T as core::fmt::Debug>::fmt` implementations.
+pub fn rust(
+    symbols: &[crate::symbols::Symbol],
+    eh: &crate::exceptions::Exceptions,
+) -> Vec<Recommendation> {
+    use crate::sources::crate_of;
+    use crate::symbols::SymbolKind;
+    let functions: Vec<&crate::symbols::Symbol> = symbols
+        .iter()
+        .filter(|s| {
+            matches!(
+                s.kind,
+                SymbolKind::Function | SymbolKind::PrimaryBlock | SymbolKind::SeparatedBlock
+            )
+        })
+        .collect();
+    let crate_is = |s: &crate::symbols::Symbol, c: &str| crate_of(&s.name).as_deref() == Some(c);
+    if !is_rust(symbols) {
+        return Vec::new();
+    }
+    let mut out = Vec::new();
+    // Unwinding: the cleanups' tables, and panic_unwind.
+    let cleanups: Vec<&crate::exceptions::FunctionEh> =
+        eh.functions.iter().filter(|f| f.handlers > 0).collect();
+    let unwinder: u64 = functions
+        .iter()
+        .filter(|s| crate_is(s, "panic_unwind"))
+        .map(|s| s.size.vm)
+        .sum();
+    let saving = cleanups.iter().map(|f| f.handlers).sum::<u64>() + unwinder;
+    if saving >= MIN_SAVING && !cleanups.is_empty() {
+        out.push(Recommendation {
+            kind: "panic-abort",
+            advice: format!(
+                "build with -C panic=abort (Cargo: panic = \"abort\" in the profile), if nothing catches a panic: {} cleanups for unwinding (landing pads, and their tables), which aborting doesn't need{}",
+                count(cleanups.len(), "a function carries", "functions carry"),
+                if unwinder > 0 { ", nor the panic_unwind crate" } else { "" }
+            ),
+            saving,
+            examples: Vec::new(),
+        });
+    }
+    // Debug formatting.
+    let debug: Vec<&&crate::symbols::Symbol> = functions
+        .iter()
+        .filter(|s| s.name.contains(" as core::fmt::Debug>::fmt"))
+        .collect();
+    let saving: u64 = debug.iter().map(|s| s.size.vm).sum();
+    if saving >= MIN_SAVING {
+        let mut ex: Vec<(String, u64)> =
+            debug.iter().map(|s| (s.name.clone(), s.size.vm)).collect();
+        ex.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
+        ex.truncate(EXAMPLES);
+        out.push(Recommendation {
+            kind: "fmt-debug",
+            advice: format!(
+                "build with -Zfmt-debug=none (nightly; or shallow, which keeps types' names), if its Debug output isn't needed: {}",
+                count(debug.len(), "a Debug implementation", "Debug implementations")
+            ),
+            saving,
+            examples: ex,
+        });
+    }
+    out
+}
+
 /// The recommendation near-identical functions make
 /// ([`crate::fingerprint::near_identical`]): sharing each family's code,
 /// at most its saving (if at least [`MIN_SAVING`] in all).
-pub fn near_identical(families: &[crate::fingerprint::NearFamily]) -> Option<Recommendation> {
+pub fn near_identical(
+    families: &[crate::fingerprint::NearFamily],
+    rust: bool,
+) -> Option<Recommendation> {
     let saving: u64 = families.iter().map(|f| f.saving).sum();
     if saving < MIN_SAVING {
         return None;
@@ -866,8 +986,14 @@ pub fn near_identical(families: &[crate::fingerprint::NearFamily]) -> Option<Rec
     Some(Recommendation {
         kind: "near-identical",
         advice: format!(
-            "share the code of {} templates' instantiations (up to this much), which differ only in constants, the sizes of what they work on, or what they call: a non-template core each forwards to, given those as arguments ({versions} versions in all)",
-            families.len()
+            "share the code of {} {}' instantiations (up to this much), which differ only in constants, the sizes of what they work on, or what they call: {} each forwards to, given those as arguments ({versions} versions in all)",
+            families.len(),
+            if rust { "generics" } else { "templates" },
+            if rust {
+                "a non-generic inner function"
+            } else {
+                "a non-template core"
+            }
         ),
         saving,
         examples: families
@@ -1027,6 +1153,135 @@ fn wasm_custom(m: &hexcavator_wasm::Module<'_>, out: &mut Vec<Recommendation>) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn symbol(name: &str, size: u64) -> crate::symbols::Symbol {
+        crate::symbols::Symbol {
+            addr: 0,
+            size: crate::Size {
+                file: size,
+                vm: size,
+            },
+            kind: crate::symbols::SymbolKind::Function,
+            folded: false,
+            name: name.into(),
+            compiland: None,
+            file_static: false,
+        }
+    }
+
+    /// A Rust program's: panic=abort (its cleanups' tables, and
+    /// panic_unwind), and -Zfmt-debug (its Debug implementations).
+    #[test]
+    fn rust_programs() {
+        use crate::exceptions::{Exceptions, FunctionEh};
+        let syms = vec![
+            symbol("core::panicking::panic", 40),
+            symbol("std::rt::lang_start_internal", 300),
+            symbol("panic_unwind::imp::panic", 200),
+            symbol("<app::Point as core::fmt::Debug>::fmt", 120),
+            symbol("<app::Shape as core::fmt::Debug>::fmt", 90),
+            symbol("app::main", 500),
+        ];
+        assert!(is_rust(&syms));
+        // (C++'s std isn't Rust's.)
+        assert!(!is_rust(&[
+            symbol("std::vector<int>::size()", 9),
+            symbol("main", 4)
+        ]));
+        let eh = Exceptions {
+            functions: vec![
+                FunctionEh {
+                    node: 0,
+                    unwind: 40,
+                    handlers: 30,
+                },
+                FunctionEh {
+                    node: 1,
+                    unwind: 20,
+                    handlers: 0,
+                },
+            ],
+            needless: Vec::new(),
+        };
+        let r = rust(&syms, &eh);
+        let kinds: Vec<&str> = r.iter().map(|r| r.kind).collect();
+        assert_eq!(kinds, ["panic-abort", "fmt-debug"]);
+        assert_eq!(r[0].saving, 30 + 200);
+        assert!(
+            r[0].advice.contains("a function carries cleanups"),
+            "{}",
+            r[0].advice
+        );
+        assert_eq!(r[1].saving, 210);
+        assert_eq!(r[1].examples[0].0, "<app::Point as core::fmt::Debug>::fmt");
+        // Not Rust's: none.
+        assert!(rust(&[symbol("main", 400), symbol("llvm::foo()", 900)], &eh).is_empty());
+        // Nothing unwinding: no panic-abort.
+        let none = Exceptions::default();
+        assert_eq!(
+            rust(&syms, &none)
+                .iter()
+                .map(|r| r.kind)
+                .collect::<Vec<_>>(),
+            ["fmt-debug"]
+        );
+    }
+
+    /// Advice in Rust's terms: #[inline(never)], generics, LTO; and no
+    /// noexcept (which Rust hasn't).
+    #[test]
+    fn rust_terms() {
+        use crate::fingerprint::NearFamily;
+        let fam = NearFamily {
+            family: "Vec<>::grow".into(),
+            members: vec![1, 2],
+            versions: 2,
+            saving: 400,
+        };
+        let r = near_identical(std::slice::from_ref(&fam), true).unwrap();
+        assert!(
+            r.advice.contains("generics' instantiations")
+                && r.advice.contains("non-generic inner function"),
+            "{}",
+            r.advice
+        );
+        let c = near_identical(&[fam], false).unwrap();
+        assert!(
+            c.advice.contains("templates' instantiations")
+                && c.advice.contains("non-template core"),
+            "{}",
+            c.advice
+        );
+        let i = crate::inlining::Inlinee {
+            name: "f".into(),
+            copies: 10,
+            functions: 10,
+            parameters: Some(1),
+            inlined: 1000,
+            largest: 100,
+            out_of_line: true,
+            calls: 180,
+            body: 0,
+        };
+        let r = inlining(
+            std::slice::from_ref(&i),
+            Toolchain::Msvc,
+            hexcavator_core::Arch::X64,
+            true,
+        )
+        .unwrap();
+        assert!(
+            r.advice.starts_with("mark a function #[inline(never)]"),
+            "{}",
+            r.advice
+        );
+        let c = inlining(&[i], Toolchain::Msvc, hexcavator_core::Arch::X64, false).unwrap();
+        assert!(
+            c.advice.starts_with("mark a function __declspec(noinline)"),
+            "{}",
+            c.advice
+        );
+    }
 
     #[test]
     fn link_options() {

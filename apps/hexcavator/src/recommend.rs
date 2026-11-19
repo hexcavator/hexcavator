@@ -252,8 +252,6 @@ pub(crate) struct ExceptionSummary {
 /// The most functions an exception summary lists.
 const EH_FUNCTIONS: usize = 500;
 
-/// The recommendations for an image without debug information: what its
-/// structure shows ([`hexcavator_size::recommend::structural`]).
 /// What an image's strings recommend (`hexcavator_size::recommend::strings`),
 /// a string in `symbols` (data, by start) being in named data unless the
 /// symbol is a string literal's (a PDB's `` `string' ``).
@@ -261,6 +259,7 @@ fn string_recommendations(
     image: &hexcavator_image::Image<'_>,
     toolchain: Toolchain,
     symbols: &[(u64, u64, String)],
+    rust: bool,
 ) -> Vec<Recommendation> {
     let named = |at: u64| {
         hexcavator_size::relocations::containing(symbols, at).is_some_and(|i| {
@@ -268,9 +267,11 @@ fn string_recommendations(
             n != "`string'" && !n.starts_with(".L") && n != "(anonymous)"
         })
     };
-    hexcavator_size::recommend::strings(image, toolchain, &named)
+    hexcavator_size::recommend::strings(image, toolchain, &named, rust)
 }
 
+/// The recommendations for an image without debug information: what its
+/// structure shows ([`hexcavator_size::recommend::structural`]).
 pub(crate) fn structural_only(image: &hexcavator_image::Image<'_>) -> Recommended {
     let mut recs = hexcavator_size::recommend::structural(image);
     let toolchain = if image.macho().is_some() {
@@ -282,7 +283,7 @@ pub(crate) fn structural_only(image: &hexcavator_image::Image<'_>) -> Recommende
     };
     let own =
         crate::relocations::demangled(hexcavator_size::relocations::image_symbols(image), image);
-    recs.extend(string_recommendations(image, toolchain, &own));
+    recs.extend(string_recommendations(image, toolchain, &own, false));
     recs.sort_by_key(|r| std::cmp::Reverse(r.saving));
     Recommended {
         recs,
@@ -304,6 +305,8 @@ pub(crate) fn recommendations(
     syms: &[hexcavator_size::symbols::Symbol],
 ) -> Recommended {
     let toolchain = Toolchain::of(image, debug);
+    // (A Rust program's advice is in Rust's terms.)
+    let rust = hexcavator_size::recommend::is_rust(syms);
     let link = debug
         .linker_info()
         .ok()
@@ -337,6 +340,7 @@ pub(crate) fn recommendations(
             &weighed,
             toolchain,
             image.arch(),
+            rust,
         ));
     }
     // Pointer-heavy data, whose pointers each cost a relocation.
@@ -361,10 +365,14 @@ pub(crate) fn recommendations(
         &relocs, &data, toolchain,
     ));
     // The build's paths, and string literals with copies.
-    recs.extend(string_recommendations(image, toolchain, &data));
+    recs.extend(string_recommendations(image, toolchain, &data, rust));
     // Exception handling: cleanups nothing can throw through.
     let eh = hexcavator_size::exceptions::exceptions(image, x, syms);
-    recs.extend(hexcavator_size::recommend::noexcept(x, &eh, toolchain));
+    recs.extend(hexcavator_size::recommend::noexcept(
+        x, &eh, toolchain, rust,
+    ));
+    // A Rust program's panics and Debug formatting.
+    recs.extend(hexcavator_size::recommend::rust(syms, &eh));
     let needless: rustc_hash::FxHashSet<usize> = eh.needless.iter().copied().collect();
     let (unwind, handlers) = eh.totals();
     let exceptions = (unwind + handlers > 0).then(|| ExceptionSummary {
@@ -387,7 +395,7 @@ pub(crate) fn recommendations(
     });
     // Templates' instantiations alike but for constants, sizes, callees.
     let near = hexcavator_size::fingerprint::near_identical(image, model, x, &classes);
-    recs.extend(hexcavator_size::recommend::near_identical(&near));
+    recs.extend(hexcavator_size::recommend::near_identical(&near, rust));
     // And what the image's structure says, largest saving first with the
     // rest.
     recs.extend(hexcavator_size::recommend::structural(image));

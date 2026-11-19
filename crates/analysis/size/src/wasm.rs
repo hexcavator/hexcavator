@@ -101,14 +101,16 @@ pub fn maps_with_source_map(
             Source::Sections | Source::Segments => {
                 sections_into(&mut labels, &mut map, Some(&base));
             }
-            Source::Symbols | Source::RawSymbols | Source::FullSymbols => {
+            Source::Symbols | Source::RawSymbols | Source::FullSymbols | Source::Crates => {
                 let mut demangler = Demangler::new();
                 let mut show = |raw: &[u8]| -> String {
                     let raw = String::from_utf8_lossy(raw);
                     let mut buf = String::new();
                     let ok = match source {
                         Source::Symbols => demangler.demangle_short_into(&raw, &mut buf),
-                        Source::FullSymbols => demangler.demangle_into(&raw, &mut buf),
+                        Source::FullSymbols | Source::Crates => {
+                            demangler.demangle_into(&raw, &mut buf)
+                        }
                         _ => false,
                     };
                     if ok { buf } else { raw.into_owned() }
