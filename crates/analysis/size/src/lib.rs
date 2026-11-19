@@ -44,6 +44,7 @@ pub mod pe_symbols;
 pub mod range;
 pub mod rangemap;
 pub mod recommend;
+pub mod relocations;
 pub mod report;
 pub mod rollup;
 pub mod rsrc;

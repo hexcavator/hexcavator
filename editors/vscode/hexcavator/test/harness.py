@@ -398,6 +398,7 @@ def main():
     deps_checks(exe, shot)
     init_checks(exe, shot)
     resources_checks(exe, shot)
+    relocations_checks(exe, shot)
     diff_checks(exe, shot)
     print(f"ok: {outer} sections in the treemap; zoom, search, disassembly actions, sunburst, tree, diff, and findings ({rows} rows) render; disassembly: {modes}")
 
@@ -430,7 +431,7 @@ window.__answers = {json.dumps(pages or {})};
 <header id="header"></header><div id="toolbar"></div><div id="main"></div><pre id="posted"></pre>
 <script>{VSCODE_STUB}{answers}</script>
 <script>{read("loading.js")}</script>
-<script>{read(script)}</script>
+{"".join(f"<script>{read(s)}</script>" for s in ([script] if isinstance(script, str) else script))}
 <script>window.postMessage({json.dumps(message)}, "*");
 setTimeout(function () {{ {then} }}, 100);</script>
 </body></html>"""
@@ -798,6 +799,21 @@ def init_checks(exe, shot):
     assert int(got.group(3)) > 2000, f"{got.group(3)} rows"
     assert got.group(1) == "20000" and got.group(2) == "true", f"scrolled to {got.group(1)}, same element: {got.group(2)}"
     assert widget["name"] not in shown(dom), "the long tree closed too"
+
+
+def relocations_checks(exe, shot):
+    """The Relocations page: libptrs.so's (testdata/linkopts), its tables and
+    breakdowns as cards, sortable; and the page of an image with none."""
+    image = os.path.join(REPO, "testdata", "linkopts", "libptrs.so")
+    report = hexc(exe, "relocations", "-json", "-n", "500", image)
+    message = {"kind": "relocations", "file": image, "report": report}
+    dom = render(None, shot=shot("relocations"), html_page=types_page(message, script=["table.js", "relocations-view.js"]))
+    for want in ["Relocations", "Tables", ".rela.dyn", "By type", "R_X86_64_RELATIVE", "By section", ".data.rel.ro", "By what each patches", "color_names", "vtable for Shape", "Pointer tables"]:
+        assert want in dom, f"the Relocations page lacks {want!r}"
+    assert dom.count("<details") >= 6, "the Relocations page's cards"
+    none = hexc(exe, "relocations", "-json", os.path.join(REPO, "testdata", "linkopts", "funcs-plain"))
+    dom = render(None, html_page=types_page({"kind": "relocations", "file": "funcs-plain", "report": none}, script=["table.js", "relocations-view.js"]))
+    assert "No relocations" in dom, "the Relocations page of an image with none"
 
 
 def resources_checks(exe, shot):

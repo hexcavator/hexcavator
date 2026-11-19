@@ -1032,7 +1032,7 @@ function plainHtml(webview, context, title, script, images) {
 <div id="toolbar"></div>
 <div id="main"></div>
 <script nonce="${nonce}" src="${media("loading.js")}"></script>
-<script nonce="${nonce}" src="${media(script)}"></script>
+${[].concat(script).map((s) => `<script nonce="${nonce}" src="${media(s)}"></script>`).join("\n")}
 </body>
 </html>`;
 }
@@ -1321,6 +1321,44 @@ function openInit(context, file) {
   }, undefined, context.subscriptions);
 }
 
+/** Open Relocations pages, by file. */
+const relocationPanels = new Map();
+
+/**
+ * Opens (or shows) the Relocations page of the binary at `file`: what the
+ * loader patches when it loads it, by table, type, section, the data each
+ * patches and what each points to, and the tables of pointers offsets
+ * could replace (hexc relocations -json).
+ */
+function openRelocations(context, file) {
+  const existing = relocationPanels.get(file);
+  if (existing) {
+    existing.reveal();
+    return;
+  }
+  const name = path.basename(file);
+  // (Its tables are sortable: table.js before the page's own script.)
+  const panel = panelFor(context, "hexcRelocations", `Relocations: ${name}`, ["table.js", "relocations-view.js"]);
+  relocationPanels.set(file, panel);
+  panel.onDidDispose(() => relocationPanels.delete(file));
+  const load = async () => {
+    try {
+      const out = await paneRun(panel.webview, `Reading ${name}'s relocations…`, ["relocations", "-json", "-n", "500", file]);
+      panel.webview.postMessage({ kind: "relocations", file, report: JSON.parse(out) });
+    } catch (e) {
+      if (!e.cancelled) {
+        vscode.window.showErrorMessage(`hexc: ${e.message}`);
+      }
+      panel.webview.postMessage({ kind: "failed", message: e.message });
+    }
+  };
+  panel.webview.onDidReceiveMessage(async (m) => {
+    if (m && (m.command === "ready" || m.command === "refresh")) {
+      await load();
+    }
+  }, undefined, context.subscriptions);
+}
+
 /** Open Resources pages, by file. */
 const resourcePanels = new Map();
 
@@ -1496,6 +1534,7 @@ function activate(context) {
     openDeps: (file) => openDeps(context, file),
     openInit: (file) => openInit(context, file),
     openResources: (file) => openResources(context, file),
+    openRelocations: (file) => openRelocations(context, file),
     openDisassembly,
     openData,
     openTable,

@@ -24,6 +24,8 @@ rem                       sizes (total<T>) or callees (apply<F>), and some
 rem                       that differ (pick<T>).
 rem   inline              inline.cpp: a function inlined where calls would
 rem                       cost less (mix), and one where they wouldn't (get).
+rem   libptrs.so          ptrs.cpp: a table of string pointers and a vtable,
+rem                       their relocations RELA (not packed).
 rem (What's recorded is given to clang's cc1 as its driver would, so no
 rem path of this machine's is: the driver would record its own.)
 rem   macho-<link>        funcs.c for arm64 macOS (-O2 recorded), linked by
@@ -113,3 +115,7 @@ rem Near-identical functions: near, with DWARF, linked with --gc-sections.
 rem Inlining: inline, with DWARF.
 %CC% %SECTIONS% -fno-asynchronous-unwind-tables -fno-exceptions -c "%~dp0inline.cpp" -o inline.o || exit /b 1
 %LD% --gc-sections inline.o -o "%OUT%/inline" || exit /b 1
+
+rem Pointer tables: libptrs.so, with DWARF.
+%CC% %SECTIONS% -fPIC -fvisibility=hidden -fno-asynchronous-unwind-tables -fno-exceptions -fno-rtti -c "%~dp0ptrs.cpp" -o ptrs.o || exit /b 1
+"%LLVM_BIN%\ld.lld.exe" -shared --build-id=sha1 --hash-style=gnu -soname libptrs.so ptrs.o -o "%OUT%/libptrs.so" || exit /b 1

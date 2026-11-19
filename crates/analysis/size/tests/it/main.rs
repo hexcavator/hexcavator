@@ -4,6 +4,7 @@
 mod exports;
 mod findings;
 mod map;
+mod relocations;
 mod sizebench;
 mod sources;
 mod symbols;

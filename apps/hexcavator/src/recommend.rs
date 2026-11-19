@@ -303,6 +303,27 @@ pub(crate) fn recommendations(
             image.arch(),
         ));
     }
+    // Pointer-heavy data, whose pointers each cost a relocation.
+    let mut data: Vec<(u64, u64, String)> = syms
+        .iter()
+        .filter(|s| {
+            s.size.vm > 0 && !matches!(s.kind, hexcavator_size::symbols::SymbolKind::Function)
+        })
+        .map(|s| (s.addr, s.addr + s.size.vm, s.name.clone()))
+        .collect();
+    data.sort_by_key(|s| s.0);
+    // (The image's own symbols where the debug information has none.)
+    let data = hexcavator_size::relocations::merge_symbols(
+        hexcavator_size::relocations::merge_symbols(
+            data,
+            crate::relocations::debug_file_symbols(debug),
+        ),
+        crate::relocations::demangled(hexcavator_size::relocations::image_symbols(image), image),
+    );
+    let relocs = hexcavator_size::relocations::relocations(image);
+    recs.extend(hexcavator_size::recommend::pointer_tables(
+        &relocs, &data, toolchain,
+    ));
     // Templates' instantiations alike but for constants, sizes, callees.
     let near = hexcavator_size::fingerprint::near_identical(image, model, x, &classes);
     recs.extend(hexcavator_size::recommend::near_identical(&near));

@@ -567,6 +567,8 @@ class Sidebar {
         return h.commandLine(exe, ["checksec", "-audit", e.file]);
       case "resources":
         return h.commandLine(exe, ["resources", e.file]);
+      case "relocations":
+        return h.commandLine(exe, ["relocations", e.file]);
       case "sourcesPage":
         return h.commandLine(exe, ["size", "-d", "sourcefiles,symbols", "-n", "0", e.file]);
       case "typesPage":
@@ -714,6 +716,8 @@ async function runTool(sidebar, provider, node) {
       return sidebar.deps.openInit(entry.file);
     case "resources":
       return sidebar.deps.openResources(entry.file);
+    case "relocations":
+      return sidebar.deps.openRelocations(entry.file);
     case "sources":
       return sidebar.deps.openSources(entry.file);
     case "pick-base": {

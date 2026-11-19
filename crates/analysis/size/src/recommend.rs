@@ -643,6 +643,87 @@ pub fn inlining(
     })
 }
 
+/// The recommendations pointer-heavy data makes
+/// ([`crate::relocations::pointer_tables`], of `symbols`: (start, end,
+/// name), by start): storing 32-bit offsets instead of pointers, each of
+/// which costs a relocation (and, beyond 32 bits, its width), in tables of
+/// at least 4 of them:
+///
+/// - `relative-vtables`: vtables (clang's relative vtables,
+///   `-fexperimental-relative-c++-abi-vtables`, which change the C++ ABI;
+///   not MSVC's).
+/// - `pointer-tables`: other data (offsets from the table, or into one
+///   blob of strings).
+pub fn pointer_tables(
+    relocs: &crate::relocations::Relocations,
+    symbols: &[(u64, u64, String)],
+    toolchain: Toolchain,
+) -> Vec<Recommendation> {
+    let tables = crate::relocations::pointer_tables(relocs, symbols, 4);
+    let vtable =
+        |n: &str| n.starts_with("vtable for ") || n.ends_with("`vftable'") || n.starts_with("_ZTV");
+    let mut out = Vec::new();
+    for (kind, of_vtables) in [("relative-vtables", true), ("pointer-tables", false)] {
+        if of_vtables && toolchain == Toolchain::Msvc {
+            continue;
+        }
+        let these: Vec<&crate::relocations::PointerTable> = tables
+            .iter()
+            .filter(|t| vtable(&t.name) == of_vtables)
+            .collect();
+        let cost = |t: &crate::relocations::PointerTable| {
+            (t.relocations + t.narrower as f64).round() as u64
+        };
+        let saving: u64 = these.iter().map(|t| cost(t)).sum();
+        if saving < MIN_SAVING {
+            continue;
+        }
+        let pointers: u64 = these.iter().map(|t| t.pointers).sum();
+        let per = relocs
+            .list
+            .iter()
+            .find(|r| r.relative)
+            .map_or(0.0, |r| relocs.share(r));
+        let why = format!(
+            "{pointers} pointers, each a relocation ({per:.1} bytes here) and a page the loader writes{}",
+            if relocs.word > 4 {
+                ", and 4 bytes wider than an offset"
+            } else {
+                ""
+            }
+        );
+        out.push(Recommendation {
+            kind,
+            advice: if of_vtables {
+                format!(
+                    "compile with -fexperimental-relative-c++-abi-vtables (clang; it changes the C++ ABI, so everything sharing these classes must): {} {why}",
+                    if these.len() == 1 {
+                        "a vtable holds".to_string()
+                    } else {
+                        format!("{} vtables hold", these.len())
+                    }
+                )
+            } else {
+                format!(
+                    "store 32-bit offsets instead of pointers (from the table, or into one blob of its strings): {} {why}",
+                    if these.len() == 1 {
+                        "a table of data holds".to_string()
+                    } else {
+                        format!("{} tables of data hold", these.len())
+                    }
+                )
+            },
+            saving,
+            examples: these
+                .iter()
+                .take(EXAMPLES)
+                .map(|t| (format!("{} ({} pointers)", t.name, t.pointers), cost(t)))
+                .collect(),
+        });
+    }
+    out
+}
+
 /// The recommendation near-identical functions make
 /// ([`crate::fingerprint::near_identical`]): sharing each family's code,
 /// at most its saving (if at least [`MIN_SAVING`] in all).

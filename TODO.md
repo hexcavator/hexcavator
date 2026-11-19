@@ -5,10 +5,6 @@ leave this list when they ship.
 
 ## Size analysis
 
-- **Relocations.** A relocations view (each relocation, by type, by the
-  symbol it's in and the one it refers to), and a recommendation for
-  pointer-heavy data (vtables, tables of string pointers) that relative
-  vtables or offset tables would make smaller.
 - **Build paths and strings.** Absolute paths from `__FILE__` and
   `assert` (`-fmacro-prefix-map`), and string literals duplicated where
   the linker couldn't merge them.
