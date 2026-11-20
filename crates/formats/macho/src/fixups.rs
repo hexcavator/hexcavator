@@ -727,8 +727,9 @@ impl<'d> MachO<'d> {
         Some(Self::base_address(&self.segments()).wrapping_add(off))
     }
 
-    /// The exported symbols, from the exports trie.
-    pub fn exports(&self) -> Vec<Export> {
+    /// The exports trie's bytes (`LC_DYLD_EXPORTS_TRIE`'s, or else
+    /// `LC_DYLD_INFO`'s); empty if it has none.
+    pub fn export_trie(&self) -> &'d [u8] {
         let mut trie: &[u8] = &[];
         for lc in self.load_commands() {
             match lc.cmd {
@@ -745,6 +746,12 @@ impl<'d> MachO<'d> {
                 _ => {}
             }
         }
+        trie
+    }
+
+    /// The exported symbols, from the exports trie.
+    pub fn exports(&self) -> Vec<Export> {
+        let trie = self.export_trie();
         let base = Self::base_address(&self.segments());
         let mut out = Vec::new();
         let mut seen = alloc::collections::BTreeSet::new();

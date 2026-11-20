@@ -402,7 +402,7 @@ pub fn maps(data: &[u8], file_name: &str, sources: &[Source]) -> Result<Maps> {
                 }
                 fill(&mut b.labels, &mut map, &b.base);
             }
-            Source::Symbols | Source::RawSymbols | Source::FullSymbols => {
+            Source::Symbols | Source::RawSymbols | Source::FullSymbols | Source::Crates => {
                 for (u, addrs) in units.iter().zip(&addrs) {
                     if let Some(i) = u.import {
                         let name = format!(

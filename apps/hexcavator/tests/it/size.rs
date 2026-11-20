@@ -1779,3 +1779,40 @@ fn stripped() {
     let t: serde_json::Value = serde_json::from_str(&stdout).unwrap();
     assert_eq!(t["file"].as_i64().unwrap(), sim.1, "{t}");
 }
+
+/// -d crates: each symbol by its Rust crate (testdata/elf/rust-v0.o: core,
+/// the corpus's own, alloc, std), or C++'s top-level namespace.
+#[test]
+fn crates_source() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../testdata");
+    let run = |args: &[&str]| {
+        let out = std::process::Command::new(env!("CARGO_BIN_EXE_hexc"))
+            .arg("size")
+            .args(args)
+            .output()
+            .unwrap();
+        assert!(
+            out.status.success(),
+            "{}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+        String::from_utf8(out.stdout).unwrap()
+    };
+    let rust = root.join("elf/rust-v0.o");
+    let out = run(&["-d", "crates", "-n", "0", rust.to_str().unwrap()]);
+    for c in ["core", "corpus", "alloc"] {
+        assert!(
+            out.lines()
+                .any(|l| l.trim_end().ends_with(&format!("  {c}"))),
+            "{c}: {out}"
+        );
+    }
+    // No symbol's full name is left as a label.
+    assert!(!out.contains("::"), "{out}");
+    // A C++ image's (with its PDB): its namespaces, and the global one.
+    let exe = root.join("xref/xref-x64.exe");
+    let out = run(&["-d", "crates", "-n", "0", exe.to_str().unwrap()]);
+    assert!(out.contains("[global]") && out.contains("  std"), "{out}");
+    // Listed, and named so by -list-sources.
+    assert!(run(&["-list-sources"]).contains("crates"));
+}

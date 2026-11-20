@@ -454,6 +454,63 @@ mod unix_tests {
         );
     }
 
+    /// lld's other maps' columns: before the LMA was (`Address Size Align`,
+    /// as lld/ELF/MapFile.cpp's comment shows it), and wasm-ld's (`Addr
+    /// Off Size`; code, at no address, is `-`).
+    #[test]
+    fn lld_columns() {
+        let old = "\
+Address  Size     Align Out     In      Symbol
+00201000 00000015     4 .text
+00201000 0000000e     4         test.o:(.text)
+0020100e 00000000     0                 local
+00201005 00000000     0                 f(int)
+";
+        let m = parse(old).unwrap();
+        assert_eq!(m.linker, Linker::Lld);
+        assert_eq!(
+            m.sections,
+            [OutputSection {
+                name: ".text".into(),
+                addr: 0x201000,
+                size: 0x15
+            }]
+        );
+        assert_eq!((m.pieces[0].addr, m.pieces[0].size), (0x201000, 0xe));
+        assert_eq!(m.files, ["test.o"]);
+        assert_eq!(m.symbols.len(), 2);
+        // (Not a continued literal: that would drop the lines' indents.)
+        let wasm = [
+            "    Addr      Off   Size    Out     In      Symbol",
+            "       - 00000015     10    .text",
+            "       - 0000000e     10            test.o:(.text)",
+            "     400 00000040     20    .data",
+            "     400 00000040     20            test.o:(.data.table)",
+            "     400 00000000      8                    table",
+        ]
+        .join("\n");
+        let wasm = wasm.as_str();
+        let m = parse(wasm).unwrap();
+        // (Code, at no address, isn't placed; data is, by its address.)
+        assert_eq!(
+            m.sections,
+            [OutputSection {
+                name: ".data".into(),
+                addr: 0x400,
+                size: 0x20
+            }]
+        );
+        assert_eq!(
+            (
+                m.pieces[0].name.as_str(),
+                m.pieces[0].addr,
+                m.pieces[0].size
+            ),
+            (".data.table", 0x400, 0x20)
+        );
+        assert_eq!(m.symbols[0].name, "table");
+    }
+
     #[test]
     fn gnu() {
         let text = "\

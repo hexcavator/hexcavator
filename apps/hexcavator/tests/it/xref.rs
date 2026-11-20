@@ -523,8 +523,10 @@ fn elf_images() {
     assert!(out.contains("exported as compute"), "{out}");
 }
 
-/// Mach-O: an executable (its DWARF given) whose entry point and exports
-/// (an executable's external symbols) are its roots.
+/// Mach-O: an executable (its DWARF given) whose entry point is its root,
+/// and not its exports (an executable's external symbols), which
+/// -dead_strip drops unless they're reached (or it's linked with
+/// -export_dynamic). (A dylib's exports are roots.)
 #[test]
 fn macho_images() {
     let macho = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../testdata/macho");
@@ -532,7 +534,11 @@ fn macho_images() {
     let image = macho.join("program-arm64");
     let (ok, out, err) = hexc(&["-pdb", dwarf.to_str().unwrap()], &image);
     assert!(ok, "{err}");
-    assert!(out.contains("0 unreachable"), "{out}");
+    // second_sum, exported but uncalled; and the program's stand-in for
+    // dyld's __tlv_bootstrap, which its thread-local variable's descriptor
+    // names in a way not seen here (a real program imports it).
+    assert!(out.contains("2 unreachable"), "{out}");
+    assert!(out.contains("second_sum(int)"), "{out}");
     let (ok, out, _) = hexc(&["-pdb", dwarf.to_str().unwrap(), "-why", "start"], &image);
     assert!(ok);
     assert!(out.contains("the entry point"), "{out}");
@@ -541,7 +547,7 @@ fn macho_images() {
         &image,
     );
     assert!(ok);
-    assert!(out.contains("exported as _compute"), "{out}");
+    assert!(out.contains("start()  (the entry point)"), "{out}");
 }
 
 /// ELF images get advice in GCC's and Clang's terms, judged from the image
@@ -680,10 +686,12 @@ fn recommend_judges_the_link() {
         // (Nothing unreferenced to collect. Folded across compile units:
         // the DWARF of both at one address; and work<N>, with an LSDA,
         // which lld's ICF never folds.)
-        ("eh-icf", false, true, &[]),
+        // (work<1> and work<2>, which ICF doesn't fold, differ only in a
+        // constant: near-identical.)
+        ("eh-icf", false, true, &["near-identical"]),
         // (Without ICF, only plain<N>: work<N> has an LSDA, and use<N>
         // calls different work<N>.)
-        ("eh", false, false, &["icf"]),
+        ("eh", false, false, &["icf", "near-identical"]),
         // (Only data folded: nothing says the link folded functions,
         // and there are none to fold.)
         ("dup-icf", false, false, &[]),
@@ -704,7 +712,12 @@ fn recommend_judges_the_link() {
         .unwrap()["examples"];
     assert_eq!(icf[0]["name"], "add_a(int, int) (3 copies)", "{v}");
     let v = recommend("eh");
-    let icf = &v["recommendations"][0];
+    let icf = v["recommendations"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|r| r["kind"] == "icf")
+        .unwrap();
     assert_eq!(icf["examples"].as_array().unwrap().len(), 1, "{v}");
     assert!(
         icf["examples"][0]["name"]
@@ -738,4 +751,482 @@ fn recommend_judges_the_link() {
             "{v}"
         );
     }
+    // Its options recorded (in DW_AT_producer), with -ffunction-sections
+    // and -fdata-sections: the advice needn't say to compile so.
+    let v = recommend("funcs-rec");
+    assert_eq!(kinds(&v), ["gc", "icf"], "{v}");
+    let advice: Vec<&str> = v["recommendations"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|r| r["advice"].as_str().unwrap())
+        .collect();
+    assert!(advice.iter().all(|a| !a.contains("compiling with")), "{v}");
+    // Recorded (in .GCC.command.line) without them: the link can't be
+    // judged, nothing is foldable, and what nothing reaches is kept with
+    // funcs.c's sections, its functions' and its data's.
+    let v = recommend("funcs-rec-nosections-gc-icf");
+    assert!(v["judged"].is_null() && v["debug"] == true, "{v}");
+    assert_eq!(kinds(&v), ["data-sections", "function-sections"], "{v}");
+    for r in v["recommendations"].as_array().unwrap() {
+        let a = r["advice"].as_str().unwrap();
+        assert!(
+            a.starts_with("compile funcs.c with -f")
+                && a.contains("(and link with -Wl,--gc-sections)"),
+            "{v}"
+        );
+    }
+    let out = Command::new(env!("CARGO_BIN_EXE_hexc"))
+        .arg("recommend")
+        .arg(linkopts("funcs-rec-nosections-gc-icf"))
+        .output()
+        .unwrap();
+    let text = String::from_utf8(out.stdout).unwrap();
+    assert!(
+        text.starts_with("The link's options aren't recorded, and its objects were compiled without -ffunction-sections"),
+        "{text}"
+    );
+}
+
+/// What a Mach-O link did, judged from the image (testdata/linkopts's
+/// macho-*: ld64.lld's links of one object, and two marked as Apple's
+/// ld's), and the advice in Apple's terms.
+#[test]
+fn recommend_judges_a_macho_link() {
+    let run = |args: &[&str], name: &str| {
+        let out = Command::new(env!("CARGO_BIN_EXE_hexc"))
+            .arg("recommend")
+            .args(args)
+            .arg(
+                Path::new(env!("CARGO_MANIFEST_DIR"))
+                    .join("../../testdata/linkopts")
+                    .join(name),
+            )
+            .output()
+            .unwrap();
+        assert!(
+            out.status.success(),
+            "{name}: {}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+        String::from_utf8(out.stdout).unwrap()
+    };
+    let recommend =
+        |name: &str| -> serde_json::Value { serde_json::from_str(&run(&["-json"], name)).unwrap() };
+    let advice = |v: &serde_json::Value, kind: &str| -> Option<String> {
+        v["recommendations"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|r| r["kind"] == kind)
+            .map(|r| r["advice"].as_str().unwrap().to_string())
+    };
+    // (name, collected, folded, gc recommended, ICF recommended)
+    let cases = [
+        ("macho-plain", false, false, true, true),
+        // (ld64.lld's ICF keeps the folded functions' symbols, at the
+        // kept one's address.)
+        ("macho-icf", false, true, true, false),
+        // (-dead_strip drops even an executable's exports: their DWARF is
+        // in the debug map's object, their symbols aren't in the image.)
+        ("macho-dead", true, false, false, true),
+        ("macho-dead-icf", true, true, false, false),
+        // Apple's ld folds unless given -no_deduplicate, which clang
+        // gives it at -O0 and -O1: -O2 recorded, it's taken to have.
+        ("macho-ld", false, true, true, false),
+        ("macho-ld-O1", false, false, true, true),
+    ];
+    for (name, collected, folded, gc, icf) in cases {
+        let v = recommend(name);
+        assert_eq!(v["toolchain"], "apple", "{name}");
+        assert_eq!(v["judged"]["optRef"], collected, "{name}: {v}");
+        assert_eq!(v["judged"]["optIcf"], folded, "{name}: {v}");
+        assert_eq!(advice(&v, "gc").is_some(), gc, "{name}: {v}");
+        assert_eq!(advice(&v, "icf").is_some(), icf, "{name}: {v}");
+    }
+    let v = recommend("macho-plain");
+    assert!(
+        advice(&v, "gc")
+            .unwrap()
+            .starts_with("link with -Wl,-dead_strip"),
+        "{v}"
+    );
+    assert!(
+        advice(&v, "icf").unwrap().starts_with(
+            "link with -Wl,--icf=all (ld64.lld; Apple's ld folds them unless given -no_deduplicate)"
+        ),
+        "{v}"
+    );
+    let v = recommend("macho-ld-O1");
+    assert!(
+        advice(&v, "icf")
+            .unwrap()
+            .starts_with("link without -no_deduplicate"),
+        "{v}"
+    );
+    let text = run(&[], "macho-ld");
+    assert!(
+        text.lines()
+            .nth(1)
+            .unwrap()
+            .starts_with("(Apple's ld linked it:"),
+        "{text}"
+    );
+    assert!(!run(&[], "macho-plain").contains("Apple's ld linked it"));
+}
+
+/// What an ELF shared object's exports cost, and what hiding them would
+/// save (testdata/linkopts's libexp*.so, without debug information, and
+/// exp-main, which imports exp_used).
+#[test]
+fn recommend_exports() {
+    let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../testdata/linkopts");
+    let recommend = |args: &[&str], name: &str| -> serde_json::Value {
+        let out = Command::new(env!("CARGO_BIN_EXE_hexc"))
+            .arg("recommend")
+            .arg("-json")
+            .args(args)
+            .arg(dir.join(name))
+            .output()
+            .unwrap();
+        assert!(
+            out.status.success(),
+            "{name}: {}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+        serde_json::from_slice(&out.stdout).unwrap()
+    };
+    let rec = |v: &serde_json::Value, kind: &str| -> Option<serde_json::Value> {
+        v["recommendations"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|r| r["kind"] == kind)
+            .cloned()
+    };
+    let names = |r: &serde_json::Value| -> Vec<String> {
+        let mut v: Vec<String> = r["examples"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|e| e["name"].as_str().unwrap().to_string())
+            .collect();
+        v.sort();
+        v
+    };
+    // Template instantiations (Box<T>::get, ::twice), exported, and called
+    // through the PLT; and its calls to its own exports.
+    let v = recommend(&[], "libexp.so");
+    assert_eq!(v["debug"], false);
+    assert!(v["importers"].is_null());
+    let vague = rec(&v, "vague-linkage").unwrap();
+    assert!(
+        vague["advice"]
+            .as_str()
+            .unwrap()
+            .contains("it exports 8 template instantiations and inline functions"),
+        "{v}"
+    );
+    assert!(
+        names(&vague).iter().all(|n| n.starts_with("Box<")),
+        "{vague}"
+    );
+    let calls = rec(&v, "bsymbolic").unwrap();
+    assert_eq!(
+        names(&calls),
+        ["exp_helper(int)", "exp_internal_a(int)", "exp_used(int)"],
+        "{calls}"
+    );
+    // (Without importers, which exports are its API isn't known.)
+    assert!(rec(&v, "visibility").is_none(), "{v}");
+    // Its importer imports exp_used: the rest of its own exports aren't.
+    for importers in [&["-importers", "exp-main"][..], &["-importers", "."]] {
+        let args: Vec<String> = importers
+            .iter()
+            .map(|a| {
+                if *a == "-importers" {
+                    a.to_string()
+                } else {
+                    dir.join(a).to_string_lossy().into_owned()
+                }
+            })
+            .collect();
+        let args: Vec<&str> = args.iter().map(String::as_str).collect();
+        let v = recommend(&args, "libexp.so");
+        // (Of the directory's files, only exp-main loads it.)
+        assert_eq!(v["importers"], 1, "{v}");
+        let hide = rec(&v, "visibility").unwrap();
+        assert_eq!(
+            names(&hide),
+            [
+                "exp_helper(int)",
+                "exp_internal_a(int)",
+                "exp_internal_b(int)",
+                "exp_unused(int)"
+            ],
+            "{hide}"
+        );
+        assert!(
+            hide["advice"]
+                .as_str()
+                .unwrap()
+                .ends_with("4 exported symbols aren't imported by the importer given"),
+            "{hide}"
+        );
+    }
+    // An importer that doesn't load it: none of its exports are imported.
+    let funcs = dir.join("funcs-plain").to_string_lossy().into_owned();
+    let v = recommend(&["-importers", &funcs], "libexp.so");
+    assert_eq!(v["importers"], 0, "{v}");
+    assert!(
+        rec(&v, "visibility").unwrap()["advice"]
+            .as_str()
+            .unwrap()
+            .contains("5 exported symbols aren't imported by any importer"),
+        "{v}"
+    );
+    // -Bsymbolic-functions: no calls through the PLT; its template
+    // instantiations cost only their entries.
+    let v = recommend(&[], "libexp-bsymbolic.so");
+    assert!(rec(&v, "bsymbolic").is_none(), "{v}");
+    assert!(
+        rec(&v, "vague-linkage").unwrap()["saving"].as_u64()
+            < rec(&recommend(&[], "libexp.so"), "vague-linkage").unwrap()["saving"].as_u64(),
+        "{v}"
+    );
+    // -fvisibility=hidden: only its API is exported, two of which call
+    // each other through the PLT.
+    let v = recommend(&[], "libexp-hidden.so");
+    assert!(rec(&v, "vague-linkage").is_none(), "{v}");
+    assert_eq!(
+        names(&rec(&v, "bsymbolic").unwrap()),
+        ["exp_helper(int)", "exp_used(int)"],
+        "{v}"
+    );
+}
+
+/// Near-identical functions: templates' instantiations alike but for the
+/// sizes of what they work on, or what they call (testdata/linkopts/near:
+/// total<T>, apply<F>), and not those that differ (pick<T>).
+#[test]
+fn recommend_near_identical() {
+    let out = Command::new(env!("CARGO_BIN_EXE_hexc"))
+        .args(["recommend", "-json"])
+        .arg(Path::new(env!("CARGO_MANIFEST_DIR")).join("../../testdata/linkopts/near"))
+        .output()
+        .unwrap();
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let v: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
+    let near = v["recommendations"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|r| r["kind"] == "near-identical")
+        .unwrap_or_else(|| panic!("{v}"));
+    let examples: Vec<&str> = near["examples"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|e| e["name"].as_str().unwrap())
+        .collect();
+    assert!(examples.iter().any(|e| e.starts_with("total<>")), "{v}");
+    assert!(examples.contains(&"apply<> (2 versions)"), "{v}");
+    assert!(!examples.iter().any(|e| e.starts_with("pick<>")), "{v}");
+    // At most all but the largest version of each.
+    let saving = near["saving"].as_u64().unwrap();
+    let sum: u64 = near["examples"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|e| e["size"].as_u64().unwrap())
+        .sum();
+    assert_eq!(saving, sum, "{v}");
+}
+
+/// Inlining weighed: testdata/linkopts/inline's mix, inlined into 12
+/// functions, would cost less called (each call estimated by its two
+/// parameters); nothing else is worth it.
+#[test]
+fn recommend_inlining() {
+    let out = Command::new(env!("CARGO_BIN_EXE_hexc"))
+        .args(["recommend", "-json"])
+        .arg(Path::new(env!("CARGO_MANIFEST_DIR")).join("../../testdata/linkopts/inline"))
+        .output()
+        .unwrap();
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let v: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
+    let r = v["recommendations"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|r| r["kind"] == "inlining")
+        .unwrap_or_else(|| panic!("{v}"));
+    assert!(
+        r["advice"]
+            .as_str()
+            .unwrap()
+            .starts_with("mark a function __attribute__((noinline))"),
+        "{r}"
+    );
+    let e = &r["examples"][0];
+    let name = e["name"].as_str().unwrap();
+    assert!(name.starts_with("mix (12 copies, "), "{r}");
+    // As calls: 12 × (5 + 2 × 5 + 8), and a copy of the largest with a
+    // return.
+    let inlined: u64 = name
+        .trim_start_matches("mix (12 copies, ")
+        .split(' ')
+        .next()
+        .unwrap()
+        .parse()
+        .unwrap();
+    let as_calls: u64 = name
+        .split("; ")
+        .nth(1)
+        .unwrap()
+        .split(' ')
+        .next()
+        .unwrap()
+        .parse()
+        .unwrap();
+    assert!(as_calls > 12 * 23, "{r}");
+    assert_eq!(e["size"].as_u64().unwrap(), inlined - as_calls, "{r}");
+    assert_eq!(r["examples"].as_array().unwrap().len(), 1, "{r}");
+}
+
+/// What an image's strings recommend: the build's paths (testdata/
+/// linkopts/strings: four __FILE__s under /home/user/project, as #line
+/// sets them), and string literals with copies (msvc-strs-nogf.exe, /GF-:
+/// two, in each of two objects; msvc-strs-gf.exe, /GF: pooled, none), but
+/// not named arrays alike (strings' banner_a and banner_b).
+#[test]
+fn recommend_strings() {
+    let recommend = |name: &str| -> serde_json::Value {
+        let out = Command::new(env!("CARGO_BIN_EXE_hexc"))
+            .args(["recommend", "-json"])
+            .arg(
+                Path::new(env!("CARGO_MANIFEST_DIR"))
+                    .join("../../testdata/linkopts")
+                    .join(name),
+            )
+            .output()
+            .unwrap();
+        assert!(
+            out.status.success(),
+            "{name}: {}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+        serde_json::from_slice(&out.stdout).unwrap()
+    };
+    let rec = |v: &serde_json::Value, kind: &str| {
+        v["recommendations"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|r| r["kind"] == kind)
+            .cloned()
+    };
+    let v = recommend("strings");
+    let paths = rec(&v, "build-paths").unwrap_or_else(|| panic!("{v}"));
+    assert!(
+        paths["advice"]
+            .as_str()
+            .unwrap()
+            .starts_with("compile with -fmacro-prefix-map=/home/user/project=. "),
+        "{paths}"
+    );
+    // ("/home/user/project" less the "." it becomes: 17 bytes a path.)
+    assert_eq!(paths["saving"], 4 * 17, "{paths}");
+    assert_eq!(paths["examples"][0]["name"], "/home/user/project (4 paths)");
+    assert!(rec(&v, "duplicate-strings").is_none(), "{v}");
+    let v = recommend("msvc-strs-nogf.exe");
+    let dups = rec(&v, "duplicate-strings").unwrap_or_else(|| panic!("{v}"));
+    assert!(
+        dups["advice"]
+            .as_str()
+            .unwrap()
+            .starts_with("compile with /GF"),
+        "{dups}"
+    );
+    assert_eq!(dups["saving"], 47 + 46, "{dups}");
+    assert_eq!(
+        dups["examples"][0]["name"],
+        "\"the same literal in two objects, pooled or not\" (2 copies)"
+    );
+    let v = recommend("msvc-strs-gf.exe");
+    assert!(rec(&v, "duplicate-strings").is_none(), "{v}");
+}
+
+/// What exception handling costs each function, and the cleanups nothing a
+/// function calls can throw through (testdata/linkopts/noexc: needless()
+/// calls only helper(), which can't throw; needed() calls thrower(),
+/// which throws); none in a C++ image built without them (eh's work<N>
+/// call what isn't resolved: it may throw).
+#[test]
+fn recommend_exceptions() {
+    let recommend = |name: &str| -> serde_json::Value {
+        let out = Command::new(env!("CARGO_BIN_EXE_hexc"))
+            .args(["recommend", "-json"])
+            .arg(
+                Path::new(env!("CARGO_MANIFEST_DIR"))
+                    .join("../../testdata/linkopts")
+                    .join(name),
+            )
+            .output()
+            .unwrap();
+        assert!(
+            out.status.success(),
+            "{name}: {}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+        serde_json::from_slice(&out.stdout).unwrap()
+    };
+    let v = recommend("noexc");
+    let e = &v["exceptions"];
+    let f = |name: &str| {
+        e["functions"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|f| f["name"] == name)
+            .cloned()
+            .unwrap_or_else(|| panic!("{name}: {e}"))
+    };
+    // Each with an FDE; the two with cleanups with an LSDA each.
+    for name in [
+        "needless(int)",
+        "needed(int)",
+        "thrower(int)",
+        "helper(int)",
+    ] {
+        assert!(f(name)["unwind"].as_u64().unwrap() > 0, "{name}: {e}");
+    }
+    assert!(f("needless(int)")["handlers"].as_u64().unwrap() > 0, "{e}");
+    assert_eq!(f("needless(int)")["needless"], true, "{e}");
+    assert_eq!(f("needed(int)")["needless"], false, "{e}");
+    assert_eq!(f("helper(int)")["handlers"], 0, "{e}");
+    let total: u64 = e["functions"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|f| f["handlers"].as_u64().unwrap())
+        .sum();
+    assert_eq!(e["handlers"].as_u64().unwrap(), total, "{e}");
+    let v = recommend("eh");
+    assert!(
+        v["exceptions"]["functions"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|f| f["needless"] == false),
+        "{v}"
+    );
 }

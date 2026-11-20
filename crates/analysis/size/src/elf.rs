@@ -154,7 +154,7 @@ fn symbol_name(
     buf.clear();
     let ok = match source {
         Source::Symbols => demangler.demangle_short_into(&raw, buf),
-        Source::FullSymbols => demangler.demangle_into(&raw, buf),
+        Source::FullSymbols | Source::Crates => demangler.demangle_into(&raw, buf),
         _ => false,
     };
     if ok { buf.clone() } else { raw.into_owned() }
@@ -771,7 +771,7 @@ pub fn maps_with_debug(
                 }
                 b.catch_all(&mut map, &base, false);
             }
-            Source::Symbols | Source::RawSymbols | Source::FullSymbols => {
+            Source::Symbols | Source::RawSymbols | Source::FullSymbols | Source::Crates => {
                 b.symbols_into(&mut map, &base, source, debug.as_ref());
                 b.references_into(&mut map, &base);
                 b.tables_into(&mut map, &base);

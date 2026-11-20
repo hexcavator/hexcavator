@@ -1213,6 +1213,79 @@ impl<'data> DwarfInfo<'data> {
         Ok(out)
     }
 
+    /// How each compiland was compiled (see [`crate::DebugInfo::compile_options`]):
+    /// its unit's `DW_AT_producer` (a split unit's, over its skeleton's),
+    /// or its `DW_AT_APPLE_flags` (where Apple targets record the command
+    /// line), or, where neither records arguments, the command line in the
+    /// file's `.GCC.command.line` that names its source.
+    pub fn compile_options(&self) -> Result<Vec<crate::CompileOptions>> {
+        use crate::options;
+        let mut out: Vec<(crate::CompileOptions, String)> = Vec::new();
+        let attr = |m: &UnitMeta, n: u16| {
+            let (u, a) = self.unit(m)?;
+            let d = u.entry(a, u.dies)?;
+            Self::string(&u, &d, n)
+        };
+        for m in &self.index().units {
+            let Some(c) = m.compiland else { continue };
+            let producer = attr(m, DW_AT_PRODUCER);
+            let name = attr(m, DW_AT_NAME).unwrap_or_default();
+            let apple = attr(m, DW_AT_APPLE_FLAGS)
+                .map(|f| options::parse_command_line(&f))
+                .filter(|a| !a.is_empty());
+            if m.split {
+                if let Some(o) = usize::try_from(c).ok().and_then(|c| out.get_mut(c)) {
+                    if let Some(p) = producer {
+                        let parsed = options::parse_producer(&p);
+                        if parsed.args.is_some() || o.0.compiler.is_empty() {
+                            o.0 = parsed;
+                        }
+                    }
+                    if !name.is_empty() {
+                        o.1 = name;
+                    }
+                }
+            } else {
+                let mut o = producer
+                    .map(|p| options::parse_producer(&p))
+                    .unwrap_or_default();
+                if o.args.is_none() {
+                    o.args = apple;
+                }
+                out.push((o, name));
+            }
+        }
+        if out.iter().any(|o| o.0.args.is_none()) {
+            let lines = self.recorded_command_lines();
+            for (o, name) in &mut out {
+                if o.args.is_none()
+                    && let Some(l) = options::command_line_for(&lines, name)
+                {
+                    o.args = Some(l.to_vec());
+                }
+            }
+        }
+        Ok(out.into_iter().map(|o| o.0).collect())
+    }
+
+    /// The command lines in the file's `.GCC.command.line` (clang's
+    /// `-frecord-command-line`), each split; none if it's not ELF or has
+    /// none.
+    fn recorded_command_lines(&self) -> Vec<Vec<String>> {
+        let Ok(elf) = hexcavator_elf::ElfFile::parse(self.data) else {
+            return Vec::new();
+        };
+        let Some(s) = elf.section_by_name(b".GCC.command.line") else {
+            return Vec::new();
+        };
+        elf.section_data(&s)
+            .split(|&b| b == 0)
+            .filter(|l| !l.is_empty())
+            .take(1 << 20)
+            .map(|l| crate::options::parse_command_line(&String::from_utf8_lossy(l)))
+            .collect()
+    }
+
     /// The compilands' code (see [`crate::DebugInfo::contributions`]).
     pub fn contributions(&self) -> Result<Vec<Contribution>> {
         let mut out: Vec<Contribution> = Vec::new();
@@ -1670,6 +1743,7 @@ impl<'data> DwarfInfo<'data> {
     /// Every inline site (see [`crate::DebugInfo::inline_sites`]).
     pub fn inline_sites(&self) -> Result<InlineSites> {
         let mut inlinees: Vec<String> = Vec::new();
+        let mut params: Vec<Option<u32>> = Vec::new();
         let mut by_origin: HashMap<u64, u32> = HashMap::new();
         let mut sites = Vec::new();
         self.walk(|w| {
@@ -1691,6 +1765,7 @@ impl<'data> DwarfInfo<'data> {
                     let (origin, _) = self.origin(w.at);
                     let inlinee = *by_origin.entry(origin.0).or_insert_with(|| {
                         inlinees.push(self.qualified_name(origin));
+                        params.push(self.parameter_count(origin));
                         u32::try_from(inlinees.len() - 1).unwrap_or(u32::MAX)
                     });
                     let depth = w
@@ -1709,7 +1784,29 @@ impl<'data> DwarfInfo<'data> {
             }
             Walk::Into
         });
-        Ok(InlineSites { inlinees, sites })
+        Ok(InlineSites {
+            inlinees,
+            params,
+            sites,
+        })
+    }
+
+    /// How many parameters the function DIE `r` declares (an artificial
+    /// `this` among them); `None` if it doesn't describe the function
+    /// (line tables only, `-gmlt`: a name, and nothing of where it's
+    /// declared, what it returns, or what it takes).
+    fn parameter_count(&self, r: TypeRef) -> Option<u32> {
+        let (u, a, d) = self.die(r)?;
+        let children = u.children(a, &d);
+        if children.is_empty() && d.attr(DW_AT_DECL_FILE).is_none() && d.attr(DW_AT_TYPE).is_none()
+        {
+            return None;
+        }
+        let n = children
+            .iter()
+            .filter(|c| c.tag == DW_TAG_FORMAL_PARAMETER)
+            .count();
+        u32::try_from(n).ok()
     }
 }
 

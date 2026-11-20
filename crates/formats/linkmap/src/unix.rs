@@ -1,8 +1,10 @@
 //! The Unix linkers' maps: what each input contributed, and where.
 //!
 //! - lld (ELF `-Map`, and wasm-ld's): columns of addresses and sizes in
-//!   hex, then the output section, input section (`file:(section)`), or
-//!   symbol, each starting at its column (`Out`, `In`, `Symbol`).
+//!   hex (`VMA LMA Size Align`; older lld's, `Address Size Align`;
+//!   wasm-ld's, `Addr Off Size`), then the output section, input section
+//!   (`file:(section)`), or symbol, each starting at its column (`Out`,
+//!   `In`, `Symbol`).
 //! - GNU ld (`-Map`): its "Linker script and memory map": output sections
 //!   at the start of a line; input sections indented one space, with
 //!   their address, size, and file (a long name alone, the rest on the
@@ -157,6 +159,15 @@ fn parse_lld(text: &str) -> UnixMap {
     ) else {
         return map;
     };
+    // Which number is the size, by the header's names for them: lld's now
+    // (`VMA LMA Size Align`), its older (`Address Size Align`), wasm-ld's
+    // (`Addr Off Size`).
+    let size_at = header
+        .get(..out_col)
+        .unwrap_or("")
+        .split_whitespace()
+        .position(|t| t == "Size")
+        .unwrap_or(2);
     let mut section = String::new();
     let mut piece_file: Option<usize> = None;
     for line in lines {
@@ -168,10 +179,10 @@ fn parse_lld(text: &str) -> UnixMap {
             .map(|(i, _)| i);
         let Some(at) = text_at else { continue };
         let numbers: Vec<&str> = line.get(..at).unwrap_or("").split_whitespace().collect();
-        // (VMA, LMA or offset, size, and for ELF the alignment.)
+        // (The address first; the size where the header says.)
         let (Some(addr), Some(size)) = (
             numbers.first().and_then(|n| hex(n)),
-            numbers.get(2).and_then(|n| hex(n)),
+            numbers.get(size_at).and_then(|n| hex(n)),
         ) else {
             continue;
         };

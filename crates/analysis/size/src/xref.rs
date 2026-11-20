@@ -803,25 +803,38 @@ fn pointer_edge(b: &mut Builder, slot: u64, to: u64) {
 }
 
 /// Nodes without a contribution take their symbol's compiland (DWARF
-/// records compile units' ranges of code only).
-fn units_of_data(x: &mut Xref, symbols: &[Symbol]) {
+/// records compile units' ranges of code only); `comdat` says whether a
+/// compiland's data is in sections the linker could drop alone. (What the
+/// linker must keep grows by the data that isn't.)
+fn units_of_data(x: &mut Xref, symbols: &[Symbol], comdat: impl Fn(u32) -> bool) {
     let units: rustc_hash::FxHashMap<u64, u32> = symbols
         .iter()
         .filter_map(|s| Some((s.addr, s.compiland?)))
         .collect();
+    let mut shared = false;
     for (j, n) in x.graph.nodes().iter().enumerate() {
         if x.contribution[j].is_none() {
-            x.contribution[j] = units.get(&n.start).map(|&c| (c, true));
+            x.contribution[j] = units.get(&n.start).map(|&c| (c, comdat(c)));
+            shared |= matches!(x.contribution[j], Some((_, false)));
         }
+    }
+    if shared {
+        let mut kept: Vec<u32> = x.roots.iter().map(|r| r.0).collect();
+        kept.extend(
+            x.ids()
+                .filter(|&j| matches!(x.contribution[j as usize], Some((_, false)))),
+        );
+        x.kept_reach = x.graph.reach(&kept);
     }
 }
 
 /// The cross-reference graph of a Mach-O image (an executable, dylib, or
 /// bundle), from its symbols, code, and fixups (rebases; binds are
-/// imports'). Roots: the entry point (`LC_MAIN`), the exports (its exports
-/// trie), the initializers and terminators dyld calls
+/// imports'). Roots: the entry point (`LC_MAIN`), a dylib's or bundle's
+/// exports (its exports trie), the initializers and terminators dyld calls
 /// (`S_MOD_INIT_FUNC_POINTERS`, `S_MOD_TERM_FUNC_POINTERS`,
-/// `S_INIT_FUNC_OFFSETS`), and thread-local data. Contributions are
+/// `S_INIT_FUNC_OFFSETS`), and thread-local data (an executable's exports
+/// aren't: `-dead_strip` drops them). Contributions are
 /// compile units', taken as atoms `-dead_strip` could drop alone.
 pub fn macho(
     image: &hexcavator_image::Image<'_>,
@@ -841,12 +854,18 @@ pub fn macho(
     if let Some(n) = m.entry().and_then(|e| b.node_at(e)) {
         roots.push((n, Root::EntryPoint));
     }
-    for e in m.exports() {
-        if let Some(n) = e.address.and_then(|a| b.node_at(a)) {
-            roots.push((
-                n,
-                Root::Export(String::from_utf8_lossy(&e.name).into_owned()),
-            ));
+    // An executable exports its global symbols, but they aren't roots:
+    // -dead_strip drops what nothing reaches of them (unless linked with
+    // -export_dynamic, which the image doesn't record). A dylib's or a
+    // bundle's are.
+    if m.header().filetype != MH_EXECUTE {
+        for e in m.exports() {
+            if let Some(n) = e.address.and_then(|a| b.node_at(a)) {
+                roots.push((
+                    n,
+                    Root::Export(String::from_utf8_lossy(&e.name).into_owned()),
+                ));
+            }
         }
     }
     let base = m
@@ -894,7 +913,7 @@ pub fn macho(
         }
     }
     let mut x = finish(b, &infos, roots, debug, arch, Linker::MachO, |_| true)?;
-    units_of_data(&mut x, symbols);
+    units_of_data(&mut x, symbols, |_| true);
     Ok(x)
 }
 
@@ -988,7 +1007,7 @@ pub fn wasm(
         }
     }
     let mut x = finish(b, &infos, roots, debug, arch, Linker::Elf, |_| true)?;
-    units_of_data(&mut x, symbols);
+    units_of_data(&mut x, symbols, |_| true);
     Ok(x)
 }
 
@@ -1124,8 +1143,16 @@ pub fn elf(
             roots.push((n, Root::LoaderData("thread-local data")));
         }
     }
-    let mut x = finish(b, &infos, roots, debug, arch, Linker::Elf, |_| true)?;
-    units_of_data(&mut x, symbols);
+    // A function's code is a section of its own, which the linker can drop
+    // alone, unless its object was compiled without -ffunction-sections
+    // (as recorded): then the object's code is one section, kept whole.
+    let compiled = crate::compiled::Compiled::of(debug);
+    let mut x = finish(b, &infos, roots, debug, arch, Linker::Elf, |c| {
+        compiled.function_sections(c.compiland) != Some(false)
+    })?;
+    units_of_data(&mut x, symbols, |c| {
+        compiled.data_sections(c) != Some(false)
+    });
     Ok(x)
 }
 

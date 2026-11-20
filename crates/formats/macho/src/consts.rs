@@ -122,6 +122,19 @@ pub const LC_VERSION_MIN_TVOS: u32 = 0x2F;
 pub const LC_VERSION_MIN_WATCHOS: u32 = 0x30;
 pub const LC_NOTE: u32 = 0x31;
 pub const LC_BUILD_VERSION: u32 = 0x32;
+
+// LC_BUILD_VERSION's tools (`build_tool_version.tool`).
+pub const TOOL_CLANG: u32 = 1;
+pub const TOOL_SWIFT: u32 = 2;
+pub const TOOL_LD: u32 = 3;
+pub const TOOL_LLD: u32 = 4;
+pub const TOOL_METAL: u32 = 1024;
+pub const TOOL_AIRLLD: u32 = 1025;
+pub const TOOL_AIRNT: u32 = 1026;
+pub const TOOL_AIRNT_PLUGIN: u32 = 1027;
+pub const TOOL_AIRPACK: u32 = 1028;
+pub const TOOL_GPUARCHIVER: u32 = 1031;
+pub const TOOL_METAL_FRAMEWORK: u32 = 1032;
 pub const LC_DYLD_EXPORTS_TRIE: u32 = 0x33 | LC_REQ_DYLD;
 pub const LC_DYLD_CHAINED_FIXUPS: u32 = 0x34 | LC_REQ_DYLD;
 pub const LC_FILESET_ENTRY: u32 = 0x35 | LC_REQ_DYLD;

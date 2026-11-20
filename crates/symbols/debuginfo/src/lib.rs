@@ -21,6 +21,8 @@ pub mod decompress;
 pub mod dwarf_backend;
 pub mod layout;
 mod locate;
+pub mod options;
+pub use options::CompileOptions;
 mod pdb_backend;
 mod pdb_locate;
 pub mod value;
@@ -29,7 +31,7 @@ use hexcavator_core::Result;
 use hexcavator_image::DebugId;
 
 pub use locate::{Frame, Locator};
-pub use pdb_backend::{LINKER_MODULE, LinkerInfo};
+pub use pdb_backend::{LINKER_MODULE, LinkerInfo, build_info};
 
 /// A translation unit linked into an image.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -78,6 +80,9 @@ pub struct InlineSite {
 pub struct InlineSites {
     /// The inlined functions' qualified names.
     pub inlinees: Vec<String>,
+    /// How many parameters each inlined function takes (`this` among
+    /// them), by index as `inlinees`, where the debug information says.
+    pub params: Vec<Option<u32>>,
     /// The sites.
     pub sites: Vec<InlineSite>,
 }
@@ -1039,6 +1044,16 @@ impl<'data> DebugInfo<'data> {
         match self {
             DebugInfo::Pdb(p) => p.symbols(),
             DebugInfo::Dwarf(d) => d.symbols(),
+        }
+    }
+
+    /// How each compiland was compiled (by index in
+    /// [`DebugInfo::compilands`]), as the debug information records it
+    /// (see [`options`]).
+    pub fn compile_options(&self) -> Result<Vec<CompileOptions>> {
+        match self {
+            DebugInfo::Pdb(p) => p.compile_options(),
+            DebugInfo::Dwarf(d) => d.compile_options(),
         }
     }
 

@@ -193,6 +193,12 @@ pub const STB_LOCAL: u8 = 0;
 pub const STB_GLOBAL: u8 = 1;
 pub const STB_WEAK: u8 = 2;
 
+// Symbol visibility (`st_other & 3`).
+pub const STV_DEFAULT: u8 = 0;
+pub const STV_INTERNAL: u8 = 1;
+pub const STV_HIDDEN: u8 = 2;
+pub const STV_PROTECTED: u8 = 3;
+
 pub const STT_NOTYPE: u8 = 0;
 pub const STT_OBJECT: u8 = 1;
 pub const STT_FUNC: u8 = 2;

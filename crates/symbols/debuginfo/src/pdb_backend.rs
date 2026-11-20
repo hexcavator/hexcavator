@@ -219,18 +219,27 @@ impl<'data> PdbInfo<'data> {
         let mut index: HashMap<u32, u32> = HashMap::new();
         let mut by_name: HashMap<String, u32> = HashMap::new();
         let mut inlinees: Vec<String> = Vec::new();
+        let mut params: Vec<Option<u32>> = Vec::new();
         for s in &mut sites {
             let id = s.inlinee;
             s.inlinee = *index.entry(id).or_insert_with(|| {
-                let name = inlinee_name(ids, &formatter, id)
-                    .unwrap_or_else(|| format!("<inlinee {id:#x}>"));
+                let found = inlinee(ids, &formatter, id);
+                let count = found
+                    .as_ref()
+                    .and_then(|(_, ty)| parameter_count(types, self::index(*ty)));
+                let name = found.map_or_else(|| format!("<inlinee {id:#x}>"), |(n, _)| n);
                 *by_name.entry(name.clone()).or_insert_with(|| {
                     inlinees.push(name);
+                    params.push(count);
                     u32::try_from(inlinees.len() - 1).unwrap_or(u32::MAX)
                 })
             });
         }
-        Ok(crate::InlineSites { inlinees, sites })
+        Ok(crate::InlineSites {
+            inlinees,
+            params,
+            sites,
+        })
     }
 
     /// Every module's annotations, by address.
@@ -681,6 +690,49 @@ impl<'data> PdbInfo<'data> {
         None
     }
 
+    /// How each module was compiled: `S_COMPILE3`'s version, and the
+    /// arguments of the command line `S_BUILDINFO` names (none recorded for
+    /// what wasn't compiled, or when the PDB has no IDs stream).
+    pub fn compile_options(&self) -> Result<Vec<crate::CompileOptions>> {
+        let dbi = self.pdb.dbi()?;
+        let ids = self.pdb.ids().ok();
+        let mut out = Vec::new();
+        for m in dbi.modules() {
+            let mut o = crate::CompileOptions::default();
+            if let Ok(Some(stream)) = self.pdb.module_stream(m) {
+                // (Both come first, before the module's procedures.)
+                for rec in stream.symbols().take(64) {
+                    match rec.parse() {
+                        Ok(Symbol::Compile3 {
+                            frontend,
+                            backend,
+                            version,
+                            ..
+                        }) => {
+                            // (Assemblers and tools leave the front end's
+                            // version 0.)
+                            let v = if frontend == [0; 4] {
+                                backend
+                            } else {
+                                frontend
+                            };
+                            o.compiler =
+                                format!("{} {}.{}.{}.{}", lossy(version), v[0], v[1], v[2], v[3]);
+                        }
+                        Ok(Symbol::BuildInfo { id }) => {
+                            if let Some(cmd) = ids.and_then(|ids| build_info(ids, id)[4].clone()) {
+                                o.args = Some(crate::options::parse_msvc_command_line(&cmd));
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+            }
+            out.push(o);
+        }
+        Ok(out)
+    }
+
     pub fn linker_info(&self) -> Result<LinkerInfo> {
         let mut environment = Vec::new();
         let mut error = None;
@@ -707,6 +759,67 @@ impl<'data> PdbInfo<'data> {
                 .has_feature(info::feature::MINIMAL_DEBUG_INFO),
         })
     }
+}
+
+/// The strings of an `LF_BUILDINFO` record in the IDs stream: the working
+/// directory, the tool, the source file, the PDB, and the command line's
+/// arguments (those it has).
+pub fn build_info(ids: &hexcavator_pdb::tpi::TypeStream<'_>, id: TypeIndex) -> [Option<String>; 5] {
+    let mut out = [None, None, None, None, None];
+    let Some(rec) = ids.record(id) else {
+        return out;
+    };
+    if rec.kind != hexcavator_codeview::types::leaf::LF_BUILDINFO {
+        return out;
+    }
+    let d = rec.data;
+    let Some(count) = d
+        .get(0..2)
+        .map(|c| usize::from(u16::from_le_bytes([c[0], c[1]])))
+    else {
+        return out;
+    };
+    for (k, slot) in out.iter_mut().enumerate().take(count) {
+        let Some(arg) = d.get(2 + 4 * k..6 + 4 * k) else {
+            break;
+        };
+        let arg = u32::from_le_bytes([arg[0], arg[1], arg[2], arg[3]]);
+        *slot = string_id(ids, arg, 0);
+    }
+    out
+}
+
+/// An `LF_STRING_ID`'s string: its substrings (`LF_SUBSTR_LIST`), then its
+/// own text.
+fn string_id(ids: &hexcavator_pdb::tpi::TypeStream<'_>, id: u32, depth: usize) -> Option<String> {
+    use hexcavator_codeview::types::leaf;
+    if depth > 4 || id == 0 {
+        return None;
+    }
+    let rec = ids.record(TypeIndex(id))?;
+    if rec.kind != leaf::LF_STRING_ID {
+        return None;
+    }
+    let d = rec.data;
+    let sub = u32::from_le_bytes(d.get(0..4)?.try_into().ok()?);
+    let text = d.get(4..)?;
+    let text = &text[..text.iter().position(|&b| b == 0).unwrap_or(text.len())];
+    let mut s = String::new();
+    if sub != 0 {
+        let list = ids.record(TypeIndex(sub))?;
+        if list.kind == leaf::LF_SUBSTR_LIST {
+            let ld = list.data;
+            let n = u32::from_le_bytes(ld.get(0..4)?.try_into().ok()?) as usize;
+            for i in 0..n.min(256) {
+                let part = u32::from_le_bytes(ld.get(4 + 4 * i..8 + 4 * i)?.try_into().ok()?);
+                if let Some(p) = string_id(ids, part, depth + 1) {
+                    s.push_str(&p);
+                }
+            }
+        }
+    }
+    s.push_str(&String::from_utf8_lossy(text));
+    Some(s)
 }
 
 /// The shape of a simple (built-in) type index: a basic type, or a pointer
@@ -1544,6 +1657,31 @@ struct Proc<'a> {
 const INLINEE_PENDING: u32 = 1 << 31;
 
 /// An inlined function's qualified name, from its id record.
+/// How many parameters a procedure type (`LF_PROCEDURE`, or
+/// `LF_MFUNCTION`, with its `this`) takes.
+fn parameter_count(types: &hexcavator_pdb::TypeStream<'_>, ty: TypeIndex) -> Option<u32> {
+    use hexcavator_codeview::types::leaf;
+    let rec = types.record(ty)?;
+    let mut r = Reader::new(rec.data);
+    match rec.kind {
+        leaf::LF_PROCEDURE => {
+            r.u32_le().ok()?; // return type
+            r.u8().ok()?; // calling convention
+            r.u8().ok()?; // attributes
+            Some(u32::from(r.u16_le().ok()?))
+        }
+        leaf::LF_MFUNCTION => {
+            r.u32_le().ok()?; // return type
+            r.u32_le().ok()?; // class
+            let this = r.u32_le().ok()?;
+            r.u8().ok()?;
+            r.u8().ok()?;
+            Some(u32::from(r.u16_le().ok()?) + u32::from(this != 0))
+        }
+        _ => None,
+    }
+}
+
 pub(crate) fn inlinee_name(
     ids: &hexcavator_pdb::TypeStream<'_>,
     formatter: &TypeFormatter<'_>,

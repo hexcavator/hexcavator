@@ -1093,7 +1093,7 @@ fn pdb_builds(pdb: &hexcavator_pdb::Pdb<'_>) -> Result<Vec<Build>, String> {
                 }
                 Ok(Symbol::BuildInfo { id }) => {
                     if let Some(ids) = &ids {
-                        let info = build_info(ids, id);
+                        let info = hexcavator_debuginfo::build_info(ids, id);
                         let [cwd, tool, source, pdb, cmd] = info.map(Option::unwrap_or_default);
                         b.cwd = cwd;
                         b.tool = tool;
@@ -1152,71 +1152,6 @@ fn language_name(l: u32) -> &'static str {
         21 => "Rust",
         22 => "Go",
         _ => "other",
-    }
-}
-
-/// What an `LF_BUILDINFO` names: its current directory, build tool, source
-/// file, PDB, and command line (string IDs, perhaps continued in substring
-/// lists).
-fn build_info(
-    ids: &hexcavator_pdb::tpi::TypeStream<'_>,
-    id: hexcavator_codeview::TypeIndex,
-) -> [Option<String>; 5] {
-    let mut out = [None, None, None, None, None];
-    let Some(rec) = ids.record(id) else {
-        return out;
-    };
-    if rec.kind != hexcavator_codeview::types::leaf::LF_BUILDINFO {
-        return out;
-    }
-    let d = rec.data;
-    let Some(count) = d
-        .get(0..2)
-        .map(|c| usize::from(u16::from_le_bytes([c[0], c[1]])))
-    else {
-        return out;
-    };
-    for (k, slot) in out.iter_mut().enumerate().take(count) {
-        let Some(arg) = d.get(2 + 4 * k..6 + 4 * k) else {
-            break;
-        };
-        let arg = u32::from_le_bytes([arg[0], arg[1], arg[2], arg[3]]);
-        *slot = string_id(ids, arg, 0);
-    }
-    out
-}
-
-fn string_id(ids: &hexcavator_pdb::tpi::TypeStream<'_>, id: u32, depth: usize) -> Option<String> {
-    use hexcavator_codeview::types::leaf;
-    if depth > 4 || id == 0 {
-        return None;
-    }
-    let rec = ids.record(hexcavator_codeview::TypeIndex(id))?;
-    match rec.kind {
-        leaf::LF_STRING_ID => {
-            let d = rec.data;
-            let sub = u32::from_le_bytes(d.get(0..4)?.try_into().ok()?);
-            let text = d.get(4..)?;
-            let text = &text[..text.iter().position(|&b| b == 0).unwrap_or(text.len())];
-            let mut s = String::new();
-            if sub != 0 {
-                let list = ids.record(hexcavator_codeview::TypeIndex(sub))?;
-                if list.kind == leaf::LF_SUBSTR_LIST {
-                    let ld = list.data;
-                    let n = u32::from_le_bytes(ld.get(0..4)?.try_into().ok()?) as usize;
-                    for i in 0..n.min(256) {
-                        let part =
-                            u32::from_le_bytes(ld.get(4 + 4 * i..8 + 4 * i)?.try_into().ok()?);
-                        if let Some(p) = string_id(ids, part, depth + 1) {
-                            s.push_str(&p);
-                        }
-                    }
-                }
-            }
-            s.push_str(&String::from_utf8_lossy(text));
-            Some(s)
-        }
-        _ => None,
     }
 }
 
@@ -1332,23 +1267,14 @@ fn dwarf_builds(data: &[u8]) -> Result<Vec<Build>, String> {
 
 /// A DW_AT_producer's compiler, and the options in it that matter (GCC
 /// with -grecord-gcc-switches and clang with -grecord-command-line record
-/// them).
+/// them; see [`hexcavator_debuginfo::options`]).
 fn gnu_producer(p: &str) -> (String, Vec<(String, String)>) {
-    let mut words = p.split_whitespace();
-    let mut compiler = Vec::new();
+    let parsed = hexcavator_debuginfo::options::parse_producer(p);
     let mut opts: BTreeMap<String, String> = BTreeMap::new();
-    for w in words.by_ref().take(4096) {
-        if w.starts_with('-') {
-            option(&mut opts, w);
-            break;
-        }
-        compiler.push(w);
-    }
-    for w in words.take(4096) {
+    for w in parsed.args.iter().flatten().take(4096) {
         option(&mut opts, w);
     }
-    // (clang's recorded command line starts with the compiler's path.)
-    (compiler.join(" "), opts.into_iter().collect())
+    (parsed.compiler, opts.into_iter().collect())
 }
 
 fn option(opts: &mut BTreeMap<String, String>, w: &str) {

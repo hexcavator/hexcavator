@@ -261,3 +261,36 @@ fn data_masks_pointers() {
     assert_eq!(named("GetLastError"), named("GetLastError"));
     assert_ne!(named("GetLastError").local, named("SetLastError").local);
 }
+
+/// Shapes: alike for code that differs in constants, displacements, widths,
+/// and callees; unlike for other operations or registers.
+#[test]
+fn shapes() {
+    let x64 = |code: &[u8]| shape(Arch::X64, code, 0x1000).unwrap();
+    // mov eax, [rdi+4]; add eax, 3; ret  vs  mov rax, [rdi+8]; add rax, 5; ret
+    let a = x64(&[0x8B, 0x47, 0x04, 0x83, 0xC0, 0x03, 0xC3]);
+    let b = x64(&[0x48, 0x8B, 0x47, 0x08, 0x48, 0x83, 0xC0, 0x05, 0xC3]);
+    assert_eq!(a, b);
+    // ... and the same calling different functions: call rel32; ret
+    let c1 = x64(&[0xE8, 0x10, 0x00, 0x00, 0x00, 0xC3]);
+    let c2 = x64(&[0xE8, 0x40, 0x02, 0x00, 0x00, 0xC3]);
+    assert_eq!(c1, c2);
+    // Another register (rsi), or another operation (sub): another shape.
+    assert_ne!(a, x64(&[0x8B, 0x46, 0x04, 0x83, 0xC0, 0x03, 0xC3]));
+    assert_ne!(a, x64(&[0x8B, 0x47, 0x04, 0x83, 0xE8, 0x03, 0xC3]));
+    // One instruction more: another shape.
+    assert_ne!(a, x64(&[0x8B, 0x47, 0x04, 0x83, 0xC0, 0x03, 0x90, 0xC3]));
+    // ARM64: ldr w0, [x0, #4]; add w0, w0, #3; ret  vs  the 64-bit forms,
+    // other offsets and constants.
+    let arm = |words: &[u32]| {
+        let bytes: Vec<u8> = words.iter().flat_map(|w| w.to_le_bytes()).collect();
+        shape(Arch::Arm64, &bytes, 0x1000).unwrap()
+    };
+    let w = arm(&[0xB940_0400, 0x1100_0C00, 0xD65F_03C0]);
+    let x = arm(&[0xF940_0400, 0x9100_1400, 0xD65F_03C0]);
+    assert_eq!(w, x);
+    // (sub, not add)
+    assert_ne!(w, arm(&[0xB940_0400, 0x5100_0C00, 0xD65F_03C0]));
+    // No decoder: no shape.
+    assert_eq!(shape(Arch::Mips, &[0, 0, 0, 0], 0), None);
+}

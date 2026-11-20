@@ -1355,7 +1355,11 @@ fn maps_of(
         });
     }
     hexcavator_program::cache::remember(&files, &what, || {
-        build_maps(path, pdb, map, debug_file, sources)
+        // (Crates are full symbols, relabeled.)
+        let built = hexcavator_size::sources::built_as(sources);
+        let mut maps = build_maps(path, pdb, map, debug_file, &built)?;
+        hexcavator_size::sources::label_crates(&mut maps, sources);
+        Ok(maps)
     })
 }
 

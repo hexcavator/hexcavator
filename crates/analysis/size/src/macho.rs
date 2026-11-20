@@ -318,7 +318,7 @@ impl Builder<'_> {
                 buf.clear();
                 let ok = match source {
                     Source::Symbols => demangler.demangle_short_into(&raw, &mut buf),
-                    Source::FullSymbols => demangler.demangle_into(&raw, &mut buf),
+                    Source::FullSymbols | Source::Crates => demangler.demangle_into(&raw, &mut buf),
                     _ => false,
                 };
                 let name = if ok { buf.clone() } else { raw.into_owned() };
@@ -754,7 +754,7 @@ pub fn maps_with_debug(
         match source {
             Source::Segments => b.commands_into(&mut map, By::Segments, Some(&base)),
             Source::Sections => b.commands_into(&mut map, By::Sections, Some(&base)),
-            Source::Symbols | Source::RawSymbols | Source::FullSymbols => {
+            Source::Symbols | Source::RawSymbols | Source::FullSymbols | Source::Crates => {
                 b.commands_into(&mut map, By::HeadersOnly, Some(&base));
                 b.symbols_into(&mut map, &base, source);
                 b.references_into(&mut map, &base);

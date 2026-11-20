@@ -23,6 +23,21 @@
 //! collected, and identical functions at different addresses weren't
 //! folded.
 //!
+//! On Mach-O, functions of different names at one address in the symbol
+//! table were folded (ld64.lld keeps each one's symbol). Apple's ld
+//! (which `LC_BUILD_VERSION` names) folds identical functions unless given
+//! `-no_deduplicate`, which clang gives it when it links at `-O0` or
+//! `-O1`: such a link is taken to have folded, unless the objects'
+//! recorded options are all at those levels.
+//!
+//! Where the debug information records how the objects were compiled
+//! ([`crate::compiled`]), an ELF object compiled without
+//! `-ffunction-sections` (or `-fdata-sections`) has its code (or data) in
+//! one section the linker keeps whole: what nothing reaches in it is
+//! advice to compile it so, not to link differently, and its functions
+//! can't be folded. Advice to link so says to compile so too only when
+//! the options aren't recorded.
+//!
 //! Each must save at least [`MIN_SAVING`] bytes.
 
 use crate::findings::DuplicateData;
@@ -50,8 +65,13 @@ pub enum Toolchain {
     /// GCC or Clang with GNU ld, gold, or lld, for ELF (or PE with DWARF,
     /// as MinGW builds it): `-ffunction-sections`, `--gc-sections`, ...
     Gnu,
-    /// Clang with Apple's linker (or `ld64.lld`), for Mach-O.
+    /// Clang with `ld64.lld`, for Mach-O (or a linker the image doesn't
+    /// name).
     Apple,
+    /// Clang with Apple's linker (ld64, or its successor), as the image's
+    /// `LC_BUILD_VERSION` names it: it folds identical functions unless
+    /// given `-no_deduplicate`.
+    AppleLd,
 }
 
 impl Toolchain {
@@ -60,8 +80,14 @@ impl Toolchain {
         image: &hexcavator_image::Image<'_>,
         debug: &hexcavator_debuginfo::DebugInfo<'_>,
     ) -> Self {
-        if image.macho().is_some() {
-            Toolchain::Apple
+        if let Some(m) = image.macho() {
+            if m.linker()
+                .is_some_and(|t| t.tool == hexcavator_macho::consts::TOOL_LD)
+            {
+                Toolchain::AppleLd
+            } else {
+                Toolchain::Apple
+            }
         } else if image.pe().is_some() && debug.pdb().is_some() {
             Toolchain::Msvc
         } else {
@@ -72,36 +98,58 @@ impl Toolchain {
     fn function_sections(self) -> &'static str {
         match self {
             Toolchain::Msvc => "/Gy",
-            Toolchain::Gnu | Toolchain::Apple => "-ffunction-sections",
+            Toolchain::Gnu | Toolchain::Apple | Toolchain::AppleLd => "-ffunction-sections",
         }
     }
 
     fn data_sections(self) -> &'static str {
         match self {
             Toolchain::Msvc => "/Gw",
-            Toolchain::Gnu | Toolchain::Apple => "-fdata-sections",
+            Toolchain::Gnu | Toolchain::Apple | Toolchain::AppleLd => "-fdata-sections",
         }
     }
 
-    fn gc(self) -> &'static str {
+    /// The linker's option that drops what nothing reaches.
+    fn gc_option(self) -> &'static str {
+        match self {
+            Toolchain::Msvc => "/OPT:REF",
+            Toolchain::Gnu => "-Wl,--gc-sections",
+            Toolchain::Apple | Toolchain::AppleLd => "-Wl,-dead_strip",
+        }
+    }
+
+    /// Advice to collect what nothing reaches; `sections`: whether the
+    /// objects are known to have been compiled with their functions in
+    /// sections of their own (else the advice says to).
+    fn gc(self, sections: bool) -> &'static str {
         match self {
             Toolchain::Msvc => "link with /OPT:REF: COMDATs nothing reaches are kept",
+            Toolchain::Gnu if sections => {
+                "link with -Wl,--gc-sections: functions and data nothing reaches are kept"
+            }
             Toolchain::Gnu => {
                 "link with -Wl,--gc-sections (compiling with -ffunction-sections -fdata-sections): functions and data nothing reaches are kept"
             }
-            Toolchain::Apple => {
+            Toolchain::Apple | Toolchain::AppleLd => {
                 "link with -Wl,-dead_strip: functions and data nothing reaches are kept"
             }
         }
     }
 
-    fn icf(self) -> &'static str {
+    /// Advice to fold identical functions (see [`Toolchain::gc`]).
+    fn icf(self, sections: bool) -> &'static str {
         match self {
             Toolchain::Msvc => "link with /OPT:ICF",
+            Toolchain::Gnu if sections => "link with -Wl,--icf=all (lld or gold)",
             Toolchain::Gnu => {
                 "link with -Wl,--icf=all (lld or gold; compiling with -ffunction-sections)"
             }
-            Toolchain::Apple => "link with ld64.lld --icf=all",
+            Toolchain::Apple => {
+                "link with -Wl,--icf=all (ld64.lld; Apple's ld folds them unless given -no_deduplicate)"
+            }
+            Toolchain::AppleLd => {
+                "link without -no_deduplicate (Apple's ld folds identical functions unless given it; clang gives it when it links at -O0 or -O1)"
+            }
         }
     }
 }
@@ -133,22 +181,35 @@ impl Link {
     /// still has its symbol (folded symbols are the kept one's); it
     /// collected unreferenced ones if a function it dropped has no symbol.
     /// (Without a symbol table to tell, dropped functions say neither.)
+    ///
+    /// Mach-O: functions of different names at one address in its symbol
+    /// table were folded (ld64.lld's ICF keeps each one's symbol; a
+    /// Mach-O compiler makes no aliases). And Apple's ld folds them unless
+    /// given `-no_deduplicate`, which clang gives it when it links at
+    /// `-O0` or `-O1`: it's taken to have, unless every object whose
+    /// options are recorded was compiled so (`compiled`).
     pub fn evidence(
         image: &hexcavator_image::Image<'_>,
         debug: &hexcavator_debuginfo::DebugInfo<'_>,
+        compiled: &crate::compiled::Compiled,
     ) -> Link {
         let mut link = Link::judged();
-        let Ok(d) = debug.discarded_functions() else {
-            return link;
-        };
-        link.opt_icf = d.shared;
-        if let Some(defined) = defined_functions(image, debug) {
-            for name in &d.dropped {
-                if defined.contains(name.as_bytes()) {
-                    link.opt_icf = true;
-                } else {
-                    link.opt_ref = true;
+        if let Ok(d) = debug.discarded_functions() {
+            link.opt_icf = d.shared;
+            if let Some(defined) = defined_functions(image, debug) {
+                for name in &d.dropped {
+                    if defined.contains(name.as_bytes()) {
+                        link.opt_icf = true;
+                    } else {
+                        link.opt_ref = true;
+                    }
                 }
+            }
+        }
+        if let Some(m) = image.macho() {
+            link.opt_icf |= macho_folded(m);
+            if Toolchain::of(image, debug) == Toolchain::AppleLd && !compiled.unoptimized() {
+                link.opt_icf = true;
             }
         }
         link
@@ -190,13 +251,55 @@ impl Link {
     }
 }
 
-/// The names of the functions an ELF image's symbol table (or its debug
-/// file's, if it has none) defines, if either has one.
+/// Whether a Mach-O image's symbol table has functions of different names
+/// at one address (ICF folded them).
+fn macho_folded(m: &hexcavator_macho::MachO<'_>) -> bool {
+    let code = macho_code_sections(m);
+    let mut at: rustc_hash::FxHashMap<u64, &[u8]> = rustc_hash::FxHashMap::default();
+    for s in m.symbols() {
+        if !s.is_section_defined() || s.name.is_empty() || !code.contains(&s.n_sect) {
+            continue;
+        }
+        match at.entry(s.n_value) {
+            std::collections::hash_map::Entry::Occupied(e) if *e.get() != s.name => return true,
+            std::collections::hash_map::Entry::Occupied(_) => {}
+            std::collections::hash_map::Entry::Vacant(e) => {
+                e.insert(s.name);
+            }
+        }
+    }
+    false
+}
+
+/// The (1-based) numbers of a Mach-O image's sections of code.
+fn macho_code_sections(m: &hexcavator_macho::MachO<'_>) -> rustc_hash::FxHashSet<u8> {
+    use hexcavator_macho::consts::{S_ATTR_PURE_INSTRUCTIONS, S_ATTR_SOME_INSTRUCTIONS};
+    m.sections()
+        .iter()
+        .filter(|s| s.flags & (S_ATTR_PURE_INSTRUCTIONS | S_ATTR_SOME_INSTRUCTIONS) != 0)
+        .filter_map(|s| u8::try_from(s.index + 1).ok())
+        .collect()
+}
+
+/// The names of the functions an image's symbol table defines (ELF's, or
+/// its debug file's if it has none; Mach-O's, less the `_` prefix C names
+/// take), if it has one.
 fn defined_functions<'a>(
     image: &'a hexcavator_image::Image<'_>,
     debug: &'a hexcavator_debuginfo::DebugInfo<'_>,
 ) -> Option<rustc_hash::FxHashSet<&'a [u8]>> {
     use hexcavator_elf::consts::{SHN_UNDEF, SHT_SYMTAB, STT_FUNC};
+    if let Some(m) = image.macho() {
+        let code = macho_code_sections(m);
+        let names: rustc_hash::FxHashSet<&'a [u8]> = m
+            .symbols()
+            .into_iter()
+            .filter(|s| s.is_section_defined() && code.contains(&s.n_sect))
+            .filter_map(|s| s.name.strip_prefix(b"_"))
+            .filter(|n| !n.is_empty())
+            .collect();
+        return (!names.is_empty()).then_some(names);
+    }
     // (`STT_GNU_IFUNC`: a function chosen at load.)
     const STT_GNU_IFUNC: u8 = 10;
     let of = |elf: &hexcavator_elf::ElfFile<'a>| -> Option<rustc_hash::FxHashSet<&'a [u8]>> {
@@ -278,15 +381,35 @@ pub const MIN_SAVING: u64 = 64;
 
 /// The recommendations for an image: from its graph `x`, the
 /// link's options (if known), the classes of [`crate::fingerprint::Mode::
-/// Foldable`] (if computed), and its duplicated variables. Largest saving
-/// first.
+/// Foldable`] (if computed), its duplicated variables, and how its objects
+/// were compiled (where recorded). Largest saving first.
 pub fn recommend(
     x: &Xref,
     toolchain: Toolchain,
     link: Option<Link>,
     foldable: Option<&[u64]>,
     duplicates: &[DuplicateData],
+    compiled: &crate::compiled::Compiled,
 ) -> Vec<Recommendation> {
+    // Whether all of `nodes` are known to be of objects compiled with
+    // their functions (or data) in sections of their own.
+    let sectioned = |nodes: &[u32]| {
+        nodes.iter().all(|&n| {
+            x.contribution[n as usize].is_some_and(|(c, _)| {
+                if x.graph.nodes()[n as usize].code {
+                    compiled.function_sections(c) == Some(true)
+                } else {
+                    compiled.data_sections(c) == Some(true)
+                }
+            })
+        })
+    };
+    // Sections of their own save nothing unless the link drops them too.
+    let and_gc = if link.is_some_and(|l| l.opt_ref) {
+        String::new()
+    } else {
+        format!(" (and link with {})", toolchain.gc_option())
+    };
     let mut out = Vec::new();
     let unreached: Vec<u32> = x
         .ids()
@@ -323,12 +446,12 @@ pub fn recommend(
             kind: if code { "function-sections" } else { "data-sections" },
             advice: if code {
                 format!(
-                    "compile {name} with {}: its functions nothing reaches are kept with the sections they share with ones that are used",
+                    "compile {name} with {}{and_gc}: its functions nothing reaches are kept with the sections they share with ones that are used",
                     toolchain.function_sections()
                 )
             } else {
                 format!(
-                    "compile {name} with {}: its data nothing reaches is kept with the sections it shares with data that is used",
+                    "compile {name} with {}{and_gc}: its data nothing reaches is kept with the sections it shares with data that is used",
                     toolchain.data_sections()
                 )
             },
@@ -347,7 +470,7 @@ pub fn recommend(
             if saving > 0 {
                 out.push(Recommendation {
                     kind: "gc",
-                    advice: toolchain.gc().into(),
+                    advice: toolchain.gc(sectioned(&nodes)).into(),
                     saving,
                     examples: examples(x, &nodes),
                 });
@@ -374,7 +497,12 @@ pub fn recommend(
                     kind: "icf",
                     advice: format!(
                         "{}: {} groups of identical functions aren't folded",
-                        toolchain.icf(),
+                        toolchain.icf(sectioned(
+                            &groups
+                                .iter()
+                                .flat_map(|g| g.0.iter().copied())
+                                .collect::<Vec<_>>()
+                        )),
                         groups.len()
                     ),
                     saving,
@@ -458,6 +586,422 @@ pub fn structural(image: &hexcavator_image::Image<'_>) -> Vec<Recommendation> {
     }
     out.retain(|r| r.saving >= MIN_SAVING);
     out
+}
+
+/// The recommendation inlining makes ([`crate::inlining::weigh`]): calling
+/// one copy of each function whose inlined copies cost more than calls
+/// would (by at least [`MIN_SAVING`] in all), with a call's estimated cost.
+pub fn inlining(
+    inlinees: &[crate::inlining::Inlinee],
+    toolchain: Toolchain,
+    arch: hexcavator_core::Arch,
+    rust: bool,
+) -> Option<Recommendation> {
+    let worth: Vec<&crate::inlining::Inlinee> = inlinees
+        .iter()
+        .filter(|i| i.copies > 1 && i.saving() >= MIN_SAVING as i64)
+        .collect();
+    let saving: u64 = worth.iter().map(|i| i.saving().unsigned_abs()).sum();
+    if saving < MIN_SAVING {
+        return None;
+    }
+    let cost = crate::inlining::CallCost::of(arch)?;
+    let mark = match toolchain {
+        _ if rust => "#[inline(never)] (or build with opt-level = \"s\")",
+        Toolchain::Msvc => "__declspec(noinline) (or compile with /O1 or /Ob1)",
+        _ => "__attribute__((noinline)) (or compile with -Os)",
+    };
+    Some(Recommendation {
+        kind: "inlining",
+        advice: format!(
+            "mark {} {mark}: {} inlined copies cost more than calls to one copy would (a call estimated at {} bytes, and {} an argument)",
+            if worth.len() == 1 {
+                "a function".to_string()
+            } else {
+                format!("{} functions", worth.len())
+            },
+            if worth.len() == 1 { "its" } else { "their" },
+            cost.call + cost.around,
+            cost.argument
+        ),
+        saving,
+        examples: worth
+            .iter()
+            .take(EXAMPLES)
+            .map(|i| {
+                (
+                    format!(
+                        "{} ({} copies, {} bytes; {} as calls{})",
+                        i.name,
+                        i.copies,
+                        i.inlined,
+                        i.calls + i.body,
+                        if i.out_of_line { "" } else { " and a copy" }
+                    ),
+                    i.saving().unsigned_abs(),
+                )
+            })
+            .collect(),
+    })
+}
+
+/// The recommendations pointer-heavy data makes
+/// ([`crate::relocations::pointer_tables`], of `symbols`: (start, end,
+/// name), by start): storing 32-bit offsets instead of pointers, each of
+/// which costs a relocation (and, beyond 32 bits, its width), in tables of
+/// at least 4 of them:
+///
+/// - `relative-vtables`: vtables (clang's relative vtables,
+///   `-fexperimental-relative-c++-abi-vtables`, which change the C++ ABI;
+///   not MSVC's).
+/// - `pointer-tables`: other data (offsets from the table, or into one
+///   blob of strings).
+pub fn pointer_tables(
+    relocs: &crate::relocations::Relocations,
+    symbols: &[(u64, u64, String)],
+    toolchain: Toolchain,
+) -> Vec<Recommendation> {
+    // (Not the image's own structures, `[PE Directory] Load Config`, nor
+    // the runtime's: `_tls_used`, `__guard_...`.)
+    let tables: Vec<crate::relocations::PointerTable> =
+        crate::relocations::pointer_tables(relocs, symbols, 4)
+            .into_iter()
+            .filter(|t| !t.name.starts_with(['[', '_']) || t.name.starts_with("_Z"))
+            .collect();
+    let vtable =
+        |n: &str| n.starts_with("vtable for ") || n.ends_with("`vftable'") || n.starts_with("_ZTV");
+    let mut out = Vec::new();
+    for (kind, of_vtables) in [("relative-vtables", true), ("pointer-tables", false)] {
+        if of_vtables && toolchain == Toolchain::Msvc {
+            continue;
+        }
+        let these: Vec<&crate::relocations::PointerTable> = tables
+            .iter()
+            .filter(|t| vtable(&t.name) == of_vtables)
+            .collect();
+        let cost = |t: &crate::relocations::PointerTable| {
+            (t.relocations + t.narrower as f64).round() as u64
+        };
+        let saving: u64 = these.iter().map(|t| cost(t)).sum();
+        if saving < MIN_SAVING {
+            continue;
+        }
+        let pointers: u64 = these.iter().map(|t| t.pointers).sum();
+        let per = relocs
+            .list
+            .iter()
+            .find(|r| r.relative)
+            .map_or(0.0, |r| relocs.share(r));
+        let why = format!(
+            "{pointers} pointers, each a relocation ({per:.1} bytes here) and a page the loader writes{}",
+            if relocs.word > 4 {
+                ", and 4 bytes wider than an offset"
+            } else {
+                ""
+            }
+        );
+        out.push(Recommendation {
+            kind,
+            advice: if of_vtables {
+                format!(
+                    "compile with -fexperimental-relative-c++-abi-vtables (clang; it changes the C++ ABI, so everything sharing these classes must): {} {why}",
+                    if these.len() == 1 {
+                        "a vtable holds".to_string()
+                    } else {
+                        format!("{} vtables hold", these.len())
+                    }
+                )
+            } else {
+                format!(
+                    "store 32-bit offsets instead of pointers (from the table, or into one blob of its strings): {} {why}",
+                    if these.len() == 1 {
+                        "a table of data holds".to_string()
+                    } else {
+                        format!("{} tables of data hold", these.len())
+                    }
+                )
+            },
+            saving,
+            examples: these
+                .iter()
+                .take(EXAMPLES)
+                .map(|t| (format!("{} ({} pointers)", t.name, t.pointers), cost(t)))
+                .collect(),
+        });
+    }
+    out
+}
+
+/// The recommendations an image's strings make ([`crate::strings`]):
+///
+/// - `build-paths`: the build's source paths, shortened by mapping their
+///   directory away (`-fmacro-prefix-map`; Rust's `--remap-path-prefix`;
+///   MSVC's `/d1trimfile:`).
+/// - `duplicate-strings`: string literals with copies, which pooling them
+///   (`-fmerge-constants`, MSVC's `/GF`) would merge; `named` says whether
+///   an address is in named data (an array, not merged).
+pub fn strings(
+    image: &hexcavator_image::Image<'_>,
+    toolchain: Toolchain,
+    named: &dyn Fn(u64) -> bool,
+    rust: bool,
+) -> Vec<Recommendation> {
+    let mut out = Vec::new();
+    let roots = crate::strings::build_paths(image);
+    let saving: u64 = roots.iter().map(|r| r.saving).sum();
+    if saving >= MIN_SAVING {
+        let top = &roots[0];
+        let paths: usize = roots.iter().map(|r| r.paths.len()).sum();
+        let how = if top.rust {
+            format!(
+                "build with --remap-path-prefix={}=. (in RUSTFLAGS)",
+                top.root
+            )
+        } else if toolchain == Toolchain::Msvc {
+            format!(
+                "compile with /d1trimfile:{}\\ (clang-cl: -fmacro-prefix-map)",
+                top.root
+            )
+        } else {
+            format!(
+                "compile with -fmacro-prefix-map={0}=. (or -ffile-prefix-map={0}=., which maps the debug information's paths too)",
+                top.root
+            )
+        };
+        out.push(Recommendation {
+            kind: "build-paths",
+            advice: format!(
+                "{how}{}: {paths} source files' paths (__FILE__, in asserts and logging{}) hold the directory they were built in",
+                match roots.len() {
+                    1 => String::new(),
+                    2 => ", and so for one other directory".to_string(),
+                    n => format!(", and so for {} other directories", n - 1),
+                },
+                if top.rust { "; panics' locations" } else { "" }
+            ),
+            saving,
+            examples: roots
+                .iter()
+                .take(EXAMPLES)
+                .map(|r| (format!("{} ({} paths)", r.root, r.paths.len()), r.saving))
+                .collect(),
+        });
+    }
+    let dups = crate::strings::duplicate_strings(image, named);
+    let saving: u64 = dups
+        .iter()
+        .map(|d| d.size * (d.copies.len() as u64 - 1))
+        .sum();
+    if saving >= MIN_SAVING {
+        out.push(Recommendation {
+            kind: "duplicate-strings",
+            advice: format!(
+                "{}: {} copies the linker didn't merge",
+                if rust {
+                    "build with LTO (Cargo: lto = true in the profile; their copies are of separate codegen units)"
+                } else if toolchain == Toolchain::Msvc {
+                    "compile with /GF (string pooling: /O1 and /O2 do)"
+                } else {
+                    "compile with -fmerge-constants (optimizing does: not -O0, or -fno-merge-constants)"
+                },
+                if dups.len() == 1 {
+                    "a string literal has".to_string()
+                } else {
+                    format!("{} string literals have", dups.len())
+                }
+            ),
+            saving,
+            examples: dups
+                .iter()
+                .take(EXAMPLES)
+                .map(|d| {
+                    let mut t: String = d.text.chars().take(60).collect();
+                    if t.len() < d.text.len() {
+                        t.push('…');
+                    }
+                    (format!("\"{}\" ({} copies)", t.escape_debug(), d.copies.len()), d.size * (d.copies.len() as u64 - 1))
+                })
+                .collect(),
+        });
+    }
+    out
+}
+
+/// The recommendation exception handling makes
+/// ([`crate::exceptions::Exceptions::needless`]): functions with cleanups
+/// (handlers' data, and the landing pads it describes) though nothing they
+/// call can throw, whose callees `noexcept` would let the compiler know.
+/// The saving counts the data, not the landing pads' code: at least it.
+pub fn noexcept(
+    x: &Xref,
+    eh: &crate::exceptions::Exceptions,
+    toolchain: Toolchain,
+    rust: bool,
+) -> Option<Recommendation> {
+    // (Rust has no noexcept: unwinding's cleanups are panic-abort's.)
+    if rust {
+        return None;
+    }
+    let needless: Vec<&crate::exceptions::FunctionEh> =
+        eh.needless.iter().map(|&i| &eh.functions[i]).collect();
+    let saving: u64 = needless.iter().map(|f| f.handlers).sum();
+    if saving < MIN_SAVING {
+        return None;
+    }
+    let mut examples: Vec<(String, u64)> = needless
+        .iter()
+        .map(|f| (x.names[f.node as usize].clone(), f.handlers))
+        .collect();
+    examples.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
+    examples.truncate(EXAMPLES);
+    Some(Recommendation {
+        kind: "noexcept",
+        advice: format!(
+            "mark what {} call noexcept ({}): they carry exception cleanups (landing pads, and their tables), though nothing they call can throw",
+            if needless.len() == 1 {
+                "a function".to_string()
+            } else {
+                format!("{} functions", needless.len())
+            },
+            if toolchain == Toolchain::Msvc {
+                "or, where nothing throws, compile with /EHs-c-"
+            } else {
+                "or, where nothing throws, compile with -fno-exceptions"
+            }
+        ),
+        saving,
+        examples,
+    })
+}
+
+/// Whether `symbols` are a Rust program's: what only Rust's runtime has
+/// among them (`core::panicking`, `rust_begin_unwind`,
+/// `rust_eh_personality`, `__rust_alloc`, `std::rt::lang_start`). (Not
+/// merely `std::`, which is C++'s too.)
+pub fn is_rust(symbols: &[crate::symbols::Symbol]) -> bool {
+    symbols.iter().any(|s| {
+        let n = s.name.as_str();
+        n.starts_with("core::panicking::")
+            || n.starts_with("std::rt::lang_start")
+            || n.starts_with("rust_begin_unwind")
+            || n.starts_with("rust_eh_personality")
+            || n.starts_with("__rust_")
+    })
+}
+
+/// `n` of `what` (`one` if 1): "a function", "3 functions".
+fn count(n: usize, one: &str, many: &str) -> String {
+    if n == 1 {
+        one.to_string()
+    } else {
+        format!("{n} {many}")
+    }
+}
+
+/// The recommendations a Rust program's panics and formatting make (if
+/// `symbols` are of one: some in `core`, `std`, or `alloc`):
+///
+/// - `panic-abort`: `-C panic=abort`, which needs no unwinding: the
+///   functions' cleanups' tables ([`crate::exceptions`]), and the
+///   `panic_unwind` crate (at least: not the landing pads' code).
+/// - `fmt-debug`: `-Zfmt-debug=none` (nightly), which makes `Debug`
+///   output nothing: the `<T as core::fmt::Debug>::fmt` implementations.
+pub fn rust(
+    symbols: &[crate::symbols::Symbol],
+    eh: &crate::exceptions::Exceptions,
+) -> Vec<Recommendation> {
+    use crate::sources::crate_of;
+    use crate::symbols::SymbolKind;
+    let functions: Vec<&crate::symbols::Symbol> = symbols
+        .iter()
+        .filter(|s| {
+            matches!(
+                s.kind,
+                SymbolKind::Function | SymbolKind::PrimaryBlock | SymbolKind::SeparatedBlock
+            )
+        })
+        .collect();
+    let crate_is = |s: &crate::symbols::Symbol, c: &str| crate_of(&s.name).as_deref() == Some(c);
+    if !is_rust(symbols) {
+        return Vec::new();
+    }
+    let mut out = Vec::new();
+    // Unwinding: the cleanups' tables, and panic_unwind.
+    let cleanups: Vec<&crate::exceptions::FunctionEh> =
+        eh.functions.iter().filter(|f| f.handlers > 0).collect();
+    let unwinder: u64 = functions
+        .iter()
+        .filter(|s| crate_is(s, "panic_unwind"))
+        .map(|s| s.size.vm)
+        .sum();
+    let saving = cleanups.iter().map(|f| f.handlers).sum::<u64>() + unwinder;
+    if saving >= MIN_SAVING && !cleanups.is_empty() {
+        out.push(Recommendation {
+            kind: "panic-abort",
+            advice: format!(
+                "build with -C panic=abort (Cargo: panic = \"abort\" in the profile), if nothing catches a panic: {} cleanups for unwinding (landing pads, and their tables), which aborting doesn't need{}",
+                count(cleanups.len(), "a function carries", "functions carry"),
+                if unwinder > 0 { ", nor the panic_unwind crate" } else { "" }
+            ),
+            saving,
+            examples: Vec::new(),
+        });
+    }
+    // Debug formatting.
+    let debug: Vec<&&crate::symbols::Symbol> = functions
+        .iter()
+        .filter(|s| s.name.contains(" as core::fmt::Debug>::fmt"))
+        .collect();
+    let saving: u64 = debug.iter().map(|s| s.size.vm).sum();
+    if saving >= MIN_SAVING {
+        let mut ex: Vec<(String, u64)> =
+            debug.iter().map(|s| (s.name.clone(), s.size.vm)).collect();
+        ex.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
+        ex.truncate(EXAMPLES);
+        out.push(Recommendation {
+            kind: "fmt-debug",
+            advice: format!(
+                "build with -Zfmt-debug=none (nightly; or shallow, which keeps types' names), if its Debug output isn't needed: {}",
+                count(debug.len(), "a Debug implementation", "Debug implementations")
+            ),
+            saving,
+            examples: ex,
+        });
+    }
+    out
+}
+
+/// The recommendation near-identical functions make
+/// ([`crate::fingerprint::near_identical`]): sharing each family's code,
+/// at most its saving (if at least [`MIN_SAVING`] in all).
+pub fn near_identical(
+    families: &[crate::fingerprint::NearFamily],
+    rust: bool,
+) -> Option<Recommendation> {
+    let saving: u64 = families.iter().map(|f| f.saving).sum();
+    if saving < MIN_SAVING {
+        return None;
+    }
+    let versions: usize = families.iter().map(|f| f.versions).sum();
+    Some(Recommendation {
+        kind: "near-identical",
+        advice: format!(
+            "share the code of {} {}' instantiations (up to this much), which differ only in constants, the sizes of what they work on, or what they call: {} each forwards to, given those as arguments ({versions} versions in all)",
+            families.len(),
+            if rust { "generics" } else { "templates" },
+            if rust {
+                "a non-generic inner function"
+            } else {
+                "a non-template core"
+            }
+        ),
+        saving,
+        examples: families
+            .iter()
+            .take(EXAMPLES)
+            .map(|f| (format!("{} ({} versions)", f.family, f.versions), f.saving))
+            .collect(),
+    })
 }
 
 /// The relative relocation type of `machine`.
@@ -609,6 +1153,135 @@ fn wasm_custom(m: &hexcavator_wasm::Module<'_>, out: &mut Vec<Recommendation>) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn symbol(name: &str, size: u64) -> crate::symbols::Symbol {
+        crate::symbols::Symbol {
+            addr: 0,
+            size: crate::Size {
+                file: size,
+                vm: size,
+            },
+            kind: crate::symbols::SymbolKind::Function,
+            folded: false,
+            name: name.into(),
+            compiland: None,
+            file_static: false,
+        }
+    }
+
+    /// A Rust program's: panic=abort (its cleanups' tables, and
+    /// panic_unwind), and -Zfmt-debug (its Debug implementations).
+    #[test]
+    fn rust_programs() {
+        use crate::exceptions::{Exceptions, FunctionEh};
+        let syms = vec![
+            symbol("core::panicking::panic", 40),
+            symbol("std::rt::lang_start_internal", 300),
+            symbol("panic_unwind::imp::panic", 200),
+            symbol("<app::Point as core::fmt::Debug>::fmt", 120),
+            symbol("<app::Shape as core::fmt::Debug>::fmt", 90),
+            symbol("app::main", 500),
+        ];
+        assert!(is_rust(&syms));
+        // (C++'s std isn't Rust's.)
+        assert!(!is_rust(&[
+            symbol("std::vector<int>::size()", 9),
+            symbol("main", 4)
+        ]));
+        let eh = Exceptions {
+            functions: vec![
+                FunctionEh {
+                    node: 0,
+                    unwind: 40,
+                    handlers: 30,
+                },
+                FunctionEh {
+                    node: 1,
+                    unwind: 20,
+                    handlers: 0,
+                },
+            ],
+            needless: Vec::new(),
+        };
+        let r = rust(&syms, &eh);
+        let kinds: Vec<&str> = r.iter().map(|r| r.kind).collect();
+        assert_eq!(kinds, ["panic-abort", "fmt-debug"]);
+        assert_eq!(r[0].saving, 30 + 200);
+        assert!(
+            r[0].advice.contains("a function carries cleanups"),
+            "{}",
+            r[0].advice
+        );
+        assert_eq!(r[1].saving, 210);
+        assert_eq!(r[1].examples[0].0, "<app::Point as core::fmt::Debug>::fmt");
+        // Not Rust's: none.
+        assert!(rust(&[symbol("main", 400), symbol("llvm::foo()", 900)], &eh).is_empty());
+        // Nothing unwinding: no panic-abort.
+        let none = Exceptions::default();
+        assert_eq!(
+            rust(&syms, &none)
+                .iter()
+                .map(|r| r.kind)
+                .collect::<Vec<_>>(),
+            ["fmt-debug"]
+        );
+    }
+
+    /// Advice in Rust's terms: #[inline(never)], generics, LTO; and no
+    /// noexcept (which Rust hasn't).
+    #[test]
+    fn rust_terms() {
+        use crate::fingerprint::NearFamily;
+        let fam = NearFamily {
+            family: "Vec<>::grow".into(),
+            members: vec![1, 2],
+            versions: 2,
+            saving: 400,
+        };
+        let r = near_identical(std::slice::from_ref(&fam), true).unwrap();
+        assert!(
+            r.advice.contains("generics' instantiations")
+                && r.advice.contains("non-generic inner function"),
+            "{}",
+            r.advice
+        );
+        let c = near_identical(&[fam], false).unwrap();
+        assert!(
+            c.advice.contains("templates' instantiations")
+                && c.advice.contains("non-template core"),
+            "{}",
+            c.advice
+        );
+        let i = crate::inlining::Inlinee {
+            name: "f".into(),
+            copies: 10,
+            functions: 10,
+            parameters: Some(1),
+            inlined: 1000,
+            largest: 100,
+            out_of_line: true,
+            calls: 180,
+            body: 0,
+        };
+        let r = inlining(
+            std::slice::from_ref(&i),
+            Toolchain::Msvc,
+            hexcavator_core::Arch::X64,
+            true,
+        )
+        .unwrap();
+        assert!(
+            r.advice.starts_with("mark a function #[inline(never)]"),
+            "{}",
+            r.advice
+        );
+        let c = inlining(&[i], Toolchain::Msvc, hexcavator_core::Arch::X64, false).unwrap();
+        assert!(
+            c.advice.starts_with("mark a function __declspec(noinline)"),
+            "{}",
+            c.advice
+        );
+    }
 
     #[test]
     fn link_options() {

@@ -292,6 +292,84 @@ fn arm64_address_bits(encoding: &str, refers: bool) -> u32 {
     }
 }
 
+/// A function's shape: its instructions with what makes one instantiation
+/// of a template differ from another left out (every constant and
+/// displacement, operand widths and scales, and what it refers to), so
+/// that two of one shape differ only in constants, the sizes of what they
+/// work on, or what they call. `None` for code no decoder here reads.
+///
+/// - x86: each instruction's operation (prefixes aside) and its operands'
+///   kinds, with their registers' numbers but not their widths (`eax` and
+///   `rax` alike, `xmm0` and `ymm0` alike).
+/// - ARM64: each instruction's encoding less its width (`ADD_64_addsub_imm`
+///   and `ADD_32_addsub_imm` alike), and its first two register fields.
+pub fn shape(arch: Arch, code: &[u8], start: u64) -> Option<u64> {
+    let mut h = hasher(b's');
+    let mut count = 0usize;
+    match arch {
+        Arch::X86 | Arch::X64 => {
+            use hexcavator_x86::Operand;
+            let mode = if arch == Arch::X86 {
+                hexcavator_x86::Mode::Bits32
+            } else {
+                hexcavator_x86::Mode::Bits64
+            };
+            let reg = |h: &mut FxHasher, r: Option<hexcavator_x86::Register>| {
+                h.write_u8(r.map_or(0xFF, hexcavator_x86::Register::index));
+            };
+            let mut at = 0usize;
+            while at < code.len() {
+                let pc = start + at as u64;
+                let Ok(inst) = hexcavator_x86::decode(&code[at..], mode, pc) else {
+                    h.write_u8(0xFF);
+                    break;
+                };
+                h.write_u16(inst.mnemonic() as u16);
+                for op in inst.operands() {
+                    match op {
+                        Operand::Reg(r) => {
+                            h.write_u8(b'r');
+                            reg(&mut h, Some(*r));
+                        }
+                        Operand::Imm(_) => h.write_u8(b'i'),
+                        Operand::Mem(m) => {
+                            h.write_u8(b'm');
+                            reg(&mut h, m.base);
+                            reg(&mut h, m.index);
+                        }
+                        Operand::Rel(_) => h.write_u8(b'l'),
+                        Operand::None => h.write_u8(b'-'),
+                        _ => h.write_u8(b'?'),
+                    }
+                }
+                count += 1;
+                at += inst.len().max(1);
+            }
+        }
+        Arch::Arm64 => {
+            for (i, w) in code.as_chunks::<4>().0.iter().enumerate() {
+                let word = u32::from_le_bytes(*w);
+                match hexcavator_arm64::decode(word, start + i as u64 * 4) {
+                    Some(inst) => {
+                        for part in inst.encoding_name().split('_') {
+                            if part != "32" && part != "64" {
+                                h.write(part.as_bytes());
+                            }
+                            h.write_u8(b'_');
+                        }
+                        h.write_u32(word & 0x3FF);
+                    }
+                    None => h.write_u8(0xFF),
+                }
+                count += 1;
+            }
+        }
+        _ => return None,
+    }
+    h.write_usize(count);
+    Some(h.finish())
+}
+
 /// The class of each item: its local hash and its references' classes,
 /// rehashed until the number of classes stops growing (at most `rounds`
 /// times). Each round's class includes the last's, so classes only split.

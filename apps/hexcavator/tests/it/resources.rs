@@ -343,8 +343,17 @@ fn macho() {
             .map(|p| p[1].clone())
     };
     assert_eq!(get("Platform").unwrap(), "macOS");
-    assert_eq!(get("Minimum OS").unwrap(), "12.0.0");
-    assert_eq!(get("SDK").unwrap(), "14.0.0");
+    assert_eq!(get("Minimum OS").unwrap(), "12.0");
+    assert_eq!(get("SDK").unwrap(), "14.0");
+    // (Linked by ld64.lld, which names itself.)
+    assert!(
+        get("Built with")
+            .unwrap()
+            .as_str()
+            .unwrap()
+            .starts_with("lld 24."),
+        "{pairs}"
+    );
     assert_eq!(
         get("Bundle identifier").unwrap(),
         "dev.hexcavator.resources"
